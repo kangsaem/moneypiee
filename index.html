@@ -259,8 +259,8 @@ async function fetchNaverIndex(naverCode){
   const targetUrl = `https://polling.finance.naver.com/api/realtime/domestic/index/${naverCode}?_=${Date.now()}`;
   const attempts = [
     () => fetchWithTimeout(targetUrl, { cache: 'no-store' }, 3000),
-    () => fetchWithTimeout(`https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 4000),
-    () => fetchWithTimeout(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 4000)
+    () => fetchWithTimeout(`https://moneypie-proxy.y0n2.workers.dev/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 4000),
+    () => fetchWithTimeout(`https://moneypie-proxy.y0n2.workers.dev/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 4000)
   ];
   let res = null;
   for(const attempt of attempts){
@@ -304,7 +304,7 @@ async function fetchYahooChart(symbol, range, wideIntraday){
     res = await fetchWithTimeout(targetUrl, { cache: 'no-store' }, 3000);
     if(!res.ok) throw new Error('direct fetch failed');
   }catch(e){
-    res = await fetchWithTimeout(`https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 5000);
+    res = await fetchWithTimeout(`https://moneypie-proxy.y0n2.workers.dev/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 5000);
   }
   const data = await res.json();
   const result = data.chart.result[0];
@@ -996,7 +996,7 @@ async function searchNaverAutocomplete(query){
     res = await fetchWithTimeout(targetUrl, { cache: 'no-store' }, 3000);
     if(!res.ok) throw new Error('direct fetch failed');
   }catch(e){
-    res = await fetchWithTimeout(`https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 5000);
+    res = await fetchWithTimeout(`https://moneypie-proxy.y0n2.workers.dev/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 5000);
   }
   const data = await res.json();
   if(data.result && Array.isArray(data.result.items)){
