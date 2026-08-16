@@ -388,25 +388,44 @@ function sparklineSVG(closes, width, height, baselineValue){
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;margin-top:4px;">${baselineLinePaths(pixelPoints, baselineY, width, height, uid)}</svg>`;
 }
 
-function sparklineIntradaySVG(points, marketOpen, marketClose, width, height, baselineValue){
+function sparklineIntradaySVG(points, marketOpen, marketClose, width, height, baselineValue, fixedAxis){
   if(!points || points.length < 2 || !marketOpen || !marketClose || marketClose <= marketOpen){
     return sparklineSVG((points||[]).map(p=>p.close), width, height, baselineValue);
   }
-  // 실제 마지막 데이터 시각이 예상 마감(+지연버퍼)보다 늦으면, 그 시각까지 오른쪽 끝을 자동으로 늘려서
-  // 지연시간을 정확히 몰라도 항상 실제 데이터 끝까지 그래프가 채워지도록 한다.
-  const lastPointTs = points[points.length-1].ts;
-  const effectiveClose = Math.max(marketClose, lastPointTs);
+  let drawPoints = points;
+  let effectiveClose = marketClose;
+  if(fixedAxis){
+    // X축을 open~close(09:00~15:30 KST)로 고정. 구간 밖 포인트는 제외하고 축을 늘리지 않는다.
+    drawPoints = points.filter(p => p.ts >= marketOpen && p.ts <= marketClose);
+    if(drawPoints.length < 2){
+      // 구간 안 포인트가 부족하면 구간 안으로 clamp해서 그리기
+      drawPoints = points.map(p => ({
+        ts: Math.max(marketOpen, Math.min(marketClose, p.ts)),
+        close: p.close
+      }));
+    }
+    effectiveClose = marketClose;
+  } else {
+    // 실제 마지막 데이터 시각이 예상 마감보다 늦으면 오른쪽 끝을 자동으로 늘림 (지연 데이터 대응)
+    const lastPointTs = points[points.length-1].ts;
+    effectiveClose = Math.max(marketClose, lastPointTs);
+  }
   const span = effectiveClose - marketOpen;
-  const closesVals = points.map(p => p.close);
-  const min = Math.min(...closesVals, ...(baselineValue!==undefined?[baselineValue]:[])), max = Math.max(...closesVals, ...(baselineValue!==undefined?[baselineValue]:[]));
-  const valRange = (max-min) || 1;
-  const pixelPoints = points.map(p => ({
-    x: Math.max(0, Math.min(width, ((p.ts - marketOpen)/span) * width)),
-    y: height - ((p.close-min)/valRange) * height
+  if(span <= 0 || drawPoints.length < 2){
+    return sparklineSVG(drawPoints.map(p=>p.close), width, height, baselineValue);
+  }
+  const closesVals = drawPoints.map(p => p.close);
+  const minVals = baselineValue !== undefined && baselineValue !== null ? [...closesVals, baselineValue] : closesVals;
+  const min = Math.min(...minVals);
+  const max = Math.max(...minVals);
+  const valRange = (max - min) || 1;
+  const pixelPoints = drawPoints.map(p => ({
+    x: Math.max(0, Math.min(width, ((p.ts - marketOpen) / span) * width)),
+    y: height - ((p.close - min) / valRange) * height
   }));
   const base = (baselineValue !== undefined && baselineValue !== null) ? baselineValue : closesVals[0];
-  const baselineY = height - ((base-min)/valRange) * height;
-  // 장 마감 시각 위치를 아주 옅은 기준선으로 표시 (오늘 그래프가 아직 끝까지 안 그려졌음을 보여줌)
+  const baselineY = height - ((base - min) / valRange) * height;
+  // 장 마감 시각 위치를 아주 옅은 기준선으로 표시
   const closeLine = `<line x1="${width}" y1="0" x2="${width}" y2="${height}" stroke="var(--border)" stroke-width="1" stroke-dasharray="2 2"/>`;
   const uid = ++sparklineIdCounter;
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;margin-top:4px;">${closeLine}${baselineLinePaths(pixelPoints, baselineY, width, height, uid)}</svg>`;
@@ -451,14 +470,15 @@ function renderMarketTicker(){
       d.marketOpen = kr.open;
       d.marketClose = kr.close;
     }
-    if(range === '1d' && KR_OVERRIDE_KEYS.includes(cfg.key)){
+    const useFixedAxis = range === '1d' && KR_OVERRIDE_KEYS.includes(cfg.key);
+    if(useFixedAxis){
       const kr = koreanMarketTimesForToday();
       d.marketOpen = kr.open;
       d.marketClose = kr.close;
     }
     const baseline = range === '1d' ? d.prevClose : ((d.closes && d.closes[0]) || undefined);
     const chart = (range === '1d' && d.intradayPoints && d.intradayPoints.length >= 2)
-      ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 90, 24, baseline)
+      ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 90, 24, baseline, useFixedAxis)
       : sparklineSVG(d.closes || [], 90, 24, baseline);
     return `<div class="mkt-card" data-mktkey="${cfg.key}">
       <div class="mkt-name" style="display:flex;justify-content:space-between;align-items:baseline;"><span>${cfg.name}</span><span style="color:var(--text-dim);">${MARKET_RANGE_LABEL[range]}</span></div>
