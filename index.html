@@ -226,9 +226,11 @@
 
 <div id="editAccountNameModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;width:320px;max-width:100%;">
-    <h3 style="margin:0 0 16px;font-size:16px;font-weight:700;">계좌 이름 수정</h3>
+    <h3 style="margin:0 0 16px;font-size:16px;font-weight:700;">계좌 수정</h3>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <input id="editAccountNameInput" placeholder="계좌 이름" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:14px;font-family:inherit;">
+      <input id="editAccountNameInput" placeholder="계좌명" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:14px;font-family:inherit;">
+      <select id="editAccountTypeInput" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:14px;font-family:inherit;">
+      </select>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
         <button class="btn" id="editAccountNameCancelBtn">취소</button>
         <button class="btn btn-primary" id="editAccountNameSaveBtn">저장</button>
@@ -919,20 +921,20 @@ function saveAddAccountModal(){
   closeAddAccountModal();
   save(); render();
 }
-function changeAccountType(id){
-  const acc = getAccount(id);
-  const typeInput = prompt(`계좌 유형을 입력하세요 (${ACCOUNT_TYPES.join('/')})`, acc.accountType || '직투');
-  if(typeInput === null) return;
-  if(!ACCOUNT_TYPES.includes(typeInput.trim())){ alert(`${ACCOUNT_TYPES.join('/')} 중 하나로 입력해주세요.`); return; }
-  acc.accountType = typeInput.trim();
-  save(); render();
-}
 let editAccountNameContext = null;
-function renameAccount(id){
+function openEditAccountModal(id){
   const acc = getAccount(id);
   editAccountNameContext = id;
   document.getElementById('editAccountNameInput').value = acc.name;
+  const typeSelect = document.getElementById('editAccountTypeInput');
+  typeSelect.innerHTML = ACCOUNT_TYPES.map(t => `<option value="${t}" ${t===(acc.accountType||'직투')?'selected':''}>${t}</option>`).join('');
   document.getElementById('editAccountNameModal').style.display = 'flex';
+}
+function changeAccountType(id){
+  openEditAccountModal(id);
+}
+function renameAccount(id){
+  openEditAccountModal(id);
 }
 function closeEditAccountNameModal(){
   document.getElementById('editAccountNameModal').style.display = 'none';
@@ -944,6 +946,7 @@ function saveEditAccountNameModal(){
   const name = document.getElementById('editAccountNameInput').value.trim();
   if(!name){ alert('계좌 이름을 입력해주세요.'); return; }
   acc.name = name;
+  acc.accountType = document.getElementById('editAccountTypeInput').value;
   closeEditAccountNameModal();
   save(); render();
 }
@@ -2836,7 +2839,7 @@ function renderPanel(){
         <span class="total-badge">자산<span class="num">${accTotal.toLocaleString()}원</span></span>
       </div>
       <div style="display:flex;gap:8px;justify-self:end;">
-        <button class="btn" id="renameBtn">이름 수정</button>
+        <button class="btn" id="renameBtn">수정</button>
       </div>
     </div>
     <form class="add-row" id="addForm">
