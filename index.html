@@ -30,7 +30,13 @@
     font-weight:500;
   }
   .num{font-family:'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-weight:500;}
-  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 60px;}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 100px;}
+  #adfit-bottom{
+    position:fixed;bottom:0;left:0;right:0;z-index:999;
+    background:var(--bg);border-top:1px solid var(--border);
+    padding:6px 0;display:flex;justify-content:center;align-items:center;
+    min-height:50px;
+  }
   header{margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;}
   h1{font-size:25px;font-weight:700;margin:0 0 4px;letter-spacing:-0.2px;}
   .sub{color:var(--text-dim);font-size:14px;margin:0;font-weight:500;}
@@ -3027,5 +3033,13 @@ document.querySelectorAll('.inline-export-link').forEach(el => {
 load();
 loadMarketData(true);
 </script>
+
+<div id="adfit-bottom">
+  <ins class="kakao_ad_area" style="display:none;"
+       data-ad-unit="DAN-KBfuq3ok8KKHE5jU"
+       data-ad-width="320"
+       data-ad-height="50"></ins>
+  <script type="text/javascript" src="//t1.kakaocdn.net/kas/static/ba.min.js" async></script>
+</div>
 </body>
 </html>
