@@ -281,7 +281,7 @@
       </div>
       <div>
         <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 왜 자동으로 연동 안 되고 직접 입력해야 해요?</div>
-        증권사 자동연동 앱은 로그인 정보와 자산 데이터를 다른 서버에 넘겨야 해요. 약간의 수고 대신 안전함을 택했어요. 종목명 입력은 코드/티커/기존에 입력한 종목 불러오기가 다 적용돼서, 생각보다 손이 많이 안 가요.
+        <span style="color:#E8A0BC;font-weight:700;">증권사 자동연동 앱은 로그인 정보와 자산 데이터를 다른 서버에 넘겨야 해요.</span> 약간의 수고 대신 안전함을 택했어요. 종목명 입력은 코드/티커/기존에 입력한 종목 불러오기가 다 적용돼서, 생각보다 손이 많이 안 가요.
       </div>
       <div>
         <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 매일 확인해야 하나요?</div>
@@ -297,11 +297,11 @@
       </div>
       <div>
         <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 휴대폰 바꾸면 데이터 다 날아가나요?</div>
-        기기를 바꾸거나 브라우저 데이터를 지우면 데이터도 같이 사라져요. 그래서 데이터 저장하기/불러오기 기능을 넣어뒀어요. 미리 데이터 저장하기 해두셨다가, 새 기기나 PC에서 불러오기 하시면 그대로 이어져요.
+        기기를 바꾸거나 브라우저 데이터를 지우면 데이터도 같이 사라져요. 그래서 데이터 저장하기/불러오기 기능을 넣어뒀어요. 데이터 저장하기 해두셨다가, 새 기기나 PC에서 불러오기 하시면 그대로 이어져요.
       </div>
       <div>
         <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 앞으로 계속 관리되는 거 맞아요?</div>
-        네, 원래 제가 쓰려고 만든 도구라서 계속 관리됩니다 :)
+        처음부터 제가 쓰려고 만든 도구라서 계속 관리돼요. 안심하고 쓰셔도 됩니다.
       </div>
     </div>
     <label style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:13px;color:var(--text-dim);cursor:pointer;">
@@ -2934,7 +2934,7 @@ function renderPanel(){
     </div>
     <form class="add-row" id="addForm">
       <div style="position:relative;flex:2;min-width:160px;">
-        <input class="name" placeholder="종목 (예: 삼성전자, 코드는 069500)" required autocomplete="off" style="width:100%;box-sizing:border-box;">
+        <input class="name" placeholder="종목 (예: 현금,삼성전자,069500,WDC)" required autocomplete="off" style="width:100%;box-sizing:border-box;">
         <div id="nameAutocomplete" style="position:absolute;top:100%;left:0;right:0;z-index:20;"></div>
       </div>
       <input class="amount" type="number" placeholder="평가액" required min="0">
