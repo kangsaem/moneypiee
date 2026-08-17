@@ -355,6 +355,7 @@ const CREDIT_USED_COLOR = '#B85450';
 const CREDIT_REMAIN_COLOR = '#9A9BA1';
 
 let state = { accounts: [], activeId: null, snapshots: [], domesticSubType: '전체', overseasSubType: '전체', historyRange: '3', creditLines: [] };
+let historyAccountFilter = null;
 
 const MARKET_SYMBOLS = [
   { key:'kospi', symbol:'^KS11', name:'코스피' },
@@ -2405,16 +2406,26 @@ function renderTabs(){
   tabs.innerHTML = html;
 
   tabs.querySelectorAll('[data-tab]').forEach(el => {
-    el.addEventListener('click', () => { state.activeId = el.dataset.tab; accountTableSortMode = null; stockLegendSortMode = 'amount'; render(); });
+    el.addEventListener('click', () => { state.activeId = el.dataset.tab; accountTableSortMode = null; stockLegendSortMode = 'amount'; historyAccountFilter = null; render(); });
   });
   document.getElementById('addAccountBtn').addEventListener('click', addAccount);
+}
+
+function buildAccountFilteredSnapshots(snapshots, accountId){
+  if(!accountId) return snapshots;
+  return snapshots.map(s => {
+    const acc = (s.accounts||[]).find(a => a.id === accountId);
+    if(!acc) return null;
+    return { ...s, accounts: [acc] };
+  }).filter(Boolean);
 }
 
 function renderHistoryPanel(){
   const panel = document.getElementById('panel');
   const sorted = state.snapshots;
   const range = state.historyRange;
-  const filtered = range === 'all' ? sorted : sorted.slice(-parseInt(range, 10));
+  const accountFilteredSnapshots = historyAccountFilter ? buildAccountFilteredSnapshots(sorted, historyAccountFilter) : sorted;
+  const filtered = range === 'all' ? accountFilteredSnapshots : accountFilteredSnapshots.slice(-parseInt(range, 10));
 
   const points = filtered.map(s => ({
     label: s.label,
@@ -2433,6 +2444,13 @@ function renderHistoryPanel(){
     value: _.sumBy(s.creditLines || [], 'used')
   }));
 
+  const accountSelector = `
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;">
+      <button class="btn" data-history-acc="" style="padding:4px 10px;font-size:12px;flex-shrink:0;${!historyAccountFilter ? 'background:var(--accent);color:#111;' : ''}">전체</button>
+      ${state.accounts.map(a => `<button class="btn" data-history-acc="${a.id}" style="padding:4px 10px;font-size:12px;flex-shrink:0;${historyAccountFilter===a.id ? 'background:var(--accent);color:#111;' : ''}">${escapeHTML(a.name)}</button>`).join('')}
+    </div>
+  `;
+
   const rangeOptions = [['3','최근 3개월'],['6','최근 6개월'],['12','최근 12개월'],['24','최근 24개월'],['all','전체']];
   const rangeSelector = `
     <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
@@ -2442,7 +2460,7 @@ function renderHistoryPanel(){
     </div>
   `;
 
-  const hasCreditData = creditUsedPoints.some(p => p.value > 0);
+  const hasCreditData = !historyAccountFilter && creditUsedPoints.some(p => p.value > 0);
   const lineSeries = [
     { points: domesticPoints, color: '#C7C8CD', name: '국내' },
     { points: overseasPoints, color: '#9A9BA1', name: '해외' }
@@ -2450,6 +2468,7 @@ function renderHistoryPanel(){
   if(hasCreditData) lineSeries.push({ points: creditUsedPoints, color: CREDIT_USED_COLOR, name: '마통', showLabel: false });
 
   panel.innerHTML = `
+    ${accountSelector}
     ${rangeSelector}
     <div style="position:relative;">
       <div id="total-memo-slot"></div>
@@ -2461,6 +2480,16 @@ function renderHistoryPanel(){
   `;
   const trendScrollEl = panel.querySelector('.trend-scroll');
   if(trendScrollEl) trendScrollEl.scrollLeft = trendScrollEl.scrollWidth;
+  document.querySelectorAll('[data-history-acc]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      historyAccountFilter = btn.dataset.historyAcc || null;
+      openTrendRowId = null;
+      openTrendSeriesPrefix = null;
+      openTrendIdx = null;
+      document.body.style.overflow = '';
+      render();
+    });
+  });
   document.getElementById('rangeSelect').addEventListener('change', (e) => {
     state.historyRange = e.target.value;
     openTrendRowId = null;
