@@ -2001,7 +2001,7 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
   const valueLabels = points.map((p,i) => {
     let show = true, scale = 1;
     if(labelMode === 'shrink'){
-      scale = (i === lastIdx) ? 1 : 0.5;
+      scale = (i === lastIdx) ? 0.7 : 0.35;
     } else if(labelMode === 'sparse'){
       show = (i === lastIdx || i === maxIdx || i === minIdx || i === 0);
     } else if(labelMode === 'small'){
@@ -2015,7 +2015,7 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
     if(i === 0) return '';
     let show = true, scale = 1;
     if(labelMode === 'shrink'){
-      scale = (i === lastIdx) ? 1 : 0.5;
+      scale = (i === lastIdx) ? 0.7 : 0.35;
     } else if(labelMode === 'small'){
       scale = 0.85;
     }
@@ -2056,7 +2056,7 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
       sLabels = c.map((pt,i) => {
         let show = true, scale = 1;
         if(labelMode === 'shrink'){
-          scale = (i === lastIdx) ? 1 : 0.5;
+          scale = (i === lastIdx) ? 0.7 : 0.35;
         } else if(labelMode === 'sparse'){
           show = (i === lastIdx || i === maxIdx || i === minIdx || i === 0);
         } else if(labelMode === 'small'){
@@ -2497,7 +2497,7 @@ function renderHistoryPanel(){
     ${rangeSelector}
     <div style="position:relative;">
       <div id="total-memo-slot"></div>
-      <div class="trend-wrap">${lineChartSVG(points, lineSeries, 860, 205, range === '24' ? 'shrink' : (range === 'all' ? 'sparse' : (range === '6' ? 'small' : 'normal')), range === 'all' || range === '3' || range === '6')}</div>
+      <div class="trend-wrap">${lineChartSVG(points, lineSeries, 860, 205, range === '24' ? 'shrink' : (range === 'all' ? 'sparse' : ((range === '6' || range === '12') ? 'small' : 'normal')), range === 'all' || range === '3' || range === '6')}</div>
     </div>
     ${trendBarsHTML(filtered, 'group', 'group', '섹터', range === 'all' || range === '24', 'group')}
     ${trendBarsHTML(filtered, regionLabelFor, 'region', '국내/해외', range === 'all' || range === '24', 'region')}
