@@ -2625,9 +2625,23 @@ function accountTypeBarChartBlock(selectedType){
     return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="gap:5px;${btnStyle}"><span class="swatch" style="background:${isSelected ? '#111' : rankColor(d.label, i, data.length, 'accountType')}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num" style="margin-left:2px;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('');
   return `<div class="chart-box" style="grid-column:1/-1;max-width:800px;margin:0 auto;">
-    ${stackedBarSVG(data, 800, 22, 'accountType')}
+    <div data-accounttype-cycle style="cursor:pointer;">${stackedBarSVG(data, 800, 22, 'accountType')}</div>
     <div class="legend" style="flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px 20px;">${legendHtml}</div>
   </div>`;
+}
+
+function cycleAccountTypeFilter(){
+  const holdingsWithType = _.flatMap(state.accounts, a => a.holdings.map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' })));
+  const data = computeWeights(holdingsWithType, 'accountTypeLabel').filter(d => ACCOUNT_TYPES.includes(d.label));
+  if(data.length === 0) return;
+  const order = data.map(d => d.label);
+  if(totalAccountTypeFilter === null){
+    totalAccountTypeFilter = order[0];
+  } else {
+    const idx = order.indexOf(totalAccountTypeFilter);
+    totalAccountTypeFilter = (idx === -1 || idx === order.length - 1) ? null : order[idx + 1];
+  }
+  render();
 }
 
 function creditGaugeChartBlock(showAmountOverlay){
@@ -2970,6 +2984,8 @@ function renderPanel(){
         render();
       });
     });
+    const accountTypeCycleEl = panel.querySelector('[data-accounttype-cycle]');
+    if(accountTypeCycleEl) accountTypeCycleEl.addEventListener('click', cycleAccountTypeFilter);
     const stockDetailBtn = document.getElementById('stock-detail-btn');
     if(stockDetailBtn) stockDetailBtn.addEventListener('click', toggleStockDetailAccordion);
     const cashBadgeTotal = panel.querySelector('[data-cashbadge]');
