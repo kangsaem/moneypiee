@@ -2461,8 +2461,8 @@ function renderHistoryPanel(){
   `;
 
   const hasCreditData = !historyAccountFilter && creditUsedPoints.some(p => p.value > 0);
-  const domesticAllZero = domesticPoints.every(p => p.value === 0);
-  const overseasAllZero = overseasPoints.every(p => p.value === 0);
+  const domesticAllZero = domesticPoints.every(p => Math.abs(p.value) < 1);
+  const overseasAllZero = overseasPoints.every(p => Math.abs(p.value) < 1);
   const showRegionLines = !domesticAllZero && !overseasAllZero;
   const lineSeries = [];
   if(showRegionLines){
