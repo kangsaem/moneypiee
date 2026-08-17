@@ -2859,8 +2859,8 @@ function renderPanel(){
       ${subTabsHtml}
       <div class="charts">
         ${(sectorAccordionShowRegionBar = false, '')}
-        ${sectorChartBlock(holdings)}
         ${subType === '전체' ? chartBlock('계좌유형 비중', byAccountType, 'accountType') : lockedRegionDonutBlock(region, holdingsInScopeAllRegions)}
+        ${sectorChartBlock(holdings)}
         ${stockChartBlockSortable(holdings, false, subType === '전체' ? [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' },
           { data: byAccountType, type: 'accountType', name: 'decorative-accounttype' }
