@@ -2621,9 +2621,9 @@ function accountTypeBarChartBlock(selectedType){
     const isSelected = selectedType === d.label;
     const clickable = !isCash && ACCOUNT_TYPES.includes(d.label);
     const btnStyle = clickable
-      ? `cursor:pointer;border:1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:6px;padding:3px 4px;${isSelected ? 'background:var(--accent);color:#111;' : ''}`
-      : 'padding:3px 4px;';
-    return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:1px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:3px;"><span class="swatch" style="background:${isSelected ? '#111' : rankColor(d.label, i, data.length, 'accountType')};width:7px;height:7px;flex-shrink:0;"></span><span class="legend-name" style="font-size:11px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:11px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+      ? `cursor:pointer;border:1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:6px;padding:4px 6px;${isSelected ? 'background:var(--accent);color:#111;' : ''}`
+      : 'padding:4px 6px;';
+    return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? '#111' : rankColor(d.label, i, data.length, 'accountType')};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('');
   return `<div class="chart-box" style="grid-column:1/-1;max-width:800px;margin:0 auto;">
     <div data-accounttype-cycle style="cursor:pointer;">${stackedBarSVG(data, 800, 22, 'accountType', selectedType)}</div>
