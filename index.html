@@ -262,6 +262,53 @@
   </div>
 </div>
 
+<div id="welcomeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;width:380px;max-width:100%;max-height:80vh;overflow-y:auto;">
+    <h3 style="margin:0 0 16px;font-size:17px;font-weight:700;">머니파이가 처음이신가요?</h3>
+    <div style="display:flex;flex-direction:column;gap:16px;font-size:13px;line-height:1.6;color:var(--text-dim);">
+      <div>
+        <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 뭐하는 앱이에요?</div>
+        여러 증권사에 흩어진 연금저축·IRP·ISA·직투 계좌를 한곳에 모아서, 내 자산이 어떻게 배분되어 있는지 한눈에 보여주는 도구예요. 매달 숫자를 입력해두면, 가계부처럼 자산이 어떻게 변해왔는지 보여요.
+      </div>
+      <div>
+        <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 내 자산 정보, 어디로 새는 거 아니에요?</div>
+        로그인도, 증권사 연동도 없어요. 입력한 데이터는 지금 쓰는 브라우저 안에만 저장되고 어떤 서버로도 전송되지 않아요.
+      </div>
+      <div>
+        <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 왜 자동으로 연동 안 되고 직접 입력해야 해요?</div>
+        증권사 자동연동 앱은 로그인 정보와 자산 데이터를 그 회사 서버에 넘겨야 해요. 이 앱은 "직접 입력하는 조금의 수고" 대신 "아무 데도 안 새는 안전함"을 택했어요.
+      </div>
+      <div>
+        <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 매일 확인해야 하나요?</div>
+        아니요, 매달 한 번이면 충분해요. 실시간 주가에 일희일비하는 건 장기투자에 오히려 방해가 된다고 워렌 버핏·찰리 멍거·피터 린치 같은 투자 구루들도 늘 이야기해왔답니다.
+      </div>
+      <div>
+        <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 다른 자산관리 앱이랑 뭐가 달라요?</div>
+        여러 계좌에 흩어진 종목을 섹터별·국내해외별·계좌유형별로 보여줘요. 섹터별 비중뿐 아니라, 무엇보다 중요한 현금비중 관리도 직관적으로 보여요.
+      </div>
+      <div>
+        <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 모바일에서도 잘 되나요?</div>
+        모바일 기준으로 먼저 만들어졌어요. PC에서도 잘 보이지만, 손가락으로 탭하고 스와이프하는 조작감은 모바일에 맞춰져 있어요.
+      </div>
+      <div>
+        <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 휴대폰 바꾸면 데이터 다 날아가나요?</div>
+        데이터가 로컬 브라우저에 저장되는 방식이라, 기기를 바꾸거나 브라우저 데이터를 지우면 데이터도 같이 사라져요. 그래서 파일로 내보내기/불러오기 기능을 넣어뒀어요. 미리 내보내기 해두셨다가, 새 기기나 PC에서 불러오기 하시면 그대로 이어져요.
+      </div>
+      <div>
+        <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 앞으로 계속 관리되는 거 맞아요?</div>
+        네, 원래 저 스스로 쓰려고 만든 도구라서, 불편한 부분이 보이면 바로바로 고치고 있어요.
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:13px;color:var(--text-dim);cursor:pointer;">
+      <input type="checkbox" id="welcomeDontShowAgain">
+      다시 보지 않기
+    </label>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+      <button class="btn btn-primary" id="welcomeCloseBtn">확인했어요</button>
+    </div>
+  </div>
+</div>
+
 <div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#EDEDED;border-radius:10px;padding:24px;width:320px;max-width:100%;">
     <p id="confirmModalMessage" style="margin:0 0 20px;font-size:14px;color:#333333;white-space:pre-wrap;line-height:1.5;"></p>
@@ -3032,6 +3079,27 @@ document.querySelectorAll('.inline-export-link').forEach(el => {
 
 load();
 loadMarketData(true);
+
+(function(){
+  const WELCOME_KEY = 'moneypie_welcome_dismissed';
+  const modal = document.getElementById('welcomeModal');
+  const closeBtn = document.getElementById('welcomeCloseBtn');
+  const dontShowChk = document.getElementById('welcomeDontShowAgain');
+  let dismissed = false;
+  try { dismissed = localStorage.getItem(WELCOME_KEY) === '1'; } catch(e){}
+  if(!dismissed && modal){
+    modal.style.display = 'flex';
+  }
+  if(closeBtn) closeBtn.addEventListener('click', () => {
+    if(dontShowChk && dontShowChk.checked){
+      try { localStorage.setItem(WELCOME_KEY, '1'); } catch(e){}
+    }
+    if(modal) modal.style.display = 'none';
+  });
+  if(modal) modal.addEventListener('click', (e) => {
+    if(e.target.id === 'welcomeModal') modal.style.display = 'none';
+  });
+})();
 </script>
 
 <div id="adfit-bottom">
