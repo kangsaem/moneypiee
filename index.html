@@ -1995,18 +1995,20 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
       scale = (i === lastIdx) ? 1 : 0.5;
     } else if(labelMode === 'sparse'){
       show = (i === lastIdx || i === maxIdx || i === minIdx || i === 0);
+    } else if(labelMode === 'small'){
+      scale = 0.85;
     }
     if(!show) return '';
     const fs = Math.round(13.65*scale);
     return labelMarkup(coords[i][0], coords[i][1]-12, Math.floor(p.value/10000).toLocaleString(), fs, 700, '#F0DA8C', 'filter:drop-shadow(0 0 2px rgba(0,0,0,0.6));text-shadow:0 0 2px rgba(0,0,0,0.6);');
   }).join('');
-  const changeLabels = points.map((p,i) => {
+  const changeLabels = labelMode === 'sparse' ? '' : points.map((p,i) => {
     if(i === 0) return '';
     let show = true, scale = 1;
     if(labelMode === 'shrink'){
       scale = (i === lastIdx) ? 1 : 0.5;
-    } else if(labelMode === 'sparse'){
-      show = (i === lastIdx || i === maxIdx || i === minIdx || i === 0);
+    } else if(labelMode === 'small'){
+      scale = 0.85;
     }
     if(!show) return '';
     const prev = points[i-1].value;
@@ -2048,6 +2050,8 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
           scale = (i === lastIdx) ? 1 : 0.5;
         } else if(labelMode === 'sparse'){
           show = (i === lastIdx || i === maxIdx || i === minIdx || i === 0);
+        } else if(labelMode === 'small'){
+          scale = 0.85;
         }
         if(!show) return '';
         const isLowest = lowestSeriesIndexAt[i] === myIdx;
@@ -2484,11 +2488,11 @@ function renderHistoryPanel(){
     ${rangeSelector}
     <div style="position:relative;">
       <div id="total-memo-slot"></div>
-      <div class="trend-wrap">${lineChartSVG(points, lineSeries, 860, 205, range === '24' ? 'shrink' : (range === 'all' ? 'sparse' : 'normal'), range === 'all' || range === '3')}</div>
+      <div class="trend-wrap">${lineChartSVG(points, lineSeries, 860, 205, range === '24' ? 'shrink' : (range === 'all' ? 'sparse' : (range === '6' ? 'small' : 'normal')), range === 'all' || range === '3' || range === '6')}</div>
     </div>
-    ${trendBarsHTML(filtered, 'group', 'group', '섹터', range === 'all', 'group')}
-    ${trendBarsHTML(filtered, regionLabelFor, 'region', '국내/해외', range === 'all', 'region')}
-    ${trendBarsHTML(filtered, 'name', 'stock', '종목', range === 'all', 'stock')}
+    ${trendBarsHTML(filtered, 'group', 'group', '섹터', range === 'all' || range === '24', 'group')}
+    ${trendBarsHTML(filtered, regionLabelFor, 'region', '국내/해외', range === 'all' || range === '24', 'region')}
+    ${trendBarsHTML(filtered, 'name', 'stock', '종목', range === 'all' || range === '24', 'stock')}
   `;
   const trendScrollEl = panel.querySelector('.trend-scroll');
   if(trendScrollEl) trendScrollEl.scrollLeft = trendScrollEl.scrollWidth;
