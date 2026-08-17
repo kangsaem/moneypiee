@@ -1671,6 +1671,19 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs){
   </div>`;
 }
 
+function accountTypeChartBlockNav(data){
+  const ordered = reorderCashFirst(data);
+  const centerLabelHtml = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">유형</span></div>`;
+  const legend = ordered.map((d,i) => {
+    const color = rankColor(d.label, i, ordered.length, 'accountType');
+    const isCashLabel = d.label === '현금';
+    const cashStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : '';
+    const clickable = !isCashLabel && ACCOUNT_TYPES.includes(d.label);
+    return `<div class="legend-item" ${clickable ? `data-subtype-jump="${escapeHTML(d.label)}" style="cursor:pointer;"` : ''}><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${cashStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${cashStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+  }).join('');
+  return `<div class="chart-box"><div style="position:relative;">${donutSVG(ordered, 160, 'accountType')}${centerLabelHtml}</div><div class="legend">${legend}</div></div>`;
+}
+
 function chartBlock(title, data, type){
   const ordered = reorderCashFirst(data);
   const centerLabelHtml = type === 'accountType'
@@ -2859,7 +2872,7 @@ function renderPanel(){
       ${subTabsHtml}
       <div class="charts">
         ${(sectorAccordionShowRegionBar = false, '')}
-        ${subType === '전체' ? chartBlock('계좌유형 비중', byAccountType, 'accountType') : lockedRegionDonutBlock(region, holdingsInScopeAllRegions)}
+        ${subType === '전체' ? accountTypeChartBlockNav(byAccountType) : lockedRegionDonutBlock(region, holdingsInScopeAllRegions)}
         ${sectorChartBlock(holdings)}
         ${stockChartBlockSortable(holdings, false, subType === '전체' ? [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' },
@@ -2886,6 +2899,13 @@ function renderPanel(){
       btn.addEventListener('click', () => {
         if(isDomestic) state.domesticSubType = btn.dataset.subtype;
         else state.overseasSubType = btn.dataset.subtype;
+        render();
+      });
+    });
+    panel.querySelectorAll('[data-subtype-jump]').forEach(el => {
+      el.addEventListener('click', () => {
+        if(isDomestic) state.domesticSubType = el.dataset.subtypeJump;
+        else state.overseasSubType = el.dataset.subtypeJump;
         render();
       });
     });
