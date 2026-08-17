@@ -2129,14 +2129,15 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
   </svg>${overlayDiv}</div>`;
 }
 
-function stackedBarSVG(data, width, height, type){
+function stackedBarSVG(data, width, height, type, highlightLabel){
   const total = _.sumBy(data, 'amount') || 1;
   let x = 0;
   const bars = data.map((d,i) => {
     const w = (d.amount/total) * width;
     const rank = d.rank !== undefined ? d.rank : i;
     const rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
-    const rect = `<rect x="${x.toFixed(1)}" y="0" width="${Math.max(w,0).toFixed(1)}" height="${height}" fill="${rankColor(d.label, rank, rankCount, type)}"><title>${escapeHTML(d.label)} ${d.pct.toFixed(1)}%</title></rect>`;
+    const opacity = highlightLabel ? (d.label === highlightLabel ? 1 : 0.3) : 1;
+    const rect = `<rect x="${x.toFixed(1)}" y="0" width="${Math.max(w,0).toFixed(1)}" height="${height}" fill="${rankColor(d.label, rank, rankCount, type)}" opacity="${opacity}"><title>${escapeHTML(d.label)} ${d.pct.toFixed(1)}%</title></rect>`;
     x += w;
     return rect;
   }).join('');
@@ -2625,7 +2626,7 @@ function accountTypeBarChartBlock(selectedType){
     return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:1px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:3px;"><span class="swatch" style="background:${isSelected ? '#111' : rankColor(d.label, i, data.length, 'accountType')};width:7px;height:7px;flex-shrink:0;"></span><span class="legend-name" style="font-size:11px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:11px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('');
   return `<div class="chart-box" style="grid-column:1/-1;max-width:800px;margin:0 auto;">
-    <div data-accounttype-cycle style="cursor:pointer;">${stackedBarSVG(data, 800, 22, 'accountType')}</div>
+    <div data-accounttype-cycle style="cursor:pointer;">${stackedBarSVG(data, 800, 22, 'accountType', selectedType)}</div>
     <div class="legend" style="flex-direction:row;flex-wrap:nowrap;justify-content:center;gap:4px;overflow-x:auto;">${legendHtml}</div>
   </div>`;
 }
