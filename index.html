@@ -1983,6 +1983,15 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
     htmlOverlayParts.push(`<span style="position:absolute;left:${leftPct}%;top:${y.toFixed(1)}px;transform:translate(-50%,-100%);font-size:${fontSize}px;font-weight:${weight};color:${color};white-space:nowrap;${styleExtra}">${text}</span>`);
     return '';
   }
+  function changeLabelMarkup(x, y, arrowChar, pctText, color, fontSize){
+    const pctSize = Math.round(fontSize*0.6);
+    if(!responsive){
+      return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="${fontSize}" font-weight="600" fill="${color}" text-anchor="middle">${arrowChar} ${pctText}<tspan font-size="${pctSize}">%</tspan></text>`;
+    }
+    const leftPct = (x / width * 100).toFixed(2);
+    htmlOverlayParts.push(`<span style="position:absolute;left:${leftPct}%;top:${y.toFixed(1)}px;transform:translate(-50%,-100%);font-size:${fontSize}px;font-weight:600;color:${color};white-space:nowrap;">${arrowChar} ${pctText}<span style="font-size:0.6em;">%</span></span>`);
+    return '';
+  }
 
   const rawValues = points.map(p=>p.value);
   const lastIdx = points.length - 1;
@@ -2014,10 +2023,10 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
     const prev = points[i-1].value;
     if(!prev) return '';
     const change = (p.value - prev) / prev * 100;
-    const color = change > 0 ? '#5DCAA5' : (change < 0 ? '#E37272' : '#9A9BA1');
-    const sign = change >= 0 ? '+' : '';
+    const color = change > 0 ? '#E87BA4' : (change < 0 ? '#5FB8E0' : '#9A9BA1');
+    const arrow = change > 0 ? '▲' : (change < 0 ? '▼' : '');
     const fs = Math.max(10, Math.round(13.5*scale));
-    return labelMarkup(coords[i][0], coords[i][1]-32, `${sign}${change.toFixed(1)}%`, fs, 600, color);
+    return changeLabelMarkup(coords[i][0], coords[i][1]-32, arrow, Math.abs(change).toFixed(1), color, fs);
   }).join('');
   const monthLabels = points.map((p,i) => labelMarkup(coords[i][0], height-6, shortMonthLabel(p.label), 10, 400, '#9A9BA1')).join('');
   const baseline = scaleY(minVal < 0 ? 0 : minVal);
