@@ -2468,7 +2468,7 @@ function renderTabs(){
   tabs.innerHTML = html;
 
   tabs.querySelectorAll('[data-tab]').forEach(el => {
-    el.addEventListener('click', () => { state.activeId = el.dataset.tab; accountTableSortMode = null; stockLegendSortMode = 'amount'; historyAccountFilter = null; render(); });
+    el.addEventListener('click', () => { state.activeId = el.dataset.tab; accountTableSortMode = null; stockLegendSortMode = 'amount'; historyAccountFilter = null; totalAccountTypeFilter = null; render(); });
   });
   document.getElementById('addAccountBtn').addEventListener('click', addAccount);
 }
@@ -2610,11 +2610,20 @@ function creditBarSVG(data, width, height){
   return `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="display:block;border-radius:4px;overflow:hidden;">${bars}${grid}</svg>`;
 }
 
-function accountTypeBarChartBlock(){
+let totalAccountTypeFilter = null;
+function accountTypeBarChartBlock(selectedType){
   const holdingsWithType = _.flatMap(state.accounts, a => a.holdings.map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' })));
   const data = computeWeights(holdingsWithType, 'accountTypeLabel');
   if(data.length === 0) return '';
-  const legendHtml = data.map((d,i) => `<div class="legend-item" style="gap:5px;"><span class="swatch" style="background:${rankColor(d.label, i, data.length, 'accountType')}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num" style="margin-left:2px;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`).join('');
+  const legendHtml = data.map((d,i) => {
+    const isCash = d.label === '현금';
+    const isSelected = selectedType === d.label;
+    const clickable = !isCash && ACCOUNT_TYPES.includes(d.label);
+    const btnStyle = clickable
+      ? `cursor:pointer;border:1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:6px;padding:4px 8px;${isSelected ? 'background:var(--accent);color:#111;' : ''}`
+      : 'padding:4px 8px;';
+    return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="gap:5px;${btnStyle}"><span class="swatch" style="background:${isSelected ? '#111' : rankColor(d.label, i, data.length, 'accountType')}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num" style="margin-left:2px;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+  }).join('');
   return `<div class="chart-box" style="grid-column:1/-1;max-width:800px;margin:0 auto;">
     ${stackedBarSVG(data, 800, 22, 'accountType')}
     <div class="legend" style="flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px 20px;">${legendHtml}</div>
@@ -2914,15 +2923,17 @@ function renderPanel(){
 
   if(state.activeId === '__total__'){
     const allHoldings = _.flatMap(state.accounts, a => a.holdings);
-    const byStock = computeWeights(allHoldings, 'name');
-    const byGroup = computeWeights(allHoldings, 'group');
-    const grandTotal = _.sumBy(allHoldings, 'amount');
+    const holdingsWithType = _.flatMap(state.accounts, a => a.holdings.map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' })));
+    const scopedHoldings = totalAccountTypeFilter ? holdingsWithType.filter(h => h.accountTypeLabel === totalAccountTypeFilter) : holdingsWithType;
+    const byStock = computeWeights(scopedHoldings, 'name');
+    const byGroup = computeWeights(scopedHoldings, 'group');
+    const grandTotal = _.sumBy(scopedHoldings, 'amount');
 
-    const byRegion = computeWeights(allHoldings, regionLabelFor);
+    const byRegion = computeWeights(scopedHoldings, regionLabelFor);
     const totalCreditUsed = _.sumBy(state.creditLines, 'used');
     const currentLabel = currentMonthLabel();
     const thisMonthSnap = state.snapshots.find(s => s.label === currentLabel) || (state.snapshots.length ? state.snapshots[state.snapshots.length-1] : null);
-    const cashTotalAll = _.sumBy(allHoldings.filter(isCashHolding), 'amount');
+    const cashTotalAll = _.sumBy(scopedHoldings.filter(isCashHolding), 'amount');
     const cashPctAll = grandTotal ? (cashTotalAll/grandTotal*100) : 0;
 
     panel.innerHTML = `
@@ -2935,22 +2946,29 @@ function renderPanel(){
       <div class="charts">
         ${(sectorAccordionShowRegionBar = true, '')}
         ${state.creditLines.length > 0 ? creditGaugeChartBlock(true) : ''}
-        ${accountTypeBarChartBlock()}
-        ${sectorChartBlock(allHoldings)}
-        ${regionChartBlock(allHoldings)}
-        ${stockChartBlockSortable(allHoldings, true, [
-          { data: computeWeights(allHoldings, 'group'), type: 'group', name: 'decorative-sector' },
-          { data: computeWeights(allHoldings, mergedRegionLabelFor), type: 'region', name: 'decorative-region' },
-          { data: computeWeights(_.flatMap(state.accounts, a => a.holdings.map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' }))), 'accountTypeLabel'), type: 'accountType', name: 'decorative-accounttype', opacity: 0.8 },
+        ${accountTypeBarChartBlock(totalAccountTypeFilter)}
+        ${sectorChartBlock(scopedHoldings)}
+        ${regionChartBlock(scopedHoldings)}
+        ${stockChartBlockSortable(scopedHoldings, true, [
+          { data: computeWeights(scopedHoldings, 'group'), type: 'group', name: 'decorative-sector' },
+          { data: computeWeights(scopedHoldings, mergedRegionLabelFor), type: 'region', name: 'decorative-region' },
+          { data: computeWeights(scopedHoldings, 'accountTypeLabel'), type: 'accountType', name: 'decorative-accounttype', opacity: 0.8 },
           ...(state.creditLines.length > 0 && grandTotal > 0 ? [{ partial: { fraction: totalCreditUsed / grandTotal, color: '#B85450', label: '마통사용' }, name: 'decorative-credit' }] : [])
         ])}
-        ${stockDetailButtonBlock(allHoldings)}
+        ${stockDetailButtonBlock(scopedHoldings)}
       </div>
     `;
     bindSectorAccordionHandlers();
     bindRegionAccordionHandlers();
     panel.querySelectorAll('[data-memosnap]').forEach(btn => {
       btn.addEventListener('click', () => toggleMemoAccordion(btn.dataset.memosnap));
+    });
+    panel.querySelectorAll('[data-accounttype-filter]').forEach(el => {
+      el.addEventListener('click', () => {
+        const clicked = el.dataset.accounttypeFilter;
+        totalAccountTypeFilter = (totalAccountTypeFilter === clicked) ? null : clicked;
+        render();
+      });
     });
     const stockDetailBtn = document.getElementById('stock-detail-btn');
     if(stockDetailBtn) stockDetailBtn.addEventListener('click', toggleStockDetailAccordion);
