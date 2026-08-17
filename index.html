@@ -2622,11 +2622,11 @@ function accountTypeBarChartBlock(selectedType){
     const btnStyle = clickable
       ? `cursor:pointer;border:1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:6px;padding:4px 8px;${isSelected ? 'background:var(--accent);color:#111;' : ''}`
       : 'padding:4px 8px;';
-    return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="gap:5px;${btnStyle}"><span class="swatch" style="background:${isSelected ? '#111' : rankColor(d.label, i, data.length, 'accountType')}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num" style="margin-left:2px;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+    return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? '#111' : rankColor(d.label, i, data.length, 'accountType')}"></span><span class="legend-name">${escapeHTML(d.label)}</span></span><span class="legend-pct num">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('');
   return `<div class="chart-box" style="grid-column:1/-1;max-width:800px;margin:0 auto;">
     <div data-accounttype-cycle style="cursor:pointer;">${stackedBarSVG(data, 800, 22, 'accountType')}</div>
-    <div class="legend" style="flex-direction:row;flex-wrap:wrap;justify-content:center;gap:6px 20px;">${legendHtml}</div>
+    <div class="legend" style="flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px 12px;">${legendHtml}</div>
   </div>`;
 }
 
