@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>머니파이 MONEY PIE</title>
-<link rel="icon" href="apple-touch-icon.png" type="image/png">
+<link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-48.png" sizes="48x48" type="image/png">
+<link rel="icon" href="apple-touch-icon.png" sizes="180x180" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -163,7 +166,7 @@
 </head>
 <body>
 <div class="wrap">
-  <button class="mkt-refresh" id="mktRefreshBtn" style="margin-bottom:4px;">새로고침</button><span style="font-size:11px;color:var(--text-dim);margin-left:4px;">- 약 20분 지연 시세</span>
+  <button class="mkt-refresh" id="mktRefreshBtn" style="margin-bottom:4px;">새로고침</button><span style="font-size:11px;color:var(--text-dim);margin-left:4px;">- 20분 지연 시세</span>
   <div id="marketTicker" style="display:flex;gap:8px;overflow-x:auto;padding:2px 0 14px;margin-bottom:14px;border-bottom:1px solid var(--border);">
     <div style="color:var(--text-dim);font-size:12px;padding:10px 0;">시장 지표 불러오는 중...</div>
   </div>
@@ -174,9 +177,9 @@
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <button class="btn" id="exportBtn">데이터 저장하기</button>
-      <button class="btn" id="exportXlsxBtn">엑셀로 내보내기</button>
-      <button class="btn" id="importBtn">가져오기</button>
+      <button class="btn" id="importBtn">데이터 불러오기</button>
       <input type="file" id="importFile" accept="application/json" style="display:none;">
+      <button class="btn" id="exportXlsxBtn" style="background:#217346;color:rgba(255,255,255,0.75);border-color:#217346;font-weight:400;">엑셀 보내기</button>
       <button class="btn btn-primary" id="snapshotBtn">이번달 자산 저장</button>
     </div>
   </header>
@@ -184,7 +187,7 @@
   <div id="panel" class="panel"></div>
   <div style="margin:24px 0 12px;">
     <p style="font-size:11px;color:var(--text-dim);line-height:1.5;margin:0;">
-      이 앱은 사용 중인 기기의 브라우저 안에서만 작동하며 어떤 데이터도 외부로 전송되지 않습니다. 브라우저 캐시나 방문 기록을 삭제하면 데이터가 사라질 수 있으니 <span class="inline-export-link" style="background:var(--text-dim);color:var(--bg);padding:1px 5px;border-radius:3px;font-weight:700;cursor:pointer;">데이터 저장하기</span>로 백업하시기 바랍니다. 저장한 데이터를 가져오기로 불러오면 다른 기기에서도 이어서 쓸 수 있습니다.<a href="mailto:kangyonz@gmail.com" style="margin-left:14px;font-size:12px;color:var(--text-dim);text-decoration:none;">&copy; kangyonz@gmail.com</a>
+      이 앱은 사용 중인 기기의 브라우저 안에서만 작동하며 어떤 데이터도 외부로 전송되지 않습니다. 브라우저 캐시나 방문 기록을 삭제하면 데이터가 사라질 수 있으니 <span class="inline-export-link" style="background:var(--text-dim);color:var(--bg);padding:1px 5px;border-radius:3px;font-weight:700;cursor:pointer;">데이터 저장하기</span>로 백업하시기 바랍니다. 저장한 데이터를 데이터 불러오기로 불러오면 다른 기기에서도 이어서 쓸 수 있습니다.<a href="mailto:kangyonz@gmail.com" style="margin-left:14px;font-size:12px;color:var(--text-dim);text-decoration:none;">&copy; kangyonz@gmail.com</a>
     </p>
   </div>
 </div>
@@ -294,7 +297,7 @@
       </div>
       <div>
         <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 휴대폰 바꾸면 데이터 다 날아가나요?</div>
-        기기를 바꾸거나 브라우저 데이터를 지우면 데이터도 같이 사라져요. 그래서 파일로 내보내기/불러오기 기능을 넣어뒀어요. 미리 내보내기 해두셨다가, 새 기기나 PC에서 불러오기 하시면 그대로 이어져요.
+        기기를 바꾸거나 브라우저 데이터를 지우면 데이터도 같이 사라져요. 그래서 데이터 저장하기/불러오기 기능을 넣어뒀어요. 미리 데이터 저장하기 해두셨다가, 새 기기나 PC에서 불러오기 하시면 그대로 이어져요.
       </div>
       <div>
         <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 앞으로 계속 관리되는 거 맞아요?</div>
@@ -2403,7 +2406,7 @@ function renderTabs(){
   html += `<div class="tab total ${state.activeId==='__creditLines__'?'active':''}" data-tab="__creditLines__" style="color:#B85450;">마통</div>`;
   html += `<div class="tab total ${state.activeId==='__domestic__'?'active':''}" data-tab="__domestic__">국내</div>`;
   html += `<div class="tab total ${state.activeId==='__overseas__'?'active':''}" data-tab="__overseas__">해외</div>`;
-  html += `<div class="tab total ${state.activeId==='__total__'?'active':''}" data-tab="__total__">총합</div>`;
+  html += `<div class="tab total ${state.activeId==='__total__'?'active':''}" data-tab="__total__">전체</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
   html += `<div class="tab-add ${state.activeId==='__snapshots__'?'active':''}" data-tab="__snapshots__">관리</div>`;
   html += `<div class="tab-add" id="addAccountBtn">+ 계좌 추가</div>`;
