@@ -182,7 +182,7 @@
   <div id="panel" class="panel"></div>
   <div style="margin:24px 0 12px;">
     <p style="font-size:11px;color:var(--text-dim);line-height:1.5;margin:0;">
-      이 앱은 사용 중인 기기의 브라우저 안에서만 작동하며 어떤 데이터도 외부로 전송되지 않습니다. 브라우저 캐시나 방문 기록을 삭제하면 데이터가 사라질 수 있으니 <span class="inline-export-link" style="background:var(--text-dim);color:var(--bg);padding:1px 5px;border-radius:3px;font-weight:700;cursor:pointer;">데이터 저장하기</span>로 백업하시기 바랍니다. 저장한 데이터를 가져오기로 불러오면 다른 기기에서도 이어서 쓸 수 있습니다.<a href="mailto:kangsaem@gmail.com" style="margin-left:14px;font-size:12px;color:var(--text-dim);text-decoration:none;">&copy; kangsaem@gmail.com</a>
+      이 앱은 사용 중인 기기의 브라우저 안에서만 작동하며 어떤 데이터도 외부로 전송되지 않습니다. 브라우저 캐시나 방문 기록을 삭제하면 데이터가 사라질 수 있으니 <span class="inline-export-link" style="background:var(--text-dim);color:var(--bg);padding:1px 5px;border-radius:3px;font-weight:700;cursor:pointer;">데이터 저장하기</span>로 백업하시기 바랍니다. 저장한 데이터를 가져오기로 불러오면 다른 기기에서도 이어서 쓸 수 있습니다.<a href="mailto:kangyonz@gmail.com" style="margin-left:14px;font-size:12px;color:var(--text-dim);text-decoration:none;">&copy; kangyonz@gmail.com</a>
     </p>
   </div>
 </div>
@@ -296,7 +296,7 @@
       </div>
       <div>
         <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 앞으로 계속 관리되는 거 맞아요?</div>
-        네. 애초에 제 연금계좌 관리하려고 만든 도구라서 계속해서 관리하고 있어요.
+        네, 원래 저 스스로 쓰려고 만든 도구라서, 불편한 부분이 보이면 바로바로 고치고 있어요.
       </div>
     </div>
     <label style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:13px;color:var(--text-dim);cursor:pointer;">
@@ -2461,10 +2461,14 @@ function renderHistoryPanel(){
   `;
 
   const hasCreditData = !historyAccountFilter && creditUsedPoints.some(p => p.value > 0);
-  const lineSeries = [
-    { points: domesticPoints, color: '#C7C8CD', name: '국내' },
-    { points: overseasPoints, color: '#9A9BA1', name: '해외' }
-  ];
+  const domesticAllZero = domesticPoints.every(p => p.value === 0);
+  const overseasAllZero = overseasPoints.every(p => p.value === 0);
+  const showRegionLines = !domesticAllZero && !overseasAllZero;
+  const lineSeries = [];
+  if(showRegionLines){
+    lineSeries.push({ points: domesticPoints, color: '#C7C8CD', name: '국내' });
+    lineSeries.push({ points: overseasPoints, color: '#9A9BA1', name: '해외' });
+  }
   if(hasCreditData) lineSeries.push({ points: creditUsedPoints, color: CREDIT_USED_COLOR, name: '마통', showLabel: false });
 
   panel.innerHTML = `
