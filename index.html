@@ -1822,6 +1822,24 @@ function mergedRegionLabelFor(h){
   return h.region === 'overseas' ? '해외' : '국내';
 }
 
+function lockedRegionDonutBlock(region, holdings){
+  const label = region === 'domestic' ? '국내' : '해외';
+  const breakdown = reorderCashFirst(computeWeights(holdings, mergedRegionLabelFor));
+  let donutHtml = donutSVG(breakdown, 160, 'region');
+  breakdown.forEach((d, i) => {
+    if(d.label !== label){
+      const re = new RegExp(`data-slice-idx="${i}"`, 'g');
+      donutHtml = donutHtml.replace(re, `opacity="0.3" data-slice-idx="${i}"`);
+    }
+  });
+  const legendHtml = `<div class="legend">${breakdown.map((d,i) => {
+    const isCurrent = d.label === label;
+    const color = rankColor(d.label, i, breakdown.length, 'region');
+    return `<div class="legend-item" style="${isCurrent?'':'opacity:0.5;'}"><span class="swatch" style="background:${color}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+  }).join('')}</div>`;
+  return `<div class="chart-box"><div style="position:relative;">${donutHtml}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">${label}</span></div></div>${legendHtml}</div>`;
+}
+
 function regionChartBlock(holdings){
   const { legend, ordered } = regionLegendHTML(holdings);
   return `<div class="chart-box"><div style="cursor:pointer;position:relative;" data-donut-cycle-region>${donutSVG(ordered, 160, 'region')}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span id="region-center-label" class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">지역</span></div></div><div class="legend">${legend}</div></div>`;
@@ -2809,37 +2827,26 @@ function renderPanel(){
     const label = region === 'domestic' ? '국내' : '해외';
     const isDomestic = region === 'domestic';
     const subType = isDomestic ? state.domesticSubType : state.overseasSubType;
-    let accountsInScope;
-    if(subType === '전체'){
-      accountsInScope = state.accounts;
-    } else if(isDomestic){
-      accountsInScope = state.accounts.filter(a => (a.accountType||'직투') === subType);
-    } else if(subType === '직투'){
-      accountsInScope = state.accounts.filter(a => (a.accountType||'직투') === '직투');
-    } else {
-      accountsInScope = state.accounts.filter(a => (a.accountType||'직투') !== '직투');
-    }
+    const accountsInScope = subType === '전체'
+      ? state.accounts
+      : state.accounts.filter(a => (a.accountType||'직투') === subType);
     const holdings = _.flatMap(accountsInScope, a => a.holdings).filter(h => (h.region||'domestic') === region);
+    const holdingsInScopeAllRegions = _.flatMap(accountsInScope, a => a.holdings);
     const byStock = computeWeights(holdings, 'name');
     const byGroup = computeWeights(holdings, 'group');
     const total = _.sumBy(holdings, 'amount');
 
-    const subTabOptions = isDomestic ? ['전체', ...ACCOUNT_TYPES] : ['전체','직투','ETF/펀드'];
+    const subTabOptions = ['전체', ...ACCOUNT_TYPES];
     const subTabsHtml = `
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;">
         ${subTabOptions.map(t => `<button class="btn${t===subType?' btn-primary':''}" data-subtype="${t}" style="padding:5px 12px;font-size:12px;">${t}</button>`).join('')}
       </div>
     `;
 
-    const byAccountType = isDomestic ? computeWeights(
-      _.flatMap(state.accounts, a => a.holdings.filter(h => (h.region||'domestic') !== 'overseas').map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' }))),
+    const byAccountType = computeWeights(
+      _.flatMap(state.accounts, a => a.holdings.filter(h => (h.region||'domestic') === region).map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' }))),
       'accountTypeLabel'
-    ) : [];
-
-    const byInvestType = (!isDomestic && subType === '전체') ? computeWeights(
-      _.flatMap(state.accounts, a => a.holdings.filter(h => h.region === 'overseas').map(h => ({ ...h, investTypeLabel: (a.accountType||'직투') === '직투' ? '직투' : 'ETF/펀드' }))),
-      'investTypeLabel'
-    ) : [];
+    );
     const cashTotal = _.sumBy(holdings.filter(isCashHolding), 'amount');
     const cashPct = total ? (cashTotal/total*100) : 0;
 
@@ -2853,11 +2860,10 @@ function renderPanel(){
       <div class="charts">
         ${(sectorAccordionShowRegionBar = false, '')}
         ${sectorChartBlock(holdings)}
-        ${(isDomestic && subType === '전체') ? chartBlock('계좌유형 비중', byAccountType, 'accountType') : ''}
-        ${(!isDomestic && subType === '전체') ? chartBlock('직투/ETF 비중', byInvestType, 'accountType') : ''}
+        ${subType === '전체' ? chartBlock('계좌유형 비중', byAccountType, 'accountType') : lockedRegionDonutBlock(region, holdingsInScopeAllRegions)}
         ${stockChartBlockSortable(holdings, false, subType === '전체' ? [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' },
-          { data: (isDomestic ? byAccountType : byInvestType), type: 'accountType', name: 'decorative-accounttype' }
+          { data: byAccountType, type: 'accountType', name: 'decorative-accounttype' }
         ] : [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' }
         ])}
