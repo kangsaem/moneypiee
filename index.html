@@ -722,6 +722,9 @@ function rankColor(label, index, count, type){
 function isCashHolding(h){
   return h.name === '현금' || h.group === '현금';
 }
+function isCashLikeLabel(label){
+  return label === '현금' || label === '원화' || label === '외화' || (label||'').endsWith('현금');
+}
 function regionLabelFor(h){
   const isOverseas = h.region === 'overseas';
   if(isCashHolding(h)) return isOverseas ? '해외현금' : '국내현금';
@@ -729,8 +732,8 @@ function regionLabelFor(h){
 }
 function reorderCashFirst(dataSorted){
   const ranked = dataSorted.map((d,i) => ({ ...d, rank:i, rankCount: dataSorted.length }));
-  const cash = ranked.filter(d => d.label.endsWith('현금'));
-  const rest = ranked.filter(d => !d.label.endsWith('현금'));
+  const cash = ranked.filter(d => isCashLikeLabel(d.label));
+  const rest = ranked.filter(d => !isCashLikeLabel(d.label));
   return cash.length ? [...cash, ...rest] : ranked;
 }
 
@@ -866,7 +869,7 @@ function exportXLSX(){
   const holdingRows = [['계좌명','계좌유형','종목','섹터','지역','평가액']];
   state.accounts.forEach(a => {
     a.holdings.forEach(h => {
-      const name = isCashHolding(h) ? (h.region === 'overseas' ? '현금-해외' : '현금-국내') : h.name;
+      const name = isCashHolding(h) ? (h.region === 'overseas' ? '외화' : '원화') : h.name;
       holdingRows.push([
         a.name,
         a.accountType || '직투',
@@ -1223,13 +1226,19 @@ async function fetchStockNameByCode(code){
 
 function addHolding(accId, name, group, amount, region){
   const acc = getAccount(accId);
-  acc.holdings.push({ id: uid(), name, group: group || '기타', amount, region: region || 'domestic' });
+  let finalName = name, finalGroup = group || '기타', finalRegion = region || 'domestic';
+  if(name === '원화'){
+    finalName = '현금'; finalGroup = '현금'; finalRegion = 'domestic';
+  } else if(name === '외화'){
+    finalName = '현금'; finalGroup = '현금'; finalRegion = 'overseas';
+  }
+  acc.holdings.push({ id: uid(), name: finalName, group: finalGroup, amount, region: finalRegion });
   save(); render();
 }
 function deleteHolding(accId, holdId){
   const acc = getAccount(accId);
   const h = acc.holdings.find(x => x.id === holdId);
-  const name = h ? (isCashHolding(h) ? (h.region === 'overseas' ? '현금-해외' : '현금-국내') : h.name) : '이 종목';
+  const name = h ? (isCashHolding(h) ? (h.region === 'overseas' ? '외화' : '원화') : h.name) : '이 종목';
   showConfirmModal(`${pinkSpan(name)} 삭제할까요?`, '삭제', '#B85450', () => {
     acc.holdings = acc.holdings.filter(h => h.id !== holdId);
     save(); render();
@@ -1263,10 +1272,16 @@ function saveEditModal(){
   const group = document.getElementById('editGroup').value.trim();
   const region = document.getElementById('editRegion').value;
   if(!name || isNaN(amount)){ alert('종목명과 평가액을 확인해주세요.'); return; }
-  h.name = name;
-  h.amount = amount;
-  h.group = group || '기타';
-  h.region = region;
+  if(name === '원화'){
+    h.name = '현금'; h.amount = amount; h.group = '현금'; h.region = 'domestic';
+  } else if(name === '외화'){
+    h.name = '현금'; h.amount = amount; h.group = '현금'; h.region = 'overseas';
+  } else {
+    h.name = name;
+    h.amount = amount;
+    h.group = group || '기타';
+    h.region = region;
+  }
   save();
   closeEditModal();
   render();
@@ -1479,7 +1494,7 @@ function legendHTML(data, type){
   return '<div class="legend">' + data.map((d,i) => {
     const rank = d.rank !== undefined ? d.rank : i;
     const rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
-    const isCashLabel = d.label === '현금' || d.label === '현금-국내' || d.label === '현금-해외' || d.label === '국내현금' || d.label === '해외현금';
+    const isCashLabel = isCashLikeLabel(d.label);
     const cashStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : '';
     return `<div class="legend-item"><span class="swatch" style="background:${rankColor(d.label, rank, rankCount, type)}"></span><span class="legend-name" style="${cashStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${cashStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('') + '</div>';
@@ -1613,7 +1628,7 @@ function stockLegendWithDividers(data, sortMode){
     const rank = d.rank !== undefined ? d.rank : i;
     const rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
     const color = rankColor(d.label, rank, rankCount, 'stock');
-    const isCashLabel = d.label === '현금';
+    const isCashLabel = isCashLikeLabel(d.label);
     const cashStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : '';
     html += `<div class="legend-item"><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${cashStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${cashStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
     if(i < data.length - 1){
@@ -1676,7 +1691,7 @@ function accountTypeChartBlockNav(data){
   const centerLabelHtml = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">유형</span></div>`;
   const legend = ordered.map((d,i) => {
     const color = rankColor(d.label, i, ordered.length, 'accountType');
-    const isCashLabel = d.label === '현금';
+    const isCashLabel = isCashLikeLabel(d.label);
     const cashStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : '';
     const clickable = !isCashLabel && ACCOUNT_TYPES.includes(d.label);
     return `<div class="legend-item" ${clickable ? `data-subtype-jump="${escapeHTML(d.label)}" style="cursor:pointer;"` : ''}><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${cashStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${cashStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
@@ -1713,7 +1728,7 @@ function sectorLegendHTML(holdings){
     const rank = d.rank !== undefined ? d.rank : i;
     const rankCount = d.rankCount !== undefined ? d.rankCount : ordered.length;
     const color = rankColor(d.label, rank, rankCount, 'group');
-    const isCashLabel = d.label === '현금' || d.label === '현금-국내' || d.label === '현금-해외' || d.label === '국내현금' || d.label === '해외현금';
+    const isCashLabel = isCashLikeLabel(d.label);
     const cashStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : '';
     return `<div style="position:relative;">
       <div class="legend-item" data-sector-idx="${i}" data-sector-label="${escapeHTML(d.label)}" style="cursor:pointer;"><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${cashStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${cashStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>
@@ -1736,7 +1751,7 @@ function computeRegionQuad(holdings){
   return { krwCash, domesticInvest, overseasInvest, foreignCash };
 }
 
-function regionQuadDonutSVG(data, size){
+function regionQuadDonutSVG(data, size, highlightGroup){
   const r = size/2 - 6;
   const cx = size/2, cy = size/2;
   const hole = r*0.55;
@@ -1746,8 +1761,9 @@ function regionQuadDonutSVG(data, size){
   data.forEach((d) => {
     const sweep = (d.amount/total) * 360;
     if(sweep <= 0) return;
+    const opacityAttr = highlightGroup ? ` opacity="${d.group === highlightGroup ? 1 : 0.3}"` : '';
     if(sweep >= 359.9){
-      paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.color}" data-region-slice-group="${d.group}"><title>${escapeHTML(d.label)}</title></circle>`;
+      paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.color}"${opacityAttr} data-region-slice-group="${d.group}"><title>${escapeHTML(d.label)}</title></circle>`;
       angle += sweep;
       return;
     }
@@ -1757,7 +1773,7 @@ function regionQuadDonutSVG(data, size){
     const end = angle + sweep;
     const x2 = cx + r*Math.cos(end*Math.PI/180);
     const y2 = cy + r*Math.sin(end*Math.PI/180);
-    paths += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${d.color}" data-region-slice-group="${d.group}"><title>${escapeHTML(d.label)}</title></path>`;
+    paths += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${d.color}"${opacityAttr} data-region-slice-group="${d.group}"><title>${escapeHTML(d.label)}</title></path>`;
     angle += sweep;
   });
   return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;">
@@ -1898,18 +1914,24 @@ function mergedRegionLabelFor(h){
 
 function lockedRegionDonutBlock(region, holdings){
   const label = region === 'domestic' ? '국내' : '해외';
-  const breakdown = reorderCashFirst(computeWeights(holdings, mergedRegionLabelFor));
-  let donutHtml = donutSVG(breakdown, 160, 'region');
-  breakdown.forEach((d, i) => {
-    if(d.label !== label){
-      const re = new RegExp(`data-slice-idx="${i}"`, 'g');
-      donutHtml = donutHtml.replace(re, `opacity="0.3" data-slice-idx="${i}"`);
-    }
-  });
-  const legendHtml = `<div class="legend">${breakdown.map((d,i) => {
-    const isCurrent = d.label === label;
-    const color = rankColor(d.label, i, breakdown.length, 'region');
-    return `<div class="legend-item" style="${isCurrent?'':'opacity:0.5;'}"><span class="swatch" style="background:${color}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+  const quad = computeRegionQuad(holdings);
+  const donutData = [
+    { label: '외화', amount: quad.foreignCash, color: CASH_COLOR, group: 'overseas' },
+    { label: '해외', amount: quad.overseasInvest, color: REGION_LIGHT, group: 'overseas' },
+    { label: '국내', amount: quad.domesticInvest, color: REGION_STRONG, group: 'domestic' },
+    { label: '원화', amount: quad.krwCash, color: CASH_COLOR, group: 'domestic' }
+  ];
+  const donutHtml = regionQuadDonutSVG(donutData, 160, region);
+  const total = (quad.krwCash + quad.domesticInvest + quad.overseasInvest + quad.foreignCash) || 1;
+  const domesticTotal = quad.krwCash + quad.domesticInvest;
+  const overseasTotal = quad.foreignCash + quad.overseasInvest;
+  const legendData = [
+    { label: '국내', pct: domesticTotal/total*100, group: 'domestic', color: REGION_STRONG },
+    { label: '해외', pct: overseasTotal/total*100, group: 'overseas', color: REGION_LIGHT }
+  ];
+  const legendHtml = `<div class="legend">${legendData.map(d => {
+    const isCurrent = d.group === region;
+    return `<div class="legend-item" style="${isCurrent?'':'opacity:0.5;'}"><span class="swatch" style="background:${d.color}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('')}</div>`;
   return `<div class="chart-box"><div style="position:relative;">${donutHtml}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">${label}</span></div></div>${legendHtml}</div>`;
 }
@@ -1964,7 +1986,9 @@ function bindRegionAccordionHandlers(){
         return;
       }
       const holdings = regionAccordionHoldings.filter(h => (h.region||'domestic') === group);
-      const breakdown = reorderCashFirst(computeWeights(holdings, 'group'));
+      const cashLabel = group === 'domestic' ? '원화' : '외화';
+      const relabeledHoldings = holdings.map(h => isCashHolding(h) ? { ...h, group: cashLabel } : h);
+      const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
       slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
         ${rows || '<div class="empty">데이터 없음</div>'}
@@ -2039,7 +2063,7 @@ function holdingsTable(holdings, accId, editable, showRegion, alignMode, mergeDu
   const sortCursor = sortable ? 'cursor:pointer;' : '';
   const rows = ordered.map(h => {
     const isCash = isCashHolding(h);
-    const displayName = isCash ? (h.region === 'overseas' ? '현금-해외' : '현금-국내') : escapeHTML(h.name);
+    const displayName = isCash ? (h.region === 'overseas' ? '외화' : '원화') : escapeHTML(h.name);
     const cashColor = isCash ? 'color:#F0DA8C;font-weight:700;' : '';
     return `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;">
@@ -2685,7 +2709,7 @@ function subTypeBarBlock(holdingsWithType, selectedType){
     const btnStyle = clickable
       ? `cursor:pointer;border:1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:6px;padding:4px 6px;${isSelected ? 'background:var(--accent);color:#111;' : ''}`
       : 'padding:4px 6px;';
-    return `<div class="legend-item" ${clickable ? `data-subtype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? PINK_HIGHLIGHT : rankColor(d.label, i, data.length, 'accountType')};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+    return `<div class="legend-item" ${clickable ? `data-subtype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? ACCTYPE_STRONG : rankColor(d.label, i, data.length, 'accountType')};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('');
   return `<div class="chart-box" style="grid-column:1/-1;max-width:800px;margin:0 auto 18px;">
     <div data-subtype-cycle style="cursor:pointer;">${stackedBarSVG(data, 800, 22, 'accountType', selectedType)}</div>
@@ -2704,7 +2728,7 @@ function accountTypeBarChartBlock(selectedType){
     const btnStyle = clickable
       ? `cursor:pointer;border:1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:6px;padding:4px 6px;${isSelected ? 'background:var(--accent);color:#111;' : ''}`
       : 'padding:4px 6px;';
-    return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? PINK_HIGHLIGHT : rankColor(d.label, i, data.length, 'accountType')};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+    return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? ACCTYPE_STRONG : rankColor(d.label, i, data.length, 'accountType')};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('');
   return `<div class="chart-box" style="grid-column:1/-1;max-width:800px;margin:0 auto;">
     <div data-accounttype-cycle style="cursor:pointer;">${stackedBarSVG(data, 800, 22, 'accountType', selectedType)}</div>
@@ -2970,7 +2994,7 @@ function renderPanel(){
       ${subTypeBarHtml}
       <div class="charts">
         ${(sectorAccordionShowRegionBar = false, '')}
-        ${subType === null ? accountTypeChartBlockNav(byAccountType) : lockedRegionDonutBlock(region, holdingsInScopeAllRegions)}
+        ${subType === null ? '' : lockedRegionDonutBlock(region, holdingsInScopeAllRegions)}
         ${sectorChartBlock(holdings)}
         ${stockChartBlockSortable(holdings, false, subType === null ? [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' },
