@@ -1914,6 +1914,7 @@ function mergedRegionLabelFor(h){
 
 function lockedRegionDonutBlock(region, holdings){
   const label = region === 'domestic' ? '국내' : '해외';
+  const cashLabel = region === 'domestic' ? '원화' : '외화';
   const quad = computeRegionQuad(holdings);
   const donutData = [
     { label: '외화', amount: quad.foreignCash, color: CASH_COLOR, group: 'overseas' },
@@ -1929,11 +1930,40 @@ function lockedRegionDonutBlock(region, holdings){
     { label: '국내', pct: domesticTotal/total*100, group: 'domestic', color: REGION_STRONG },
     { label: '해외', pct: overseasTotal/total*100, group: 'overseas', color: REGION_LIGHT }
   ];
+  lockedRegionAccordionCashLabel = cashLabel;
+  lockedRegionAccordionRegionLabel = label;
+  lockedRegionAccordionCashAmount = region === 'domestic' ? quad.krwCash : quad.foreignCash;
+  lockedRegionAccordionInvestAmount = region === 'domestic' ? quad.domesticInvest : quad.overseasInvest;
   const legendHtml = `<div class="legend">${legendData.map(d => {
     const isCurrent = d.group === region;
-    return `<div class="legend-item" style="${isCurrent?'':'opacity:0.5;'}"><span class="swatch" style="background:${d.color}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+    return `<div class="legend-item" ${isCurrent ? 'data-locked-region-toggle style="cursor:pointer;"' : ''} style="${isCurrent?'':'opacity:0.5;'}"><span class="swatch" style="background:${d.color}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('')}</div>`;
-  return `<div class="chart-box"><div style="position:relative;">${donutHtml}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">${label}</span></div></div>${legendHtml}</div>`;
+  return `<div class="chart-box"><div style="position:relative;">
+    <div data-locked-region-toggle style="cursor:pointer;">${donutHtml}</div>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">${label}</span></div>
+    <div id="locked-region-slot"></div>
+  </div>${legendHtml}</div>`;
+}
+
+function toggleLockedRegionAccordion(){
+  const slot = document.getElementById('locked-region-slot');
+  if(!slot) return;
+  if(lockedRegionAccordionOpen){
+    slot.innerHTML = '';
+    lockedRegionAccordionOpen = false;
+    return;
+  }
+  const sum = (lockedRegionAccordionCashAmount + lockedRegionAccordionInvestAmount) || 1;
+  const cashPct = lockedRegionAccordionCashAmount / sum * 100;
+  const investPct = lockedRegionAccordionInvestAmount / sum * 100;
+  const rows = [
+    accordionRowHTML(lockedRegionAccordionCashLabel, cashPct),
+    accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
+  ].join('');
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+    ${rows}
+  </div>`;
+  lockedRegionAccordionOpen = true;
 }
 
 function regionChartBlock(holdings){
@@ -2415,10 +2445,17 @@ function attachSwipeNav(el, onNavigate, canPrev, canNext){
 }
 
 let totalStockDetailHoldings = [];
+let totalStockDetailCashLabel = '현금';
+let lockedRegionAccordionOpen = false;
+let lockedRegionAccordionCashLabel = '원화';
+let lockedRegionAccordionRegionLabel = '국내';
+let lockedRegionAccordionCashAmount = 0;
+let lockedRegionAccordionInvestAmount = 0;
 let totalStockDetailOpen = false;
 
-function stockDetailButtonBlock(holdings){
+function stockDetailButtonBlock(holdings, cashLabel){
   totalStockDetailHoldings = holdings;
+  totalStockDetailCashLabel = cashLabel || '현금';
   totalStockDetailOpen = false;
   return `<div style="grid-column:1/-1;text-align:center;margin-top:4px;">
     <button class="btn-memo" id="stock-detail-btn">종목별 평가액</button>
@@ -2436,7 +2473,7 @@ function toggleStockDetailAccordion(){
   }
   const byStock = reorderCashFirst(computeWeights(totalStockDetailHoldings, 'name'));
   const rows = byStock.map(d => {
-    const name = d.label === '현금' ? '현금' : escapeHTML(d.label);
+    const name = d.label === '현금' ? escapeHTML(totalStockDetailCashLabel) : escapeHTML(d.label);
     return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num" style="text-align:right;">${d.amount.toLocaleString()}</span></div>`;
   }).join('');
   slot.innerHTML = `<div data-stockdetailclose style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;"></div>
@@ -3002,7 +3039,7 @@ function renderPanel(){
         ] : [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' }
         ])}
-        ${stockDetailButtonBlock(holdings)}
+        ${stockDetailButtonBlock(holdings, region === 'domestic' ? '원화' : '외화')}
       </div>
     `;
     bindSectorAccordionHandlers();
@@ -3041,6 +3078,9 @@ function renderPanel(){
       if(isDomestic) state.domesticSubType = next;
       else state.overseasSubType = next;
       render();
+    });
+    panel.querySelectorAll('[data-locked-region-toggle]').forEach(el => {
+      el.addEventListener('click', toggleLockedRegionAccordion);
     });
     panel.querySelectorAll('[data-subtype-jump]').forEach(el => {
       el.addEventListener('click', () => {
@@ -3134,7 +3174,7 @@ function renderPanel(){
     </div>
     <form class="add-row" id="addForm">
       <div style="position:relative;flex:2;min-width:160px;">
-        <input class="name" placeholder="종목 (예: 현금,삼성전자,069500,WDC)" required autocomplete="off" style="width:100%;box-sizing:border-box;">
+        <input class="name" placeholder="종목 (예: 원화,삼성전자,069500,WDC)" required autocomplete="off" style="width:100%;box-sizing:border-box;">
         <div id="nameAutocomplete" style="position:absolute;top:100%;left:0;right:0;z-index:20;"></div>
       </div>
       <input class="amount" type="number" placeholder="평가액" required min="0">
