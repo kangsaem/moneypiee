@@ -359,7 +359,7 @@ const CASH_OVERSEAS = '#ADAEB4';
 const CREDIT_USED_COLOR = '#B85450';
 const CREDIT_REMAIN_COLOR = '#9A9BA1';
 
-let state = { accounts: [], activeId: null, snapshots: [], domesticSubType: '전체', overseasSubType: '전체', historyRange: '6', creditLines: [] };
+let state = { accounts: [], activeId: null, snapshots: [], domesticSubType: null, overseasSubType: null, historyRange: '6', creditLines: [] };
 let historyAccountFilter = null;
 
 const MARKET_SYMBOLS = [
@@ -1723,24 +1723,85 @@ function sectorLegendHTML(holdings){
   return { legend, ordered };
 }
 
+function computeRegionQuad(holdings){
+  let krwCash = 0, domesticInvest = 0, overseasInvest = 0, foreignCash = 0;
+  holdings.forEach(h => {
+    const isCash = isCashHolding(h);
+    const isOverseas = (h.region||'domestic') === 'overseas';
+    if(isCash && !isOverseas) krwCash += h.amount;
+    else if(isCash && isOverseas) foreignCash += h.amount;
+    else if(!isCash && !isOverseas) domesticInvest += h.amount;
+    else overseasInvest += h.amount;
+  });
+  return { krwCash, domesticInvest, overseasInvest, foreignCash };
+}
+
+function regionQuadDonutSVG(data, size){
+  const r = size/2 - 6;
+  const cx = size/2, cy = size/2;
+  const hole = r*0.55;
+  const total = _.sumBy(data, 'amount') || 1;
+  let angle = -90;
+  let paths = '';
+  data.forEach((d) => {
+    const sweep = (d.amount/total) * 360;
+    if(sweep <= 0) return;
+    if(sweep >= 359.9){
+      paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.color}" data-region-slice-group="${d.group}"><title>${escapeHTML(d.label)}</title></circle>`;
+      angle += sweep;
+      return;
+    }
+    const large = sweep > 180 ? 1 : 0;
+    const x1 = cx + r*Math.cos(angle*Math.PI/180);
+    const y1 = cy + r*Math.sin(angle*Math.PI/180);
+    const end = angle + sweep;
+    const x2 = cx + r*Math.cos(end*Math.PI/180);
+    const y2 = cy + r*Math.sin(end*Math.PI/180);
+    paths += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${d.color}" data-region-slice-group="${d.group}"><title>${escapeHTML(d.label)}</title></path>`;
+    angle += sweep;
+  });
+  return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;">
+    ${paths}
+    <circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>
+  </svg></div>`;
+}
+
+function highlightRegionGroup(triggerEl, group){
+  const chartBox = triggerEl.closest('.chart-box');
+  if(!chartBox) return;
+  chartBox.querySelectorAll('[data-region-slice-group]').forEach(el => {
+    el.style.opacity = (el.dataset.regionSliceGroup === group) ? '1' : '0.3';
+  });
+}
+
+function clearRegionGroupHighlight(triggerEl){
+  const chartBox = triggerEl.closest('.chart-box');
+  if(!chartBox) return;
+  chartBox.querySelectorAll('[data-region-slice-group]').forEach(el => {
+    el.style.opacity = '1';
+  });
+}
+
 function regionLegendHTML(holdings){
   regionAccordionHoldings = holdings;
   regionAccordionOpenIdx = null;
-  const byRegion = computeWeights(holdings, mergedRegionLabelFor);
-  const ordered = reorderCashFirst(byRegion);
+  const quad = computeRegionQuad(holdings);
+  const total = (quad.krwCash + quad.domesticInvest + quad.overseasInvest + quad.foreignCash) || 1;
+  const domesticTotal = quad.krwCash + quad.domesticInvest;
+  const overseasTotal = quad.foreignCash + quad.overseasInvest;
+  const ordered = [
+    { label: '국내', amount: domesticTotal, pct: domesticTotal/total*100, group: 'domestic' },
+    { label: '해외', amount: overseasTotal, pct: overseasTotal/total*100, group: 'overseas' }
+  ];
   regionAccordionOrdered = ordered;
   const legend = ordered.map((d,i) => {
-    const rank = d.rank !== undefined ? d.rank : i;
-    const rankCount = d.rankCount !== undefined ? d.rankCount : ordered.length;
-    const color = rankColor(d.label, rank, rankCount, 'region');
-    const isCashLabel = d.label === '현금' || d.label === '현금-국내' || d.label === '현금-해외' || d.label === '국내현금' || d.label === '해외현금';
-    const cashStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : '';
+    const color = d.group === 'domestic' ? REGION_STRONG : REGION_LIGHT;
     return `<div style="position:relative;">
-      <div class="legend-item" data-region-idx="${i}" data-region-label="${escapeHTML(d.label)}" style="cursor:pointer;"><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${cashStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${cashStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>
+      <div class="legend-item" data-region-idx="${i}" data-region-label="${escapeHTML(d.label)}" data-region-group="${d.group}" style="cursor:pointer;"><span class="swatch" style="background:${color}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>
       <div id="region-slot-${i}"></div>
     </div>`;
   }).join('');
-  return { legend, ordered };
+  return { legend, ordered, quad };
 }
 
 function sectorChartBlock(holdings){
@@ -1854,8 +1915,15 @@ function lockedRegionDonutBlock(region, holdings){
 }
 
 function regionChartBlock(holdings){
-  const { legend, ordered } = regionLegendHTML(holdings);
-  return `<div class="chart-box"><div style="cursor:pointer;position:relative;" data-donut-cycle-region>${donutSVG(ordered, 160, 'region')}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span id="region-center-label" class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">지역</span></div></div><div class="legend">${legend}</div></div>`;
+  const { legend, quad } = regionLegendHTML(holdings);
+  const donutData = [
+    { label: '외화', amount: quad.foreignCash, color: CASH_COLOR, group: 'overseas' },
+    { label: '해외', amount: quad.overseasInvest, color: REGION_LIGHT, group: 'overseas' },
+    { label: '국내', amount: quad.domesticInvest, color: REGION_STRONG, group: 'domestic' },
+    { label: '원화', amount: quad.krwCash, color: CASH_COLOR, group: 'domestic' }
+  ];
+  const donutHtml = regionQuadDonutSVG(donutData, 160);
+  return `<div class="chart-box"><div style="cursor:pointer;position:relative;" data-donut-cycle-region>${donutHtml}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span id="region-center-label" class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">지역</span></div></div><div class="legend">${legend}</div></div>`;
 }
 
 function cycleRegionSelection(){
@@ -1880,6 +1948,7 @@ function bindRegionAccordionHandlers(){
     el.addEventListener('click', () => {
       const idx = el.dataset.regionIdx;
       const label = el.dataset.regionLabel;
+      const group = el.dataset.regionGroup;
       if(regionAccordionOpenIdx !== null && regionAccordionOpenIdx !== idx){
         const prevSlot = document.getElementById('region-slot-' + regionAccordionOpenIdx);
         if(prevSlot) prevSlot.innerHTML = '';
@@ -1889,25 +1958,19 @@ function bindRegionAccordionHandlers(){
       if(regionAccordionOpenIdx === idx){
         slot.innerHTML = '';
         regionAccordionOpenIdx = null;
-        clearChartHighlight(el, 'decorative-region');
+        clearRegionGroupHighlight(el);
         const centerLabelEl = document.getElementById('region-center-label');
         if(centerLabelEl) centerLabelEl.textContent = '지역';
         return;
       }
-      let breakdown;
-      if(label === '현금'){
-        const holdings = regionAccordionHoldings.filter(h => isCashHolding(h));
-        breakdown = reorderCashFirst(computeWeights(holdings, regionLabelFor));
-      } else {
-        const holdings = regionAccordionHoldings.filter(h => mergedRegionLabelFor(h) === label);
-        breakdown = reorderCashFirst(computeWeights(holdings, 'group'));
-      }
+      const holdings = regionAccordionHoldings.filter(h => (h.region||'domestic') === group);
+      const breakdown = reorderCashFirst(computeWeights(holdings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
       slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
         ${rows || '<div class="empty">데이터 없음</div>'}
       </div>`;
       regionAccordionOpenIdx = idx;
-      highlightChartSlice(el, idx, 'decorative-region');
+      highlightRegionGroup(el, group);
       const centerLabelEl2 = document.getElementById('region-center-label');
       if(centerLabelEl2) centerLabelEl2.textContent = label;
     });
@@ -2612,6 +2675,24 @@ function creditBarSVG(data, width, height){
 }
 
 let totalAccountTypeFilter = null;
+function subTypeBarBlock(holdingsWithType, selectedType){
+  const data = computeWeights(holdingsWithType, 'accountTypeLabel');
+  if(data.length === 0) return '';
+  const legendHtml = data.map((d,i) => {
+    const isCash = d.label === '현금';
+    const isSelected = selectedType === d.label;
+    const clickable = !isCash && ACCOUNT_TYPES.includes(d.label);
+    const btnStyle = clickable
+      ? `cursor:pointer;border:1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:6px;padding:4px 6px;${isSelected ? 'background:var(--accent);color:#111;' : ''}`
+      : 'padding:4px 6px;';
+    return `<div class="legend-item" ${clickable ? `data-subtype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? PINK_HIGHLIGHT : rankColor(d.label, i, data.length, 'accountType')};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+  }).join('');
+  return `<div class="chart-box" style="grid-column:1/-1;max-width:800px;margin:0 auto 18px;">
+    <div data-subtype-cycle style="cursor:pointer;">${stackedBarSVG(data, 800, 22, 'accountType', selectedType)}</div>
+    <div class="legend" style="flex-direction:row;flex-wrap:nowrap;justify-content:center;gap:4px;overflow-x:auto;">${legendHtml}</div>
+  </div>`;
+}
+
 function accountTypeBarChartBlock(selectedType){
   const holdingsWithType = _.flatMap(state.accounts, a => a.holdings.map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' })));
   const data = computeWeights(holdingsWithType, 'accountTypeLabel');
@@ -2623,7 +2704,7 @@ function accountTypeBarChartBlock(selectedType){
     const btnStyle = clickable
       ? `cursor:pointer;border:1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'};border-radius:6px;padding:4px 6px;${isSelected ? 'background:var(--accent);color:#111;' : ''}`
       : 'padding:4px 6px;';
-    return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? '#111' : rankColor(d.label, i, data.length, 'accountType')};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+    return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? PINK_HIGHLIGHT : rankColor(d.label, i, data.length, 'accountType')};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('');
   return `<div class="chart-box" style="grid-column:1/-1;max-width:800px;margin:0 auto;">
     <div data-accounttype-cycle style="cursor:pointer;">${stackedBarSVG(data, 800, 22, 'accountType', selectedType)}</div>
@@ -2864,7 +2945,7 @@ function renderPanel(){
     const label = region === 'domestic' ? '국내' : '해외';
     const isDomestic = region === 'domestic';
     const subType = isDomestic ? state.domesticSubType : state.overseasSubType;
-    const accountsInScope = subType === '전체'
+    const accountsInScope = subType === null
       ? state.accounts
       : state.accounts.filter(a => (a.accountType||'직투') === subType);
     const holdings = _.flatMap(accountsInScope, a => a.holdings).filter(h => (h.region||'domestic') === region);
@@ -2873,17 +2954,10 @@ function renderPanel(){
     const byGroup = computeWeights(holdings, 'group');
     const total = _.sumBy(holdings, 'amount');
 
-    const subTabOptions = ['전체', ...ACCOUNT_TYPES];
-    const subTabsHtml = `
-      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;">
-        ${subTabOptions.map(t => `<button class="btn${t===subType?' btn-primary':''}" data-subtype="${t}" style="padding:5px 12px;font-size:12px;">${t}</button>`).join('')}
-      </div>
-    `;
+    const regionHoldingsWithType = _.flatMap(state.accounts, a => a.holdings.filter(h => (h.region||'domestic') === region).map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' })));
+    const subTypeBarHtml = subTypeBarBlock(regionHoldingsWithType, subType);
 
-    const byAccountType = computeWeights(
-      _.flatMap(state.accounts, a => a.holdings.filter(h => (h.region||'domestic') === region).map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' }))),
-      'accountTypeLabel'
-    );
+    const byAccountType = computeWeights(regionHoldingsWithType, 'accountTypeLabel');
     const cashTotal = _.sumBy(holdings.filter(isCashHolding), 'amount');
     const cashPct = total ? (cashTotal/total*100) : 0;
 
@@ -2893,12 +2967,12 @@ function renderPanel(){
         <span class="total-badge" data-cashbadge="${cashTotal}" style="position:relative;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPct)};">현금비중<span class="num" style="font-size:24px;color:${cashRatioColor(cashPct)};">${cashPct.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
         <div id="cash-amount-slot"></div>
       </div>
-      ${subTabsHtml}
+      ${subTypeBarHtml}
       <div class="charts">
         ${(sectorAccordionShowRegionBar = false, '')}
-        ${subType === '전체' ? accountTypeChartBlockNav(byAccountType) : lockedRegionDonutBlock(region, holdingsInScopeAllRegions)}
+        ${subType === null ? accountTypeChartBlockNav(byAccountType) : lockedRegionDonutBlock(region, holdingsInScopeAllRegions)}
         ${sectorChartBlock(holdings)}
-        ${stockChartBlockSortable(holdings, false, subType === '전체' ? [
+        ${stockChartBlockSortable(holdings, false, subType === null ? [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' },
           { data: byAccountType, type: 'accountType', name: 'decorative-accounttype' }
         ] : [
@@ -2919,12 +2993,30 @@ function renderPanel(){
     });
     const stockDonut = stockSortChart ? stockSortChart.querySelector('[data-donut-cycle]') : null;
     if(stockDonut) stockDonut.addEventListener('click', cycleStockSort);
-    panel.querySelectorAll('[data-subtype]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if(isDomestic) state.domesticSubType = btn.dataset.subtype;
-        else state.overseasSubType = btn.dataset.subtype;
+    panel.querySelectorAll('[data-subtype-filter]').forEach(el => {
+      el.addEventListener('click', () => {
+        const clicked = el.dataset.subtypeFilter;
+        const newVal = (subType === clicked) ? null : clicked;
+        if(isDomestic) state.domesticSubType = newVal;
+        else state.overseasSubType = newVal;
         render();
       });
+    });
+    const subTypeCycleEl = panel.querySelector('[data-subtype-cycle]');
+    if(subTypeCycleEl) subTypeCycleEl.addEventListener('click', () => {
+      const data = computeWeights(regionHoldingsWithType, 'accountTypeLabel').filter(d => ACCOUNT_TYPES.includes(d.label));
+      if(data.length === 0) return;
+      const order = data.map(d => d.label);
+      let next;
+      if(subType === null){
+        next = order[0];
+      } else {
+        const idx = order.indexOf(subType);
+        next = (idx === -1 || idx === order.length - 1) ? null : order[idx + 1];
+      }
+      if(isDomestic) state.domesticSubType = next;
+      else state.overseasSubType = next;
+      render();
     });
     panel.querySelectorAll('[data-subtype-jump]').forEach(el => {
       el.addEventListener('click', () => {
@@ -3172,7 +3264,7 @@ document.addEventListener('click', (e) => {
     const s = document.getElementById('region-slot-' + regionAccordionOpenIdx);
     if(s) s.innerHTML = '';
     const regionTriggerEl = document.querySelector(`[data-region-idx="${regionAccordionOpenIdx}"]`);
-    if(regionTriggerEl) clearChartHighlight(regionTriggerEl, 'decorative-region');
+    if(regionTriggerEl) clearRegionGroupHighlight(regionTriggerEl);
     regionAccordionOpenIdx = null;
     const regionCenterEl = document.getElementById('region-center-label');
     if(regionCenterEl) regionCenterEl.textContent = '지역';
