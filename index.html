@@ -328,7 +328,7 @@
     </div>
     <label style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:13px;color:var(--text-dim);cursor:pointer;">
       <input type="checkbox" id="welcomeDontShowAgain">
-      다시 보지 않기
+      다음에 보이지 않기
     </label>
     <div style="display:flex;justify-content:flex-end;margin-top:12px;">
       <button class="btn btn-primary" id="welcomeCloseBtn">확인했어요</button>
@@ -903,18 +903,45 @@ function exportXLSX(){
     });
   });
 
-  const snapshotRows = [['월','총 평가액','국내','해외']];
+  const accountSummaryRows = [['계좌명','계좌유형','총평가액','종목수','국내비중(%)','해외비중(%)']];
+  state.accounts.forEach(a => {
+    const total = _.sumBy(a.holdings, 'amount');
+    const domestic = _.sumBy(a.holdings.filter(h => (h.region||'domestic') !== 'overseas'), 'amount');
+    const overseas = _.sumBy(a.holdings.filter(h => h.region === 'overseas'), 'amount');
+    accountSummaryRows.push([
+      a.name,
+      a.accountType || '직투',
+      total,
+      a.holdings.length,
+      total ? Math.round(domestic/total*1000)/10 : 0,
+      total ? Math.round(overseas/total*1000)/10 : 0
+    ]);
+  });
+
+  const creditRows = [['기관명','한도','사용액','잔액']];
+  state.creditLines.forEach(c => {
+    creditRows.push([c.institution, c.limit, c.used, c.limit - c.used]);
+  });
+
+  const snapshotRows = [['월','총 평가액','국내','해외','마통사용액','메모']];
   state.snapshots.forEach(s => {
     const holdings = _.flatMap(s.accounts, a => a.holdings);
     const total = _.sumBy(holdings, 'amount');
     const domestic = _.sumBy(holdings.filter(h => (h.region||'domestic') !== 'overseas'), 'amount');
     const overseas = _.sumBy(holdings.filter(h => h.region === 'overseas'), 'amount');
-    snapshotRows.push([fullMonthLabel(s.label), total, domestic, overseas]);
+    const creditUsed = _.sumBy(s.creditLines || [], 'used');
+    snapshotRows.push([fullMonthLabel(s.label), total, domestic, overseas, creditUsed, s.memo || '']);
   });
 
   const wb = XLSX.utils.book_new();
   const wsHoldings = XLSX.utils.aoa_to_sheet(holdingRows);
   XLSX.utils.book_append_sheet(wb, wsHoldings, '보유종목');
+  const wsAccountSummary = XLSX.utils.aoa_to_sheet(accountSummaryRows);
+  XLSX.utils.book_append_sheet(wb, wsAccountSummary, '계좌별요약');
+  if(state.creditLines.length > 0){
+    const wsCredit = XLSX.utils.aoa_to_sheet(creditRows);
+    XLSX.utils.book_append_sheet(wb, wsCredit, '마통현황');
+  }
   if(state.snapshots.length > 0){
     const wsSnap = XLSX.utils.aoa_to_sheet(snapshotRows);
     XLSX.utils.book_append_sheet(wb, wsSnap, '월별변화');
