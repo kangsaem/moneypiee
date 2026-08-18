@@ -1931,7 +1931,7 @@ function lockedRegionDonutBlock(region, holdings){
     { label: '해외', pct: overseasTotal/total*100, group: 'overseas', color: REGION_LIGHT }
   ];
   lockedRegionAccordionCashLabel = cashLabel;
-  lockedRegionAccordionRegionLabel = label;
+  lockedRegionAccordionRegionLabel = label + '투자';
   lockedRegionAccordionCashAmount = region === 'domestic' ? quad.krwCash : quad.foreignCash;
   lockedRegionAccordionInvestAmount = region === 'domestic' ? quad.domesticInvest : quad.overseasInvest;
   const legendHtml = `<div class="legend">${legendData.map(d => {
@@ -2448,7 +2448,7 @@ let totalStockDetailHoldings = [];
 let totalStockDetailCashLabel = '현금';
 let lockedRegionAccordionOpen = false;
 let lockedRegionAccordionCashLabel = '원화';
-let lockedRegionAccordionRegionLabel = '국내';
+let lockedRegionAccordionRegionLabel = '국내투자';
 let lockedRegionAccordionCashAmount = 0;
 let lockedRegionAccordionInvestAmount = 0;
 let totalStockDetailOpen = false;
