@@ -267,6 +267,28 @@
   </div>
 </div>
 
+<!-- 사용 매뉴얼 모달 (이미지 가이드) -->
+<div id="manualModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3100;align-items:center;justify-content:center;padding:12px;">
+  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 16px 20px;width:min(420px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,0.45);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <h3 style="margin:0;font-size:16px;font-weight:700;">머니파이 사용 매뉴얼</h3>
+      <span id="manualStepLabel" style="font-size:13px;color:var(--text-dim);font-weight:600;">1 / 4</span>
+    </div>
+    <div style="flex:1;overflow:auto;border-radius:8px;background:#111;min-height:200px;display:flex;align-items:center;justify-content:center;">
+      <img id="manualImage" src="0001.png" alt="매뉴얼" style="max-width:100%;max-height:min(58vh,520px);width:auto;height:auto;display:block;border-radius:6px;">
+    </div>
+    <div id="manualCaption" style="font-size:12px;color:var(--text-dim);line-height:1.45;margin:10px 0 12px;min-height:2.8em;"></div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;margin-bottom:12px;">
+      <input type="checkbox" id="manualDontShowAgain">
+      다음에 보이지 않기
+    </label>
+    <div style="display:flex;gap:8px;justify-content:space-between;">
+      <button class="btn" id="manualPrevBtn" style="min-width:72px;">이전</button>
+      <button class="btn btn-primary" id="manualNextBtn" style="min-width:100px;">다음</button>
+    </div>
+  </div>
+</div>
+
 <div id="welcomeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;width:380px;max-width:100%;max-height:72vh;overflow-y:auto;">
     <h3 style="margin:0 0 16px;font-size:17px;font-weight:700;">머니파이가 처음이신가요?</h3>
@@ -1931,7 +1953,7 @@ function lockedRegionDonutBlock(region, holdings){
     { label: '해외', pct: overseasTotal/total*100, group: 'overseas', color: REGION_LIGHT }
   ];
   lockedRegionAccordionCashLabel = cashLabel;
-  lockedRegionAccordionRegionLabel = label + '투자';
+  lockedRegionAccordionRegionLabel = label;
   lockedRegionAccordionCashAmount = region === 'domestic' ? quad.krwCash : quad.foreignCash;
   lockedRegionAccordionInvestAmount = region === 'domestic' ? quad.domesticInvest : quad.overseasInvest;
   const legendHtml = `<div class="legend">${legendData.map(d => {
@@ -2448,7 +2470,7 @@ let totalStockDetailHoldings = [];
 let totalStockDetailCashLabel = '현금';
 let lockedRegionAccordionOpen = false;
 let lockedRegionAccordionCashLabel = '원화';
-let lockedRegionAccordionRegionLabel = '국내투자';
+let lockedRegionAccordionRegionLabel = '국내';
 let lockedRegionAccordionCashAmount = 0;
 let lockedRegionAccordionInvestAmount = 0;
 let totalStockDetailOpen = false;
@@ -3366,24 +3388,107 @@ load();
 loadMarketData(true);
 
 (function(){
+  // ===== 사용 매뉴얼 (이미지 가이드) =====
+  const MANUAL_KEY = 'moneypie_manual_dismissed';
+  const manualModal = document.getElementById('manualModal');
+  const manualImg = document.getElementById('manualImage');
+  const manualStepLabel = document.getElementById('manualStepLabel');
+  const manualCaption = document.getElementById('manualCaption');
+  const manualPrevBtn = document.getElementById('manualPrevBtn');
+  const manualNextBtn = document.getElementById('manualNextBtn');
+  const manualDontShowChk = document.getElementById('manualDontShowAgain');
+
+  const manualSteps = [
+    {
+      src: '0001.png',
+      caption: '종목명(원화/외화/삼성전자/ETF코드/티커)과 평가액을 입력하고, 계좌명·유형을 수정할 수 있습니다. 차트를 클릭하면 해당 요소로 정렬됩니다.'
+    },
+    {
+      src: '0002.png',
+      caption: '계좌유형별(연금·직투·DC·IRP·ISA) 비중과 국내/해외 비중, 섹터 내 세부 종목 비중을 한눈에 확인할 수 있습니다.'
+    },
+    {
+      src: '0003.png',
+      caption: '상단 기간을 클릭해 조회 기간을 바꿀 수 있고, 월별 메모와 마통 사용액을 표시합니다. 국내 투자 섹터 비중도 확인할 수 있습니다.'
+    },
+    {
+      src: '0004.png',
+      caption: '엑셀 보내기로 데이터를 내보낼 수 있고, 월별 자산 변화·섹터 비중 변화·국내/해외 비중 변화를 그래프로 볼 수 있습니다.'
+    }
+  ];
+  let manualIdx = 0;
+
+  function updateManualUI(){
+    const step = manualSteps[manualIdx];
+    if(manualImg) manualImg.src = step.src;
+    if(manualStepLabel) manualStepLabel.textContent = (manualIdx + 1) + ' / ' + manualSteps.length;
+    if(manualCaption) manualCaption.textContent = step.caption;
+    if(manualPrevBtn) manualPrevBtn.style.visibility = manualIdx === 0 ? 'hidden' : 'visible';
+    if(manualNextBtn) manualNextBtn.textContent = manualIdx === manualSteps.length - 1 ? '완료' : '다음';
+  }
+
+  function closeManualModal(){
+    if(manualDontShowChk && manualDontShowChk.checked){
+      try { localStorage.setItem(MANUAL_KEY, '1'); } catch(e){}
+    }
+    if(manualModal) manualModal.style.display = 'none';
+  }
+
+  function showManualIfNeeded(){
+    let manualDismissed = false;
+    try { manualDismissed = localStorage.getItem(MANUAL_KEY) === '1'; } catch(e){}
+    if(!manualDismissed && manualModal){
+      updateManualUI();
+      manualModal.style.display = 'flex';
+    }
+  }
+
+  if(manualPrevBtn) manualPrevBtn.addEventListener('click', () => {
+    if(manualIdx > 0){
+      manualIdx--;
+      updateManualUI();
+    }
+  });
+  if(manualNextBtn) manualNextBtn.addEventListener('click', () => {
+    if(manualIdx < manualSteps.length - 1){
+      manualIdx++;
+      updateManualUI();
+    } else {
+      closeManualModal();
+    }
+  });
+  if(manualModal) manualModal.addEventListener('click', (e) => {
+    if(e.target.id === 'manualModal') closeManualModal();
+  });
+
+  // ===== FAQ 환영 모달 (먼저 표시) =====
   const WELCOME_KEY = 'moneypie_welcome_dismissed';
   const modal = document.getElementById('welcomeModal');
   const closeBtn = document.getElementById('welcomeCloseBtn');
   const dontShowChk = document.getElementById('welcomeDontShowAgain');
-  let dismissed = false;
-  try { dismissed = localStorage.getItem(WELCOME_KEY) === '1'; } catch(e){}
-  if(!dismissed && modal){
-    modal.style.display = 'flex';
-  }
-  if(closeBtn) closeBtn.addEventListener('click', () => {
+
+  function closeWelcomeModal(){
     if(dontShowChk && dontShowChk.checked){
       try { localStorage.setItem(WELCOME_KEY, '1'); } catch(e){}
     }
     if(modal) modal.style.display = 'none';
-  });
+    // FAQ를 닫은 뒤 매뉴얼이 아직 안 본 상태면 이어서 표시
+    showManualIfNeeded();
+  }
+
+  if(closeBtn) closeBtn.addEventListener('click', closeWelcomeModal);
   if(modal) modal.addEventListener('click', (e) => {
-    if(e.target.id === 'welcomeModal') modal.style.display = 'none';
+    if(e.target.id === 'welcomeModal') closeWelcomeModal();
   });
+
+  let welcomeDismissed = false;
+  try { welcomeDismissed = localStorage.getItem(WELCOME_KEY) === '1'; } catch(e){}
+  if(!welcomeDismissed && modal){
+    modal.style.display = 'flex';
+  } else {
+    // FAQ를 이미 본 상태라면 매뉴얼만 바로 표시
+    showManualIfNeeded();
+  }
 })();
 </script>
 
