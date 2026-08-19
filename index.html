@@ -3421,7 +3421,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
 });
 
 document.addEventListener('click', (e) => {
-  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],#total-memo-edit,#total-memo-save');
+  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],#stock-sortable-chart,#total-memo-edit,#total-memo-save');
   const isInsideAccordion = e.target.closest('.floating-acc');
   if(isTrigger || isInsideAccordion) return;
   if(sectorAccordionOpenIdx !== null){
