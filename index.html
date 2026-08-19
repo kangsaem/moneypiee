@@ -2030,10 +2030,10 @@ function bindSectorAccordionHandlers(){
         : '';
       const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-        <div style="background:#C9C9C9;padding:7px 40px 7px 12px;position:relative;display:flex;align-items:center;">
-          <span style="font-size:13px;font-weight:700;color:#333333;">${escapeHTML(label)}</span>
-          <button data-acc-close style="position:absolute;top:50%;right:6px;transform:translateY(-50%);width:24px;height:24px;background:#C2477C;border:none;border-radius:5px;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:300;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+        <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+          <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
+          <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
         </div>
         <div style="padding:8px 12px;">
           ${regionBarHtml}
@@ -2119,7 +2119,7 @@ function toggleLockedRegionAccordion(){
     accordionRowHTML(lockedRegionAccordionCashLabel, cashPct),
     accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
   ].join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
     <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     ${rows}
   </div>`;
@@ -2204,10 +2204,10 @@ function bindRegionAccordionHandlers(){
       const relabeledHoldings = holdings.map(h => isCashHolding(h) ? { ...h, group: cashLabel } : h);
       const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-        <div style="background:#C9C9C9;padding:7px 40px 7px 12px;position:relative;display:flex;align-items:center;">
-          <span style="font-size:13px;font-weight:700;color:#333333;">${escapeHTML(label)}</span>
-          <button data-acc-close style="position:absolute;top:50%;right:6px;transform:translateY(-50%);width:24px;height:24px;background:#C2477C;border:none;border-radius:5px;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+        <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+          <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
+          <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
         </div>
         <div style="padding:8px 12px;">
           ${rows || '<div class="empty">데이터 없음</div>'}
@@ -2555,7 +2555,7 @@ function renderTotalMemoBox(snapId){
       <button class="btn btn-primary" id="total-memo-edit" style="padding:4px 10px;font-size:12px;">메모수정</button>
     </div>`;
   }
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:400;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
     <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     <div style="font-size:11px;color:#555555;margin-bottom:4px;">${escapeHTML(monthLabel)}</div>
     ${inner}
@@ -2673,7 +2673,7 @@ function toggleStockDetailAccordion(){
     const name = d.label === '현금' ? escapeHTML(totalStockDetailCashLabel) : escapeHTML(d.label);
     return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num" style="text-align:right;">${d.amount.toLocaleString()}</span></div>`;
   }).join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;overflow-y:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;overflow-y:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
     <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     ${rows || '<div class="empty">데이터 없음</div>'}
   </div>`;
@@ -3091,16 +3091,10 @@ let memoEditState = {};
 function toggleMemoAccordion(snapId){
   const slot = document.getElementById('snap-memo-slot-' + snapId);
   if(!slot) return;
-  if(openMemoSnapId && openMemoSnapId !== snapId){
-    const prevSlot = document.getElementById('snap-memo-slot-' + openMemoSnapId);
-    if(prevSlot) prevSlot.innerHTML = '';
-  }
-  if(openMemoSnapId === snapId){
+  if(slot.innerHTML !== ''){
     slot.innerHTML = '';
-    openMemoSnapId = null;
     return;
   }
-  openMemoSnapId = snapId;
   delete memoEditState[snapId];
   renderMemoBox(snapId);
 }
@@ -3124,9 +3118,15 @@ function renderMemoBox(snapId){
       <button class="btn btn-primary" data-editmemo="${snapId}" style="padding:4px 10px;font-size:12px;">메모수정</button>
     </div>`;
   }
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
-    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
+  const monthLabel = snap ? fullMonthLabel(snap.label) : '';
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:400;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+    <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(monthLabel)}</span>
+      <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+    </div>
+    <div style="padding:8px 12px;">
     ${inner}
+    </div>
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const memoCloseBtn = slot.querySelector('[data-acc-close]');
@@ -3595,11 +3595,7 @@ document.addEventListener('click', (e) => {
     if(s) s.innerHTML = '';
     lockedRegionAccordionOpen = false;
   }
-  if(openMemoSnapId){
-    const s = document.getElementById('snap-memo-slot-' + openMemoSnapId);
-    if(s) s.innerHTML = '';
-    openMemoSnapId = null;
-  }
+  document.querySelectorAll('[id^="snap-memo-slot-"]').forEach(s => { s.innerHTML = ''; });
   if(openTotalMemoId){
     const s = document.getElementById('total-memo-slot');
     if(s) s.innerHTML = '';
