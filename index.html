@@ -1990,10 +1990,10 @@ function lockedRegionDonutBlock(region, holdings){
     return `<div class="chart-box"><div style="position:relative;">${donutHtml}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">${label}</span></div></div><div class="legend"></div></div>`;
   }
   const donutData = [
-    { label: '외화', amount: quad.foreignCash, color: CASH_COLOR, group: 'overseas' },
     { label: '해외', amount: quad.overseasInvest, color: REGION_LIGHT, group: 'overseas' },
     { label: '국내', amount: quad.domesticInvest, color: REGION_STRONG, group: 'domestic' },
-    { label: '원화', amount: quad.krwCash, color: CASH_COLOR, group: 'domestic' }
+    { label: '원화', amount: quad.krwCash, color: CASH_COLOR, group: 'domestic' },
+    { label: '외화', amount: quad.foreignCash, color: CASH_COLOR, group: 'overseas' }
   ];
   const donutHtml = regionQuadDonutSVG(donutData, 160, region);
   const total = grandTotalRaw || 1;
@@ -2050,10 +2050,10 @@ function regionChartBlock(holdings){
     </svg></div>`;
   } else {
     const donutData = [
-      { label: '외화', amount: quad.foreignCash, color: CASH_COLOR, group: 'overseas' },
       { label: '해외', amount: quad.overseasInvest, color: REGION_LIGHT, group: 'overseas' },
       { label: '국내', amount: quad.domesticInvest, color: REGION_STRONG, group: 'domestic' },
-      { label: '원화', amount: quad.krwCash, color: CASH_COLOR, group: 'domestic' }
+      { label: '원화', amount: quad.krwCash, color: CASH_COLOR, group: 'domestic' },
+      { label: '외화', amount: quad.foreignCash, color: CASH_COLOR, group: 'overseas' }
     ];
     donutHtml = regionQuadDonutSVG(donutData, 160);
   }
