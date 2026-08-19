@@ -1623,6 +1623,12 @@ function sortStockData(data, mode){
   return [...cash, ...rest];
 }
 
+function captureAccordionPosAlways(selector){
+  const el = document.querySelector(selector);
+  if(!el) return null;
+  const rect = el.getBoundingClientRect();
+  return { left: rect.left + 'px', top: rect.top + 'px' };
+}
 function captureAccordionPos(selector){
   const el = document.querySelector(selector);
   if(el && el.dataset.dragged === 'true'){
@@ -1661,7 +1667,7 @@ function cycleStockSort(){
   const savedLockedRegionOpen = lockedRegionAccordionOpen;
   const savedLockedRegionPos = savedLockedRegionOpen ? captureAccordionPos('#locked-region-slot .floating-acc') : null;
   const savedCashOpen = cashAmountAccordionOpen;
-  const savedCashPos = savedCashOpen ? captureAccordionPos('#cash-amount-slot .floating-acc') : null;
+  const savedCashPos = savedCashOpen ? captureAccordionPosAlways('#cash-amount-slot .floating-acc') : null;
 
   const cycle = stockSortCycleActive || STOCK_SORT_CYCLE_FULL;
   const idx = cycle.indexOf(stockLegendSortMode);
