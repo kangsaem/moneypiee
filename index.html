@@ -1821,7 +1821,7 @@ function regionQuadDonutSVG(data, size, highlightGroup){
   data.forEach((d) => {
     const sweep = (d.amount/total) * 360;
     if(sweep <= 0) return;
-    const opacityAttr = highlightGroup ? ` opacity="${d.group === highlightGroup ? 1 : 0.3}"` : '';
+    const opacityAttr = highlightGroup ? ` opacity="${d.group === highlightGroup ? 1 : 0.15}"` : '';
     if(sweep >= 359.9){
       paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.color}"${opacityAttr} data-region-slice-group="${d.group}"><title>${escapeHTML(d.label)}</title></circle>`;
       angle += sweep;
@@ -2009,7 +2009,7 @@ function lockedRegionDonutBlock(region, holdings){
   lockedRegionAccordionInvestAmount = region === 'domestic' ? quad.domesticInvest : quad.overseasInvest;
   const legendHtml = `<div class="legend">${legendData.map(d => {
     const isCurrent = d.group === region;
-    return `<div class="legend-item" ${isCurrent ? 'data-locked-region-toggle style="cursor:pointer;"' : ''} style="${isCurrent?'':'opacity:0.5;'}"><span class="swatch" style="background:${d.color}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+    return `<div class="legend-item" ${isCurrent ? 'data-locked-region-toggle style="cursor:pointer;"' : ''} style="${isCurrent?'':'opacity:0.3;'}"><span class="swatch" style="background:${d.color}"></span><span class="legend-name">${escapeHTML(d.label)}</span><span class="legend-pct num">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
   }).join('')}</div>`;
   return `<div class="chart-box"><div style="position:relative;">
     <div data-locked-region-toggle style="cursor:pointer;">${donutHtml}</div>
