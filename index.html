@@ -732,6 +732,8 @@ function rankColor(label, index, count, type){
   if(label === '국내현금') return CASH_COLOR;
   if(label === '해외현금') return CASH_OVERSEAS;
   if(label === '현금') return CASH_COLOR;
+  if(label === '원화') return CASH_COLOR;
+  if(label === '외화') return CASH_OVERSEAS;
   if(type === 'stock'){
     const cycle = Math.floor(index/2);
     const totalCycles = Math.ceil(count/2);
@@ -1693,7 +1695,7 @@ function decorativeRingsSVG(ringSpecs, cx, cy, pieR, ringW){
     if(spec.partial){
       return partialRingSVG(spec.partial.fraction, spec.partial.color, cx, cy, r, ringW, spec.name, spec.partial.label);
     }
-    const ordered = reorderCashFirst(spec.data);
+    const ordered = spec.preOrdered ? spec.data : reorderCashFirst(spec.data);
     return ringSegmentsSVG(ordered, spec.type, cx, cy, r, ringW, spec.name, spec.opacity);
   }).join('');
 }
@@ -2064,6 +2066,18 @@ function toggleLockedRegionAccordion(){
     ${rows}
   </div>`;
   lockedRegionAccordionOpen = true;
+}
+
+function regionQuadRingData(holdings){
+  const quad = computeRegionQuad(holdings);
+  const grandTotalRaw = quad.krwCash + quad.domesticInvest + quad.overseasInvest + quad.foreignCash;
+  const total = grandTotalRaw || 1;
+  return [
+    { label: '외화', amount: quad.foreignCash, pct: quad.foreignCash/total*100, rank: 1, rankCount: 2 },
+    { label: '원화', amount: quad.krwCash, pct: quad.krwCash/total*100, rank: 0, rankCount: 2 },
+    { label: '국내', amount: quad.domesticInvest, pct: quad.domesticInvest/total*100, rank: 0, rankCount: 2 },
+    { label: '해외', amount: quad.overseasInvest, pct: quad.overseasInvest/total*100, rank: 1, rankCount: 2 }
+  ].filter(d => d.amount > 0);
 }
 
 function regionChartBlock(holdings){
@@ -3231,7 +3245,7 @@ function renderPanel(){
         ${regionChartBlock(scopedHoldings)}
         ${stockChartBlockSortable(scopedHoldings, true, [
           { data: computeWeights(scopedHoldings, 'group'), type: 'group', name: 'decorative-sector' },
-          { data: computeWeights(scopedHoldings, mergedRegionLabelFor), type: 'region', name: 'decorative-region' },
+          { data: regionQuadRingData(scopedHoldings), type: 'region', name: 'decorative-region', preOrdered: true },
           { data: computeWeights(scopedHoldings, 'accountTypeLabel'), type: 'accountType', name: 'decorative-accounttype', opacity: 0.8 },
           ...(state.creditLines.length > 0 && grandTotal > 0 ? [{ partial: { fraction: totalCreditUsed / grandTotal, color: '#B85450', label: '마통사용' }, name: 'decorative-credit' }] : [])
         ])}
@@ -3301,7 +3315,7 @@ function renderPanel(){
       ${regionChartBlock(acc.holdings)}
       ${stockChartBlockSortable(acc.holdings, true, [
         { data: computeWeights(acc.holdings, 'group'), type: 'group', name: 'decorative-sector' },
-        { data: computeWeights(acc.holdings, mergedRegionLabelFor), type: 'region', name: 'decorative-region' }
+        { data: regionQuadRingData(acc.holdings), type: 'region', name: 'decorative-region', preOrdered: true }
       ])}
     </div>
   `;
