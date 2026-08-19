@@ -769,10 +769,10 @@ function regionLabelFor(h){
   return isOverseas ? '해외' : '국내';
 }
 function reorderCashFirst(dataSorted){
-  const ranked = dataSorted.map((d,i) => ({ ...d, rank:i, rankCount: dataSorted.length }));
-  const cash = ranked.filter(d => isCashLikeLabel(d.label));
-  const rest = ranked.filter(d => !isCashLikeLabel(d.label));
-  return cash.length ? [...cash, ...rest] : ranked;
+  const cash = dataSorted.filter(d => isCashLikeLabel(d.label));
+  const rest = dataSorted.filter(d => !isCashLikeLabel(d.label));
+  const combined = cash.length ? [...cash, ...rest] : dataSorted;
+  return combined.map((d,i) => ({ ...d, rank: i, rankCount: combined.length }));
 }
 
 function uid(){ return Math.random().toString(36).slice(2,10); }
