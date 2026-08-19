@@ -2593,10 +2593,17 @@ function renderTotalMemoBox(snapId){
     if(snap) snap.memo = document.getElementById('total-memo-textarea').value;
     saveSnapshots();
     totalMemoEditState[snapId] = false;
+    const pos = captureAccordionPos('#total-memo-slot .floating-acc');
     renderTotalMemoBox(snapId);
+    applyAccordionPos('#total-memo-slot .floating-acc', pos);
   });
   const editBtn = document.getElementById('total-memo-edit');
-  if(editBtn) editBtn.addEventListener('click', () => { totalMemoEditState[snapId] = true; renderTotalMemoBox(snapId); });
+  if(editBtn) editBtn.addEventListener('click', () => {
+    totalMemoEditState[snapId] = true;
+    const pos = captureAccordionPos('#total-memo-slot .floating-acc');
+    renderTotalMemoBox(snapId);
+    applyAccordionPos('#total-memo-slot .floating-acc', pos);
+  });
 }
 
 let trendSeriesData = {};
@@ -3118,6 +3125,7 @@ function renderDeleteAccountsPanel(){
 
 let openMemoSnapId = null;
 let memoEditState = {};
+let memoZIndexCounter = 500;
 
 function toggleMemoAccordion(snapId){
   const slot = document.getElementById('snap-memo-slot-' + snapId);
@@ -3130,9 +3138,10 @@ function toggleMemoAccordion(snapId){
   renderMemoBox(snapId);
 }
 
-function renderMemoBox(snapId){
+function renderMemoBox(snapId, zIndexOverride){
   const slot = document.getElementById('snap-memo-slot-' + snapId);
   if(!slot) return;
+  const zIndex = zIndexOverride || (++memoZIndexCounter);
   const snap = state.snapshots.find(s => s.id === snapId);
   const memoText = snap ? (snap.memo || '') : '';
   const hasMemo = !!memoText.trim();
@@ -3150,7 +3159,7 @@ function renderMemoBox(snapId){
     </div>`;
   }
   const monthLabel = snap ? fullMonthLabel(snap.label) : '';
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:500;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${zIndex};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(monthLabel)}</span>
       <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
@@ -3165,7 +3174,14 @@ function renderMemoBox(snapId){
   const saveBtn = slot.querySelector('[data-savememo]');
   if(saveBtn) saveBtn.addEventListener('click', () => saveSnapshotMemo(snapId));
   const editBtn = slot.querySelector('[data-editmemo]');
-  if(editBtn) editBtn.addEventListener('click', () => { memoEditState[snapId] = true; renderMemoBox(snapId); });
+  if(editBtn) editBtn.addEventListener('click', () => {
+    memoEditState[snapId] = true;
+    const pos = captureAccordionPos(`#snap-memo-slot-${snapId} .floating-acc`);
+    const existingEl = slot.querySelector('.floating-acc');
+    const zIndex = existingEl ? parseInt(existingEl.style.zIndex, 10) : undefined;
+    renderMemoBox(snapId, zIndex);
+    applyAccordionPos(`#snap-memo-slot-${snapId} .floating-acc`, pos);
+  });
 }
 
 function saveSnapshotMemo(snapId){
@@ -3175,7 +3191,12 @@ function saveSnapshotMemo(snapId){
   snap.memo = ta ? ta.value : '';
   saveSnapshots();
   memoEditState[snapId] = false;
-  renderMemoBox(snapId);
+  const slot = document.getElementById('snap-memo-slot-' + snapId);
+  const pos = captureAccordionPos(`#snap-memo-slot-${snapId} .floating-acc`);
+  const existingEl = slot ? slot.querySelector('.floating-acc') : null;
+  const zIndex = existingEl ? parseInt(existingEl.style.zIndex, 10) : undefined;
+  renderMemoBox(snapId, zIndex);
+  applyAccordionPos(`#snap-memo-slot-${snapId} .floating-acc`, pos);
 }
 
 function renderSnapshotsPanel(){
