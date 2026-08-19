@@ -1238,7 +1238,7 @@ function toggleCashAmountAccordion(amount, triggerEl){
   const gap = 8;
   const topPx = triggerEl ? (triggerEl.getBoundingClientRect().bottom + gap) : 100;
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;cursor:grab;">
-    <button data-acc-close style="position:absolute;top:4px;right:6px;background:none;border:none;color:#888;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;">&times;</button>
+    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     <span class="num" style="display:inline-block;padding:6px 4px;font-size:16px;color:#333333;border-bottom:1px solid #C9C9C9;">${amount.toLocaleString()}원</span>
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
@@ -1642,6 +1642,8 @@ function applyAccordionPos(selector, pos){
 }
 
 function cycleStockSort(){
+  const savedStockDetailOpen = totalStockDetailOpen;
+  const savedStockDetailPos = savedStockDetailOpen ? captureAccordionPos('#stock-detail-slot .floating-acc') : null;
   const savedSectorLabel = (sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
     ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null;
   const savedSectorPos = savedSectorLabel ? captureAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`) : null;
@@ -1684,6 +1686,11 @@ function cycleStockSort(){
       toggleCashAmountAccordion(parseFloat(cashBadge.dataset.cashbadge), cashBadge);
       applyAccordionPos('#cash-amount-slot .floating-acc', savedCashPos);
     }
+  }
+  if(savedStockDetailOpen){
+    totalStockDetailOpen = false;
+    toggleStockDetailAccordion();
+    applyAccordionPos('#stock-detail-slot .floating-acc', savedStockDetailPos);
   }
 }
 
@@ -2024,7 +2031,7 @@ function bindSectorAccordionHandlers(){
       const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
       slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
-        <button data-acc-close style="position:absolute;top:2px;right:4px;background:none;border:none;color:#888;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;">&times;</button>
+        <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
         ${regionBarHtml}
         ${rows || '<div class="empty">데이터 없음</div>'}
       </div>`;
@@ -2108,7 +2115,7 @@ function toggleLockedRegionAccordion(){
     accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
   ].join('');
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
-    <button data-acc-close style="position:absolute;top:2px;right:4px;background:none;border:none;color:#888;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;">&times;</button>
+    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     ${rows}
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
@@ -2193,7 +2200,7 @@ function bindRegionAccordionHandlers(){
       const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
       slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
-        <button data-acc-close style="position:absolute;top:2px;right:4px;background:none;border:none;color:#888;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;">&times;</button>
+        <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
         ${rows || '<div class="empty">데이터 없음</div>'}
       </div>`;
       makeAccordionDraggable(slot.querySelector('.floating-acc'));
@@ -2652,13 +2659,14 @@ function toggleStockDetailAccordion(){
     const name = d.label === '현금' ? escapeHTML(totalStockDetailCashLabel) : escapeHTML(d.label);
     return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num" style="text-align:right;">${d.amount.toLocaleString()}</span></div>`;
   }).join('');
-  slot.innerHTML = `<div data-stockdetailclose style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;"></div>
-  <div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;overflow-y:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;overflow-y:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
+    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     ${rows || '<div class="empty">데이터 없음</div>'}
   </div>`;
   totalStockDetailOpen = true;
-  const backdrop = slot.querySelector('[data-stockdetailclose]');
-  if(backdrop) backdrop.addEventListener('click', toggleStockDetailAccordion);
+  makeAccordionDraggable(slot.querySelector('.floating-acc'));
+  const detailCloseBtn = slot.querySelector('[data-acc-close]');
+  if(detailCloseBtn) detailCloseBtn.addEventListener('click', toggleStockDetailAccordion);
 }
 
 function toggleTrendAccordion(rowId){
@@ -3531,7 +3539,7 @@ window.addEventListener('touchend', () => {
 });
 
 document.addEventListener('click', (e) => {
-  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],#stock-sortable-chart,#total-memo-edit,#total-memo-save');
+  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],#stock-sortable-chart,#stock-detail-btn,#total-memo-edit,#total-memo-save');
   const isInsideAccordion = e.target.closest('.floating-acc');
   if(isTrigger || isInsideAccordion || accordionJustDragged) return;
   if(sectorAccordionOpenIdx !== null){
@@ -3571,6 +3579,11 @@ document.addEventListener('click', (e) => {
     const s = document.getElementById('cash-amount-slot');
     if(s) s.innerHTML = '';
     cashAmountAccordionOpen = false;
+  }
+  if(totalStockDetailOpen){
+    const s = document.getElementById('stock-detail-slot');
+    if(s) s.innerHTML = '';
+    totalStockDetailOpen = false;
   }
 });
 
