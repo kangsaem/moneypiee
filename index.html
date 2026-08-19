@@ -1237,9 +1237,10 @@ function toggleCashAmountAccordion(amount, triggerEl){
   }
   const gap = 8;
   const topPx = triggerEl ? (triggerEl.getBoundingClientRect().bottom + gap) : 100;
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;cursor:grab;">
     <span class="num" style="display:inline-block;padding:6px 4px;font-size:16px;color:#333333;border-bottom:1px solid #C9C9C9;">${amount.toLocaleString()}원</span>
   </div>`;
+  makeAccordionDraggable(slot.querySelector('.floating-acc'));
   cashAmountAccordionOpen = true;
 }
 
@@ -1989,10 +1990,11 @@ function bindSectorAccordionHandlers(){
         : '';
       const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
         ${regionBarHtml}
         ${rows || '<div class="empty">데이터 없음</div>'}
       </div>`;
+      makeAccordionDraggable(slot.querySelector('.floating-acc'));
       sectorAccordionOpenIdx = idx;
       highlightChartSlice(el, idx, 'decorative-sector');
       const centerLabelEl2 = document.getElementById('sector-center-label');
@@ -2069,9 +2071,10 @@ function toggleLockedRegionAccordion(){
     accordionRowHTML(lockedRegionAccordionCashLabel, cashPct),
     accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
   ].join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
     ${rows}
   </div>`;
+  makeAccordionDraggable(slot.querySelector('.floating-acc'));
   lockedRegionAccordionOpen = true;
 }
 
@@ -2150,9 +2153,10 @@ function bindRegionAccordionHandlers(){
       const relabeledHoldings = holdings.map(h => isCashHolding(h) ? { ...h, group: cashLabel } : h);
       const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
         ${rows || '<div class="empty">데이터 없음</div>'}
       </div>`;
+      makeAccordionDraggable(slot.querySelector('.floating-acc'));
       regionAccordionOpenIdx = idx;
       highlightRegionGroup(el, group);
       const centerLabelEl2 = document.getElementById('region-center-label');
@@ -3441,10 +3445,52 @@ document.getElementById('importFile').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
+let draggingAccordionEl = null, dragStartX = 0, dragStartY = 0, dragOrigLeft = 0, dragOrigTop = 0;
+let accordionJustDragged = false;
+function startAccordionDrag(el, clientX, clientY){
+  const rect = el.getBoundingClientRect();
+  el.style.position = 'fixed';
+  el.style.left = rect.left + 'px';
+  el.style.top = rect.top + 'px';
+  el.style.transform = 'none';
+  el.style.margin = '0';
+  draggingAccordionEl = el;
+  dragStartX = clientX; dragStartY = clientY;
+  dragOrigLeft = rect.left; dragOrigTop = rect.top;
+}
+function makeAccordionDraggable(el){
+  if(!el) return;
+  el.addEventListener('mousedown', (e) => { e.preventDefault(); startAccordionDrag(el, e.clientX, e.clientY); });
+  el.addEventListener('touchstart', (e) => { const t = e.touches[0]; startAccordionDrag(el, t.clientX, t.clientY); }, { passive: true });
+}
+window.addEventListener('mousemove', (e) => {
+  if(!draggingAccordionEl) return;
+  draggingAccordionEl.style.left = (dragOrigLeft + (e.clientX - dragStartX)) + 'px';
+  draggingAccordionEl.style.top = (dragOrigTop + (e.clientY - dragStartY)) + 'px';
+});
+window.addEventListener('mouseup', () => {
+  if(!draggingAccordionEl) return;
+  draggingAccordionEl = null;
+  accordionJustDragged = true;
+  setTimeout(() => { accordionJustDragged = false; }, 50);
+});
+window.addEventListener('touchmove', (e) => {
+  if(!draggingAccordionEl) return;
+  const t = e.touches[0];
+  draggingAccordionEl.style.left = (dragOrigLeft + (t.clientX - dragStartX)) + 'px';
+  draggingAccordionEl.style.top = (dragOrigTop + (t.clientY - dragStartY)) + 'px';
+}, { passive: true });
+window.addEventListener('touchend', () => {
+  if(!draggingAccordionEl) return;
+  draggingAccordionEl = null;
+  accordionJustDragged = true;
+  setTimeout(() => { accordionJustDragged = false; }, 50);
+});
+
 document.addEventListener('click', (e) => {
   const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],#stock-sortable-chart,#total-memo-edit,#total-memo-save');
   const isInsideAccordion = e.target.closest('.floating-acc');
-  if(isTrigger || isInsideAccordion) return;
+  if(isTrigger || isInsideAccordion || accordionJustDragged) return;
   if(sectorAccordionOpenIdx !== null){
     const s = document.getElementById('sector-slot-' + sectorAccordionOpenIdx);
     if(s) s.innerHTML = '';
