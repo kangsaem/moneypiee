@@ -745,7 +745,7 @@ function rankColor(label, index, count, type){
     return lerpColor(NAVY_STRONG, NAVY_LIGHT, t);
   }
   if(type === 'group'){
-    const hueRamps = [[STOCK_STRONG,STOCK_LIGHT], [DARKPINK_STRONG,DARKPINK_LIGHT]];
+    const hueRamps = [[DARKPINK_STRONG,DARKPINK_LIGHT], [STOCK_STRONG,STOCK_LIGHT]];
     const [strong, light] = hueRamps[index % 2];
     const cycle = Math.floor(index/2);
     const totalCycles = Math.ceil(count/2);
@@ -771,8 +771,9 @@ function regionLabelFor(h){
 function reorderCashFirst(dataSorted){
   const cash = dataSorted.filter(d => isCashLikeLabel(d.label));
   const rest = dataSorted.filter(d => !isCashLikeLabel(d.label));
-  const combined = cash.length ? [...cash, ...rest] : dataSorted;
-  return combined.map((d,i) => ({ ...d, rank: i, rankCount: combined.length }));
+  const rankedRest = rest.map((d,i) => ({ ...d, rank: i, rankCount: rest.length }));
+  const rankedCash = cash.map(d => ({ ...d, rank: 0, rankCount: rest.length || 1 }));
+  return [...rankedCash, ...rankedRest];
 }
 
 function uid(){ return Math.random().toString(36).slice(2,10); }
