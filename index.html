@@ -1625,7 +1625,7 @@ function sortStockData(data, mode){
 
 function captureAccordionPos(selector){
   const el = document.querySelector(selector);
-  if(el && el.style.position === 'fixed' && el.style.left){
+  if(el && el.dataset.dragged === 'true'){
     return { left: el.style.left, top: el.style.top };
   }
   return null;
@@ -1639,6 +1639,7 @@ function applyAccordionPos(selector, pos){
   el.style.top = pos.top;
   el.style.transform = 'none';
   el.style.margin = '0';
+  el.dataset.dragged = 'true';
 }
 
 function cycleStockSort(){
@@ -3576,6 +3577,7 @@ function startAccordionDrag(el, clientX, clientY){
   el.style.top = rect.top + 'px';
   el.style.transform = 'none';
   el.style.margin = '0';
+  el.dataset.dragged = 'true';
   draggingAccordionEl = el;
   dragStartX = clientX; dragStartY = clientY;
   dragOrigLeft = rect.left; dragOrigTop = rect.top;
