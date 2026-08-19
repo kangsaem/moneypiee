@@ -2030,10 +2030,15 @@ function bindSectorAccordionHandlers(){
         : '';
       const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
-        <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
-        ${regionBarHtml}
-        ${rows || '<div class="empty">데이터 없음</div>'}
+      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+        <div style="background:#C9C9C9;padding:7px 40px 7px 12px;position:relative;display:flex;align-items:center;">
+          <span style="font-size:13px;font-weight:700;color:#333333;">${escapeHTML(label)}</span>
+          <button data-acc-close style="position:absolute;top:50%;right:6px;transform:translateY(-50%);width:24px;height:24px;background:#C2477C;border:none;border-radius:5px;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+        </div>
+        <div style="padding:8px 12px;">
+          ${regionBarHtml}
+          ${rows || '<div class="empty">데이터 없음</div>'}
+        </div>
       </div>`;
       makeAccordionDraggable(slot.querySelector('.floating-acc'));
       const sectorCloseBtn = slot.querySelector('[data-acc-close]');
@@ -2199,9 +2204,14 @@ function bindRegionAccordionHandlers(){
       const relabeledHoldings = holdings.map(h => isCashHolding(h) ? { ...h, group: cashLabel } : h);
       const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
-        <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
-        ${rows || '<div class="empty">데이터 없음</div>'}
+      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+        <div style="background:#C9C9C9;padding:7px 40px 7px 12px;position:relative;display:flex;align-items:center;">
+          <span style="font-size:13px;font-weight:700;color:#333333;">${escapeHTML(label)}</span>
+          <button data-acc-close style="position:absolute;top:50%;right:6px;transform:translateY(-50%);width:24px;height:24px;background:#C2477C;border:none;border-radius:5px;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+        </div>
+        <div style="padding:8px 12px;">
+          ${rows || '<div class="empty">데이터 없음</div>'}
+        </div>
       </div>`;
       makeAccordionDraggable(slot.querySelector('.floating-acc'));
       const regionCloseBtn = slot.querySelector('[data-acc-close]');
@@ -2545,10 +2555,14 @@ function renderTotalMemoBox(snapId){
       <button class="btn btn-primary" id="total-memo-edit" style="padding:4px 10px;font-size:12px;">메모수정</button>
     </div>`;
   }
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
+    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     <div style="font-size:11px;color:#555555;margin-bottom:4px;">${escapeHTML(monthLabel)}</div>
     ${inner}
   </div>`;
+  makeAccordionDraggable(slot.querySelector('.floating-acc'));
+  const totalMemoCloseBtn = slot.querySelector('[data-acc-close]');
+  if(totalMemoCloseBtn) totalMemoCloseBtn.addEventListener('click', () => toggleTotalMemoAccordion(snapId));
   const saveBtn = document.getElementById('total-memo-save');
   if(saveBtn) saveBtn.addEventListener('click', () => {
     if(snap) snap.memo = document.getElementById('total-memo-textarea').value;
@@ -3110,7 +3124,13 @@ function renderMemoBox(snapId){
       <button class="btn btn-primary" data-editmemo="${snapId}" style="padding:4px 10px;font-size:12px;">메모수정</button>
     </div>`;
   }
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);">${inner}</div>`;
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
+    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
+    ${inner}
+  </div>`;
+  makeAccordionDraggable(slot.querySelector('.floating-acc'));
+  const memoCloseBtn = slot.querySelector('[data-acc-close]');
+  if(memoCloseBtn) memoCloseBtn.addEventListener('click', () => toggleMemoAccordion(snapId));
   const saveBtn = slot.querySelector('[data-savememo]');
   if(saveBtn) saveBtn.addEventListener('click', () => saveSnapshotMemo(snapId));
   const editBtn = slot.querySelector('[data-editmemo]');
@@ -3510,8 +3530,18 @@ function startAccordionDrag(el, clientX, clientY){
 }
 function makeAccordionDraggable(el){
   if(!el) return;
-  el.addEventListener('mousedown', (e) => { e.preventDefault(); startAccordionDrag(el, e.clientX, e.clientY); });
-  el.addEventListener('touchstart', (e) => { e.preventDefault(); const t = e.touches[0]; startAccordionDrag(el, t.clientX, t.clientY); }, { passive: false });
+  const isInteractive = (target) => target.closest('[data-acc-close],button,textarea,input,select,a');
+  el.addEventListener('mousedown', (e) => {
+    if(isInteractive(e.target)) return;
+    e.preventDefault();
+    startAccordionDrag(el, e.clientX, e.clientY);
+  });
+  el.addEventListener('touchstart', (e) => {
+    if(isInteractive(e.target)) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    startAccordionDrag(el, t.clientX, t.clientY);
+  }, { passive: false });
 }
 window.addEventListener('mousemove', (e) => {
   if(!draggingAccordionEl) return;
