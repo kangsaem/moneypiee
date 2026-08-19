@@ -3456,6 +3456,11 @@ document.addEventListener('click', (e) => {
     const regionCenterEl = document.getElementById('region-center-label');
     if(regionCenterEl) regionCenterEl.textContent = '지역';
   }
+  if(lockedRegionAccordionOpen){
+    const s = document.getElementById('locked-region-slot');
+    if(s) s.innerHTML = '';
+    lockedRegionAccordionOpen = false;
+  }
   if(openMemoSnapId){
     const s = document.getElementById('snap-memo-slot-' + openMemoSnapId);
     if(s) s.innerHTML = '';
