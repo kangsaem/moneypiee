@@ -738,7 +738,10 @@ function rankColor(label, index, count, type){
     const cycle = Math.floor(index/2);
     const totalCycles = Math.ceil(count/2);
     const t = totalCycles > 1 ? cycle/(totalCycles-1) : 0;
-    if(index % 2 === 1) return lerpColor(GROUP_STRONG, GROUP_LIGHT, t);
+    if(index % 2 === 1){
+      const triCycle = ['#2770B6', '#4FC3F7', '#8BC34A'];
+      return triCycle[cycle % 3];
+    }
     return lerpColor(NAVY_STRONG, NAVY_LIGHT, t);
   }
   if(type === 'group'){
@@ -2018,9 +2021,12 @@ function lockedRegionDonutBlock(region, holdings){
     </svg></div>`;
     return `<div class="chart-box"><div style="position:relative;">${donutHtml}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">${label}</span></div></div><div class="legend"></div></div>`;
   }
+  const swapColors = region === 'overseas';
+  const domesticColor = swapColors ? REGION_LIGHT : REGION_STRONG;
+  const overseasColor = swapColors ? REGION_STRONG : REGION_LIGHT;
   const donutData = [
-    { label: '해외', amount: quad.overseasInvest, color: REGION_LIGHT, group: 'overseas' },
-    { label: '국내', amount: quad.domesticInvest, color: REGION_STRONG, group: 'domestic' },
+    { label: '해외', amount: quad.overseasInvest, color: overseasColor, group: 'overseas' },
+    { label: '국내', amount: quad.domesticInvest, color: domesticColor, group: 'domestic' },
     { label: '원화', amount: quad.krwCash, color: CASH_COLOR, group: 'domestic' },
     { label: '외화', amount: quad.foreignCash, color: CASH_COLOR, group: 'overseas' }
   ];
@@ -2029,8 +2035,8 @@ function lockedRegionDonutBlock(region, holdings){
   const domesticTotal = quad.krwCash + quad.domesticInvest;
   const overseasTotal = quad.foreignCash + quad.overseasInvest;
   const legendData = [
-    { label: '국내', pct: domesticTotal/total*100, group: 'domestic', color: REGION_STRONG },
-    { label: '해외', pct: overseasTotal/total*100, group: 'overseas', color: REGION_LIGHT }
+    { label: '국내', pct: domesticTotal/total*100, group: 'domestic', color: domesticColor },
+    { label: '해외', pct: overseasTotal/total*100, group: 'overseas', color: overseasColor }
   ];
   lockedRegionAccordionCashLabel = cashLabel;
   lockedRegionAccordionRegionLabel = region === 'domestic' ? '국내투자' : '해외투자';
