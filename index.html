@@ -1614,10 +1614,37 @@ function sortStockData(data, mode){
 }
 
 function cycleStockSort(){
+  const savedSectorLabel = (sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
+    ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null;
+  const savedRegionLabel = (regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
+    ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label : null;
+  const savedLockedRegionOpen = lockedRegionAccordionOpen;
+  const savedCashOpen = cashAmountAccordionOpen;
+
   const cycle = stockSortCycleActive || STOCK_SORT_CYCLE_FULL;
   const idx = cycle.indexOf(stockLegendSortMode);
   stockLegendSortMode = cycle[(idx + 1) % cycle.length];
   render();
+
+  if(savedSectorLabel){
+    const el = document.querySelector(`[data-sector-label="${CSS.escape(savedSectorLabel)}"]`);
+    if(el) el.click();
+  }
+  if(savedRegionLabel){
+    const el = document.querySelector(`[data-region-label="${CSS.escape(savedRegionLabel)}"]`);
+    if(el) el.click();
+  }
+  if(savedLockedRegionOpen){
+    lockedRegionAccordionOpen = false;
+    toggleLockedRegionAccordion();
+  }
+  if(savedCashOpen){
+    const cashBadge = document.querySelector('[data-cashbadge]');
+    if(cashBadge){
+      cashAmountAccordionOpen = false;
+      toggleCashAmountAccordion(parseFloat(cashBadge.dataset.cashbadge), cashBadge);
+    }
+  }
 }
 
 function combinedTripleDonutBlock(holdings, rightData, rightType, rightClickable){
