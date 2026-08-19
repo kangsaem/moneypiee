@@ -1821,7 +1821,7 @@ function regionQuadDonutSVG(data, size, highlightGroup){
   data.forEach((d) => {
     const sweep = (d.amount/total) * 360;
     if(sweep <= 0) return;
-    const opacityAttr = highlightGroup ? ` opacity="${d.group === highlightGroup ? 1 : 0.15}"` : '';
+    const opacityAttr = highlightGroup ? ` opacity="${d.group === highlightGroup ? 1 : 0.1}"` : '';
     if(sweep >= 359.9){
       paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.color}"${opacityAttr} data-region-slice-group="${d.group}"><title>${escapeHTML(d.label)}</title></circle>`;
       angle += sweep;
