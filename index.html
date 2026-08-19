@@ -1238,9 +1238,12 @@ function toggleCashAmountAccordion(amount, triggerEl){
   const gap = 8;
   const topPx = triggerEl ? (triggerEl.getBoundingClientRect().bottom + gap) : 100;
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;cursor:grab;">
+    <button data-acc-close style="position:absolute;top:4px;right:6px;background:none;border:none;color:#888;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;">&times;</button>
     <span class="num" style="display:inline-block;padding:6px 4px;font-size:16px;color:#333333;border-bottom:1px solid #C9C9C9;">${amount.toLocaleString()}원</span>
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
+  const cashCloseBtn = slot.querySelector('[data-acc-close]');
+  if(cashCloseBtn) cashCloseBtn.addEventListener('click', () => toggleCashAmountAccordion());
   cashAmountAccordionOpen = true;
 }
 
@@ -1620,13 +1623,35 @@ function sortStockData(data, mode){
   return [...cash, ...rest];
 }
 
+function captureAccordionPos(selector){
+  const el = document.querySelector(selector);
+  if(el && el.style.position === 'fixed' && el.style.left){
+    return { left: el.style.left, top: el.style.top };
+  }
+  return null;
+}
+function applyAccordionPos(selector, pos){
+  if(!pos) return;
+  const el = document.querySelector(selector);
+  if(!el) return;
+  el.style.position = 'fixed';
+  el.style.left = pos.left;
+  el.style.top = pos.top;
+  el.style.transform = 'none';
+  el.style.margin = '0';
+}
+
 function cycleStockSort(){
   const savedSectorLabel = (sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
     ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null;
+  const savedSectorPos = savedSectorLabel ? captureAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`) : null;
   const savedRegionLabel = (regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
     ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label : null;
+  const savedRegionPos = savedRegionLabel ? captureAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`) : null;
   const savedLockedRegionOpen = lockedRegionAccordionOpen;
+  const savedLockedRegionPos = savedLockedRegionOpen ? captureAccordionPos('#locked-region-slot .floating-acc') : null;
   const savedCashOpen = cashAmountAccordionOpen;
+  const savedCashPos = savedCashOpen ? captureAccordionPos('#cash-amount-slot .floating-acc') : null;
 
   const cycle = stockSortCycleActive || STOCK_SORT_CYCLE_FULL;
   const idx = cycle.indexOf(stockLegendSortMode);
@@ -1635,21 +1660,29 @@ function cycleStockSort(){
 
   if(savedSectorLabel){
     const el = document.querySelector(`[data-sector-label="${CSS.escape(savedSectorLabel)}"]`);
-    if(el) el.click();
+    if(el){
+      el.click();
+      applyAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`, savedSectorPos);
+    }
   }
   if(savedRegionLabel){
     const el = document.querySelector(`[data-region-label="${CSS.escape(savedRegionLabel)}"]`);
-    if(el) el.click();
+    if(el){
+      el.click();
+      applyAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`, savedRegionPos);
+    }
   }
   if(savedLockedRegionOpen){
     lockedRegionAccordionOpen = false;
     toggleLockedRegionAccordion();
+    applyAccordionPos('#locked-region-slot .floating-acc', savedLockedRegionPos);
   }
   if(savedCashOpen){
     const cashBadge = document.querySelector('[data-cashbadge]');
     if(cashBadge){
       cashAmountAccordionOpen = false;
       toggleCashAmountAccordion(parseFloat(cashBadge.dataset.cashbadge), cashBadge);
+      applyAccordionPos('#cash-amount-slot .floating-acc', savedCashPos);
     }
   }
 }
@@ -1991,10 +2024,13 @@ function bindSectorAccordionHandlers(){
       const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
       slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
+        <button data-acc-close style="position:absolute;top:2px;right:4px;background:none;border:none;color:#888;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;">&times;</button>
         ${regionBarHtml}
         ${rows || '<div class="empty">데이터 없음</div>'}
       </div>`;
       makeAccordionDraggable(slot.querySelector('.floating-acc'));
+      const sectorCloseBtn = slot.querySelector('[data-acc-close]');
+      if(sectorCloseBtn) sectorCloseBtn.addEventListener('click', () => el.click());
       sectorAccordionOpenIdx = idx;
       highlightChartSlice(el, idx, 'decorative-sector');
       const centerLabelEl2 = document.getElementById('sector-center-label');
@@ -2072,9 +2108,12 @@ function toggleLockedRegionAccordion(){
     accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
   ].join('');
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
+    <button data-acc-close style="position:absolute;top:2px;right:4px;background:none;border:none;color:#888;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;">&times;</button>
     ${rows}
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
+  const lockedRegionCloseBtn = slot.querySelector('[data-acc-close]');
+  if(lockedRegionCloseBtn) lockedRegionCloseBtn.addEventListener('click', () => toggleLockedRegionAccordion());
   lockedRegionAccordionOpen = true;
 }
 
@@ -2154,9 +2193,12 @@ function bindRegionAccordionHandlers(){
       const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
       slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
+        <button data-acc-close style="position:absolute;top:2px;right:4px;background:none;border:none;color:#888;font-size:16px;line-height:1;cursor:pointer;padding:2px 4px;">&times;</button>
         ${rows || '<div class="empty">데이터 없음</div>'}
       </div>`;
       makeAccordionDraggable(slot.querySelector('.floating-acc'));
+      const regionCloseBtn = slot.querySelector('[data-acc-close]');
+      if(regionCloseBtn) regionCloseBtn.addEventListener('click', () => el.click());
       regionAccordionOpenIdx = idx;
       highlightRegionGroup(el, group);
       const centerLabelEl2 = document.getElementById('region-center-label');
@@ -3461,7 +3503,7 @@ function startAccordionDrag(el, clientX, clientY){
 function makeAccordionDraggable(el){
   if(!el) return;
   el.addEventListener('mousedown', (e) => { e.preventDefault(); startAccordionDrag(el, e.clientX, e.clientY); });
-  el.addEventListener('touchstart', (e) => { const t = e.touches[0]; startAccordionDrag(el, t.clientX, t.clientY); }, { passive: true });
+  el.addEventListener('touchstart', (e) => { e.preventDefault(); const t = e.touches[0]; startAccordionDrag(el, t.clientX, t.clientY); }, { passive: false });
 }
 window.addEventListener('mousemove', (e) => {
   if(!draggingAccordionEl) return;
@@ -3476,10 +3518,11 @@ window.addEventListener('mouseup', () => {
 });
 window.addEventListener('touchmove', (e) => {
   if(!draggingAccordionEl) return;
+  e.preventDefault();
   const t = e.touches[0];
   draggingAccordionEl.style.left = (dragOrigLeft + (t.clientX - dragStartX)) + 'px';
   draggingAccordionEl.style.top = (dragOrigTop + (t.clientY - dragStartY)) + 'px';
-}, { passive: true });
+}, { passive: false });
 window.addEventListener('touchend', () => {
   if(!draggingAccordionEl) return;
   draggingAccordionEl = null;
@@ -3532,13 +3575,6 @@ document.addEventListener('click', (e) => {
 });
 
 document.getElementById('mktRefreshBtn').addEventListener('click', () => loadMarketData(true));
-window.addEventListener('scroll', () => {
-  if(cashAmountAccordionOpen){
-    const s = document.getElementById('cash-amount-slot');
-    if(s) s.innerHTML = '';
-    cashAmountAccordionOpen = false;
-  }
-}, true);
 document.querySelectorAll('.inline-export-link').forEach(el => {
   el.addEventListener('click', exportData);
 });
