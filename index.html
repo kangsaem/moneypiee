@@ -745,7 +745,7 @@ function rankColor(label, index, count, type){
     return lerpColor(NAVY_STRONG, NAVY_LIGHT, t);
   }
   if(type === 'group'){
-    const hueRamps = [[DARKPINK_STRONG,DARKPINK_LIGHT], [STOCK_STRONG,STOCK_LIGHT]];
+    const hueRamps = [[STOCK_STRONG,STOCK_LIGHT], [DARKPINK_STRONG,DARKPINK_LIGHT]];
     const [strong, light] = hueRamps[index % 2];
     const cycle = Math.floor(index/2);
     const totalCycles = Math.ceil(count/2);
