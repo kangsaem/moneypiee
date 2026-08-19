@@ -2091,6 +2091,7 @@ function lockedRegionDonutBlock(region, holdings){
   ];
   lockedRegionAccordionCashLabel = cashLabel;
   lockedRegionAccordionRegionLabel = region === 'domestic' ? '국내투자' : '해외투자';
+  lockedRegionAccordionPlainLabel = label;
   lockedRegionAccordionCashAmount = region === 'domestic' ? quad.krwCash : quad.foreignCash;
   lockedRegionAccordionInvestAmount = region === 'domestic' ? quad.domesticInvest : quad.overseasInvest;
   const legendHtml = `<div class="legend">${legendData.map(d => {
@@ -2119,9 +2120,14 @@ function toggleLockedRegionAccordion(){
     accordionRowHTML(lockedRegionAccordionCashLabel, cashPct),
     accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
   ].join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;padding:8px 12px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;">
-    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
-    ${rows}
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+    <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(lockedRegionAccordionPlainLabel)}</span>
+      <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+    </div>
+    <div style="padding:8px 12px;">
+      ${rows}
+    </div>
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const lockedRegionCloseBtn = slot.querySelector('[data-acc-close]');
@@ -2646,6 +2652,7 @@ let totalStockDetailCashLabel = '현금';
 let lockedRegionAccordionOpen = false;
 let lockedRegionAccordionCashLabel = '원화';
 let lockedRegionAccordionRegionLabel = '국내';
+let lockedRegionAccordionPlainLabel = '국내';
 let lockedRegionAccordionCashAmount = 0;
 let lockedRegionAccordionInvestAmount = 0;
 let totalStockDetailOpen = false;
@@ -2673,9 +2680,14 @@ function toggleStockDetailAccordion(){
     const name = d.label === '현금' ? escapeHTML(totalStockDetailCashLabel) : escapeHTML(d.label);
     return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num" style="text-align:right;">${d.amount.toLocaleString()}</span></div>`;
   }).join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;overflow-y:auto;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
-    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
-    ${rows || '<div class="empty">데이터 없음</div>'}
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;overflow:hidden;">
+    <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;flex-shrink:0;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">종목별 평가액</span>
+      <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+    </div>
+    <div style="padding:12px 16px;overflow-y:auto;">
+      ${rows || '<div class="empty">데이터 없음</div>'}
+    </div>
   </div>`;
   totalStockDetailOpen = true;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
