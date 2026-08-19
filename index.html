@@ -1237,7 +1237,7 @@ function toggleCashAmountAccordion(amount, triggerEl){
   }
   const gap = 8;
   const topPx = triggerEl ? (triggerEl.getBoundingClientRect().bottom + gap) : 100;
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;cursor:grab;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:400;box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;cursor:grab;">
     <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     <span class="num" style="display:inline-block;padding:6px 4px;font-size:16px;color:#333333;border-bottom:1px solid #C9C9C9;">${amount.toLocaleString()}원</span>
   </div>`;
@@ -1642,6 +1642,13 @@ function applyAccordionPos(selector, pos){
 }
 
 function cycleStockSort(){
+  const openSnapMemoIds = Array.from(document.querySelectorAll('[id^="snap-memo-slot-"]'))
+    .filter(el => el.innerHTML !== '')
+    .map(el => el.id.replace('snap-memo-slot-', ''));
+  const savedSnapMemoPos = {};
+  openSnapMemoIds.forEach(id => { savedSnapMemoPos[id] = captureAccordionPos(`#snap-memo-slot-${id} .floating-acc`); });
+  const savedTotalMemoOpen = openTotalMemoId;
+  const savedTotalMemoPos = savedTotalMemoOpen ? captureAccordionPos('#total-memo-slot .floating-acc') : null;
   const savedStockDetailOpen = totalStockDetailOpen;
   const savedStockDetailPos = savedStockDetailOpen ? captureAccordionPos('#stock-detail-slot .floating-acc') : null;
   const savedSectorLabel = (sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
@@ -1691,6 +1698,18 @@ function cycleStockSort(){
     totalStockDetailOpen = false;
     toggleStockDetailAccordion();
     applyAccordionPos('#stock-detail-slot .floating-acc', savedStockDetailPos);
+  }
+  openSnapMemoIds.forEach(id => {
+    const btn = document.querySelector(`[data-memosnap="${id}"]`);
+    if(btn){
+      btn.click();
+      applyAccordionPos(`#snap-memo-slot-${id} .floating-acc`, savedSnapMemoPos[id]);
+    }
+  });
+  if(savedTotalMemoOpen){
+    openTotalMemoId = null;
+    toggleTotalMemoAccordion(savedTotalMemoOpen);
+    applyAccordionPos('#total-memo-slot .floating-acc', savedTotalMemoPos);
   }
 }
 
@@ -2561,7 +2580,7 @@ function renderTotalMemoBox(snapId){
       <button class="btn btn-primary" id="total-memo-edit" style="padding:4px 10px;font-size:12px;">메모수정</button>
     </div>`;
   }
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:400;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:500;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
     <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     <div style="font-size:11px;color:#555555;margin-bottom:4px;">${escapeHTML(monthLabel)}</div>
     ${inner}
@@ -3131,7 +3150,7 @@ function renderMemoBox(snapId){
     </div>`;
   }
   const monthLabel = snap ? fullMonthLabel(snap.label) : '';
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:400;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:500;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(monthLabel)}</span>
       <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
