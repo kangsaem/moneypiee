@@ -300,6 +300,13 @@
   </div>
 </div>
 
+<div id="noticeImgModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3500;align-items:center;justify-content:center;padding:20px;">
+  <div style="position:relative;max-width:90vw;max-height:85vh;">
+    <img id="noticeImgEl" src="notice.png" style="display:block;max-width:100%;max-height:85vh;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+    <button id="noticeImgCloseBtn" style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#E87BA4;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);">&times;</button>
+  </div>
+</div>
+
 <div id="welcomeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:24px;width:380px;max-width:100%;max-height:72vh;overflow-y:auto;">
     <h3 style="margin:0 0 16px;font-size:17px;font-weight:700;">머니파이가 처음이신가요?</h3>
@@ -409,7 +416,7 @@ const MARKET_RANGE_CYCLE = ['1d','1mo','3mo','6mo','1y'];
 // 원자재/미국채/환율은 자체 거래시간이 24시간에 가까워 "정규장" 개념이 애매하므로,
 // 한국 증시 정규장(09:00~15:30 KST) 시간을 기준선으로 빌려와서 그린다.
 const KOREA_SESSION_KEYS = ['wti','gold','us10y','usdkrw'];
-const KR_OVERRIDE_KEYS = ['wti','gold','us10y','usdkrw'];
+const KR_OVERRIDE_KEYS = ['wti','gold','usdkrw'];
 // 미국 지수(S&P500/나스닥)도 야후 무료 데이터가 약 15분 지연되는 것으로 알려져 있어,
 // 그래프 우측 끝(장마감) 기준에 지연시간만큼 버퍼를 더해준다.
 const NAVER_INDEX_MAP = { kospi:'KOSPI', kosdaq:'KOSDAQ' };
@@ -630,7 +637,7 @@ function renderMarketTicker(){
     const arrow = change > 0 ? '▲' : (change < 0 ? '▼' : '');
     // 장마감 후 야후가 meta.currentTradingPeriod를 "내일 장 시간"으로 잘못 줄 때가 있어
     // (구간이 하루보다 훨씬 길어짐) - 이 경우 오늘 한국장 시간(09:00~15:30)으로 안전하게 보정
-    if(range === '1d' && d.marketOpen && d.marketClose && (d.marketClose - d.marketOpen) > 20*3600){
+    if(range === '1d' && d.marketOpen && d.marketClose && (d.marketClose - d.marketOpen) > 20*3600 && cfg.key !== 'us10y'){
       const kr = koreanMarketTimesForToday();
       d.marketOpen = kr.open;
       d.marketClose = kr.close;
@@ -670,7 +677,7 @@ async function setMarketRange(key, targetRange){
     return;
   }
   try{
-    const data = await fetchYahooChart(cfg.symbol, targetRange, KR_OVERRIDE_KEYS.includes(key));
+    const data = await fetchYahooChart(cfg.symbol, targetRange, KOREA_SESSION_KEYS.includes(key));
     if(targetRange === '1d' && KR_OVERRIDE_KEYS.includes(key) && data){
       const kr = koreanMarketTimesForToday();
       data.marketOpen = kr.open;
@@ -700,7 +707,7 @@ async function loadMarketData(forceRefresh){
       }
     }catch(e){}
   }
-  const results = await Promise.allSettled(MARKET_SYMBOLS.map(cfg => fetchYahooChart(cfg.symbol, '1d', KR_OVERRIDE_KEYS.includes(cfg.key))));
+  const results = await Promise.allSettled(MARKET_SYMBOLS.map(cfg => fetchYahooChart(cfg.symbol, '1d', KOREA_SESSION_KEYS.includes(cfg.key))));
   const dataMap = {};
   const kr = koreanMarketTimesForToday();
   MARKET_SYMBOLS.forEach((cfg, i) => {
@@ -1237,8 +1244,8 @@ function toggleCashAmountAccordion(amount, triggerEl){
   }
   const gap = 8;
   const topPx = triggerEl ? (triggerEl.getBoundingClientRect().bottom + gap) : 100;
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:400;box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;cursor:grab;">
-    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:${++accordionZIndexCounter};box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;cursor:grab;">
+    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#E87BA4;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     <span class="num" style="display:inline-block;padding:6px 4px;font-size:16px;color:#333333;border-bottom:1px solid #C9C9C9;">${amount.toLocaleString()}원</span>
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
@@ -1627,12 +1634,12 @@ function captureAccordionPosAlways(selector){
   const el = document.querySelector(selector);
   if(!el) return null;
   const rect = el.getBoundingClientRect();
-  return { left: rect.left + 'px', top: rect.top + 'px' };
+  return { left: rect.left + 'px', top: rect.top + 'px', zIndex: el.style.zIndex };
 }
 function captureAccordionPos(selector){
   const el = document.querySelector(selector);
   if(el && el.dataset.dragged === 'true'){
-    return { left: el.style.left, top: el.style.top };
+    return { left: el.style.left, top: el.style.top, zIndex: el.style.zIndex };
   }
   return null;
 }
@@ -1645,6 +1652,7 @@ function applyAccordionPos(selector, pos){
   el.style.top = pos.top;
   el.style.transform = 'none';
   el.style.margin = '0';
+  if(pos.zIndex) el.style.zIndex = pos.zIndex;
   el.dataset.dragged = 'true';
 }
 
@@ -2056,10 +2064,10 @@ function bindSectorAccordionHandlers(){
         : '';
       const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:300;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
         <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
           <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
-          <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+          <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
         </div>
         <div style="padding:8px 12px;">
           ${regionBarHtml}
@@ -2146,10 +2154,10 @@ function toggleLockedRegionAccordion(){
     accordionRowHTML(lockedRegionAccordionCashLabel, cashPct),
     accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
   ].join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(lockedRegionAccordionPlainLabel)}</span>
-      <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+      <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
     <div style="padding:8px 12px;">
       ${rows}
@@ -2236,10 +2244,10 @@ function bindRegionAccordionHandlers(){
       const relabeledHoldings = holdings.map(h => isCashHolding(h) ? { ...h, group: cashLabel } : h);
       const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
         <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
           <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
-          <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+          <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
         </div>
         <div style="padding:8px 12px;">
           ${rows || '<div class="empty">데이터 없음</div>'}
@@ -2588,7 +2596,7 @@ function renderTotalMemoBox(snapId){
     </div>`;
   }
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:500;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
-    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#C2477C;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
+    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#E87BA4;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     <div style="font-size:11px;color:#555555;margin-bottom:4px;">${escapeHTML(monthLabel)}</div>
     ${inner}
   </div>`;
@@ -2713,10 +2721,10 @@ function toggleStockDetailAccordion(){
     const name = d.label === '현금' ? escapeHTML(totalStockDetailCashLabel) : escapeHTML(d.label);
     return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num" style="text-align:right;">${d.amount.toLocaleString()}</span></div>`;
   }).join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;overflow:hidden;">
     <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;flex-shrink:0;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">종목별 평가액</span>
-      <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+      <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
     <div style="padding:12px 16px;overflow-y:auto;">
       ${rows || '<div class="empty">데이터 없음</div>'}
@@ -3134,7 +3142,6 @@ function renderDeleteAccountsPanel(){
 
 let openMemoSnapId = null;
 let memoEditState = {};
-let memoZIndexCounter = 500;
 
 function toggleMemoAccordion(snapId){
   let slot = document.getElementById('snap-memo-slot-' + snapId);
@@ -3142,9 +3149,8 @@ function toggleMemoAccordion(snapId){
     slot = document.createElement('div');
     slot.id = 'snap-memo-slot-' + snapId;
     slot.style.position = 'fixed';
-    slot.style.top = '50%';
-    slot.style.left = '50%';
-    slot.style.transform = 'translate(-50%,-50%)';
+    slot.style.top = '50vh';
+    slot.style.left = '50vw';
     document.body.appendChild(slot);
   }
   if(slot.innerHTML !== ''){
@@ -3158,7 +3164,7 @@ function toggleMemoAccordion(snapId){
 function renderMemoBox(snapId, zIndexOverride){
   const slot = document.getElementById('snap-memo-slot-' + snapId);
   if(!slot) return;
-  const zIndex = zIndexOverride || (++memoZIndexCounter);
+  const zIndex = zIndexOverride || (++accordionZIndexCounter);
   const snap = state.snapshots.find(s => s.id === snapId);
   const memoText = snap ? (snap.memo || '') : '';
   const hasMemo = !!memoText.trim();
@@ -3179,7 +3185,7 @@ function renderMemoBox(snapId, zIndexOverride){
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${zIndex};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(monthLabel)}</span>
-      <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#C2477C;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+      <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
     <div style="padding:8px 12px;">
     ${inner}
@@ -3585,6 +3591,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
 });
 
 let draggingAccordionEl = null, dragStartX = 0, dragStartY = 0, dragOrigLeft = 0, dragOrigTop = 0;
+let accordionZIndexCounter = 1000;
 let accordionJustDragged = false;
 function startAccordionDrag(el, clientX, clientY){
   const rect = el.getBoundingClientRect();
@@ -3593,6 +3600,7 @@ function startAccordionDrag(el, clientX, clientY){
   el.style.top = rect.top + 'px';
   el.style.transform = 'none';
   el.style.margin = '0';
+  el.style.zIndex = ++accordionZIndexCounter;
   el.dataset.dragged = 'true';
   draggingAccordionEl = el;
   dragStartX = clientX; dragStartY = clientY;
@@ -3690,6 +3698,25 @@ document.querySelectorAll('.inline-export-link').forEach(el => {
 
 load();
 loadMarketData(true);
+
+(function(){
+  const testImg = new Image();
+  testImg.onload = function(){
+    const modal = document.getElementById('noticeImgModal');
+    if(modal) modal.style.display = 'flex';
+  };
+  testImg.onerror = function(){ /* notice.png 없으면 조용히 무시 */ };
+  testImg.src = 'notice.png?_=' + Date.now();
+  const closeBtn = document.getElementById('noticeImgCloseBtn');
+  if(closeBtn) closeBtn.addEventListener('click', () => {
+    const modal = document.getElementById('noticeImgModal');
+    if(modal) modal.style.display = 'none';
+  });
+  const noticeModalEl = document.getElementById('noticeImgModal');
+  if(noticeModalEl) noticeModalEl.addEventListener('click', (e) => {
+    if(e.target.id === 'noticeImgModal') noticeModalEl.style.display = 'none';
+  });
+})();
 
 (function(){
   // ===== 사용 매뉴얼 (이미지 가이드) =====
