@@ -171,7 +171,19 @@
   .snapshot-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:14px;color:var(--text-dim);}
   .trend-wrap{margin-top:8px;}
   .total-badge{color:var(--text-dim);font-size:14px;font-weight:500;}
-  .total-badge .num{color:#F0DA8C;font-size:16px;font-weight:700;margin-left:6px;}
+  .total-badge .num{color:#F0DA8C;font-size:16px;font-weight:700;margin-left:6px;}  @keyframes dragHintBounceIn{
+    0%{ transform:translate(-50%,var(--ty,-50%)) scale(0.3); opacity:0; }
+    55%{ transform:translate(-50%,var(--ty,-50%)) scale(1.12); opacity:1; }
+    75%{ transform:translate(-50%,var(--ty,-50%)) scale(0.94); }
+    100%{ transform:translate(-50%,var(--ty,-50%)) scale(1); opacity:1; }
+  }
+  .drag-hint-bubble{
+    animation:dragHintBounceIn 0.5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .drag-hint-bubble.fade-out{
+    opacity:0 !important;
+    transition:opacity 0.8s ease;
+  }
 </style>
 </head>
 <body>
@@ -3613,26 +3625,31 @@ function startAccordionDrag(el, clientX, clientY){
   dragStartX = clientX; dragStartY = clientY;
   dragOrigLeft = rect.left; dragOrigTop = rect.top;
 }
+let dragHintShownThisVisit = false;
 function showDragHintOnce(el){
-  let seen = false;
-  try { seen = localStorage.getItem('moneypie_drag_hint_seen') === '1'; } catch(e){}
-  if(seen) return;
-  const rect = el.getBoundingClientRect();
-  const centerX = rect.left + rect.width/2;
-  const placeAbove = rect.top > 70;
-  const bubbleTop = placeAbove ? Math.max(8, rect.top - 40) : (rect.bottom + 10);
-  const clampedLeft = Math.min(Math.max(centerX, 80), window.innerWidth - 80);
+  if(dragHintShownThisVisit) return;
+  dragHintShownThisVisit = true;
+  const isNarrow = window.innerWidth < 640;
+  let centerX, centerY;
+  if(isNarrow){
+    centerX = window.innerWidth / 2;
+    centerY = window.innerHeight / 2;
+  } else {
+    const rect = el.getBoundingClientRect();
+    centerX = rect.left + rect.width/2;
+    centerY = rect.top + rect.height/2;
+  }
   const bubble = document.createElement('div');
   bubble.className = 'drag-hint-bubble';
-  bubble.textContent = '드래그해서 이동할 수 있어요';
-  bubble.style.cssText = `position:fixed;top:${bubbleTop}px;left:${clampedLeft}px;transform:translateX(-50%);background:#333333;color:#EDEDED;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.5);z-index:20000;pointer-events:none;`;
+  bubble.textContent = '터치나 마우스로 뜬창을 옮길 수 있어요';
+  bubble.style.cssText = `position:fixed;top:${centerY}px;left:${centerX}px;--ty:-50%;background:#E87BA4;color:#FFFFFF;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:700;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:20000;pointer-events:none;`;
   document.body.appendChild(bubble);
-  const dismiss = () => {
-    if(bubble.parentNode) bubble.parentNode.removeChild(bubble);
-    try { localStorage.setItem('moneypie_drag_hint_seen', '1'); } catch(e){}
-  };
-  setTimeout(dismiss, 3500);
-  el._dragHintDismiss = dismiss;
+  setTimeout(() => {
+    bubble.classList.add('fade-out');
+    setTimeout(() => {
+      if(bubble.parentNode) bubble.parentNode.removeChild(bubble);
+    }, 800);
+  }, 3000);
 }
 
 function makeAccordionDraggable(el){
@@ -3771,45 +3788,52 @@ loadMarketData(true);
   } catch(e){ /* 네트워크 오류 등 - 조용히 스킵 */ }
 })();
 
+function checkNoticeHtml(){
+  return new Promise((resolve) => {
+    (async () => {
+      const NOTICE_HTML_KEY = 'moneypie_notice_html_dismissed_hash';
+      try {
+        const res = await fetch('notice.html?_=' + Date.now(), { cache: 'no-store' });
+        if(!res.ok) return resolve();
+        const buffer = await res.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+
+        let dismissedHash = null;
+        try { dismissedHash = localStorage.getItem(NOTICE_HTML_KEY); } catch(e){}
+        if(dismissedHash === hashHex) return resolve();
+
+        const htmlText = new TextDecoder('utf-8').decode(buffer);
+        const parsed = new DOMParser().parseFromString(htmlText, 'text/html');
+        const modalEl = parsed.getElementById('noticeModal');
+        if(!modalEl) return resolve();
+
+        const slot = document.getElementById('noticeHtmlSlot');
+        if(!slot) return resolve();
+        slot.appendChild(modalEl);
+        modalEl.style.display = 'flex';
+
+        const dismiss = () => {
+          modalEl.style.display = 'none';
+          const chk = document.getElementById('noticeDontShowAgain');
+          if(chk && chk.checked){
+            try { localStorage.setItem(NOTICE_HTML_KEY, hashHex); } catch(e){}
+          }
+          resolve();
+        };
+        const okBtn = document.getElementById('noticeOkBtn');
+        if(okBtn) okBtn.addEventListener('click', dismiss);
+        modalEl.addEventListener('click', (e) => {
+          if(e.target === modalEl) dismiss();
+        });
+      } catch(e){ resolve(); }
+    })();
+  });
+}
+
 (async function(){
-  const NOTICE_HTML_KEY = 'moneypie_notice_html_dismissed_hash';
-  try {
-    const res = await fetch('notice.html?_=' + Date.now(), { cache: 'no-store' });
-    if(!res.ok) return; // notice.html 없으면 조용히 스킵
-    const buffer = await res.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+  await checkNoticeHtml();
 
-    let dismissedHash = null;
-    try { dismissedHash = localStorage.getItem(NOTICE_HTML_KEY); } catch(e){}
-    if(dismissedHash === hashHex) return; // 이미 본(껐던) 공지와 동일 -> 스킵
-
-    const htmlText = new TextDecoder('utf-8').decode(buffer);
-    const parsed = new DOMParser().parseFromString(htmlText, 'text/html');
-    const modalEl = parsed.getElementById('noticeModal');
-    if(!modalEl) return; // 예상한 구조가 아니면 조용히 스킵
-
-    const slot = document.getElementById('noticeHtmlSlot');
-    if(!slot) return;
-    slot.appendChild(modalEl);
-    modalEl.style.display = 'flex';
-
-    const dismiss = () => {
-      modalEl.style.display = 'none';
-      const chk = document.getElementById('noticeDontShowAgain');
-      if(chk && chk.checked){
-        try { localStorage.setItem(NOTICE_HTML_KEY, hashHex); } catch(e){}
-      }
-    };
-    const okBtn = document.getElementById('noticeOkBtn');
-    if(okBtn) okBtn.addEventListener('click', dismiss);
-    modalEl.addEventListener('click', (e) => {
-      if(e.target === modalEl) dismiss();
-    });
-  } catch(e){ /* 네트워크 오류 등 - 조용히 스킵 */ }
-})();
-
-(function(){
   // ===== 사용 매뉴얼 (이미지 가이드) =====
   const MANUAL_KEY = 'moneypie_manual_dismissed';
   const manualModal = document.getElementById('manualModal');
