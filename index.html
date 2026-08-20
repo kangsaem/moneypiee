@@ -301,9 +301,13 @@
 </div>
 
 <div id="noticeImgModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3500;align-items:center;justify-content:center;padding:20px;">
-  <div style="position:relative;max-width:90vw;max-height:85vh;">
-    <img id="noticeImgEl" src="notice.png" style="display:block;max-width:100%;max-height:85vh;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+  <div style="position:relative;max-width:min(360px,85vw);">
+    <img id="noticeImgEl" style="display:block;width:100%;max-height:70vh;object-fit:contain;border-radius:10px 10px 0 0;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
     <button id="noticeImgCloseBtn" style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#E87BA4;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);">&times;</button>
+    <label style="display:flex;align-items:center;gap:6px;background:var(--surface2);padding:8px 12px;border-radius:0 0 10px 10px;font-size:12px;color:var(--text-dim);cursor:pointer;">
+      <input type="checkbox" id="noticeImgDontShowAgain">
+      다시 보지 않기
+    </label>
   </div>
 </div>
 
@@ -3148,9 +3152,7 @@ function toggleMemoAccordion(snapId){
   if(!slot){
     slot = document.createElement('div');
     slot.id = 'snap-memo-slot-' + snapId;
-    slot.style.position = 'fixed';
-    slot.style.top = '50vh';
-    slot.style.left = '50vw';
+    slot.dataset.floatingCenter = 'true';
     document.body.appendChild(slot);
   }
   if(slot.innerHTML !== ''){
@@ -3182,7 +3184,11 @@ function renderMemoBox(snapId, zIndexOverride){
     </div>`;
   }
   const monthLabel = snap ? fullMonthLabel(snap.label) : '';
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${zIndex};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  const isCenterMode = slot.dataset.floatingCenter === 'true';
+  const posStyle = isCenterMode
+    ? 'position:fixed;top:50vh;left:50vw;transform:translate(-50%,-50%);'
+    : 'position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;';
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${zIndex};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(monthLabel)}</span>
       <button data-acc-close style="margin-left:auto;width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
@@ -3699,23 +3705,37 @@ document.querySelectorAll('.inline-export-link').forEach(el => {
 load();
 loadMarketData(true);
 
-(function(){
-  const testImg = new Image();
-  testImg.onload = function(){
+(async function(){
+  const NOTICE_KEY = 'moneypie_notice_dismissed_hash';
+  try {
+    const res = await fetch('notice.png?_=' + Date.now(), { cache: 'no-store' });
+    if(!res.ok) return; // notice.png 없으면 조용히 스킵
+    const buffer = await res.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+
+    let dismissedHash = null;
+    try { dismissedHash = localStorage.getItem(NOTICE_KEY); } catch(e){}
+    if(dismissedHash === hashHex) return; // 이미 본(껐던) 공지와 동일 -> 스킵
+
+    const blobUrl = URL.createObjectURL(new Blob([buffer]));
+    const imgEl = document.getElementById('noticeImgEl');
+    if(imgEl) imgEl.src = blobUrl;
     const modal = document.getElementById('noticeImgModal');
     if(modal) modal.style.display = 'flex';
-  };
-  testImg.onerror = function(){ /* notice.png 없으면 조용히 무시 */ };
-  testImg.src = 'notice.png?_=' + Date.now();
-  const closeBtn = document.getElementById('noticeImgCloseBtn');
-  if(closeBtn) closeBtn.addEventListener('click', () => {
-    const modal = document.getElementById('noticeImgModal');
-    if(modal) modal.style.display = 'none';
-  });
-  const noticeModalEl = document.getElementById('noticeImgModal');
-  if(noticeModalEl) noticeModalEl.addEventListener('click', (e) => {
-    if(e.target.id === 'noticeImgModal') noticeModalEl.style.display = 'none';
-  });
+
+    const closeBtn = document.getElementById('noticeImgCloseBtn');
+    const dontShowChk = document.getElementById('noticeImgDontShowAgain');
+    if(closeBtn) closeBtn.addEventListener('click', () => {
+      if(dontShowChk && dontShowChk.checked){
+        try { localStorage.setItem(NOTICE_KEY, hashHex); } catch(e){}
+      }
+      if(modal) modal.style.display = 'none';
+    });
+    if(modal) modal.addEventListener('click', (e) => {
+      if(e.target.id === 'noticeImgModal') modal.style.display = 'none';
+    });
+  } catch(e){ /* 네트워크 오류 등 - 조용히 스킵 */ }
 })();
 
 (function(){
