@@ -2081,11 +2081,11 @@ function bindSectorAccordionHandlers(){
       const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
       slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-        <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+        <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
           <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
           <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
         </div>
-        <div style="padding:8px 12px;">
+        <div class="acc-body" style="padding:8px 12px;">
           ${regionBarHtml}
           ${rows || '<div class="empty">데이터 없음</div>'}
         </div>
@@ -2171,11 +2171,11 @@ function toggleLockedRegionAccordion(){
     accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
   ].join('');
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-    <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(lockedRegionAccordionPlainLabel)}</span>
       <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
-    <div style="padding:8px 12px;">
+    <div class="acc-body" style="padding:8px 12px;">
       ${rows}
     </div>
   </div>`;
@@ -2261,11 +2261,11 @@ function bindRegionAccordionHandlers(){
       const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
       slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-        <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+        <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
           <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
           <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
         </div>
-        <div style="padding:8px 12px;">
+        <div class="acc-body" style="padding:8px 12px;">
           ${rows || '<div class="empty">데이터 없음</div>'}
         </div>
       </div>`;
@@ -2738,11 +2738,11 @@ function toggleStockDetailAccordion(){
     return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num" style="text-align:right;">${d.amount.toLocaleString()}</span></div>`;
   }).join('');
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;overflow:hidden;">
-    <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;flex-shrink:0;">
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;flex-shrink:0;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">종목별 평가액</span>
       <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
-    <div style="padding:12px 16px;overflow-y:auto;">
+    <div class="acc-body" style="padding:12px 16px;overflow-y:auto;">
       ${rows || '<div class="empty">데이터 없음</div>'}
     </div>
   </div>`;
@@ -3201,11 +3201,11 @@ function renderMemoBox(snapId, zIndexOverride){
     ? 'position:fixed;top:50vh;left:50vw;transform:translate(-50%,-50%);'
     : 'position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;';
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${zIndex};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-    <div style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(monthLabel)}</span>
       <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
-    <div style="padding:8px 12px;">
+    <div class="acc-body" style="padding:8px 12px;">
     ${inner}
     </div>
   </div>`;
@@ -3626,10 +3626,15 @@ function showDragHintOnce(el){
   let seen = false;
   try { seen = localStorage.getItem('moneypie_drag_hint_seen') === '1'; } catch(e){}
   if(seen) return;
+  const rect = el.getBoundingClientRect();
+  const centerX = rect.left + rect.width/2;
+  const placeAbove = rect.top > 70;
+  const bubbleTop = placeAbove ? Math.max(8, rect.top - 40) : (rect.bottom + 10);
+  const clampedLeft = Math.min(Math.max(centerX, 80), window.innerWidth - 80);
   const bubble = document.createElement('div');
   bubble.className = 'drag-hint-bubble';
   bubble.textContent = '드래그해서 이동할 수 있어요';
-  bubble.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#333333;color:#EDEDED;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.5);z-index:20000;pointer-events:none;';
+  bubble.style.cssText = `position:fixed;top:${bubbleTop}px;left:${clampedLeft}px;transform:translateX(-50%);background:#333333;color:#EDEDED;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.5);z-index:20000;pointer-events:none;`;
   document.body.appendChild(bubble);
   const dismiss = () => {
     if(bubble.parentNode) bubble.parentNode.removeChild(bubble);
@@ -3643,13 +3648,22 @@ function makeAccordionDraggable(el){
   if(!el) return;
   showDragHintOnce(el);
   const isInteractive = (target) => target.closest('[data-acc-close],button,textarea,input,select,a');
+  const isDraggableStart = (target) => {
+    const bodyEl = el.querySelector('.acc-body');
+    if(bodyEl && bodyEl.scrollHeight > bodyEl.clientHeight + 1){
+      // 목록이 길어 스크롤이 필요한 경우: 회색 헤더바를 잡았을 때만 드래그 시작
+      return !!target.closest('.acc-header') && !isInteractive(target);
+    }
+    // 짧은 목록은 팝업 어디를 잡아도 드래그
+    return !isInteractive(target);
+  };
   el.addEventListener('mousedown', (e) => {
-    if(isInteractive(e.target)) return;
+    if(!isDraggableStart(e.target)) return;
     e.preventDefault();
     startAccordionDrag(el, e.clientX, e.clientY);
   });
   el.addEventListener('touchstart', (e) => {
-    if(isInteractive(e.target)) return;
+    if(!isDraggableStart(e.target)) return;
     e.preventDefault();
     const t = e.touches[0];
     startAccordionDrag(el, t.clientX, t.clientY);
