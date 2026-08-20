@@ -3641,7 +3641,7 @@ function showDragHintOnce(el){
   }
   const bubble = document.createElement('div');
   bubble.className = 'drag-hint-bubble';
-  bubble.textContent = '터치나 마우스로 뜬창을 옮길 수 있어요';
+  bubble.textContent = '터치나 마우스로 옮길 수 있어요';
   bubble.style.cssText = `position:fixed;top:${centerY}px;left:${centerX}px;--ty:-50%;background:#E87BA4;color:#FFFFFF;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:700;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:20000;pointer-events:none;`;
   document.body.appendChild(bubble);
   setTimeout(() => {
