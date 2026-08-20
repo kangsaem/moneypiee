@@ -3629,12 +3629,8 @@ function showDragHintOnce(el){
   const bubble = document.createElement('div');
   bubble.className = 'drag-hint-bubble';
   bubble.textContent = '드래그해서 이동할 수 있어요';
-  bubble.style.cssText = 'position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:8px;background:#333333;color:#EDEDED;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.4);z-index:10000;pointer-events:none;';
-  const arrow = document.createElement('div');
-  arrow.style.cssText = 'position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#333333;';
-  bubble.appendChild(arrow);
-  el.style.position = el.style.position || 'relative';
-  el.appendChild(bubble);
+  bubble.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#333333;color:#EDEDED;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.5);z-index:20000;pointer-events:none;';
+  document.body.appendChild(bubble);
   const dismiss = () => {
     if(bubble.parentNode) bubble.parentNode.removeChild(bubble);
     try { localStorage.setItem('moneypie_drag_hint_seen', '1'); } catch(e){}
@@ -3770,6 +3766,18 @@ loadMarketData(true);
   } catch(e){ /* 네트워크 오류 등 - 조용히 스킵 */ }
 })();
 
+function escapeHtmlText(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function renderNoticeMarkdown(text){
+  const paragraphs = String(text).split(/\n\s*\n/);
+  return paragraphs.map(p => {
+    let escaped = escapeHtmlText(p);
+    escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    return `<div style="margin-bottom:16px;white-space:pre-wrap;">${escaped}</div>`;
+  }).join('');
+}
+
 (async function(){
   const NOTICE_TXT_KEY = 'moneypie_notice_txt_dismissed_hash';
   try {
@@ -3785,7 +3793,7 @@ loadMarketData(true);
 
     const text = new TextDecoder('utf-8').decode(buffer);
     const txtEl = document.getElementById('noticeTxtEl');
-    if(txtEl) txtEl.textContent = text;
+    if(txtEl) txtEl.innerHTML = renderNoticeMarkdown(text);
     const modal = document.getElementById('noticeTxtModal');
     if(modal) modal.style.display = 'flex';
 
