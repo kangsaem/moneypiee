@@ -1438,7 +1438,7 @@ function loadSnapshotForEdit(id){
     if(state.accounts.length === 0){
       state.accounts = [{ id: uid(), name: '계좌 1', accountType:'직투', holdings: [] }];
     }
-    state.activeId = state.accounts[0].id;
+    state.activeId = '__total__';
     save();
     saveCreditLines();
     render();
