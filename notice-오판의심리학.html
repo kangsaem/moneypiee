@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>머니파이 공지</title>
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#F2F2F2;
+    color:#222222;
+    font-family:'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;
+    font-weight:500;
+    min-height:100vh;
+  }
+  .btn{
+    background:transparent;border:1px solid #D5D5D5;color:#666666;
+    padding:7px 14px;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;font-weight:600;
+  }
+  .btn:hover{border-color:#999999;color:#222222;}
+  .btn-primary{background:#4FC3F7;color:#111;border-color:#4FC3F7;}
+</style>
+</head>
+<body>
+
+<div id="noticeModal" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px;">
+  <div style="position:relative;background:#FFFFFF;border:1px solid #E0E0E0;border-radius:10px;padding:24px;width:380px;max-width:100%;max-height:72vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 14px;font-size:17px;font-weight:700;color:#1A1A1A;">찰리 멍거가 말한 오판의 심리학</h3>
+    <hr style="border:none;border-top:1px solid #E2E2E2;margin:0 10px 16px 10px;">
+    <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.6;color:#555555;">
+      <div><span style="color:#1A1A1A;font-weight:700;">보상과 처벌 과잉 반응 경향</span>: 인센티브에 따라 행동이 쉽게 변하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">호감/애정 경향</span>: 좋아하는 사람의 잘못을 외면하고 맹목적으로 따르는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">미움/혐오 경향</span>: 싫어하는 사람의 의견이라면 옳은 말도 거부하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">의심 회피 경향</span>: 불안감을 없애기 위해 불확실한 상황에서 성급히 결론을 내리는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">비일관성 회피 경향</span>: 한 번 내린 결정이나 기존의 습관을 바꾸기 극도로 싫어하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">호기심 경향</span>: 주변 세계를 탐구하고 지식을 얻고자 하는 본능적인 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">칸트식 공정성 경향</span>: 세상과 타인이 나를 공평하게 대우해 주기를 기대하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">시기/질투 경향</span>: 남이 가진 성취나 소유물을 부러워하고 시샘하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">호혜성 경향</span>: 받은 호의나 해악을 그대로 되갚아 주려는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">연합 감정 경향</span>: 과거의 경험이나 특정 이미지와 대상을 무조건 연결 짓는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">단순 심리적 부인</span>: 감당하기 힘든 고통스러운 현실을 왜곡하거나 외면하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">과도한 자존감 경향</span>: 자신과 자신이 소유한 것의 가치를 실제보다 과대평가하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">과도한 낙관주의 경향</span>: 모든 일이 자신에게 유리한 방향으로 풀릴 것이라 믿는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">박탈 증후군 반응 경향</span>: 얻은 기쁨보다 가진 것을 잃었을 때의 상실감에 더 크게 반응하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">사회적 증거 경향</span>: 혼란스러울 때 다수의 행동을 무작정 모방하는 동조 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">대조 오인 경향</span>: 기준점과의 상대적인 차이 때문에 대상을 실제와 다르게 인식하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">스트레스 오인 경향</span>: 극심한 스트레스 속에서 이성적인 판단력이 흐려지는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">가용성 오인 경향</span>: 가장 쉽게 떠오르는 기억이나 눈앞의 정보에만 의존하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">사용 불가 경향</span>: 힘들게 배운 기술이나 지식도 쓰지 않으면 퇴화하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">약물 의존 경향</span>: 알코올이나 약물에 의존하여 현실을 왜곡하고 이성을 잃는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">노화 오작동 경향</span>: 나이가 들면서 자연스럽게 인지 능력과 신체 기능이 떨어지는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">권위 복종 경향</span>: 전문가나 고위직 인사의 주장을 검증 없이 맹신하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">헛소리 경향</span>: 잘 알지 못하면서 그럴듯한 말로 시간과 공간을 낭비하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">이유 찾기 경향</span>: 결론의 타당성과 관계없이 '왜냐하면'이라는 이유만 주어지면 쉽게 수용하는 성향</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">롤라팔루자 효과</span>: 여러 가지 심리 편향이 동시에 결합되어 극단적인 비합리성을 만들어내는 효과</div>
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:13px;color:#777777;cursor:pointer;">
+      <input type="checkbox" id="noticeDontShowAgain">
+      다시 보지 않기
+    </label>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+      <button class="btn btn-primary" id="noticeOkBtn" style="font-size:20px;line-height:1;padding:6px 16px;">😊</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('noticeOkBtn').addEventListener('click', () => {
+  document.getElementById('noticeModal').style.display = 'none';
+});
+</script>
+
+</body>
+</html>
