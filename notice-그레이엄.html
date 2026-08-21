@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>머니파이 공지</title>
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#F2F2F2;
+    color:#222222;
+    font-family:'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;
+    font-weight:500;
+    min-height:100vh;
+  }
+  .btn{
+    background:transparent;border:1px solid #D5D5D5;color:#666666;
+    padding:7px 14px;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;font-weight:600;
+  }
+  .btn:hover{border-color:#999999;color:#222222;}
+  .btn-primary{background:#4FC3F7;color:#111;border-color:#4FC3F7;}
+</style>
+</head>
+<body>
+
+<div id="noticeModal" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px;">
+  <div style="position:relative;background:#FFFFFF;border:1px solid #E0E0E0;border-radius:10px;padding:24px;width:380px;max-width:100%;max-height:72vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 14px;font-size:17px;font-weight:700;color:#1A1A1A;">벤자민 그레이엄</h3>
+    <hr style="border:none;border-top:1px solid #E2E2E2;margin:0 10px 16px 10px;">
+    <div style="display:flex;flex-direction:column;gap:16px;font-size:13px;line-height:1.6;color:#555555;">
+      <div><span style="color:#1A1A1A;font-weight:700;">질문</span>: 30달러가 가치가 있는 주식을 10달러에 살 수 있는 상황이 되었고 그 주식을 매수하기로 합니다. 그런데 다른 많은 사람들도 이 주식의 가치를 30달러로 판단하기 전까지는 이익을 실현할 수 없습니다. 그 과정은 어떻게 됩니까? 광고나 다른 어떤 방법이 있는겁니까? 저평가 된 주식은 어떻게 가치를 찾아갑니까?</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">그레이엄</span>: 그것이 바로 저희 사업의 수수께끼 가운데 하나입니다. 다른 사람들과 마찬가지로 저 역시 그 점이 궁금합니다. 그렇지만 경험상 시장은 결국 자기 가치를 찾아갑니다.</div>
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:13px;color:#777777;cursor:pointer;">
+      <input type="checkbox" id="noticeDontShowAgain">
+      다시 보지 않기
+    </label>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+      <button class="btn btn-primary" id="noticeOkBtn" style="font-size:20px;line-height:1;padding:6px 16px;">😊</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('noticeOkBtn').addEventListener('click', () => {
+  document.getElementById('noticeModal').style.display = 'none';
+});
+</script>
+
+</body>
+</html>

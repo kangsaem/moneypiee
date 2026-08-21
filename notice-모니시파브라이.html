@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>머니파이 공지</title>
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#F2F2F2;
+    color:#222222;
+    font-family:'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;
+    font-weight:500;
+    min-height:100vh;
+  }
+  .btn{
+    background:transparent;border:1px solid #D5D5D5;color:#666666;
+    padding:7px 14px;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;font-weight:600;
+  }
+  .btn:hover{border-color:#999999;color:#222222;}
+  .btn-primary{background:#4FC3F7;color:#111;border-color:#4FC3F7;}
+</style>
+</head>
+<body>
+
+<div id="noticeModal" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px;">
+  <div style="position:relative;background:#FFFFFF;border:1px solid #E0E0E0;border-radius:10px;padding:24px;width:380px;max-width:100%;max-height:72vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 14px;font-size:17px;font-weight:700;color:#1A1A1A;">모니시 파브라이</h3>
+    <hr style="border:none;border-top:1px solid #E2E2E2;margin:0 10px 16px 10px;">
+    <div style="display:flex;flex-direction:column;gap:16px;font-size:13px;line-height:1.6;color:#555555;">
+      <div><span style="color:#1A1A1A;font-weight:700;">저위험-저수익</span>은 <span style="color:#1A1A1A;font-weight:700;">고위험-고수익</span>과 마찬가지로 늘 짝을 이루는 개념이다. 그러나 우리는 평생 동안 <span style="color:#1A1A1A;font-weight:700;">저위험-고수익</span> 투자 기회를 마주한다.</div>
+      <div>월가에서는 때때로 <span style="color:#1A1A1A;font-weight:700;">위험</span>과 <span style="color:#1A1A1A;font-weight:700;">불확실성</span>을 혼동한다. 투자자는 이런 혼동을 이용해 상당한 이익을 거둘 수 있다. 월가는 불확실성을 혐오하고, 혐오는 해당 기업의 주가를 끌어내리는 방식으로 표출된다.</div>
+      <div><span style="color:#1A1A1A;font-weight:700;">저위험과 고불확실성</span>은 훌륭한 조합이다. 성공하면 큰 수익을 얻고 실패해도 손실은 거의 없는 투자인 것이다.</div>
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:13px;color:#777777;cursor:pointer;">
+      <input type="checkbox" id="noticeDontShowAgain">
+      다시 보지 않기
+    </label>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+      <button class="btn btn-primary" id="noticeOkBtn" style="font-size:20px;line-height:1;padding:6px 16px;">😊</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('noticeOkBtn').addEventListener('click', () => {
+  document.getElementById('noticeModal').style.display = 'none';
+});
+</script>
+
+</body>
+</html>
