@@ -2606,7 +2606,7 @@ function renderTotalMemoBox(snapId){
   const editing = totalMemoEditState[snapId] !== undefined ? totalMemoEditState[snapId] : !hasMemo;
   let inner;
   if(editing){
-    inner = `<textarea id="total-memo-textarea" placeholder="메모를 입력하세요" rows="8" style="width:100%;box-sizing:border-box;background:#FFFFFF;color:#333333;border:1px solid #C9C9C9;border-radius:4px;padding:6px;font-size:12px;font-family:inherit;resize:none;">${escapeHTML(memoText)}</textarea>
+    inner = `<textarea id="total-memo-textarea" placeholder="메모를 입력하세요" rows="8" style="width:100%;box-sizing:border-box;background:#FFFFFF;color:#333333;border:1px solid #C9C9C9;border-radius:4px;padding:6px;font-size:12px;font-family:inherit;resize:vertical;">${escapeHTML(memoText)}</textarea>
     <div style="text-align:right;margin-top:6px;">
       <button class="btn btn-primary" id="total-memo-save" style="padding:4px 10px;font-size:12px;">메모저장</button>
     </div>`;
@@ -3190,7 +3190,7 @@ function renderMemoBox(snapId, zIndexOverride){
   const editing = memoEditState[snapId] !== undefined ? memoEditState[snapId] : !hasMemo;
   let inner;
   if(editing){
-    inner = `<textarea id="memo-textarea-${snapId}" placeholder="메모를 입력하세요" rows="8" style="width:100%;box-sizing:border-box;background:#FFFFFF;color:#333333;border:1px solid #C9C9C9;border-radius:4px;padding:6px;font-size:12px;font-family:inherit;resize:none;">${escapeHTML(memoText)}</textarea>
+    inner = `<textarea id="memo-textarea-${snapId}" placeholder="메모를 입력하세요" rows="8" style="width:100%;box-sizing:border-box;background:#FFFFFF;color:#333333;border:1px solid #C9C9C9;border-radius:4px;padding:6px;font-size:12px;font-family:inherit;resize:vertical;">${escapeHTML(memoText)}</textarea>
     <div style="text-align:right;margin-top:6px;">
       <button class="btn btn-primary" data-savememo="${snapId}" style="padding:4px 10px;font-size:12px;">메모저장</button>
     </div>`;
