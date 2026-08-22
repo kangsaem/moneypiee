@@ -2742,7 +2742,7 @@ function toggleStockDetailAccordion(){
     const name = d.label === '현금' ? escapeHTML(totalStockDetailCashLabel) : escapeHTML(d.label);
     return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num" style="text-align:right;">${d.amount.toLocaleString()}</span></div>`;
   }).join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;max-height:70dvh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;flex-shrink:0;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">종목별 평가액</span>
       <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
@@ -2798,7 +2798,7 @@ function renderTrendAccordionContent(){
   const canPrev = openTrendIdx < series.length - 1; // 이전달(더 과거) = 인덱스 증가
   const canNext = openTrendIdx > 0;                 // 다음달(더 최근) = 인덱스 감소
   slot.innerHTML = `<div data-trendclose style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;"></div>
-  <div class="floating-acc" id="trend-accordion-box" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;max-height:70dvh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);touch-action:pan-y;overflow:hidden;">
+  <div class="floating-acc" id="trend-accordion-box" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);touch-action:pan-y;overflow:hidden;">
     <div style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;">
       <button data-trendnav="1" ${canPrev?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrev?1:0.2};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrev?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
       <span style="flex:1;text-align:center;font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;justify-content:center;">${escapeHTML(entry.monthLabel)}</span>
@@ -3684,21 +3684,10 @@ function makeAccordionDraggable(el){
     startAccordionDrag(el, t.clientX, t.clientY);
   }, { passive: false });
 }
-function clampAccordionPos(left, top, el){
-  const w = el.offsetWidth || 200;
-  const h = el.offsetHeight || 100;
-  const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-  const vw = (window.visualViewport && window.visualViewport.width) || window.innerWidth;
-  const minVisible = 44; // 최소 이 정도는 항상 화면에 남도록
-  const clampedLeft = Math.min(Math.max(left, minVisible - w), vw - minVisible);
-  const clampedTop = Math.min(Math.max(top, 0), vh - minVisible);
-  return { left: clampedLeft, top: clampedTop };
-}
 window.addEventListener('mousemove', (e) => {
   if(!draggingAccordionEl) return;
-  const pos = clampAccordionPos(dragOrigLeft + (e.clientX - dragStartX), dragOrigTop + (e.clientY - dragStartY), draggingAccordionEl);
-  draggingAccordionEl.style.left = pos.left + 'px';
-  draggingAccordionEl.style.top = pos.top + 'px';
+  draggingAccordionEl.style.left = (dragOrigLeft + (e.clientX - dragStartX)) + 'px';
+  draggingAccordionEl.style.top = (dragOrigTop + (e.clientY - dragStartY)) + 'px';
 });
 window.addEventListener('mouseup', () => {
   if(!draggingAccordionEl) return;
@@ -3711,9 +3700,8 @@ window.addEventListener('touchmove', (e) => {
   e.preventDefault();
   const t = e.touches[0];
   const scale = getViewportScale();
-  const pos = clampAccordionPos(dragOrigLeft + (t.clientX - dragStartX) / scale, dragOrigTop + (t.clientY - dragStartY) / scale, draggingAccordionEl);
-  draggingAccordionEl.style.left = pos.left + 'px';
-  draggingAccordionEl.style.top = pos.top + 'px';
+  draggingAccordionEl.style.left = (dragOrigLeft + (t.clientX - dragStartX) / scale) + 'px';
+  draggingAccordionEl.style.top = (dragOrigTop + (t.clientY - dragStartY) / scale) + 'px';
 }, { passive: false });
 window.addEventListener('touchend', () => {
   if(!draggingAccordionEl) return;
