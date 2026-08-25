@@ -1243,14 +1243,13 @@ function setupStockNameAutocomplete(nameInput, acHolder, groupInput, regionSelec
 }
 
 function cashRatioColor(pct){
-  if(pct < 5) return '#B85450';    // 어두운 빨강 (마통사용과 동일)
-  if(pct < 10) return '#C2477C';   // 진한 핑크
-  if(pct < 15) return '#E8A0BC';   // 연한 핑크
-  if(pct < 20) return '#F5D2DE';   // 많이 연한 핑크
-  if(pct < 30) return '#FFFFFF';   // 흰색
-  if(pct < 40) return '#D2ECFA';   // 많이 연한 하늘색
-  if(pct < 50) return '#8FCBEA';   // 연한 하늘색
-  if(pct < 60) return '#2E86C1';   // 진한 하늘색
+  if(pct < 5) return '#C2477C';    // 진한 핑크
+  if(pct < 10) return '#E8A0BC';   // 연한 핑크
+  if(pct < 15) return '#F5D2DE';   // 많이 연한 핑크
+  if(pct < 25) return '#FFFFFF';   // 흰색
+  if(pct < 35) return '#D2ECFA';   // 연한 하늘색
+  if(pct < 50) return '#8FCBEA';   // 하늘색
+  if(pct < 60) return '#4FA8D8';   // 파란색
   if(pct < 80) return '#1A5276';   // 진한 파란색
   return '#7C6499';                // 보라 (계좌유형별과 동일)
 }
