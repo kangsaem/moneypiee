@@ -1572,6 +1572,7 @@ function donutSVG(data, size, type){
       // 거의 100%에 가까운 조각은 원호(arc) 시작/끝점이 반올림되어 같은 좌표가 되면서
       // SVG가 그리지 못하는 문제가 생기므로, 이 경우엔 그냥 꽉 찬 원으로 그린다.
       paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" data-slice-idx="${i}"/>`;
+      if(d.tintOverlay) paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.tintOverlay}"/>`;
       angle += sweep;
       return;
     }
@@ -1581,7 +1582,9 @@ function donutSVG(data, size, type){
     const end = angle + sweep;
     const x2 = cx + r*Math.cos(end*Math.PI/180);
     const y2 = cy + r*Math.sin(end*Math.PI/180);
-    paths += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${color}" data-slice-idx="${i}"/>`;
+    const slicePathD = `M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
+    paths += `<path d="${slicePathD}" fill="${color}" data-slice-idx="${i}"/>`;
+    if(d.tintOverlay) paths += `<path d="${slicePathD}" fill="${d.tintOverlay}"/>`;
     angle = end;
   });
   paths += `<circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>`;
@@ -1925,8 +1928,10 @@ function sectorLegendHTML(holdings){
     sectorOtherItems = smallItems;
     grouped = [...bigItems, { label: '기타', amount: otherAmount, pct: otherPct, group: '기타' }];
   }
-  // 파이(도넛) 자체는 항상 병합된 형태를 사용
-  const pieOrdered = reorderCashFirst(grouped);
+  // 파이(도넛)는 항상 전체 세부 섹터를 그대로 표시하고, 기타에 해당하는 조각만 파란 틴트를 씌운다
+  const otherLabels = new Set(sectorOtherItems.map(d => d.label));
+  const pieSource = byGroup.map(d => otherLabels.has(d.label) ? { ...d, tintOverlay: 'rgba(66,133,244,0.5)' } : d);
+  const pieOrdered = reorderCashFirst(pieSource);
   // 목록(범례)은 '기타 펼침' 상태면 병합하지 않은 원본을 사용
   const legendSource = (sectorOtherExpanded && sectorOtherItems.length > 0) ? byGroup : grouped;
   const legendOrdered = reorderCashFirst(legendSource);
@@ -2056,22 +2061,28 @@ function clearChartHighlight(triggerEl, ringName){
 }
 
 function cycleSectorSelection(){
-  const total = sectorAccordionOrdered ? sectorAccordionOrdered.length : 0;
+  const fullOrdered = reorderCashFirst(computeWeights(sectorAccordionHoldings, 'group')).filter(d => d.label !== '현금');
+  const total = fullOrdered.length;
   if(total === 0) return;
-  const curIdx = sectorAccordionOpenIdx === null ? -1 : parseInt(sectorAccordionOpenIdx, 10);
-  let nextIdx = curIdx + 1;
-  while(nextIdx < total && sectorAccordionOrdered[nextIdx] && sectorAccordionOrdered[nextIdx].label === '현금'){
-    nextIdx++;
-  }
+  const curIdx = sectorAccordionOpenLabel === null ? -1 : fullOrdered.findIndex(d => d.label === sectorAccordionOpenLabel);
+  const nextIdx = curIdx + 1;
   if(nextIdx >= total){
-    const el = document.querySelector(`[data-sector-idx="${curIdx}"]`);
+    // 끝까지 순환했으면 마지막 항목을 다시 클릭해 닫는다
+    const el = document.querySelector(`[data-sector-label="${CSS.escape(sectorAccordionOpenLabel || '')}"]`);
     if(el) el.click();
     return;
   }
-  const el = document.querySelector(`[data-sector-idx="${nextIdx}"]`);
+  const nextLabel = fullOrdered[nextIdx].label;
+  const isOtherMember = sectorOtherItems.some(d => d.label === nextLabel);
+  if(isOtherMember && !sectorOtherExpanded){
+    sectorOtherExpanded = true;
+    render();
+  }
+  const el = document.querySelector(`[data-sector-label="${CSS.escape(nextLabel)}"]`);
   if(el) el.click();
 }
 
+let sectorAccordionOpenLabel = null;
 function renderSectorBreakdown(label, slot, triggerEl, idx){
   const holdings = sectorAccordionHoldings.filter(h => h.group === label);
   const regionLabelFn = (label === '현금') ? regionLabelFor : mergedRegionLabelFor;
@@ -2097,6 +2108,7 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
   const closeBtn = slot.querySelector('[data-acc-close]');
   if(closeBtn) closeBtn.addEventListener('click', () => triggerEl.click());
   sectorAccordionOpenIdx = idx;
+  sectorAccordionOpenLabel = label;
   highlightChartSlice(triggerEl, idx, 'decorative-sector');
   const centerLabelEl2 = document.getElementById('sector-center-label');
   if(centerLabelEl2) centerLabelEl2.textContent = label;
@@ -2104,14 +2116,7 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
 
 function bindSectorAccordionHandlers(){
   document.querySelectorAll('[data-donut-cycle-sector]').forEach(el => {
-    el.addEventListener('click', () => {
-      if(sectorOtherExpanded){
-        sectorOtherExpanded = false;
-        render();
-        return;
-      }
-      cycleSectorSelection();
-    });
+    el.addEventListener('click', cycleSectorSelection);
   });
   document.querySelectorAll('[data-sector-idx]').forEach(el => {
     el.addEventListener('click', () => {
@@ -2123,8 +2128,12 @@ function bindSectorAccordionHandlers(){
         render();
         return;
       }
-      if(sectorOtherExpanded){
+      const isOtherMember = sectorOtherItems.some(d => d.label === label);
+      if(sectorOtherExpanded && !isOtherMember){
+        // 큰 섹터(기타 소속이 아닌 항목)를 클릭하면 기타 목록은 접는다
         sectorOtherExpanded = false;
+        sectorAccordionOpenIdx = null;
+        sectorAccordionOpenLabel = null;
         render();
         const newEl = document.querySelector(`[data-sector-label="${CSS.escape(label)}"]`);
         if(newEl) newEl.click();
@@ -2139,6 +2148,7 @@ function bindSectorAccordionHandlers(){
       if(sectorAccordionOpenIdx === idx){
         slot.innerHTML = '';
         sectorAccordionOpenIdx = null;
+        sectorAccordionOpenLabel = null;
         clearChartHighlight(el, 'decorative-sector');
         const centerLabelEl = document.getElementById('sector-center-label');
         if(centerLabelEl) centerLabelEl.textContent = '섹터';
