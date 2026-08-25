@@ -1485,11 +1485,15 @@ function tickMarkRingSVG(cx, cy, rStart, rEnd){
   rEnd = rEnd || (rStart + 3);
   const rMid = (rStart + rEnd) / 2;
   const bandWidth = rEnd - rStart;
-  let marks = `<circle cx="${cx}" cy="${cy}" r="${rMid}" fill="none" stroke="#FFFFFF" stroke-width="${bandWidth}"/>`;
-  for(let deg = 0; deg < 360; deg += 10){
+  let marks = `<circle cx="${cx}" cy="${cy}" r="${rMid}" fill="none" stroke="#B8B8B8" stroke-width="${bandWidth}" opacity="1"/>`;
+  const degSet = new Set();
+  for(let d = 0; d < 360; d += 18) degSet.add(d);
+  for(let d = 0; d < 360; d += 90) degSet.add(d);
+  for(let d = 0; d < 360; d += 120) degSet.add(d);
+  Array.from(degSet).sort((a,b) => a-b).forEach(deg => {
     const isBlue = deg % 90 === 0;
     const isOrange = !isBlue && deg % 120 === 0;
-    const color = isOrange ? '#FF9800' : (isBlue ? '#4285F4' : '#999999');
+    const color = isOrange ? '#FF9800' : (isBlue ? '#4285F4' : 'var(--surface2)');
     const strokeWidth = (isOrange || isBlue) ? 3 : 1;
     const rad = (deg - 90) * Math.PI / 180;
     const x1 = (cx + Math.cos(rad) * rStart).toFixed(2);
@@ -1497,7 +1501,7 @@ function tickMarkRingSVG(cx, cy, rStart, rEnd){
     const x2 = (cx + Math.cos(rad) * rEnd).toFixed(2);
     const y2 = (cy + Math.sin(rad) * rEnd).toFixed(2);
     marks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${strokeWidth}"/>`;
-  }
+  });
   return marks;
 }
 function tripleDonutSVG(outerData, midData, innerData, size){
@@ -1506,10 +1510,10 @@ function tripleDonutSVG(outerData, midData, innerData, size){
   const midR = outerR - 15, midW = 13;
   const innerR = midR - 15, innerW = 15;
   return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;">
+    ${tickMarkRingSVG(cx, cy, outerR + outerW/2)}
     ${ringSegmentsSVG(outerData, 'region', cx, cy, outerR, outerW, 'outer')}
     ${ringSegmentsSVG(midData, 'group', cx, cy, midR, midW, 'mid')}
     ${ringSegmentsSVG(innerData, 'stock', cx, cy, innerR, innerW, 'inner')}
-    ${tickMarkRingSVG(cx, cy, outerR + outerW/2 + 1)}
   </svg></div>`;
 }
 
@@ -1573,10 +1577,10 @@ function donutSVG(data, size, type, skipTicks){
   if(data.length === 1){
     const color = rankColor(data[0].label, 0, 1, type);
     return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;">
+      ${skipTicks ? '' : tickMarkRingSVG(cx, cy, r)}
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" data-slice-idx="0"/>
       <circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>
       ${holeShadowDefs(hole, cx, cy, gradId)}
-      ${skipTicks ? '' : tickMarkRingSVG(cx, cy, r + 1)}
     </svg></div>`;
   }
   const total = _.sumBy(data, 'amount') || 1;
@@ -1605,7 +1609,7 @@ function donutSVG(data, size, type, skipTicks){
   });
   paths += `<circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>`;
   paths += holeShadowDefs(hole, cx, cy, gradId);
-  return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;"><g transform="translate(${size},0) scale(-1,1)">${paths}</g>${skipTicks ? '' : tickMarkRingSVG(cx, cy, r + 1)}</svg></div>`;
+  return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;">${skipTicks ? '' : tickMarkRingSVG(cx, cy, r)}<g transform="translate(${size},0) scale(-1,1)">${paths}</g></svg></div>`;
 }
 
 function legendHTML(data, type){
@@ -1881,8 +1885,11 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs){
   const creditRing = rings.find(r => r.partial);
   const tickBandWidth = 3;
   const mainRingsOuterR = pieR + mainRings.length * ringW;
-  const creditR = mainRingsOuterR + tickBandWidth + ringW/2;
-  const totalOuterR = creditRing ? (creditR + ringW/2) : (mainRingsOuterR + tickBandWidth);
+  const tickStart = mainRingsOuterR;
+  const tickEnd = tickStart + tickBandWidth;
+  const creditGap = 2;
+  const creditR = tickEnd + creditGap + ringW/2;
+  const totalOuterR = creditRing ? (creditR + ringW/2) : tickEnd;
   const outerSize = 2 * (totalOuterR + 6);
   const cx = outerSize/2, cy = outerSize/2;
   const pieInner = donutSVG(ordered, 160, 'stock', true).replace(/^<div class="donut-wrap">/, '').replace(/<\/div>$/, '');
@@ -1891,11 +1898,11 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs){
   return `<div class="chart-box" id="stock-sortable-chart">
     <div class="donut-wrap ${sizeClass}" style="position:relative;cursor:pointer;" data-donut-cycle>
       <svg width="100%" height="100%" viewBox="0 0 ${outerSize} ${outerSize}" style="display:block;">
+        ${tickMarkRingSVG(cx, cy, tickStart, tickEnd)}
         <g transform="translate(${cx-80},${cy-80})">
           ${pieInner.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')}
         </g>
         ${decorativeRingsSVG(mainRings, cx, cy, pieR, ringW)}
-        ${tickMarkRingSVG(cx, cy, mainRingsOuterR + 1, mainRingsOuterR + 1 + tickBandWidth)}
         ${creditRing ? partialRingSVG(creditRing.partial.fraction, creditRing.partial.color, cx, cy, creditR, ringW, creditRing.name, creditRing.partial.label) : ''}
       </svg>
       ${centerLabel ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">${centerLabel}</span></div>` : ''}
@@ -1995,9 +2002,9 @@ function regionQuadDonutSVG(data, size, highlightGroup){
     angle += sweep;
   });
   return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;">
+    ${tickMarkRingSVG(cx, cy, r)}
     ${paths}
     <circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>
-    ${tickMarkRingSVG(cx, cy, r + 1)}
   </svg></div>`;
 }
 
@@ -3024,7 +3031,7 @@ function creditGaugeSVG(data, size){
     angle = end;
   });
   paths += `<circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>`;
-  return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;"><g transform="translate(${size},0) scale(-1,1)">${paths}</g>${tickMarkRingSVG(cx, cy, r + 1)}</svg></div>`;
+  return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;">${tickMarkRingSVG(cx, cy, r)}<g transform="translate(${size},0) scale(-1,1)">${paths}</g></svg></div>`;
 }
 
 function creditBarSVG(data, width, height){
