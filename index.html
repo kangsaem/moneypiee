@@ -761,6 +761,7 @@ function rankColor(label, index, count, type){
   if(label === '현금') return CASH_COLOR;
   if(label === '원화') return CASH_COLOR;
   if(label === '외화') return CASH_OVERSEAS;
+  if(label === '기타') return '#9A9BA1';
   if(type === 'stock'){
     const cycle = Math.floor(index/2);
     const totalCycles = Math.ceil(count/2);
@@ -1908,16 +1909,32 @@ function accordionRowHTML(label, pct){
   return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num">${pct.toFixed(1)}%</span></div>`;
 }
 
+let sectorOtherItems = [];
+let sectorOtherExpanded = false;
 function sectorLegendHTML(holdings){
   sectorAccordionHoldings = holdings;
   sectorAccordionOpenIdx = null;
   const byGroup = computeWeights(holdings, 'group');
-  const ordered = reorderCashFirst(byGroup);
-  sectorAccordionOrdered = ordered;
-  const legend = ordered.map((d,i) => {
+  const smallItems = byGroup.filter(d => d.pct < 1 && !isCashLikeLabel(d.label));
+  let grouped = byGroup;
+  sectorOtherItems = [];
+  if(smallItems.length >= 2){
+    const bigItems = byGroup.filter(d => !smallItems.includes(d));
+    const otherAmount = _.sumBy(smallItems, 'amount');
+    const otherPct = _.sumBy(smallItems, 'pct');
+    sectorOtherItems = smallItems;
+    grouped = [...bigItems, { label: '기타', amount: otherAmount, pct: otherPct, group: '기타' }];
+  }
+  // 파이(도넛) 자체는 항상 병합된 형태를 사용
+  const pieOrdered = reorderCashFirst(grouped);
+  // 목록(범례)은 '기타 펼침' 상태면 병합하지 않은 원본을 사용
+  const legendSource = (sectorOtherExpanded && sectorOtherItems.length > 0) ? byGroup : grouped;
+  const legendOrdered = reorderCashFirst(legendSource);
+  sectorAccordionOrdered = legendOrdered;
+  const legend = legendOrdered.map((d,i) => {
     const rank = d.rank !== undefined ? d.rank : i;
-    const rankCount = d.rankCount !== undefined ? d.rankCount : ordered.length;
-    const color = rankColor(d.label, rank, rankCount, 'group');
+    const rankCount = d.rankCount !== undefined ? d.rankCount : legendOrdered.length;
+    const color = d.label === '기타' ? NAVY_STRONG : rankColor(d.label, rank, rankCount, 'group');
     const isCashLabel = isCashLikeLabel(d.label);
     const cashStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : '';
     return `<div style="position:relative;">
@@ -1925,7 +1942,7 @@ function sectorLegendHTML(holdings){
       <div id="sector-slot-${i}"></div>
     </div>`;
   }).join('');
-  return { legend, ordered };
+  return { legend, ordered: pieOrdered };
 }
 
 function computeRegionQuad(holdings){
@@ -2055,15 +2072,64 @@ function cycleSectorSelection(){
   if(el) el.click();
 }
 
+function renderSectorBreakdown(label, slot, triggerEl, idx){
+  const holdings = sectorAccordionHoldings.filter(h => h.group === label);
+  const regionLabelFn = (label === '현금') ? regionLabelFor : mergedRegionLabelFor;
+  const regionBreakdown = computeWeights(holdings, regionLabelFn);
+  const regionBarHtml = (sectorAccordionShowRegionBar && regionBreakdown.length > 0)
+    ? `<div style="margin-bottom:8px;"><div style="border-radius:4px;overflow:hidden;position:relative;">${greenBarWithLabelHTML(regionBreakdown, 220, 14)}</div></div>`
+    : '';
+  const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
+  const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
+  const sectorTotalAmount = _.sumBy(holdings, 'amount');
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
+      <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">${sectorTotalAmount.toLocaleString()}</span>
+      <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+    </div>
+    <div class="acc-body" style="padding:8px 12px;">
+      ${regionBarHtml}
+      ${rows || '<div class="empty">데이터 없음</div>'}
+    </div>
+  </div>`;
+  makeAccordionDraggable(slot.querySelector('.floating-acc'));
+  const closeBtn = slot.querySelector('[data-acc-close]');
+  if(closeBtn) closeBtn.addEventListener('click', () => triggerEl.click());
+  sectorAccordionOpenIdx = idx;
+  highlightChartSlice(triggerEl, idx, 'decorative-sector');
+  const centerLabelEl2 = document.getElementById('sector-center-label');
+  if(centerLabelEl2) centerLabelEl2.textContent = label;
+}
+
 function bindSectorAccordionHandlers(){
   document.querySelectorAll('[data-donut-cycle-sector]').forEach(el => {
-    el.addEventListener('click', cycleSectorSelection);
+    el.addEventListener('click', () => {
+      if(sectorOtherExpanded){
+        sectorOtherExpanded = false;
+        render();
+        return;
+      }
+      cycleSectorSelection();
+    });
   });
   document.querySelectorAll('[data-sector-idx]').forEach(el => {
     el.addEventListener('click', () => {
       const idx = el.dataset.sectorIdx;
       const label = el.dataset.sectorLabel;
       if(label === '현금') return;
+      if(label === '기타'){
+        sectorOtherExpanded = true;
+        render();
+        return;
+      }
+      if(sectorOtherExpanded){
+        sectorOtherExpanded = false;
+        render();
+        const newEl = document.querySelector(`[data-sector-label="${CSS.escape(label)}"]`);
+        if(newEl) newEl.click();
+        return;
+      }
       if(sectorAccordionOpenIdx !== null && sectorAccordionOpenIdx !== idx){
         const prevSlot = document.getElementById('sector-slot-' + sectorAccordionOpenIdx);
         if(prevSlot) prevSlot.innerHTML = '';
@@ -2078,33 +2144,7 @@ function bindSectorAccordionHandlers(){
         if(centerLabelEl) centerLabelEl.textContent = '섹터';
         return;
       }
-      const holdings = sectorAccordionHoldings.filter(h => h.group === label);
-      const regionLabelFn = (label === '현금') ? regionLabelFor : mergedRegionLabelFor;
-      const regionBreakdown = computeWeights(holdings, regionLabelFn);
-      const regionBarHtml = (sectorAccordionShowRegionBar && regionBreakdown.length > 0)
-        ? `<div style="margin-bottom:8px;"><div style="border-radius:4px;overflow:hidden;position:relative;">${greenBarWithLabelHTML(regionBreakdown, 220, 14)}</div></div>`
-        : '';
-      const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
-      const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
-      const sectorTotalAmount = _.sumBy(holdings, 'amount');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-        <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
-          <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
-          <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">${sectorTotalAmount.toLocaleString()}</span>
-          <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
-        </div>
-        <div class="acc-body" style="padding:8px 12px;">
-          ${regionBarHtml}
-          ${rows || '<div class="empty">데이터 없음</div>'}
-        </div>
-      </div>`;
-      makeAccordionDraggable(slot.querySelector('.floating-acc'));
-      const sectorCloseBtn = slot.querySelector('[data-acc-close]');
-      if(sectorCloseBtn) sectorCloseBtn.addEventListener('click', () => el.click());
-      sectorAccordionOpenIdx = idx;
-      highlightChartSlice(el, idx, 'decorative-sector');
-      const centerLabelEl2 = document.getElementById('sector-center-label');
-      if(centerLabelEl2) centerLabelEl2.textContent = label;
+      renderSectorBreakdown(label, slot, el, idx);
     });
   });
 }
