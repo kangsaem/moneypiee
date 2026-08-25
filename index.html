@@ -1481,6 +1481,25 @@ function ringSegmentsSVG(data, type, cx, cy, radius, strokeWidth, ringName, opac
   }).join('');
 }
 
+function tickMarkRingSVG(cx, cy, rStart, rEnd){
+  rEnd = rEnd || (rStart + 3);
+  const rMid = (rStart + rEnd) / 2;
+  const bandWidth = rEnd - rStart;
+  let marks = `<circle cx="${cx}" cy="${cy}" r="${rMid}" fill="none" stroke="#FFFFFF" stroke-width="${bandWidth}"/>`;
+  for(let deg = 0; deg < 360; deg += 10){
+    const isBlue = deg % 90 === 0;
+    const isOrange = !isBlue && deg % 120 === 0;
+    const color = isOrange ? '#FF9800' : (isBlue ? '#4285F4' : '#999999');
+    const strokeWidth = (isOrange || isBlue) ? 3 : 1;
+    const rad = (deg - 90) * Math.PI / 180;
+    const x1 = (cx + Math.cos(rad) * rStart).toFixed(2);
+    const y1 = (cy + Math.sin(rad) * rStart).toFixed(2);
+    const x2 = (cx + Math.cos(rad) * rEnd).toFixed(2);
+    const y2 = (cy + Math.sin(rad) * rEnd).toFixed(2);
+    marks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${strokeWidth}"/>`;
+  }
+  return marks;
+}
 function tripleDonutSVG(outerData, midData, innerData, size){
   const cx = size/2, cy = size/2;
   const outerR = size/2 - 9, outerW = 11;
@@ -1490,6 +1509,7 @@ function tripleDonutSVG(outerData, midData, innerData, size){
     ${ringSegmentsSVG(outerData, 'region', cx, cy, outerR, outerW, 'outer')}
     ${ringSegmentsSVG(midData, 'group', cx, cy, midR, midW, 'mid')}
     ${ringSegmentsSVG(innerData, 'stock', cx, cy, innerR, innerW, 'inner')}
+    ${tickMarkRingSVG(cx, cy, outerR + outerW/2 + 1)}
   </svg></div>`;
 }
 
@@ -1540,7 +1560,7 @@ function clearDonutHighlight(triggerEl){
   });
 }
 
-function donutSVG(data, size, type){
+function donutSVG(data, size, type, skipTicks){
   const r = size/2 - 6;
   const cx = size/2, cy = size/2;
   const hole = r*0.55;
@@ -1556,6 +1576,7 @@ function donutSVG(data, size, type){
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" data-slice-idx="0"/>
       <circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>
       ${holeShadowDefs(hole, cx, cy, gradId)}
+      ${skipTicks ? '' : tickMarkRingSVG(cx, cy, r + 1)}
     </svg></div>`;
   }
   const total = _.sumBy(data, 'amount') || 1;
@@ -1584,7 +1605,7 @@ function donutSVG(data, size, type){
   });
   paths += `<circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>`;
   paths += holeShadowDefs(hole, cx, cy, gradId);
-  return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;"><g transform="translate(${size},0) scale(-1,1)">${paths}</g></svg></div>`;
+  return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;"><g transform="translate(${size},0) scale(-1,1)">${paths}</g>${skipTicks ? '' : tickMarkRingSVG(cx, cy, r + 1)}</svg></div>`;
 }
 
 function legendHTML(data, type){
@@ -1856,9 +1877,15 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs){
   // 파이(종목) 자체 반지름은 다른 단독 도넛과 완전히 동일(size=160 기준 r=74)하게 유지하고,
   // 그 바깥에 링들을 간격 없이 안쪽부터 순서대로 이어 붙인다. 전체 캔버스만 그만큼 넓어진다.
   const pieR = 74, ringW = 6;
-  const outerSize = 2 * (pieR + rings.length * ringW + 6);
+  const mainRings = rings.filter(r => !r.partial);
+  const creditRing = rings.find(r => r.partial);
+  const tickBandWidth = 3;
+  const mainRingsOuterR = pieR + mainRings.length * ringW;
+  const creditR = mainRingsOuterR + tickBandWidth + ringW/2;
+  const totalOuterR = creditRing ? (creditR + ringW/2) : (mainRingsOuterR + tickBandWidth);
+  const outerSize = 2 * (totalOuterR + 6);
   const cx = outerSize/2, cy = outerSize/2;
-  const pieInner = donutSVG(ordered, 160, 'stock').replace(/^<div class="donut-wrap">/, '').replace(/<\/div>$/, '');
+  const pieInner = donutSVG(ordered, 160, 'stock', true).replace(/^<div class="donut-wrap">/, '').replace(/<\/div>$/, '');
   const sizeClass = rings.length >= 4 ? 'donut-wrap-xxl' : (rings.length >= 3 ? 'donut-wrap-xl' : (rings.length >= 2 ? 'donut-wrap-lg' : 'donut-wrap-md'));
 
   return `<div class="chart-box" id="stock-sortable-chart">
@@ -1867,7 +1894,9 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs){
         <g transform="translate(${cx-80},${cy-80})">
           ${pieInner.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')}
         </g>
-        ${decorativeRingsSVG(rings, cx, cy, pieR, ringW)}
+        ${decorativeRingsSVG(mainRings, cx, cy, pieR, ringW)}
+        ${tickMarkRingSVG(cx, cy, mainRingsOuterR + 1, mainRingsOuterR + 1 + tickBandWidth)}
+        ${creditRing ? partialRingSVG(creditRing.partial.fraction, creditRing.partial.color, cx, cy, creditR, ringW, creditRing.name, creditRing.partial.label) : ''}
       </svg>
       ${centerLabel ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">${centerLabel}</span></div>` : ''}
     </div>
@@ -1968,6 +1997,7 @@ function regionQuadDonutSVG(data, size, highlightGroup){
   return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;">
     ${paths}
     <circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>
+    ${tickMarkRingSVG(cx, cy, r + 1)}
   </svg></div>`;
 }
 
@@ -2994,7 +3024,7 @@ function creditGaugeSVG(data, size){
     angle = end;
   });
   paths += `<circle cx="${cx}" cy="${cy}" r="${hole}" fill="var(--surface2)"/>`;
-  return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;"><g transform="translate(${size},0) scale(-1,1)">${paths}</g></svg></div>`;
+  return `<div class="donut-wrap"><svg width="100%" height="100%" viewBox="0 0 ${size} ${size}" style="display:block;"><g transform="translate(${size},0) scale(-1,1)">${paths}</g>${tickMarkRingSVG(cx, cy, r + 1)}</svg></div>`;
 }
 
 function creditBarSVG(data, width, height){
