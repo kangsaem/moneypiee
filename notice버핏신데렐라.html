@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>머니파이 공지</title>
+<style>
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#F2F2F2;
+    color:#222222;
+    font-family:'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    font-size:15px;
+    font-weight:500;
+    min-height:100vh;
+  }
+  .btn{
+    background:transparent;border:1px solid #D5D5D5;color:#666666;
+    padding:7px 14px;border-radius:6px;cursor:pointer;font-size:14px;font-family:inherit;font-weight:600;
+  }
+  .btn:hover{border-color:#999999;color:#222222;}
+  .btn-primary{background:#4FC3F7;color:#111;border-color:#4FC3F7;}
+</style>
+</head>
+<body>
+
+<div id="noticeModal" style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px;">
+  <div style="position:relative;background:#FFFFFF;border:1px solid #E0E0E0;border-radius:10px;padding:24px;width:380px;max-width:100%;max-height:72vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+    <h3 style="margin:0 0 14px;font-size:17px;font-weight:700;color:#1A1A1A;">워렌 버핏</h3>
+    <hr style="border:none;border-top:1px solid #E2E2E2;margin:0 10px 16px 10px;">
+    <div style="display:flex;flex-direction:column;gap:14px;font-size:13px;line-height:1.7;color:#555555;margin-bottom:48px;">
+      <div>투자과 투기를 가르는 경계선은 원래부터 뚜렷하지 않지만, 대다수의 시장 참여자들이 최근 성공을 만끽할 때면 그 경계선은 더욱 모호해집니다. 막대한 공짜 돈만큼 이성을 마비시키는 약도 없습니다. 그런 황홀한 경험을 맛보고 나면, 평소엔 제정신인 사람들도 마치 무도회장의 신데렐라처럼 행동하기 시작합니다.</div>
+      <div>그들은 파티가 너무 길어지면—즉, 앞으로 창출할 현금 가치에 비해 주가가 터무니없이 높은 기업에 계속 투기하다가는—결국 호박과 생쥐로 돌아가게 된다는 사실을 잘 압니다. 하지만 그럼에도 불구하고 이 엄청난 파티의 단 1분조차 놓치고 싶어 하지 않습니다. 그래서 들뜬 참여자들은 모두 자정 직전에 빠져나오겠다고 마음먹습니다.</div>
+      <div>
+        하지만 여기에 문제가 있습니다.<br>
+        <span style="color:#C2477C;font-weight:700;">그들이 춤을 추고 있는 방의 시계에는 바늘이 없다는 점입니다.</span>
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:13px;color:#777777;cursor:pointer;">
+      <input type="checkbox" id="noticeDontShowAgain">
+      다시 보지 않기
+    </label>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+      <button class="btn btn-primary" id="noticeOkBtn" style="font-size:20px;line-height:1;padding:6px 16px;">😊</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('noticeOkBtn').addEventListener('click', () => {
+  document.getElementById('noticeModal').style.display = 'none';
+});
+</script>
+
+</body>
+</html>
