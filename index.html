@@ -2502,7 +2502,7 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
 
   (extraSeries || []).forEach((s) => {
     const isRegionSeries = s.name === '국내' || s.name === '해외';
-    const seriesOpacity = isRegionSeries ? 0.6 : 1;
+    const seriesOpacity = s.name === '국내' ? 0.8 : (s.name === '해외' ? 0.6 : 1);
     const c = s.points.map((p,i) => [padX + i*xStep, scaleY(p.value)]);
 
     if(s.area){
@@ -2532,7 +2532,7 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
         const isLowest = lowestSeriesIndexAt[i] === myIdx;
         const ly = isLowest ? pt[1] + 20 : pt[1] - 10;
         const fs = Math.max(10, Math.round(13.5*scale));
-        return labelMarkup(pt[0], ly, Math.floor(s.points[i].value/10000).toLocaleString(), fs, 600, s.color, isRegionSeries ? 'opacity:0.6;' : '');
+        return labelMarkup(pt[0], ly, Math.floor(s.points[i].value/10000).toLocaleString(), fs, 600, s.color, isRegionSeries ? `opacity:${seriesOpacity};` : '');
       }).join('');
     }
     extraPaths += `<path d="${path}" fill="none" stroke="${s.color}" stroke-width="1.5" opacity="${seriesOpacity}"/>${sDots}${sLabels}`;
