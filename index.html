@@ -421,6 +421,7 @@ const CREDIT_REMAIN_COLOR = '#9A9BA1';
 
 let state = { accounts: [], activeId: null, snapshots: [], domesticSubType: null, overseasSubType: null, historyRange: '6', creditLines: [] };
 let historyAccountFilter = null;
+let historyAccountTypeFilter = null;
 
 const MARKET_SYMBOLS = [
   { key:'kospi', symbol:'^KS11', name:'코스피' },
@@ -2921,7 +2922,7 @@ function renderTabs(){
   tabs.innerHTML = html;
 
   tabs.querySelectorAll('[data-tab]').forEach(el => {
-    el.addEventListener('click', () => { state.activeId = el.dataset.tab; accountTableSortMode = null; stockLegendSortMode = 'amount'; historyAccountFilter = null; totalAccountTypeFilter = null; render(); });
+    el.addEventListener('click', () => { state.activeId = el.dataset.tab; accountTableSortMode = null; stockLegendSortMode = 'amount'; historyAccountFilter = null; historyAccountTypeFilter = null; totalAccountTypeFilter = null; render(); });
   });
   document.getElementById('addAccountBtn').addEventListener('click', addAccount);
 }
@@ -2935,11 +2936,22 @@ function buildAccountFilteredSnapshots(snapshots, accountId){
   }).filter(Boolean);
 }
 
+function buildAccountTypeFilteredSnapshots(snapshots, accountType){
+  if(!accountType) return snapshots;
+  return snapshots.map(s => {
+    const accs = (s.accounts||[]).filter(a => a.accountType === accountType);
+    if(accs.length === 0) return null;
+    return { ...s, accounts: accs };
+  }).filter(Boolean);
+}
+
 function renderHistoryPanel(){
   const panel = document.getElementById('panel');
   const sorted = state.snapshots;
   const range = state.historyRange;
-  const accountFilteredSnapshots = historyAccountFilter ? buildAccountFilteredSnapshots(sorted, historyAccountFilter) : sorted;
+  const accountFilteredSnapshots = historyAccountFilter
+    ? buildAccountFilteredSnapshots(sorted, historyAccountFilter)
+    : (historyAccountTypeFilter ? buildAccountTypeFilteredSnapshots(sorted, historyAccountTypeFilter) : sorted);
   const filtered = range === 'all' ? accountFilteredSnapshots : accountFilteredSnapshots.slice(-parseInt(range, 10));
 
   const points = filtered.map(s => ({
@@ -2960,9 +2972,11 @@ function renderHistoryPanel(){
   }));
 
   const accountSelector = `
-    <div id="historyAccSelector" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;">
-      <button class="btn" data-history-acc="" style="padding:4px 10px;font-size:12px;flex-shrink:0;${!historyAccountFilter ? 'background:var(--accent);color:#111;' : ''}">전체</button>
+    <div id="historyAccSelector" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;">
       ${state.accounts.map(a => `<button class="btn" data-history-acc="${a.id}" style="padding:4px 10px;font-size:12px;flex-shrink:0;${historyAccountFilter===a.id ? 'background:var(--accent);color:#111;' : ''}">${escapeHTML(a.name)}</button>`).join('')}
+    </div>
+    <div id="historyAccTypeSelector" style="display:flex;gap:6px;margin-bottom:10px;">
+      ${['직투','연금','DC','IRP','ISA'].map(t => `<button class="btn" data-history-acc-type="${t}" style="padding:4px 10px;font-size:12px;flex-shrink:0;min-width:52px;text-align:center;${historyAccountTypeFilter===t ? 'background:var(--accent);color:#111;' : ''}">${t}</button>`).join('')}
     </div>
   `;
 
@@ -2975,7 +2989,7 @@ function renderHistoryPanel(){
     </div>
   `;
 
-  const hasCreditData = !historyAccountFilter && creditUsedPoints.some(p => p.value > 0);
+  const hasCreditData = !historyAccountFilter && !historyAccountTypeFilter && creditUsedPoints.some(p => p.value > 0);
   const domesticAllZero = domesticPoints.every(p => Math.abs(p.value) < 1);
   const overseasAllZero = overseasPoints.every(p => Math.abs(p.value) < 1);
   const showRegionLines = !domesticAllZero && !overseasAllZero;
@@ -3003,7 +3017,9 @@ function renderHistoryPanel(){
     btn.addEventListener('click', () => {
       const selectorEl = document.getElementById('historyAccSelector');
       const scrollPos = selectorEl ? selectorEl.scrollLeft : 0;
-      historyAccountFilter = btn.dataset.historyAcc || null;
+      const clickedId = btn.dataset.historyAcc;
+      historyAccountFilter = (historyAccountFilter === clickedId) ? null : clickedId;
+      historyAccountTypeFilter = null;
       openTrendRowId = null;
       openTrendSeriesPrefix = null;
       openTrendIdx = null;
@@ -3011,6 +3027,18 @@ function renderHistoryPanel(){
       render();
       const newSelectorEl = document.getElementById('historyAccSelector');
       if(newSelectorEl) newSelectorEl.scrollLeft = scrollPos;
+    });
+  });
+  document.querySelectorAll('[data-history-acc-type]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const clickedType = btn.dataset.historyAccType;
+      historyAccountTypeFilter = (historyAccountTypeFilter === clickedType) ? null : clickedType;
+      historyAccountFilter = null;
+      openTrendRowId = null;
+      openTrendSeriesPrefix = null;
+      openTrendIdx = null;
+      document.body.style.overflow = '';
+      render();
     });
   });
   document.getElementById('rangeSelect').addEventListener('change', (e) => {
