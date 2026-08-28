@@ -205,6 +205,8 @@
       <button class="btn" id="importBtn">데이터 불러오기</button>
       <input type="file" id="importFile" accept="application/json" style="display:none;">
       <button class="btn" id="exportXlsxBtn" style="background:#217346;color:rgba(255,255,255,0.75);border-color:#217346;font-weight:400;">엑셀 보내기</button>
+      <button class="btn" id="importXlsxBtn">엑셀 불러오기</button>
+      <input type="file" id="importXlsxFile" accept=".xlsx" style="display:none;">
       <button class="btn btn-primary" id="snapshotBtn">이번달 자산 저장</button>
     </div>
   </header>
@@ -979,6 +981,31 @@ function exportXLSX(){
     snapshotRows.push([fullMonthLabel(s.label), total, domestic, overseas, creditUsed, s.memo || '']);
   });
 
+  const snapshotDetailRows = [['월','계좌명','계좌유형','종목','섹터','지역','평가액']];
+  state.snapshots.forEach(s => {
+    s.accounts.forEach(a => {
+      a.holdings.forEach(h => {
+        const name = isCashHolding(h) ? (h.region === 'overseas' ? '외화' : '원화') : h.name;
+        snapshotDetailRows.push([
+          fullMonthLabel(s.label),
+          a.name,
+          a.accountType || '직투',
+          name,
+          h.group,
+          h.region === 'overseas' ? '해외' : '국내',
+          h.amount
+        ]);
+      });
+    });
+  });
+
+  const snapshotCreditRows = [['월','기관명','한도','사용액']];
+  state.snapshots.forEach(s => {
+    (s.creditLines || []).forEach(c => {
+      snapshotCreditRows.push([fullMonthLabel(s.label), c.institution, c.limit, c.used]);
+    });
+  });
+
   const wb = XLSX.utils.book_new();
   const wsHoldings = XLSX.utils.aoa_to_sheet(holdingRows);
   XLSX.utils.book_append_sheet(wb, wsHoldings, '보유종목');
@@ -991,11 +1018,124 @@ function exportXLSX(){
   if(state.snapshots.length > 0){
     const wsSnap = XLSX.utils.aoa_to_sheet(snapshotRows);
     XLSX.utils.book_append_sheet(wb, wsSnap, '월별변화');
+    const wsSnapDetail = XLSX.utils.aoa_to_sheet(snapshotDetailRows);
+    XLSX.utils.book_append_sheet(wb, wsSnapDetail, '월별상세종목');
+    if(snapshotCreditRows.length > 1){
+      const wsSnapCredit = XLSX.utils.aoa_to_sheet(snapshotCreditRows);
+      XLSX.utils.book_append_sheet(wb, wsSnapCredit, '월별마통');
+    }
   }
 
   const d = new Date();
   const dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   XLSX.writeFile(wb, `money-pie-${dateStr}.xlsx`);
+}
+
+function importXLSX(file){
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+
+      function sheetRows(name){
+        const ws = wb.Sheets[name];
+        if(!ws) return [];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        return rows.slice(1).filter(r => r && r.length > 0 && r[0] !== undefined && r[0] !== '');
+      }
+      function toNum(v){
+        return typeof v === 'number' && !isNaN(v) ? v : (parseFloat(v) || 0);
+      }
+      function rowToHolding(name, group, region, amount){
+        const isCash = (name === '원화' || name === '외화');
+        return {
+          id: uid(),
+          name: isCash ? '현금' : String(name || ''),
+          group: isCash ? '현금' : String(group || '기타'),
+          amount: toNum(amount),
+          region: (region === '해외' || name === '외화') ? 'overseas' : 'domestic'
+        };
+      }
+      function buildAccountsFromRows(rows){
+        const byAccount = {};
+        const order = [];
+        rows.forEach(r => {
+          const [accName, accType, holdName, group, region, amount] = r;
+          const key = accName + '||' + accType;
+          if(!byAccount[key]){
+            byAccount[key] = { id: uid(), name: String(accName || '계좌'), accountType: ACCOUNT_TYPES.includes(accType) ? accType : '직투', holdings: [] };
+            order.push(key);
+          }
+          byAccount[key].holdings.push(rowToHolding(holdName, group, region, amount));
+        });
+        return order.map(k => byAccount[k]);
+      }
+
+      const holdingRows = sheetRows('보유종목');
+      const newAccounts = buildAccountsFromRows(holdingRows);
+
+      const creditRows = sheetRows('마통현황');
+      const newCreditLines = creditRows.map(r => ({
+        id: uid(), institution: String(r[0] || ''), limit: toNum(r[1]), used: toNum(r[2])
+      }));
+
+      const byMonth = {};
+      function ensureMonth(rawLabel){
+        if(!byMonth[rawLabel]) byMonth[rawLabel] = { accountRows: [], creditRows: [], memo: '' };
+        return byMonth[rawLabel];
+      }
+
+      sheetRows('월별상세종목').forEach(r => {
+        const [monthLabel, accName, accType, holdName, group, region, amount] = r;
+        const rawLabel = String(monthLabel || '').replace(/-/g, '');
+        ensureMonth(rawLabel).accountRows.push([accName, accType, holdName, group, region, amount]);
+      });
+      sheetRows('월별마통').forEach(r => {
+        const [monthLabel, institution, limit, used] = r;
+        const rawLabel = String(monthLabel || '').replace(/-/g, '');
+        ensureMonth(rawLabel).creditRows.push([institution, limit, used]);
+      });
+      sheetRows('월별변화').forEach(r => {
+        const [monthLabel, , , , , memo] = r;
+        const rawLabel = String(monthLabel || '').replace(/-/g, '');
+        ensureMonth(rawLabel).memo = memo || '';
+      });
+
+      const newSnapshots = Object.keys(byMonth).map(rawLabel => {
+        const info = byMonth[rawLabel];
+        return {
+          id: uid(),
+          label: rawLabel,
+          timestamp: Date.now(),
+          accounts: buildAccountsFromRows(info.accountRows),
+          creditLines: info.creditRows.map(([institution, limit, used]) => ({
+            id: uid(), institution: String(institution || ''), limit: toNum(limit), used: toNum(used)
+          })),
+          memo: info.memo
+        };
+      });
+
+      if(newAccounts.length === 0 && newSnapshots.length === 0){
+        throw new Error('빈 파일');
+      }
+
+      showConfirmModal('현재 데이터를 덮어쓰고 엑셀 파일로 복원할까요?', '복원', '#4FC3F7', async () => {
+        state.accounts = normalizeAccounts(newAccounts.length > 0 ? newAccounts : [{ id: uid(), name: '계좌 1', holdings: [] }]);
+        state.creditLines = normalizeCreditLines(newCreditLines);
+        state.snapshots = normalizeSnapshots(newSnapshots);
+        state.activeId = '__total__';
+        await save();
+        await saveSnapshots();
+        await saveCreditLines();
+        render();
+        showNoticeModal('엑셀 파일로부터 데이터를 복원했습니다.');
+      });
+    }catch(err){
+      alert('엑셀 파일을 읽을 수 없습니다. 머니파이에서 내보낸 파일인지 확인해주세요.');
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 function importData(file){
@@ -3689,6 +3829,12 @@ document.getElementById('importBtn').addEventListener('click', () => document.ge
 document.getElementById('importFile').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if(file) importData(file);
+  e.target.value = '';
+});
+document.getElementById('importXlsxBtn').addEventListener('click', () => document.getElementById('importXlsxFile').click());
+document.getElementById('importXlsxFile').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(file) importXLSX(file);
   e.target.value = '';
 });
 
