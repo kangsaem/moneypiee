@@ -353,7 +353,7 @@
       </div>
       <div>
         <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 왜 자동으로 연동 안 되고 직접 입력해야 해요?</div>
-        <span style="color:#E8A0BC;font-weight:700;">증권사 자동연동 앱은 로그인 정보와 자산 데이터를 다른 서버에 넘겨야 해요.</span> 약간의 수고 대신 안전함을 택했어요. 종목명 입력은 코드/티커/키워드로 종목 불러오기가 다 적용돼서, 생각보다 손이 많이 안 가요.
+        <span style="color:#E8A0BC;font-weight:700;">증권사 자동연동 앱은 로그인 정보와 자산 데이터를 다른 서버에 넘겨야 해요.</span> 약간의 수고 대신 안전함을 택했어요. 종목명 입력은 코드/티커/키워드가 적용돼서 생각보다 손이 많이 안 가요.
       </div>
       <div>
         <div style="color:var(--text);font-weight:700;margin-bottom:4px;">Q. 다른 자산관리 앱이랑 뭐가 달라요?</div>
@@ -3023,7 +3023,7 @@ function holdingsTable(holdings, accId, editable, showRegion, alignMode, mergeDu
       <div style="flex:0 0 140px;text-align:right;padding-right:8px;margin-right:14px;box-sizing:border-box;${cashColor || qtyAmountColor}${sortCursor}" class="num" ${sortable?'data-sortcell="amount"':''}>${h.amount.toLocaleString()}</div>
       <div style="flex:0 0 60px;color:var(--text-dim);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${sortCursor}" ${sortable?'data-sortcell="group"':''}>${escapeHTML(h.group)}</div>
       <div style="flex:1.4;"></div>
-      ${isQtyMode ? `<div style="flex:0 0 80px;white-space:nowrap;text-align:right;margin-right:14px;cursor:pointer;${showPricePerShare ? (isCash ? 'color:#FF9800;' : (h.region === 'overseas' && h.currency && h.currency !== 'KRW' ? 'color:#C08CFF;' : 'color:#7FDBFF;')) : 'color:var(--text-dim);'}" data-qtytoggle="1">${showPricePerShare ? formatPricePerShare(h) : (isCash ? (h.currency && CURRENCY_SYMBOLS[h.currency] ? `<span style="font-size:10px;">${CURRENCY_SYMBOLS[h.currency]}</span>` : '') + h.quantity.toLocaleString() : h.quantity.toLocaleString() + '<span style="font-size:10px;">주</span>')}</div>` : (showRegion ? '<div style="flex:0 0 94px;"></div>' : '')}
+      ${isQtyMode ? `<div style="flex:0 0 80px;white-space:nowrap;text-align:right;margin-right:14px;cursor:pointer;${showPricePerShare ? (isCash ? 'color:#E87BA4;' : (h.region === 'overseas' && h.currency && h.currency !== 'KRW' ? 'color:#C08CFF;' : 'color:#7FDBFF;')) : 'color:var(--text-dim);'}" data-qtytoggle="1">${showPricePerShare ? formatPricePerShare(h) : (isCash ? (h.currency && CURRENCY_SYMBOLS[h.currency] ? `<span style="font-size:10px;">${CURRENCY_SYMBOLS[h.currency]}</span>` : '') + h.quantity.toLocaleString() : h.quantity.toLocaleString() + '<span style="font-size:10px;">주</span>')}</div>` : (showRegion ? '<div style="flex:0 0 94px;"></div>' : '')}
       ${showRegion ? `<div style="flex:0 0 44px;color:var(--text-dim);text-align:left;${sortCursor}" ${sortable?'data-sortcell="region"':''}>${h.region==='overseas'?'해외':'국내'}</div>` : ''}
       <div style="flex:0.6;"></div>
       ${editable ? `<div style="flex-shrink:0;text-align:right;"><button class="del" data-edit="${h.id}">수정</button> <button class="del" data-del="${h.id}">삭제</button></div>` : ''}
