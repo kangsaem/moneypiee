@@ -514,10 +514,24 @@ async function resolveYahooPrice(code, region, fallbackText, nationName){
   return null;
 }
 
+let fxRateCache = {}; // { JPY: 9.1, EUR: 1480, ... } KRW 기준 환율
+
+async function fetchFxRate(currency){
+  if(!currency || currency === 'KRW') return 1;
+  if(fxRateCache[currency] != null) return fxRateCache[currency];
+  const result = await fetchYahooHoldingPrice(`${currency}KRW=X`);
+  if(result && result.price != null){
+    fxRateCache[currency] = result.price;
+    return result.price;
+  }
+  return null; // 못 가져온 경우 - 잘못된 환율(예: 달러환율)을 대신 쓰지 않도록 null 반환
+}
+
 function krwPrice(price, currency){
   if(!currency || currency === 'KRW') return price;
-  const rate = (marketData && marketData.usdkrw && marketData.usdkrw.price) || 1;
-  return price * rate;
+  if(fxRateCache[currency] != null) return price * fxRateCache[currency];
+  // 아직 이 통화의 정확한 환율을 못 가져온 상태 - 잘못된 값(예: 달러환율)을 곱하지 않고 0 반환
+  return 0;
 }
 
 // h: { symbol(네이버 코드), region, yahooSymbol?, fallbackText? } 형태의 보유종목 객체를 받는다.
@@ -529,6 +543,7 @@ async function refreshHoldingPrice(h){
       holdingPriceCache[h.yahooSymbol] = { price: result.price, currency: result.currency, fetchedAt: Date.now() };
       h.lastPrice = result.price;
       h.currency = result.currency;
+      await fetchFxRate(result.currency);
       return { symbol: h.yahooSymbol, price: result.price, currency: result.currency, krwPrice: krwPrice(result.price, result.currency) };
     }
   }
@@ -538,6 +553,7 @@ async function refreshHoldingPrice(h){
   h.yahooSymbol = resolved.symbol; // 다음부터는 이 형태로 바로 조회
   h.lastPrice = resolved.price;
   h.currency = resolved.currency;
+  await fetchFxRate(resolved.currency);
   return { ...resolved, krwPrice: krwPrice(resolved.price, resolved.currency) };
 }
 
