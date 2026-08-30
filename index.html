@@ -210,7 +210,7 @@
       <input type="file" id="importFile" accept="application/json" style="display:none;">
       <button class="btn" id="exportXlsxBtn" style="background:#217346;color:rgba(255,255,255,0.75);border-color:#217346;font-weight:400;">엑셀 보내기</button>
       <button class="btn" id="importXlsxBtn">엑셀 불러오기</button>
-      <input type="file" id="importXlsxFile" accept=".xlsx" style="display:none;">
+      <input type="file" id="importXlsxFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.google-apps.spreadsheet" style="display:none;">
       <button class="btn btn-primary" id="snapshotBtn">이번달 자산 저장</button>
     </div>
   </header>
@@ -654,6 +654,7 @@ async function refreshAllQuantityHoldingPrices(){
   const targets = [];
   state.accounts.forEach(acc => (acc.holdings||[]).forEach(h => { if(h.quantity != null && h.symbol) targets.push(h); }));
   if(targets.length === 0) return;
+  if(typeof resetStockHistoryCache === 'function') resetStockHistoryCache(); // 리로드시 종목 아코디언 그래프 캐시도 초기화
   await Promise.allSettled(targets.map(h => refreshHoldingPrice(h)));
   syncQuantityHoldingsAmounts();
   save();
@@ -1091,7 +1092,7 @@ function normalizeAccounts(accounts){
       const holding = {
         id: h.id || uid(),
         name: h.name || '',
-        group: h.group || '기타',
+        group: h.group && String(h.group).trim() ? String(h.group).trim() : '?',
         amount: typeof h.amount === 'number' && !isNaN(h.amount) ? h.amount : (parseFloat(h.amount) || 0),
         region: h.region === 'overseas' ? 'overseas' : 'domestic'
       };
@@ -1329,7 +1330,7 @@ function importXLSX(file){
         const holding = {
           id: uid(),
           name: isCash ? '현금' : String(name || ''),
-          group: isCash ? '현금' : String(group || '기타'),
+          group: isCash ? '현금' : (String(group || '').trim() || '?'),
           amount: toNum(amount),
           region: (region === '해외' || name === '외화') ? 'overseas' : 'domestic'
         };
@@ -1751,8 +1752,14 @@ function getKnownStockHistory(){
   return map;
 }
 
-function regionFromTypeName(typeName){
-  return (typeName === '코스피' || typeName === '코스닥') ? 'domestic' : 'overseas';
+function regionFromTypeName(typeName, nationName){
+  const t = String(typeName || '').trim().toUpperCase();
+  const n = String(nationName || '').trim();
+  // 네이버 자동완성의 typeName 표기가 한글/영문/세부시장명으로 달라질 수 있으므로
+  // 국내 시장은 명시적으로 국내로 판별하고, 나머지는 해외로 분류한다.
+  if(t.includes('코스피') || t.includes('코스닥') || t.includes('KOSPI') || t.includes('KOSDAQ') ||
+     t.includes('KONEX') || n.includes('대한민국') || n.includes('한국')) return 'domestic';
+  return 'overseas';
 }
 
 async function searchNaverAutocomplete(query){
@@ -1772,7 +1779,7 @@ async function searchNaverAutocomplete(query){
       typeName: it.typeName,
       nationName: it.nationName,
       isEtf: !!it.isEtf,
-      region: regionFromTypeName(it.typeName)
+      region: regionFromTypeName(it.typeName, it.nationName)
     }));
   }
   return [];
@@ -1788,8 +1795,8 @@ async function fetchStockNameByCode(code){
 
 function addHolding(accId, name, group, amount, region, opts){
   const acc = getAccount(accId);
-  let finalName = name, finalGroup = group || '기타', finalRegion = region || 'domestic';
-  if(opts && opts.currency){
+  let finalName = name, finalGroup = (group && String(group).trim()) ? String(group).trim() : '?', finalRegion = region || 'domestic';
+  if(opts && opts.isCashCurrency){
     finalName = '현금'; finalGroup = '현금'; finalRegion = opts.currency === 'KRW' ? 'domestic' : 'overseas';
   } else if(name === '원화'){
     finalName = '현금'; finalGroup = '현금'; finalRegion = 'domestic';
@@ -1966,7 +1973,7 @@ async function saveEditModal(){
     if(!name || isNaN(amount)){ alert('종목명과 평가액을 확인해주세요.'); return; }
   }
   if(isNew){
-    const opts = editMode === 'qty' ? { quantity, symbol: isCashCurrency ? priceCurrency : symbol, yahooSymbol, fallbackText, nationName, lastPrice, currency: priceCurrency } : null;
+    const opts = editMode === 'qty' ? { quantity, symbol: isCashCurrency ? priceCurrency : symbol, yahooSymbol, fallbackText, nationName, lastPrice, currency: priceCurrency, isCashCurrency } : null;
     addHolding(acc.id, name, group, amount, region, opts);
     closeEditModal();
     return;
@@ -1980,7 +1987,7 @@ async function saveEditModal(){
   } else {
     h.name = name;
     h.amount = amount;
-    h.group = group || '기타';
+    h.group = (group && String(group).trim()) ? String(group).trim() : '?';
     h.region = region;
   }
   if(editMode === 'qty'){ h.quantity = quantity; h.symbol = isCashCurrency ? priceCurrency : symbol; h.yahooSymbol = yahooSymbol; h.fallbackText = fallbackText; h.nationName = nationName; h.lastPrice = lastPrice; h.currency = priceCurrency; }
@@ -2277,8 +2284,8 @@ function applyAccordionPos(selector, pos){
   const el = document.querySelector(selector);
   if(!el) return;
   el.style.position = 'fixed';
-  el.style.left = pos.left;
-  el.style.top = pos.top;
+  el.style.left = (typeof pos.left === 'number' ? pos.left + 'px' : pos.left);
+  el.style.top = (typeof pos.top === 'number' ? pos.top + 'px' : pos.top);
   el.style.transform = 'none';
   el.style.margin = '0';
   if(pos.zIndex) el.style.zIndex = pos.zIndex;
@@ -2522,7 +2529,7 @@ function sectorLegendHTML(holdings){
   sectorAccordionHoldings = holdings;
   sectorAccordionOpenIdx = null;
   const byGroup = computeWeights(holdings, 'group');
-  const smallItems = byGroup.filter(d => d.pct < 1 && !isCashLikeLabel(d.label));
+  const smallItems = byGroup.filter(d => d.pct < 1 && !isCashLikeLabel(d.label) && d.label !== '?');
   let grouped = byGroup;
   sectorOtherItems = [];
   if(smallItems.length >= 2){
@@ -2534,7 +2541,7 @@ function sectorLegendHTML(holdings){
   }
   // 파이(도넛)는 항상 전체 세부 섹터를 그대로 표시하고, 기타에 해당하는 조각만 파란 틴트를 씌운다
   const otherLabels = new Set(sectorOtherItems.map(d => d.label));
-  const pieSource = byGroup.map(d => otherLabels.has(d.label) ? { ...d, tintOverlay: 'rgba(66,133,244,0.5)' } : d);
+  const pieSource = byGroup.map(d => otherLabels.has(d.label) ? { ...d, tintOverlay: 'rgba(66,133,244,0.8)' } : d);
   const pieOrdered = reorderCashFirst(pieSource);
   // 목록(범례)은 '기타 펼침' 상태면 병합하지 않은 원본을 사용
   const legendSource = (sectorOtherExpanded && sectorOtherItems.length > 0) ? byGroup : grouped;
@@ -2998,6 +3005,268 @@ function mergeHoldingsByKey(holdings){
   }));
 }
 
+
+let stockHistoryAccordions = {};
+
+// 종목 히스토리 그래프(1일/1개월/3개월/6개월/12개월) 캐시. 같은 팝업에서 기간을 오갈 때 재요청하지 않고 재사용한다.
+// key: `${yahooSymbol}|${range}` -> fetchYahooChart 결과
+let stockHistoryChartCache = {};
+// 심볼 조회에 실패한 종목(holdId)을 잠깐 동안 기억해서, 기간 탭을 연타해도 매번 재조회를 시도하지
+// 않게 한다. 다만 네트워크 일시 오류로 계속 막히는 걸 막기 위해 "영구 차단"이 아니라 짧은 쿨다운만 둔다.
+// (예: STX처럼 야후에서 심볼을 못 찾는 국내 종목 - 매 클릭마다 여러 번 재시도하면 응답이 느려지고 팝업이 꼬여 보이는 원인이 됨)
+let stockHistorySymbolFailCache = {}; // holdId -> 실패한 시각(ms)
+const STOCK_HISTORY_FAIL_COOLDOWN_MS = 20 * 1000; // 20초 동안만 재시도를 쉬고, 이후엔 다시 시도 허용
+// 같은 종목에 대한 심볼 조회가 동시에 여러 번 들어와도 실제 네트워크 조회는 한 번만 실행되도록 하는 락
+let stockHistoryResolvePending = {};
+
+function resetStockHistoryCache(){
+  stockHistoryChartCache = {};
+  stockHistorySymbolFailCache = {};
+  stockHistoryResolvePending = {};
+}
+
+const STOCK_HISTORY_RANGES = [
+  { key:'1d', label:'1일' },
+  { key:'1mo', label:'1개월' },
+  { key:'3mo', label:'3개월' },
+  { key:'6mo', label:'6개월' },
+  { key:'1y', label:'12개월' }
+];
+
+function stockHistoryAccordionKey(accId, holdId){
+  return `${accId}__${holdId}`;
+}
+
+function findHoldingById(accId, holdId){
+  const acc = getAccount(accId);
+  return acc ? acc.holdings.find(h => h.id === holdId) : null;
+}
+
+function stockHistoryRangeButtons(activeRange){
+  return STOCK_HISTORY_RANGES.map(r => `
+    <button type="button" data-stock-history-range="${r.key}"
+      style="flex:1;border:1px solid #C9C9C9;background:${activeRange===r.key ? '#C9C9C9' : '#EDEDED'};color:#333333;border-radius:4px;padding:3px 2px;font-size:10px;font-family:inherit;font-weight:${activeRange===r.key ? '700' : '500'};cursor:pointer;line-height:1.15;">
+      ${r.label}
+    </button>`).join('');
+}
+
+async function resolveHoldingHistorySymbol(h){
+  if(!h) return null;
+  // 외화 현금은 해당 통화/KRW 환율 차트를 사용한다. 원화(KRW)는 차트를 만들지 않는다.
+  if(isCashHolding(h)){
+    if(h.currency && h.currency !== 'KRW') return `${h.currency}KRW=X`;
+    return null;
+  }
+  if(h.yahooSymbol) return h.yahooSymbol;
+  const failedAt = stockHistorySymbolFailCache[h.id];
+  if(failedAt && (Date.now() - failedAt) < STOCK_HISTORY_FAIL_COOLDOWN_MS) return null; // 최근에 실패함 - 잠깐 재시도 쉼
+  if(stockHistoryResolvePending[h.id]) return stockHistoryResolvePending[h.id]; // 동시 요청은 하나로 합침
+
+  const resolvePromise = (async () => {
+    let resolvedSymbol = null;
+    if(h.symbol){
+      const resolved = await resolveYahooPrice(h.symbol, h.region, h.fallbackText, h.nationName);
+      if(resolved && resolved.symbol){
+        h.yahooSymbol = resolved.symbol;
+        h.lastPrice = resolved.price;
+        h.currency = resolved.currency;
+        resolvedSymbol = resolved.symbol;
+      }
+    }
+    if(!resolvedSymbol && h.name){
+      try{
+        const items = await searchNaverAutocomplete(h.name);
+        const exact = items.find(it => it.name === h.name) || items[0];
+        if(exact && exact.code){
+          h.symbol = exact.code;
+          h.region = exact.region || h.region || 'domestic';
+          h.nationName = exact.nationName || h.nationName;
+          const resolved = await resolveYahooPrice(h.symbol, h.region, h.name, h.nationName);
+          if(resolved && resolved.symbol){
+            h.yahooSymbol = resolved.symbol;
+            h.lastPrice = resolved.price;
+            h.currency = resolved.currency;
+            resolvedSymbol = resolved.symbol;
+          }
+        }
+      }catch(e){}
+    }
+    if(!resolvedSymbol) stockHistorySymbolFailCache[h.id] = Date.now();
+    return resolvedSymbol;
+  })();
+
+  stockHistoryResolvePending[h.id] = resolvePromise;
+  try{
+    return await resolvePromise;
+  } finally {
+    delete stockHistoryResolvePending[h.id];
+  }
+}
+
+// 종목 아코디언은 마우스로 클릭했거나 터치한 바로 그 지점에 팝업의 헤더(제목 바)가
+// 오도록 위치를 잡는다. clientX/clientY가 없으면(예: 좌표를 못 받은 경우) 화면 중앙에 띄운다.
+function stockHistoryInitialPosition(triggerEl){
+  const width = 240;
+  const height = 210;
+  if(triggerEl){
+    const rect = triggerEl.getBoundingClientRect();
+    const left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.left));
+    const top = Math.max(8, Math.min(window.innerHeight - height - 8, rect.bottom + 4));
+    return { left, top, zIndex:null };
+  }
+  const left = Math.max(8, (window.innerWidth - width) / 2);
+  const top = Math.max(8, (window.innerHeight - height) / 2);
+  return { left, top, zIndex:null };
+}
+
+function updateStockHistoryRangeButtonsUI(key){
+  const info = stockHistoryAccordions[key];
+  if(!info) return;
+  document.querySelectorAll(`#stock-history-slot-${CSS.escape(key)} [data-stock-history-range]`).forEach(btn => {
+    const active = btn.dataset.stockHistoryRange === info.range;
+    btn.style.background = active ? '#C9C9C9' : '#EDEDED';
+    btn.style.fontWeight = active ? '700' : '500';
+  });
+}
+
+// 기존에는 기간 탭을 누를 때마다 팝업 전체(innerHTML)를 다시 그려서, 방금 클릭한 버튼이
+// 이벤트 처리 도중 DOM에서 통째로 교체되었다. PC 크롬 환경에서 이 시점에 팝업이 중복으로
+// 남는 문제가 있었기 때문에, 팝업은 "처음 열 때 한 번만" 생성하고 그 안의 클릭은 이벤트
+// 위임(delegation)으로 한 번만 바인딩한다. 기간을 바꿀 때는 버튼 활성 표시와 그래프 영역만
+// 갱신하고 팝업 DOM 자체는 다시 만들지 않는다.
+function renderStockHistoryAccordion(key){
+  const info = stockHistoryAccordions[key];
+  if(!info) return;
+  const h = findHoldingById(info.accId, info.holdId);
+  if(!h) return;
+
+  let slot = document.getElementById(`stock-history-slot-${key}`);
+  if(slot){
+    // 이미 열려 있는 팝업: DOM을 재생성하지 않고 활성 탭 표시만 갱신
+    updateStockHistoryRangeButtonsUI(key);
+    if(info.position) applyAccordionPos(`#stock-history-slot-${CSS.escape(key)} .floating-acc`, info.position);
+    return;
+  }
+
+  slot = document.createElement('div');
+  slot.id = `stock-history-slot-${key}`;
+  slot.dataset.stockHistorySlot = key;
+  document.body.appendChild(slot);
+
+  const title = (isCashHolding(h) && h.currency && h.currency !== 'KRW') ? `${h.currency} 환율` : (h.name || '종목');
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(title)}</span>
+      <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
+      <button data-stock-history-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+    </div>
+    <div class="acc-body" style="padding:6px 10px;">
+      <div style="display:flex;gap:3px;margin-bottom:5px;">${stockHistoryRangeButtons(info.range)}</div>
+      <div id="stock-history-chart-${key}" style="min-height:109px;display:flex;align-items:center;justify-content:center;">
+        <div style="font-size:11px;color:#777777;">그래프 불러오는 중...</div>
+      </div>
+    </div>
+  </div>`;
+
+  const accEl = slot.querySelector('.floating-acc');
+  if(info.position) applyAccordionPos(`#stock-history-slot-${CSS.escape(key)} .floating-acc`, info.position);
+  makeAccordionDraggable(accEl);
+
+  // 팝업 컨테이너(slot)에 클릭을 한 번만 위임 바인딩한다. 기간을 바꿔도 slot 자체는
+  // 재생성되지 않으므로 이 리스너는 팝업이 열려 있는 동안 단 하나만 존재한다.
+  slot.addEventListener('click', async (e) => {
+    if(e.target.closest('[data-stock-history-close]')){
+      closeStockHistoryAccordion(key);
+      return;
+    }
+    const rangeBtn = e.target.closest('[data-stock-history-range]');
+    if(!rangeBtn) return;
+    const nextRange = rangeBtn.dataset.stockHistoryRange;
+    const current = stockHistoryAccordions[key];
+    if(!current || current.range === nextRange) return; // 같은 기간 재클릭은 무시
+    current.range = nextRange;
+    current.loadingToken++;
+    updateStockHistoryRangeButtonsUI(key);
+    const chartEl = document.getElementById(`stock-history-chart-${key}`);
+    if(chartEl) chartEl.innerHTML = '<div style="font-size:11px;color:#777777;">그래프 불러오는 중...</div>';
+    await loadStockHistoryGraph(key, current.loadingToken);
+  });
+}
+
+async function loadStockHistoryGraph(key, token){
+  const info = stockHistoryAccordions[key];
+  if(!info || token !== info.loadingToken) return;
+  const chartEl = document.getElementById(`stock-history-chart-${key}`);
+  if(!chartEl) return;
+  const h = findHoldingById(info.accId, info.holdId);
+  if(!h) return;
+
+  const symbol = await resolveHoldingHistorySymbol(h);
+  if(token !== info.loadingToken) return; // 조회하는 동안 다른 기간으로 전환됨
+  if(!symbol){
+    if(chartEl) chartEl.innerHTML = '<div style="font-size:11px;color:#777777;text-align:center;">시세 그래프를 불러올 수 없습니다.</div>';
+    return;
+  }
+  const cacheKey = `${symbol}|${info.range}`;
+  try{
+    let data = stockHistoryChartCache[cacheKey];
+    if(!data){
+      data = await fetchYahooChart(symbol, info.range, info.range === '1d');
+      if(token !== info.loadingToken) return;
+      stockHistoryChartCache[cacheKey] = data;
+    }
+    let svg = '';
+    if(info.range === '1d'){
+      svg = sparklineIntradaySVG(data.intradayPoints || [], data.marketOpen, data.marketClose, 216, 94, data.prevClose, true);
+    } else {
+      svg = sparklineSVG(data.closes || [], 216, 94, (data.closes && data.closes.length) ? data.closes[0] : undefined);
+    }
+    if(!svg){ chartEl.innerHTML = '<div style="font-size:11px;color:#777777;text-align:center;">그래프 데이터가 없습니다.</div>'; return; }
+
+    const change = computePeriodChange(data, info.range);
+    const changeColor = change > 0 ? '#B0466B' : (change < 0 ? '#4F8FB5' : '#777777');
+    const arrow = change > 0 ? '▲' : (change < 0 ? '▼' : '');
+    const priceText = data.price != null ? data.price.toLocaleString(undefined,{maximumFractionDigits:2}) : '-';
+    chartEl.innerHTML = `
+      <div style="width:216px;">
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:9px;margin-bottom:2px;line-height:1;">
+          <span style="font-size:21px;font-weight:800;color:#333333;">${priceText}</span>
+          <span style="font-size:15px;font-weight:800;color:${changeColor};">${arrow} ${Math.abs(change).toFixed(2)}<span style="font-size:0.65em;">%</span></span>
+        </div>
+        ${svg}
+      </div>`;
+  }catch(e){
+    delete stockHistoryChartCache[cacheKey];
+    if(token === info.loadingToken && chartEl) chartEl.innerHTML = '<div style="font-size:11px;color:#777777;text-align:center;">그래프를 불러오지 못했습니다.</div>';
+  }
+}
+
+function openStockHistoryAccordion(accId, holdId, triggerEl){
+  const h = findHoldingById(accId, holdId);
+  if(!h) return;
+  const isFxAccordionMode = isCashHolding(h) && h.region === 'overseas' && h.currency && h.currency !== 'KRW' && h.quantity != null;
+  const isStockAccordionMode = !isCashHolding(h) && h.quantity != null;
+  if(!isFxAccordionMode && !isStockAccordionMode) return;
+  const key = stockHistoryAccordionKey(accId, holdId);
+  if(stockHistoryAccordions[key]){
+    const existing = document.querySelector(`#stock-history-slot-${CSS.escape(key)} .floating-acc`);
+    if(existing) existing.style.zIndex = ++accordionZIndexCounter;
+    return;
+  }
+  stockHistoryAccordions[key] = {
+    accId, holdId, range:'1d', loadingToken:1,
+    position: stockHistoryInitialPosition(triggerEl)
+  };
+  renderStockHistoryAccordion(key);
+  loadStockHistoryGraph(key, 1);
+}
+
+function closeStockHistoryAccordion(key){
+  const slot = document.getElementById(`stock-history-slot-${key}`);
+  if(slot) slot.remove();
+  delete stockHistoryAccordions[key];
+}
+
 function holdingsTable(holdings, accId, editable, showRegion, alignMode, mergeDuplicates, sortMode){
   if(showRegion === undefined) showRegion = true;
   if(holdings.length === 0) return '<div class="empty">등록된 종목이 없습니다.</div>';
@@ -3013,12 +3282,14 @@ function holdingsTable(holdings, accId, editable, showRegion, alignMode, mergeDu
     const displayName = isCash ? (h.region === 'overseas' ? '외화' : '원화') : escapeHTML(h.name);
     const cashColor = isCash ? 'color:#F0DA8C;font-weight:700;' : '';
     const isQtyMode = h.quantity != null && h.symbol;
+    const isFxAccordionMode = isCash && h.region === 'overseas' && h.currency && h.currency !== 'KRW' && h.quantity != null;
+    const canOpenStockHistory = !isCash ? (h.quantity != null) : isFxAccordionMode;
     const qtyGreen = '#D4FF3D';
     const nameColor = isCash ? cashColor : (isQtyMode ? '' : 'color:var(--text-dim);');
     const qtyAmountColor = isQtyMode ? `color:${qtyGreen};` : (isCash ? '' : 'color:var(--text-dim);');
     return `
     <div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;">
-      <div style="flex:0 1 170px;min-width:95px;text-align:left;${nameColor}${sortCursor}" ${sortable?'data-sortcell="name"':''}>${displayName}</div>
+      <div style="flex:0 1 170px;min-width:95px;text-align:left;${nameColor}${sortable && canOpenStockHistory ? 'cursor:pointer;' : ''}" ${sortable && canOpenStockHistory ? `data-stock-history-name="${h.id}" data-stock-history-acc="${accId}"` : ''}>${displayName}</div>
       <div style="flex:1.4;"></div>
       <div style="flex:0 0 140px;text-align:right;padding-right:8px;margin-right:14px;box-sizing:border-box;${cashColor || qtyAmountColor}${sortCursor}" class="num" ${sortable?'data-sortcell="amount"':''}>${h.amount.toLocaleString()}</div>
       <div style="flex:0 0 60px;color:var(--text-dim);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${sortCursor}" ${sortable?'data-sortcell="group"':''}>${escapeHTML(h.group)}</div>
@@ -4216,12 +4487,22 @@ function renderPanel(){
   });
   panel.querySelectorAll('[data-sortcell]').forEach(cell => {
     cell.addEventListener('click', () => {
+      const mode = cell.dataset.sortcell;
+      if(mode === 'name') return; // 종목명 클릭은 정렬하지 않고 종목 그래프만 연다.
       const scrollEl = document.getElementById('holdingsTableScroll');
       const scrollPos = scrollEl ? scrollEl.scrollLeft : 0;
-      accountTableSortMode = cell.dataset.sortcell;
+      if(mode === 'amount') accountTableSortMode = 'amount'; // 평가액은 항상 큰 순
+      else accountTableSortMode = mode;
       render();
       const newScrollEl = document.getElementById('holdingsTableScroll');
       if(newScrollEl) newScrollEl.scrollLeft = scrollPos;
+    });
+  });
+
+  panel.querySelectorAll('[data-stock-history-name]').forEach(cell => {
+    cell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openStockHistoryAccordion(cell.dataset.stockHistoryAcc, cell.dataset.stockHistoryName, cell);
     });
   });
   panel.querySelectorAll('[data-qtytoggle]').forEach(cell => {
@@ -4451,7 +4732,7 @@ window.addEventListener('touchend', () => {
 });
 
 document.addEventListener('click', (e) => {
-  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],#stock-sortable-chart,#stock-detail-btn,#total-memo-edit,#total-memo-save');
+  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],[data-stock-history-name],#stock-sortable-chart,#stock-detail-btn,#total-memo-edit,#total-memo-save');
   const isInsideAccordion = e.target.closest('.floating-acc');
   if(isTrigger || isInsideAccordion || accordionJustDragged) return;
   if(sectorAccordionOpenIdx !== null){
@@ -4493,6 +4774,7 @@ document.addEventListener('click', (e) => {
     if(s) s.innerHTML = '';
     totalStockDetailOpen = false;
   }
+  // 종목별 아코디언은 바깥을 클릭해도 닫지 않는다. 각 아코디언의 × 버튼으로만 닫는다.
 });
 
 document.getElementById('mktRefreshBtn').addEventListener('click', () => { loadMarketData(true); applyMarketRefreshCooldownVisual(); });
