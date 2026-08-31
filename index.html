@@ -228,18 +228,18 @@
     <h3 id="editModalTitle" style="margin:0 0 16px;font-size:16px;font-weight:700;">종목 수정</h3>
     <div style="display:flex;flex-direction:column;gap:10px;">
       <div style="position:relative;">
-        <input id="editName" placeholder="종목 키워드 / 티커 / 코드 입력" autocomplete="off" style="width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:14px;font-family:inherit;">
+        <input id="editName" placeholder="종목 키워드 / 티커 / 코드 입력" autocomplete="off" style="width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:16px;font-family:inherit;">
         <div id="editNameAutocomplete" style="position:absolute;top:100%;left:0;right:0;z-index:2000;"></div>
       </div>
       <div style="display:flex;gap:6px;">
         <span id="editModeBadge" style="flex:1;min-width:0;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;font-size:14px;font-weight:700;border-radius:6px;color:#888;background:transparent;border:1px solid var(--border);box-sizing:border-box;">평가액</span>
       </div>
       <div id="editModeQtyHint" style="display:none;font-size:11px;color:var(--text-dim);margin-top:-4px;text-align:center;">종목을 자동완성 목록에서 선택하면 주식수로 입력 가능</div>
-      <input id="editAmount" type="number" placeholder="평가액" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:14px;font-family:inherit;">
-      <input id="editQty" type="number" placeholder="개수(수량)" style="display:none;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:14px;font-family:inherit;">
+      <input id="editAmount" type="number" placeholder="평가액" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:16px;font-family:inherit;">
+      <input id="editQty" type="number" placeholder="개수(수량)" style="display:none;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:16px;font-family:inherit;">
       <div id="editQtyPreview" style="display:none;font-size:12px;color:var(--text-dim);"></div>
-      <input id="editGroup" placeholder="섹터" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:14px;font-family:inherit;">
-      <select id="editRegion" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:14px;font-family:inherit;">
+      <input id="editGroup" placeholder="섹터" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:16px;font-family:inherit;">
+      <select id="editRegion" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:16px;font-family:inherit;">
         <option value="domestic">국내</option>
         <option value="overseas">해외</option>
       </select>
@@ -3018,6 +3018,36 @@ function resetStockHistoryCache(){
   stockHistoryChartCache = {};
   stockHistorySymbolFailCache = {};
   stockHistoryResolvePending = {};
+  stockHistoryBatchFetchPending = {};
+}
+
+// 심볼 하나에 대해 1일/1개월/3개월/6개월/12개월 차트를 한 번에 요청해서 캐시에 저장한다.
+// 기간 탭을 누를 때마다 그때그때 개별 요청하면 요청 시점마다(=현재가 조회 시점마다) 현재가가
+// 서로 다르게 잡혀 기간별로 가격이 들쭉날쭉해 보이는 문제가 있었다. 그래서 특정 기간이 캐시에
+// 없으면(최초 조회든, 리로드로 캐시가 비워진 뒤 재조회든) 그 기간 하나만 받아오지 않고 5개
+// 기간을 동시에 받아와 같은 시점의 데이터로 캐시를 채운다. 같은 심볼에 대해 동시에 여러 번
+// 호출돼도 실제 네트워크 요청은 한 번만 나가도록 pending Promise를 공유한다.
+let stockHistoryBatchFetchPending = {}; // symbol -> Promise
+
+async function fetchAllStockHistoryRanges(symbol){
+  if(stockHistoryBatchFetchPending[symbol]) return stockHistoryBatchFetchPending[symbol];
+  const promise = (async () => {
+    const results = await Promise.allSettled(
+      STOCK_HISTORY_RANGES.map(r => fetchYahooChart(symbol, r.key, r.key === '1d'))
+    );
+    results.forEach((result, idx) => {
+      const rangeKey = STOCK_HISTORY_RANGES[idx].key;
+      if(result.status === 'fulfilled' && result.value){
+        stockHistoryChartCache[`${symbol}|${rangeKey}`] = result.value;
+      }
+    });
+  })();
+  stockHistoryBatchFetchPending[symbol] = promise;
+  try{
+    await promise;
+  } finally {
+    delete stockHistoryBatchFetchPending[symbol];
+  }
 }
 
 const STOCK_HISTORY_RANGES = [
@@ -3206,6 +3236,14 @@ async function loadStockHistoryGraph(key, token){
   try{
     let data = stockHistoryChartCache[cacheKey];
     if(!data){
+      // 이 기간이 캐시에 없으면(최초 조회 또는 리로드 후 첫 조회) 5개 기간을 한 번에 받아와
+      // 같은 시점의 현재가로 캐시를 채운다.
+      await fetchAllStockHistoryRanges(symbol);
+      if(token !== info.loadingToken) return;
+      data = stockHistoryChartCache[cacheKey];
+    }
+    if(!data){
+      // 일괄 조회에서 이 기간만 실패했다면 개별로 한 번 더 시도한다.
       data = await fetchYahooChart(symbol, info.range, info.range === '1d');
       if(token !== info.loadingToken) return;
       stockHistoryChartCache[cacheKey] = data;
