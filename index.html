@@ -305,24 +305,11 @@
 </div>
 
 <!-- 사용 매뉴얼 모달 (이미지 가이드) -->
-<div id="manualModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3100;align-items:center;justify-content:center;padding:12px;">
-  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 16px 20px;width:min(420px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,0.45);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <h3 style="margin:0;font-size:16px;font-weight:700;">머니파이 사용 매뉴얼</h3>
-      <span id="manualStepLabel" style="font-size:13px;color:var(--text-dim);font-weight:600;">1 / 4</span>
-    </div>
-    <div style="flex:1;overflow:auto;border-radius:8px;background:#111;min-height:200px;display:flex;align-items:center;justify-content:center;">
-      <img id="manualImage" src="0001.png" alt="매뉴얼" style="max-width:100%;max-height:min(58vh,520px);width:auto;height:auto;display:block;border-radius:6px;">
-    </div>
-    <div id="manualCaption" style="font-size:12px;color:var(--text-dim);line-height:1.45;margin:10px 0 12px;min-height:2.8em;"></div>
-    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;margin-bottom:12px;">
-      <input type="checkbox" id="manualDontShowAgain">
-      다음에 보이지 않기
-    </label>
-    <div style="display:flex;gap:8px;justify-content:space-between;">
-      <button class="btn" id="manualPrevBtn" style="min-width:72px;">이전</button>
-      <button class="btn btn-primary" id="manualNextBtn" style="min-width:100px;">다음</button>
-    </div>
+<!-- 사용 매뉴얼 (테두리 없이 PNG 순서 표시) -->
+<div id="manualModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3100;align-items:center;justify-content:center;padding:12px;cursor:pointer;">
+  <div style="position:relative;max-width:min(420px,96vw);text-align:center;">
+    <img id="manualImage" src="0001.png" alt="매뉴얼" style="max-width:100%;max-height:min(80vh,620px);width:auto;height:auto;display:block;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,0.45);margin:0 auto;">
+    <div id="manualStepLabel" style="margin-top:12px;font-size:13px;color:var(--text-dim);font-weight:600;">1 / 4 · 화면을 터치하면 다음으로</div>
   </div>
 </div>
 
@@ -334,6 +321,14 @@
       <input type="checkbox" id="noticeImgDontShowAgain">
       다시 보지 않기
     </label>
+  </div>
+</div>
+
+<!-- 종목추가 가이드 (in001~in003) -->
+<div id="introGuideModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3400;align-items:center;justify-content:center;padding:12px;cursor:pointer;">
+  <div style="position:relative;max-width:min(420px,96vw);text-align:center;">
+    <img id="introGuideImage" src="in001.png" alt="종목추가 가이드" style="max-width:100%;max-height:min(80vh,620px);width:auto;height:auto;display:block;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,0.45);margin:0 auto;">
+    <div id="introGuideStepLabel" style="margin-top:12px;font-size:13px;color:var(--text-dim);font-weight:600;">1 / 3 · 화면을 터치하면 다음으로</div>
   </div>
 </div>
 
@@ -4786,38 +4781,44 @@ load();
 loadMarketData(true);
 applyMarketRefreshCooldownVisual();
 
-(async function(){
-  const NOTICE_KEY = 'moneypie_notice_dismissed_hash';
-  try {
-    const res = await fetch('notice.png?_=' + Date.now(), { cache: 'no-store' });
-    if(!res.ok) return; // notice.png 없으면 조용히 스킵
-    const buffer = await res.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+function checkNoticePng(){
+  return new Promise((resolve) => {
+    (async () => {
+      const NOTICE_KEY = 'moneypie_notice_dismissed_hash';
+      try {
+        const res = await fetch('notice.png?_=' + Date.now(), { cache: 'no-store' });
+        if(!res.ok) return resolve(); // notice.png 없으면 조용히 스킵
+        const buffer = await res.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
 
-    let dismissedHash = null;
-    try { dismissedHash = localStorage.getItem(NOTICE_KEY); } catch(e){}
-    if(dismissedHash === hashHex) return; // 이미 본(껐던) 공지와 동일 -> 스킵
+        let dismissedHash = null;
+        try { dismissedHash = localStorage.getItem(NOTICE_KEY); } catch(e){}
+        if(dismissedHash === hashHex) return resolve(); // 이미 본(껐던) 공지와 동일 -> 스킵
 
-    const blobUrl = URL.createObjectURL(new Blob([buffer]));
-    const imgEl = document.getElementById('noticeImgEl');
-    if(imgEl) imgEl.src = blobUrl;
-    const modal = document.getElementById('noticeImgModal');
-    if(modal) modal.style.display = 'flex';
+        const blobUrl = URL.createObjectURL(new Blob([buffer]));
+        const imgEl = document.getElementById('noticeImgEl');
+        if(imgEl) imgEl.src = blobUrl;
+        const modal = document.getElementById('noticeImgModal');
+        if(modal) modal.style.display = 'flex';
 
-    const closeBtn = document.getElementById('noticeImgCloseBtn');
-    const dontShowChk = document.getElementById('noticeImgDontShowAgain');
-    if(closeBtn) closeBtn.addEventListener('click', () => {
-      if(dontShowChk && dontShowChk.checked){
-        try { localStorage.setItem(NOTICE_KEY, hashHex); } catch(e){}
-      }
-      if(modal) modal.style.display = 'none';
-    });
-    if(modal) modal.addEventListener('click', (e) => {
-      if(e.target.id === 'noticeImgModal') modal.style.display = 'none';
-    });
-  } catch(e){ /* 네트워크 오류 등 - 조용히 스킵 */ }
-})();
+        const closeBtn = document.getElementById('noticeImgCloseBtn');
+        const dontShowChk = document.getElementById('noticeImgDontShowAgain');
+        const dismiss = () => {
+          if(dontShowChk && dontShowChk.checked){
+            try { localStorage.setItem(NOTICE_KEY, hashHex); } catch(e){}
+          }
+          if(modal) modal.style.display = 'none';
+          resolve();
+        };
+        if(closeBtn) closeBtn.addEventListener('click', dismiss);
+        if(modal) modal.addEventListener('click', (e) => {
+          if(e.target.id === 'noticeImgModal') dismiss();
+        });
+      } catch(e){ resolve(); /* 네트워크 오류 등 - 조용히 스킵 */ }
+    })();
+  });
+}
 
 function checkNoticeHtml(){
   return new Promise((resolve) => {
@@ -4863,82 +4864,124 @@ function checkNoticeHtml(){
 }
 
 (async function(){
+  // notice.png → notice.html → FAQ → 종목추가 가이드(in001~003, 매번 표시) → 매뉴얼
+  await checkNoticePng();
   await checkNoticeHtml();
 
-  // ===== 사용 매뉴얼 (이미지 가이드) =====
+  // ===== 종목추가 가이드 (in001 → in002 → in003) =====
+  // FAQ 다음에 표시. 클릭/터치로 순서 전환. 매번 다시 나옴 (저장 안 함)
+  const introModal = document.getElementById('introGuideModal');
+  const introImg = document.getElementById('introGuideImage');
+  const introStepLabel = document.getElementById('introGuideStepLabel');
+  const introSteps = ['in001.png', 'in002.png', 'in003.png'];
+  let introIdx = 0;
+  let introListenersBound = false;
+
+  function updateIntroUI(){
+    if(introImg) introImg.src = introSteps[introIdx];
+    if(introStepLabel){
+      const isLast = introIdx >= introSteps.length - 1;
+      introStepLabel.textContent = (introIdx + 1) + ' / ' + introSteps.length + (isLast ? ' · 터치하면 닫기' : ' · 화면을 터치하면 다음으로');
+    }
+  }
+
+  function closeIntroGuide(){
+    if(introModal) introModal.style.display = 'none';
+    // 가이드 종료 후 매뉴얼
+    showManualIfNeeded();
+  }
+
+  function advanceIntroGuide(){
+    if(introIdx < introSteps.length - 1){
+      introIdx++;
+      updateIntroUI();
+    } else {
+      closeIntroGuide();
+    }
+  }
+
+  function showIntroGuide(){
+    if(!introModal){
+      showManualIfNeeded();
+      return;
+    }
+    introIdx = 0;
+    updateIntroUI();
+    introModal.style.display = 'flex';
+    // 리스너는 한 번만 등록
+    if(!introListenersBound){
+      introListenersBound = true;
+      let lastAdvance = 0;
+      const onAdvance = (e) => {
+        if(introModal.style.display === 'none') return;
+        const now = Date.now();
+        if(now - lastAdvance < 400) return;
+        lastAdvance = now;
+        e.preventDefault();
+        e.stopPropagation();
+        advanceIntroGuide();
+      };
+      introModal.addEventListener('click', onAdvance);
+      introModal.addEventListener('touchend', onAdvance, { passive: false });
+    }
+  }
+
+  // ===== 사용 매뉴얼 (테두리 없이 PNG 순서 표시) =====
   const MANUAL_KEY = 'moneypie_manual_dismissed';
   const manualModal = document.getElementById('manualModal');
   const manualImg = document.getElementById('manualImage');
   const manualStepLabel = document.getElementById('manualStepLabel');
-  const manualCaption = document.getElementById('manualCaption');
-  const manualPrevBtn = document.getElementById('manualPrevBtn');
-  const manualNextBtn = document.getElementById('manualNextBtn');
-  const manualDontShowChk = document.getElementById('manualDontShowAgain');
-
-  const manualSteps = [
-    {
-      src: '0001.png',
-      caption: '종목명과 평가액을 입력하고, 계좌명·유형을 수정할 수 있습니다.'
-    },
-    {
-      src: '0002.png',
-      caption: '계좌유형별 비중과 국내/해외 비중, 섹터 내 종목 비중을 확인할 수 있습니다.'
-    },
-    {
-      src: '0003.png',
-      caption: '경제지표를 클릭해 조회 기간을 바꿀 수 있고, 월별 메모와 마통 사용액을 표시합니다'
-    },
-    {
-      src: '0004.png',
-      caption: '엑셀 보내기로 데이터를 내보낼 수 있고, 월별 자산·섹터·국내/해외 비중 변화를 그래프로 볼 수 있습니다.'
-    }
-  ];
+  const manualSteps = ['0001.png', '0004.png'];
   let manualIdx = 0;
+  let manualListenersBound = false;
 
   function updateManualUI(){
-    const step = manualSteps[manualIdx];
-    if(manualImg) manualImg.src = step.src;
-    if(manualStepLabel) manualStepLabel.textContent = (manualIdx + 1) + ' / ' + manualSteps.length;
-    if(manualCaption) manualCaption.textContent = step.caption;
-    if(manualPrevBtn) manualPrevBtn.style.visibility = manualIdx === 0 ? 'hidden' : 'visible';
-    if(manualNextBtn) manualNextBtn.textContent = manualIdx === manualSteps.length - 1 ? '완료' : '다음';
+    if(manualImg) manualImg.src = manualSteps[manualIdx];
+    if(manualStepLabel){
+      const isLast = manualIdx >= manualSteps.length - 1;
+      manualStepLabel.textContent = (manualIdx + 1) + ' / ' + manualSteps.length + (isLast ? ' · 터치하면 닫기' : ' · 화면을 터치하면 다음으로');
+    }
   }
 
   function closeManualModal(){
-    if(manualDontShowChk && manualDontShowChk.checked){
-      try { localStorage.setItem(MANUAL_KEY, '1'); } catch(e){}
-    }
+    try { localStorage.setItem(MANUAL_KEY, '1'); } catch(e){}
     if(manualModal) manualModal.style.display = 'none';
   }
 
-  function showManualIfNeeded(){
-    let manualDismissed = false;
-    try { manualDismissed = localStorage.getItem(MANUAL_KEY) === '1'; } catch(e){}
-    if(!manualDismissed && manualModal){
-      updateManualUI();
-      manualModal.style.display = 'flex';
-    }
-  }
-
-  if(manualPrevBtn) manualPrevBtn.addEventListener('click', () => {
-    if(manualIdx > 0){
-      manualIdx--;
-      updateManualUI();
-    }
-  });
-  if(manualNextBtn) manualNextBtn.addEventListener('click', () => {
+  function advanceManual(){
     if(manualIdx < manualSteps.length - 1){
       manualIdx++;
       updateManualUI();
     } else {
       closeManualModal();
     }
-  });
-  if(manualModal) manualModal.addEventListener('click', (e) => {
-    if(e.target.id === 'manualModal') closeManualModal();
-  });
+  }
 
-  // ===== FAQ 환영 모달 (먼저 표시) =====
+  function showManualIfNeeded(){
+    let manualDismissed = false;
+    try { manualDismissed = localStorage.getItem(MANUAL_KEY) === '1'; } catch(e){}
+    if(manualDismissed || !manualModal) return;
+    manualIdx = 0;
+    updateManualUI();
+    manualModal.style.display = 'flex';
+    if(!manualListenersBound){
+      manualListenersBound = true;
+      let lastAdvance = 0;
+      const onAdvance = (e) => {
+        if(manualModal.style.display === 'none') return;
+        const now = Date.now();
+        if(now - lastAdvance < 400) return;
+        lastAdvance = now;
+        e.preventDefault();
+        e.stopPropagation();
+        advanceManual();
+      };
+      manualModal.addEventListener('click', onAdvance);
+      manualModal.addEventListener('touchend', onAdvance, { passive: false });
+    }
+  }
+
+  // ===== FAQ 환영 모달 =====
   const WELCOME_KEY = 'moneypie_welcome_dismissed';
   const modal = document.getElementById('welcomeModal');
   const closeBtn = document.getElementById('welcomeCloseBtn');
@@ -4949,8 +4992,8 @@ function checkNoticeHtml(){
       try { localStorage.setItem(WELCOME_KEY, '1'); } catch(e){}
     }
     if(modal) modal.style.display = 'none';
-    // FAQ를 닫은 뒤 매뉴얼이 아직 안 본 상태면 이어서 표시
-    showManualIfNeeded();
+    // FAQ 닫은 뒤 → 종목추가 가이드 (매번) → 매뉴얼
+    showIntroGuide();
   }
 
   if(closeBtn) closeBtn.addEventListener('click', closeWelcomeModal);
@@ -4958,13 +5001,14 @@ function checkNoticeHtml(){
     if(e.target.id === 'welcomeModal') closeWelcomeModal();
   });
 
+  // FAQ 표시 (이미 본 경우에도 바로 종목추가 가이드로)
   let welcomeDismissed = false;
   try { welcomeDismissed = localStorage.getItem(WELCOME_KEY) === '1'; } catch(e){}
   if(!welcomeDismissed && modal){
     modal.style.display = 'flex';
   } else {
-    // FAQ를 이미 본 상태라면 매뉴얼만 바로 표시
-    showManualIfNeeded();
+    // FAQ를 이미 본 상태라면 종목추가 가이드부터
+    showIntroGuide();
   }
 })();
 </script>
