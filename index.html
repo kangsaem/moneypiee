@@ -1195,7 +1195,7 @@ function exportData(){
 }
 
 function exportXLSX(){
-  const holdingRows = [['계좌명','계좌유형','종목','섹터','지역','평가액','주식수','심볼','국가','1주가격','통화','야후심볼','원본검색어']];
+  const holdingRows = [['계좌명','계좌유형','종목','섹터','지역','평가액','주식수','심볼','국가','1주가격','통화','야후심볼','원본검색어','계좌ID']];
   state.accounts.forEach(a => {
     a.holdings.forEach(h => {
       const name = isCashHolding(h) ? (h.region === 'overseas' ? '외화' : '원화') : h.name;
@@ -1212,12 +1212,13 @@ function exportXLSX(){
         h.lastPrice != null ? h.lastPrice : '',
         h.currency || '',
         h.yahooSymbol || '',
-        h.fallbackText || ''
+        h.fallbackText || '',
+        a.id
       ]);
     });
   });
 
-  const accountSummaryRows = [['계좌명','계좌유형','총평가액','종목수','국내비중(%)','해외비중(%)']];
+  const accountSummaryRows = [['계좌명','계좌유형','총평가액','종목수','국내비중(%)','해외비중(%)','계좌ID']];
   state.accounts.forEach(a => {
     const total = _.sumBy(a.holdings, 'amount');
     const domestic = _.sumBy(a.holdings.filter(h => (h.region||'domestic') !== 'overseas'), 'amount');
@@ -1228,7 +1229,8 @@ function exportXLSX(){
       total,
       a.holdings.length,
       total ? Math.round(domestic/total*1000)/10 : 0,
-      total ? Math.round(overseas/total*1000)/10 : 0
+      total ? Math.round(overseas/total*1000)/10 : 0,
+      a.id
     ]);
   });
 
@@ -1247,7 +1249,7 @@ function exportXLSX(){
     snapshotRows.push([fullMonthLabel(s.label), total, domestic, overseas, creditUsed, s.memo || '']);
   });
 
-  const snapshotDetailRows = [['월','계좌명','계좌유형','종목','섹터','지역','평가액','주식수','심볼','국가','1주가격','통화','야후심볼','원본검색어']];
+  const snapshotDetailRows = [['월','계좌명','계좌유형','종목','섹터','지역','평가액','주식수','심볼','국가','1주가격','통화','야후심볼','원본검색어','계좌ID']];
   state.snapshots.forEach(s => {
     s.accounts.forEach(a => {
       a.holdings.forEach(h => {
@@ -1266,7 +1268,8 @@ function exportXLSX(){
           h.lastPrice != null ? h.lastPrice : '',
           h.currency || '',
           h.yahooSymbol || '',
-          h.fallbackText || ''
+          h.fallbackText || '',
+          a.id
         ]);
       });
     });
@@ -1340,14 +1343,18 @@ function importXLSX(file){
         }
         return holding;
       }
+      // 계좌를 구분할 때, 최신 형식(계좌ID 열 포함)이면 ID로 정확히 구분하고,
+      // 옛날 형식(계좌ID 열 없음)으로 내보낸 파일이면 예전처럼 "계좌명+계좌유형"으로 묶는다(하위호환).
+      // ID 기반으로 구분해야 이름과 유형이 같은 서로 다른 계좌가 복원 시 하나로 합쳐지는 걸 막을 수 있다.
       function buildAccountsFromRows(rows){
         const byAccount = {};
         const order = [];
         rows.forEach(r => {
-          const [accName, accType, holdName, group, region, amount, quantity, symbol, nationName, lastPrice, currency, yahooSymbol, fallbackText] = r;
-          const key = accName + '||' + accType;
+          const [accName, accType, holdName, group, region, amount, quantity, symbol, nationName, lastPrice, currency, yahooSymbol, fallbackText, accountId] = r;
+          const hasId = accountId !== undefined && accountId !== null && String(accountId).trim() !== '';
+          const key = hasId ? String(accountId) : (accName + '||' + accType);
           if(!byAccount[key]){
-            byAccount[key] = { id: uid(), name: String(accName || '계좌'), accountType: ACCOUNT_TYPES.includes(accType) ? accType : '직투', holdings: [] };
+            byAccount[key] = { id: hasId ? String(accountId) : uid(), name: String(accName || '계좌'), accountType: ACCOUNT_TYPES.includes(accType) ? accType : '직투', holdings: [] };
             order.push(key);
           }
           byAccount[key].holdings.push(rowToHolding(holdName, group, region, amount, quantity, symbol, nationName, lastPrice, currency, yahooSymbol, fallbackText));
@@ -1357,6 +1364,26 @@ function importXLSX(file){
 
       const holdingRows = sheetRows('보유종목');
       const newAccounts = buildAccountsFromRows(holdingRows);
+
+      // 보유종목이 하나도 없는 계좌는 '보유종목' 시트에 행이 생기지 않으므로 위에서 복원되지 않는다.
+      // '계좌별요약' 시트에는 보유종목 개수와 무관하게 모든 계좌가 한 줄씩 있으므로, 여기 있지만
+      // 위에서 아직 복원되지 않은 계좌(=빈 계좌)를 찾아서 종목 없이 추가해준다.
+      const summaryRows = sheetRows('계좌별요약');
+      summaryRows.forEach(r => {
+        const [accName, accType, , , , , accountId] = r;
+        const hasId = accountId !== undefined && accountId !== null && String(accountId).trim() !== '';
+        const alreadyExists = hasId
+          ? newAccounts.some(a => a.id === String(accountId))
+          : newAccounts.some(a => a.name === String(accName || '') && a.accountType === (ACCOUNT_TYPES.includes(accType) ? accType : '직투'));
+        if(!alreadyExists){
+          newAccounts.push({
+            id: hasId ? String(accountId) : uid(),
+            name: String(accName || '계좌'),
+            accountType: ACCOUNT_TYPES.includes(accType) ? accType : '직투',
+            holdings: []
+          });
+        }
+      });
 
       const creditRows = sheetRows('마통현황');
       const newCreditLines = creditRows.map(r => ({
@@ -1370,9 +1397,9 @@ function importXLSX(file){
       }
 
       sheetRows('월별상세종목').forEach(r => {
-        const [monthLabel, accName, accType, holdName, group, region, amount, quantity, symbol, nationName, lastPrice, currency, yahooSymbol, fallbackText] = r;
+        const [monthLabel, accName, accType, holdName, group, region, amount, quantity, symbol, nationName, lastPrice, currency, yahooSymbol, fallbackText, accountId] = r;
         const rawLabel = String(monthLabel || '').replace(/-/g, '');
-        ensureMonth(rawLabel).accountRows.push([accName, accType, holdName, group, region, amount, quantity, symbol, nationName, lastPrice, currency, yahooSymbol, fallbackText]);
+        ensureMonth(rawLabel).accountRows.push([accName, accType, holdName, group, region, amount, quantity, symbol, nationName, lastPrice, currency, yahooSymbol, fallbackText, accountId]);
       });
       sheetRows('월별마통').forEach(r => {
         const [monthLabel, institution, limit, used] = r;
