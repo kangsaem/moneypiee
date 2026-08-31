@@ -1282,6 +1282,23 @@ function exportXLSX(){
     });
   });
 
+  // 종목이 하나도 없는 계좌는 '월별상세종목' 시트에 행이 생기지 않아 복원 시 사라지므로,
+  // '계좌별요약'과 같은 방식으로 월별 계좌 목록을 별도 시트에 남겨 복원할 때 참조할 수 있게 한다.
+  const snapshotAccountSummaryRows = [['월','계좌명','계좌유형','총평가액','종목수','계좌ID']];
+  state.snapshots.forEach(s => {
+    s.accounts.forEach(a => {
+      const total = _.sumBy(a.holdings, 'amount');
+      snapshotAccountSummaryRows.push([
+        fullMonthLabel(s.label),
+        a.name,
+        a.accountType || '직투',
+        total,
+        a.holdings.length,
+        a.id
+      ]);
+    });
+  });
+
   const wb = XLSX.utils.book_new();
   const wsHoldings = XLSX.utils.aoa_to_sheet(holdingRows);
   XLSX.utils.book_append_sheet(wb, wsHoldings, '보유종목');
@@ -1296,6 +1313,8 @@ function exportXLSX(){
     XLSX.utils.book_append_sheet(wb, wsSnap, '월별변화');
     const wsSnapDetail = XLSX.utils.aoa_to_sheet(snapshotDetailRows);
     XLSX.utils.book_append_sheet(wb, wsSnapDetail, '월별상세종목');
+    const wsSnapAccountSummary = XLSX.utils.aoa_to_sheet(snapshotAccountSummaryRows);
+    XLSX.utils.book_append_sheet(wb, wsSnapAccountSummary, '월별계좌요약');
     if(snapshotCreditRows.length > 1){
       const wsSnapCredit = XLSX.utils.aoa_to_sheet(snapshotCreditRows);
       XLSX.utils.book_append_sheet(wb, wsSnapCredit, '월별마통');
@@ -1362,28 +1381,35 @@ function importXLSX(file){
         return order.map(k => byAccount[k]);
       }
 
+      // 종목이 0개라 '보유종목'/'월별상세종목' 시트에 행이 없는 계좌를, 계좌 요약 시트(모든 계좌가
+      // 무조건 한 줄씩 있음)를 참고해서 채워 넣는다. 현재 계좌와 월별 스냅샷 계좌 양쪽에서 재사용한다.
+      // refs: [{ name, accountType, accountId }] 형태로 미리 정규화해서 넘긴다 (시트마다 컬럼 위치가 달라서).
+      function addMissingAccountsFromRefs(accountsArr, refs){
+        refs.forEach(({ name: accName, accountType: accType, accountId }) => {
+          const hasId = accountId !== undefined && accountId !== null && String(accountId).trim() !== '';
+          const alreadyExists = hasId
+            ? accountsArr.some(a => a.id === String(accountId))
+            : accountsArr.some(a => a.name === String(accName || '') && a.accountType === (ACCOUNT_TYPES.includes(accType) ? accType : '직투'));
+          if(!alreadyExists){
+            accountsArr.push({
+              id: hasId ? String(accountId) : uid(),
+              name: String(accName || '계좌'),
+              accountType: ACCOUNT_TYPES.includes(accType) ? accType : '직투',
+              holdings: []
+            });
+          }
+        });
+        return accountsArr;
+      }
+
       const holdingRows = sheetRows('보유종목');
       const newAccounts = buildAccountsFromRows(holdingRows);
 
       // 보유종목이 하나도 없는 계좌는 '보유종목' 시트에 행이 생기지 않으므로 위에서 복원되지 않는다.
       // '계좌별요약' 시트에는 보유종목 개수와 무관하게 모든 계좌가 한 줄씩 있으므로, 여기 있지만
       // 위에서 아직 복원되지 않은 계좌(=빈 계좌)를 찾아서 종목 없이 추가해준다.
-      const summaryRows = sheetRows('계좌별요약');
-      summaryRows.forEach(r => {
-        const [accName, accType, , , , , accountId] = r;
-        const hasId = accountId !== undefined && accountId !== null && String(accountId).trim() !== '';
-        const alreadyExists = hasId
-          ? newAccounts.some(a => a.id === String(accountId))
-          : newAccounts.some(a => a.name === String(accName || '') && a.accountType === (ACCOUNT_TYPES.includes(accType) ? accType : '직투'));
-        if(!alreadyExists){
-          newAccounts.push({
-            id: hasId ? String(accountId) : uid(),
-            name: String(accName || '계좌'),
-            accountType: ACCOUNT_TYPES.includes(accType) ? accType : '직투',
-            holdings: []
-          });
-        }
-      });
+      // 컬럼 순서: 계좌명, 계좌유형, 총평가액, 종목수, 국내비중(%), 해외비중(%), 계좌ID
+      addMissingAccountsFromRefs(newAccounts, sheetRows('계좌별요약').map(r => ({ name: r[0], accountType: r[1], accountId: r[6] })));
 
       const creditRows = sheetRows('마통현황');
       const newCreditLines = creditRows.map(r => ({
@@ -1392,7 +1418,7 @@ function importXLSX(file){
 
       const byMonth = {};
       function ensureMonth(rawLabel){
-        if(!byMonth[rawLabel]) byMonth[rawLabel] = { accountRows: [], creditRows: [], memo: '' };
+        if(!byMonth[rawLabel]) byMonth[rawLabel] = { accountRows: [], creditRows: [], accountSummaryRefs: [], memo: '' };
         return byMonth[rawLabel];
       }
 
@@ -1400,6 +1426,13 @@ function importXLSX(file){
         const [monthLabel, accName, accType, holdName, group, region, amount, quantity, symbol, nationName, lastPrice, currency, yahooSymbol, fallbackText, accountId] = r;
         const rawLabel = String(monthLabel || '').replace(/-/g, '');
         ensureMonth(rawLabel).accountRows.push([accName, accType, holdName, group, region, amount, quantity, symbol, nationName, lastPrice, currency, yahooSymbol, fallbackText, accountId]);
+      });
+      // 종목이 0개라 '월별상세종목'에 행이 없는 계좌를 복원하기 위한 월별 계좌 요약(빈 계좌 포함 전체 목록)
+      // 컬럼 순서: 월, 계좌명, 계좌유형, 총평가액, 종목수, 계좌ID
+      sheetRows('월별계좌요약').forEach(r => {
+        const [monthLabel, accName, accType, , , accountId] = r;
+        const rawLabel = String(monthLabel || '').replace(/-/g, '');
+        ensureMonth(rawLabel).accountSummaryRefs.push({ name: accName, accountType: accType, accountId });
       });
       sheetRows('월별마통').forEach(r => {
         const [monthLabel, institution, limit, used] = r;
@@ -1414,11 +1447,13 @@ function importXLSX(file){
 
       const newSnapshots = Object.keys(byMonth).map(rawLabel => {
         const info = byMonth[rawLabel];
+        const snapAccounts = buildAccountsFromRows(info.accountRows);
+        addMissingAccountsFromRefs(snapAccounts, info.accountSummaryRefs);
         return {
           id: uid(),
           label: rawLabel,
           timestamp: Date.now(),
-          accounts: buildAccountsFromRows(info.accountRows),
+          accounts: snapAccounts,
           creditLines: info.creditRows.map(([institution, limit, used]) => ({
             id: uid(), institution: String(institution || ''), limit: toNum(limit), used: toNum(used)
           })),
