@@ -1,0 +1,44 @@
+{
+  "packageId": "kr.moneypie.app",
+  "host": "www.moneypie.kr",
+  "name": "머니파이 MONEY PIE",
+  "launcherName": "머니파이",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#1E1F22",
+  "navigationColor": "#1E1F22",
+  "navigationColorDark": "#1E1F22",
+  "navigationDividerColor": "#3D3E43",
+  "navigationDividerColorDark": "#3D3E43",
+  "backgroundColor": "#1E1F22",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://www.moneypie.kr/icon-512.png",
+  "maskableIconUrl": "https://www.moneypie.kr/icon-512-maskable.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "moneypie"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://www.moneypie.kr/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://www.moneypie.kr/",
+  "minSdkVersion": 21,
+  "appVersion": "1.0.0",
+  "protocolVersion": 2
+}
