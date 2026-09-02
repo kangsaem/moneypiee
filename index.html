@@ -4667,7 +4667,7 @@ document.getElementById('addAccountCancelBtn').addEventListener('click', closeAd
 document.getElementById('editAccountNameCancelBtn').addEventListener('click', closeEditAccountNameModal);
 document.getElementById('editAccountNameSaveBtn').addEventListener('click', saveEditAccountNameModal);
 document.getElementById('editAccountNameModal').addEventListener('click', (e) => {
-  if(e.target.id === 'editAccountNameModal') closeEditAccountNameModal();
+  if(e.target.id === 'editAccountNameModal' && !modalTextSelecting) closeEditAccountNameModal();
 });
 document.getElementById('noticeModalOkBtn').addEventListener('click', closeNoticeModal);
 document.getElementById('noticeModal').addEventListener('click', (e) => {
@@ -4676,18 +4676,18 @@ document.getElementById('noticeModal').addEventListener('click', (e) => {
 document.getElementById('saveSnapshotCancelBtn').addEventListener('click', closeSaveSnapshotModal);
 document.getElementById('saveSnapshotConfirmBtn').addEventListener('click', confirmSaveSnapshot);
 document.getElementById('saveSnapshotModal').addEventListener('click', (e) => {
-  if(e.target.id === 'saveSnapshotModal') closeSaveSnapshotModal();
+  if(e.target.id === 'saveSnapshotModal' && !modalTextSelecting) closeSaveSnapshotModal();
 });
 document.getElementById('addAccountSaveBtn').addEventListener('click', saveAddAccountModal);
 document.getElementById('addAccountModal').addEventListener('click', (e) => {
-  if(e.target.id === 'addAccountModal') closeAddAccountModal();
+  if(e.target.id === 'addAccountModal' && !modalTextSelecting) closeAddAccountModal();
 });
 document.getElementById('editCreditSaveBtn').addEventListener('click', saveEditCreditModal);
 let modalTextSelecting = false;
-document.getElementById('editModal').addEventListener('mousedown', (e) => {
+document.addEventListener('mousedown', (e) => {
   if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') modalTextSelecting = true;
 });
-document.getElementById('editModal').addEventListener('touchstart', (e) => {
+document.addEventListener('touchstart', (e) => {
   if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') modalTextSelecting = true;
 }, { passive: true });
 window.addEventListener('mouseup', () => { setTimeout(() => { modalTextSelecting = false; }, 50); });
