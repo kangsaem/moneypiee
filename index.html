@@ -473,13 +473,7 @@ function formatPricePerShare(h){
 
 async function fetchYahooHoldingPrice(symbol){
   const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1d&_=${Date.now()}`;
-  let res;
-  try{
-    res = await fetchWithTimeout(targetUrl, { cache: 'no-store' }, 3000);
-    if(!res.ok) throw new Error('direct fetch failed');
-  }catch(e){
-    res = await fetchWithTimeout(`https://moneypie-proxy.y0n2.workers.dev/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 5000);
-  }
+  const res = await fetchYahooProxied(targetUrl);
   const data = await res.json();
   const result = data.chart && data.chart.result && data.chart.result[0];
   const price = result && result.meta && result.meta.regularMarketPrice;
@@ -668,21 +662,51 @@ function fetchWithTimeout(url, opts, ms){
   return fetch(url, { ...opts, signal: controller.signal }).finally(() => clearTimeout(timer));
 }
 
+// 외부 API(야후, 네이버 등)를 프록시로 호출하는 공용 헬퍼.
+// 1차: Cloudflare Worker. 여기서 429(요청 과다)를 받으면 잠깐 쉬었다가 한 번 더 재시도.
+// 그래도 실패하면(429 계속 or 네트워크 에러) 2차: Google Cloud Run 프록시(다른 IP 대역)로 우회.
+const PROXY_PRIMARY = 'https://moneypie-proxy.y0n2.workers.dev/?url=';
+const PROXY_SECONDARY = 'https://moneypie-proxy2-1091905448059.asia-northeast3.run.app/?url=';
+
+async function fetchViaProxy(targetUrl, timeoutMs, retries){
+  timeoutMs = timeoutMs || 7000;
+  retries = retries != null ? retries : 1;
+
+  // 1차: Cloudflare Worker (429면 재시도)
+  let res = null;
+  try{
+    for(let attempt = 0; attempt <= retries; attempt++){
+      res = await fetchWithTimeout(PROXY_PRIMARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs);
+      if(res.status !== 429) break;
+      if(attempt < retries) await new Promise(r => setTimeout(r, 1500));
+    }
+  }catch(e){ res = null; }
+
+  if(res && res.ok) return res;
+
+  // 2차: Google Cloud Run 프록시로 우회 (Cloudflare가 완전히 막혔거나 네트워크 에러인 경우)
+  try{
+    const res2 = await fetchWithTimeout(PROXY_SECONDARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs);
+    if(res2.ok) return res2;
+    return res2; // 2차도 실패했지만, 그 응답을 그대로 반환해서 호출부가 status를 보고 처리하게 함
+  }catch(e){
+    if(res) return res; // 2차가 네트워크 에러로 완전히 실패하면, 그나마 있는 1차 결과라도 반환
+    throw e;
+  }
+}
+// 이전 이름으로 부르던 곳들과의 호환을 위한 별칭
+const fetchYahooProxied = fetchViaProxy;
+
 async function fetchNaverIndex(naverCode){
   const targetUrl = `https://polling.finance.naver.com/api/realtime/domestic/index/${naverCode}?_=${Date.now()}`;
-  const attempts = [
-    () => fetchWithTimeout(targetUrl, { cache: 'no-store' }, 3000),
-    () => fetchWithTimeout(`https://moneypie-proxy.y0n2.workers.dev/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 4000),
-    () => fetchWithTimeout(`https://moneypie-proxy.y0n2.workers.dev/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 4000)
-  ];
-  let res = null;
-  for(const attempt of attempts){
-    try{
-      res = await attempt();
-      if(res && res.ok) break;
-    }catch(e){ res = null; }
+  let res;
+  try{
+    res = await fetchWithTimeout(targetUrl, { cache: 'no-store' }, 3000);
+    if(!res.ok) throw new Error('direct fetch failed');
+  }catch(e){
+    try{ res = await fetchViaProxy(targetUrl); }catch(e2){ return null; }
   }
-  if(!res) return null;
+  if(!res || !res.ok) return null;
   const json = await res.json();
   const row = json.datas && json.datas[0];
   if(!row) return null;
@@ -712,13 +736,8 @@ async function fetchYahooChart(symbol, range, wideIntraday){
   const apiRange = isIntraday ? (wideIntraday ? '2d' : '1d') : range;
   const interval = isIntraday ? '2m' : '1d';
   const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${apiRange}&interval=${interval}&_=${Date.now()}`;
-  let res;
-  try{
-    res = await fetchWithTimeout(targetUrl, { cache: 'no-store' }, 3000);
-    if(!res.ok) throw new Error('direct fetch failed');
-  }catch(e){
-    res = await fetchWithTimeout(`https://moneypie-proxy.y0n2.workers.dev/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 5000);
-  }
+  const res = await fetchYahooProxied(targetUrl);
+  if(!res.ok) throw new Error('야후 시세 조회 실패: ' + res.status);
   const data = await res.json();
   const result = data.chart.result[0];
   const meta = result.meta;
@@ -1832,8 +1851,9 @@ async function searchNaverAutocomplete(query){
     res = await fetchWithTimeout(targetUrl, { cache: 'no-store' }, 3000);
     if(!res.ok) throw new Error('direct fetch failed');
   }catch(e){
-    res = await fetchWithTimeout(`https://moneypie-proxy.y0n2.workers.dev/?url=${encodeURIComponent(targetUrl)}`, { cache: 'no-store' }, 5000);
+    res = await fetchViaProxy(targetUrl);
   }
+  if(!res.ok) throw new Error('네이버 검색 실패: ' + res.status);
   const data = await res.json();
   if(data.result && Array.isArray(data.result.items)){
     return data.result.items.map(it => ({
