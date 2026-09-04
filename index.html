@@ -650,6 +650,7 @@ async function refreshAllQuantityHoldingPrices(){
   state.accounts.forEach(acc => (acc.holdings||[]).forEach(h => { if(h.quantity != null && h.symbol) targets.push(h); }));
   if(targets.length === 0) return;
   if(typeof resetStockHistoryCache === 'function') resetStockHistoryCache(); // 리로드시 종목 아코디언 그래프 캐시도 초기화
+  fxRateCache = {}; // 리로드시 환율도 캐시된 옛날 값이 아니라 새로 받아오도록 초기화
   await Promise.allSettled(targets.map(h => refreshHoldingPrice(h)));
   syncQuantityHoldingsAmounts();
   save();
