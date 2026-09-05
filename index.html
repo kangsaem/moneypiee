@@ -2309,7 +2309,7 @@ const STOCK_SORT_CYCLE_FULL = ['amount', 'group', 'region', 'name'];
 const STOCK_SORT_CYCLE_NO_REGION = ['amount', 'group', 'name'];
 const STOCK_SORT_LABEL = { amount:'금액순', group:'섹터순', region:'지역순', name:'이름순' };
 
-function computeStockDataWithMeta(holdings){
+function computeStockDataWithMeta(holdings, fallbackAccId){
   const total = _.sumBy(holdings, 'amount');
   const grouped = _.chain(holdings)
     .groupBy('name')
@@ -2317,7 +2317,13 @@ function computeStockDataWithMeta(holdings){
       label: name,
       amount: _.sumBy(items, 'amount'),
       group: items[0].group,
-      region: items[0].region || 'domestic'
+      region: items[0].region || 'domestic',
+      // 종목 히스토리 아코디언(1일/1-3-6-12개월 가격변화)을 열기 위한 대표 계좌/종목 id.
+      // 같은 이름의 종목이 여러 계좌에 걸쳐 있으면 그 중 첫 항목을 대표로 사용한다.
+      accId: items[0]._accId || fallbackAccId,
+      holdId: items[0].id,
+      quantity: items[0].quantity,
+      symbol: items[0].symbol
     }))
     .orderBy(['amount'], ['desc'])
     .value();
@@ -2517,8 +2523,15 @@ function stockLegendWithDividers(data, sortMode){
     const rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
     const color = rankColor(d.label, rank, rankCount, 'stock');
     const isCashLabel = isCashLikeLabel(d.label);
-    const cashStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : '';
-    html += `<div class="legend-item"><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${cashStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${cashStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+    // 계좌탭 목록과 동일한 색상 규칙: 개수(수량)로 입력된 종목은 이름=연두/비중=흰색, 평가액으로만 입력된 종목은 이름·비중 모두 회색
+    const isQtyMode = !isCashLabel && d.quantity != null && d.symbol;
+    const qtyGreen = '#D4FF3D';
+    const nameStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : (isQtyMode ? `color:${qtyGreen};` : (d.quantity == null ? 'color:var(--text-dim);' : ''));
+    const pctStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : (isQtyMode ? 'color:#FFFFFF;' : (d.quantity == null ? 'color:var(--text-dim);' : ''));
+    // 계좌탭과 동일하게 개수가 입력된(또는 수량 정보가 있는) 종목만 클릭해 가격변화 아코디언을 연다.
+    const canOpenStockHistory = !isCashLabel && d.quantity != null && d.accId && d.holdId;
+    const clickAttrs = canOpenStockHistory ? ` data-stock-history-name="${escapeHTML(d.holdId)}" data-stock-history-acc="${escapeHTML(d.accId)}" style="cursor:pointer;"` : '';
+    html += `<div class="legend-item"${clickAttrs}><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${nameStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${pctStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
     if(i < data.length - 1){
       const next = data[i+1];
       let showDivider = false;
@@ -2537,10 +2550,10 @@ function stockLegendWithDividers(data, sortMode){
   return html;
 }
 
-function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs){
+function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallbackAccId){
   stockSortCycleActive = allowRegion === false ? STOCK_SORT_CYCLE_NO_REGION : STOCK_SORT_CYCLE_FULL;
   if(!stockSortCycleActive.includes(stockLegendSortMode)) stockLegendSortMode = 'amount';
-  const rawData = computeStockDataWithMeta(holdings);
+  const rawData = computeStockDataWithMeta(holdings, fallbackAccId);
   const ordered = sortStockData(rawData, stockLegendSortMode);
   const centerLabel = STOCK_SORT_LABEL[stockLegendSortMode];
   // 외부링은 기본 투명도 0.5, 현재 정렬기준과 일치하는 링(섹터순->섹터링, 국내해외순->지역링)만 1.0
@@ -3268,9 +3281,12 @@ function renderStockHistoryAccordion(key){
   document.body.appendChild(slot);
 
   const title = (isCashHolding(h) && h.currency && h.currency !== 'KRW') ? `${h.currency} 환율` : (h.name || '종목');
+  const ownerAcc = getAccount(info.accId);
+  const accName = ownerAcc ? ownerAcc.name : '';
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
-      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(title)}</span>
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;position:relative;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;min-width:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(title)}</span>
+      ${accName ? `<span style="position:absolute;left:50%;top:0;bottom:0;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;color:#666666;pointer-events:none;">${escapeHTML(accName)}</span>` : ''}
       <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
       <button data-stock-history-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
@@ -4399,7 +4415,7 @@ function renderPanel(){
     const accountsInScope = subType === null
       ? state.accounts
       : state.accounts.filter(a => (a.accountType||'직투') === subType);
-    const holdings = _.flatMap(accountsInScope, a => a.holdings).filter(h => (h.region||'domestic') === region);
+    const holdings = _.flatMap(accountsInScope, a => a.holdings.map(h => ({ ...h, _accId: a.id }))).filter(h => (h.region||'domestic') === region);
     const holdingsInScopeAllRegions = _.flatMap(accountsInScope, a => a.holdings);
     const byStock = computeWeights(holdings, 'name');
     const byGroup = computeWeights(holdings, 'group');
@@ -4445,12 +4461,14 @@ function renderPanel(){
     if(cashBadgeRegion) cashBadgeRegion.addEventListener('click', () => toggleCashAmountAccordion(parseFloat(cashBadgeRegion.dataset.cashbadge), cashBadgeRegion));
     bindReloadPricesBtn();
     const stockSortChart = document.getElementById('stock-sortable-chart');
-    if(stockSortChart) stockSortChart.querySelectorAll('.legend-item').forEach(el => {
-      el.style.cursor = 'pointer';
-      el.addEventListener('click', cycleStockSort);
-    });
     const stockDonut = stockSortChart ? stockSortChart.querySelector('[data-donut-cycle]') : null;
     if(stockDonut) stockDonut.addEventListener('click', cycleStockSort);
+    panel.querySelectorAll('[data-stock-history-name]').forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openStockHistoryAccordion(cell.dataset.stockHistoryAcc, cell.dataset.stockHistoryName, cell);
+      });
+    });
     panel.querySelectorAll('[data-subtype-filter]').forEach(el => {
       el.addEventListener('click', () => {
         const clicked = el.dataset.subtypeFilter;
@@ -4491,7 +4509,7 @@ function renderPanel(){
 
   if(state.activeId === '__total__'){
     const allHoldings = _.flatMap(state.accounts, a => a.holdings);
-    const holdingsWithType = _.flatMap(state.accounts, a => a.holdings.map(h => ({ ...h, accountTypeLabel: a.accountType || '직투' })));
+    const holdingsWithType = _.flatMap(state.accounts, a => a.holdings.map(h => ({ ...h, accountTypeLabel: a.accountType || '직투', _accId: a.id })));
     const scopedHoldings = totalAccountTypeFilter ? holdingsWithType.filter(h => h.accountTypeLabel === totalAccountTypeFilter) : holdingsWithType;
     const byStock = computeWeights(scopedHoldings, 'name');
     const byGroup = computeWeights(scopedHoldings, 'group');
@@ -4552,12 +4570,14 @@ function renderPanel(){
     if(cashBadgeTotal) cashBadgeTotal.addEventListener('click', () => toggleCashAmountAccordion(parseFloat(cashBadgeTotal.dataset.cashbadge), cashBadgeTotal));
     bindReloadPricesBtn();
     const stockSortChartTotal = document.getElementById('stock-sortable-chart');
-    if(stockSortChartTotal) stockSortChartTotal.querySelectorAll('.legend-item').forEach(el => {
-      el.style.cursor = 'pointer';
-      el.addEventListener('click', cycleStockSort);
-    });
     const stockDonutTotal = stockSortChartTotal ? stockSortChartTotal.querySelector('[data-donut-cycle]') : null;
     if(stockDonutTotal) stockDonutTotal.addEventListener('click', cycleStockSort);
+    panel.querySelectorAll('[data-stock-history-name]').forEach(cell => {
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openStockHistoryAccordion(cell.dataset.stockHistoryAcc, cell.dataset.stockHistoryName, cell);
+      });
+    });
     return;
   }
 
@@ -4592,7 +4612,7 @@ function renderPanel(){
       ${stockChartBlockSortable(acc.holdings, true, [
         { data: computeWeights(acc.holdings, 'group'), type: 'group', name: 'decorative-sector' },
         { data: regionQuadRingData(acc.holdings), type: 'region', name: 'decorative-region', preOrdered: true }
-      ])}
+      ], acc.id)}
     </div>
   `;
 
@@ -4638,10 +4658,6 @@ function renderPanel(){
     });
   });
   const stockSortChartAcc = document.getElementById('stock-sortable-chart');
-  if(stockSortChartAcc) stockSortChartAcc.querySelectorAll('.legend-item').forEach(el => {
-    el.style.cursor = 'pointer';
-    el.addEventListener('click', cycleStockSort);
-  });
   const stockDonutAcc = stockSortChartAcc ? stockSortChartAcc.querySelector('[data-donut-cycle]') : null;
   if(stockDonutAcc) stockDonutAcc.addEventListener('click', cycleStockSort);
 }
