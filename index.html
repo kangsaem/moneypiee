@@ -1802,7 +1802,7 @@ function cashRatioColor(pct){
 }
 
 let cashAmountAccordionOpen = false;
-function toggleCashAmountAccordion(amount, triggerEl){
+function toggleCashAmountAccordion(amount, triggerEl, breakdown){
   const slot = document.getElementById('cash-amount-slot');
   if(!slot) return;
   if(cashAmountAccordionOpen){
@@ -1812,10 +1812,20 @@ function toggleCashAmountAccordion(amount, triggerEl){
   }
   const gap = 8;
   const topPx = triggerEl ? (triggerEl.getBoundingClientRect().bottom + gap) : 100;
+  const breakdownHtml = (breakdown && !isNaN(breakdown.domestic) && !isNaN(breakdown.foreign))
+    ? `
+    <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 2px 0;font-size:12px;color:#777777;">
+      <span>원화</span><span class="num">${breakdown.domestic.toLocaleString()}원</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:10px;padding:2px 2px 0;font-size:12px;color:#777777;">
+      <span>외화</span><span class="num">${breakdown.foreign.toLocaleString()}원</span>
+    </div>`
+    : '';
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:${++accordionZIndexCounter};box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;cursor:grab;">
     <span class="drag-grip-icon" style="position:absolute;top:6px;left:8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;">⠿</span>
     <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#E87BA4;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
     <span class="num" style="display:inline-block;padding:6px 4px;font-size:16px;color:#333333;border-bottom:1px solid #C9C9C9;">${amount.toLocaleString()}원</span>
+    ${breakdownHtml}
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const cashCloseBtn = slot.querySelector('[data-acc-close]');
@@ -2431,7 +2441,11 @@ function cycleStockSort(){
     const cashBadge = document.querySelector('[data-cashbadge]');
     if(cashBadge){
       cashAmountAccordionOpen = false;
-      toggleCashAmountAccordion(parseFloat(cashBadge.dataset.cashbadge), cashBadge);
+      const breakdown = cashBadge.dataset.cashDomestic !== undefined ? {
+        domestic: parseFloat(cashBadge.dataset.cashDomestic),
+        foreign: parseFloat(cashBadge.dataset.cashForeign)
+      } : null;
+      toggleCashAmountAccordion(parseFloat(cashBadge.dataset.cashbadge), cashBadge, breakdown);
       applyAccordionPos('#cash-amount-slot .floating-acc', savedCashPos);
     }
   }
@@ -4522,6 +4536,8 @@ function renderPanel(){
     const thisMonthSnap = state.snapshots.find(s => s.label === currentLabel) || (state.snapshots.length ? state.snapshots[state.snapshots.length-1] : null);
     const cashTotalAll = _.sumBy(scopedHoldings.filter(isCashHolding), 'amount');
     const cashPctAll = grandTotal ? (cashTotalAll/grandTotal*100) : 0;
+    const cashDomesticAll = _.sumBy(scopedHoldings.filter(h => isCashHolding(h) && (h.region||'domestic') !== 'overseas'), 'amount');
+    const cashForeignAll = _.sumBy(scopedHoldings.filter(h => isCashHolding(h) && (h.region||'domestic') === 'overseas'), 'amount');
 
     panel.innerHTML = `
       <div style="position:relative;">
@@ -4533,7 +4549,7 @@ function renderPanel(){
       <div class="account-header" style="justify-content:center;flex-direction:column;gap:0;">
         ${thisMonthSnap ? `<div style="position:relative;margin-bottom:14px;"><button class="btn-memo" data-memosnap="${thisMonthSnap.id}">메모</button><div id="snap-memo-slot-${thisMonthSnap.id}"></div></div>` : ''}
         <span class="total-badge">자산<span class="num">${grandTotal.toLocaleString()}원</span></span>
-        <span class="total-badge" data-cashbadge="${cashTotalAll}" style="position:relative;cursor:pointer;margin-top:1px;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPctAll)};">현금비중<span class="num" style="font-size:24px;color:${cashRatioColor(cashPctAll)};">${cashPctAll.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
+        <span class="total-badge" data-cashbadge="${cashTotalAll}" data-cash-domestic="${cashDomesticAll}" data-cash-foreign="${cashForeignAll}" style="position:relative;cursor:pointer;margin-top:1px;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPctAll)};">현금비중<span class="num" style="font-size:24px;color:${cashRatioColor(cashPctAll)};">${cashPctAll.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
         <div id="cash-amount-slot"></div>
       </div>
       <div class="charts">
@@ -4568,7 +4584,10 @@ function renderPanel(){
     const stockDetailBtn = document.getElementById('stock-detail-btn');
     if(stockDetailBtn) stockDetailBtn.addEventListener('click', toggleStockDetailAccordion);
     const cashBadgeTotal = panel.querySelector('[data-cashbadge]');
-    if(cashBadgeTotal) cashBadgeTotal.addEventListener('click', () => toggleCashAmountAccordion(parseFloat(cashBadgeTotal.dataset.cashbadge), cashBadgeTotal));
+    if(cashBadgeTotal) cashBadgeTotal.addEventListener('click', () => toggleCashAmountAccordion(parseFloat(cashBadgeTotal.dataset.cashbadge), cashBadgeTotal, {
+      domestic: parseFloat(cashBadgeTotal.dataset.cashDomestic),
+      foreign: parseFloat(cashBadgeTotal.dataset.cashForeign)
+    }));
     bindReloadPricesBtn();
     const stockSortChartTotal = document.getElementById('stock-sortable-chart');
     const stockDonutTotal = stockSortChartTotal ? stockSortChartTotal.querySelector('[data-donut-cycle]') : null;
