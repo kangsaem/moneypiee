@@ -2537,10 +2537,9 @@ function stockLegendWithDividers(data, sortMode){
     const rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
     const color = rankColor(d.label, rank, rankCount, 'stock');
     const isCashLabel = isCashLikeLabel(d.label);
-    // 계좌탭 목록과 동일한 색상 규칙: 개수(수량)로 입력된 종목은 이름=연두/비중=흰색, 평가액으로만 입력된 종목은 이름·비중 모두 회색
+    // 계좌탭 목록과 동일한 색상 규칙: 개수(수량)로 입력된 종목은 이름·비중 모두 흰색, 평가액으로만 입력된 종목은 이름·비중 모두 회색
     const isQtyMode = !isCashLabel && d.quantity != null && d.symbol;
-    const qtyGreen = '#D4FF3D';
-    const nameStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : (isQtyMode ? `color:${qtyGreen};` : (d.quantity == null ? 'color:var(--text-dim);' : ''));
+    const nameStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : (isQtyMode ? 'color:#FFFFFF;' : (d.quantity == null ? 'color:var(--text-dim);' : ''));
     const pctStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : (isQtyMode ? 'color:#FFFFFF;' : (d.quantity == null ? 'color:var(--text-dim);' : ''));
     // 계좌탭과 동일하게 개수가 입력된(또는 수량 정보가 있는) 종목만 클릭해 가격변화 아코디언을 연다.
     const canOpenStockHistory = !isCashLabel && d.quantity != null && d.accId && d.holdId;
@@ -4451,6 +4450,7 @@ function renderPanel(){
         </div>
       </div>
       <div class="account-header" style="justify-content:center;flex-direction:column;gap:4px;">
+        <button type="button" disabled style="background:#9A9BA1;color:#1A1A1A;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:default;pointer-events:none;margin-bottom:2px;">${label}</button>
         <span class="total-badge">자산<span class="num">${total.toLocaleString()}원</span></span>
         <span class="total-badge" data-cashbadge="${cashTotal}" style="position:relative;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPct)};">현금비중<span class="num" style="font-size:24px;color:${cashRatioColor(cashPct)};">${cashPct.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
         <div id="cash-amount-slot"></div>
