@@ -2544,8 +2544,8 @@ function stockLegendWithDividers(data, sortMode){
     const pctStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : (isQtyMode ? 'color:#FFFFFF;' : (d.quantity == null ? 'color:var(--text-dim);' : ''));
     // 계좌탭과 동일하게 개수가 입력된(또는 수량 정보가 있는) 종목만 클릭해 가격변화 아코디언을 연다.
     const canOpenStockHistory = !isCashLabel && d.quantity != null && d.accId && d.holdId;
-    const clickAttrs = canOpenStockHistory ? ` data-stock-history-name="${escapeHTML(d.holdId)}" data-stock-history-acc="${escapeHTML(d.accId)}" style="cursor:pointer;"` : '';
-    html += `<div class="legend-item"${clickAttrs}><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${nameStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${pctStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
+    const clickAttrs = canOpenStockHistory ? ` data-stock-history-name="${escapeHTML(d.holdId)}" data-stock-history-acc="${escapeHTML(d.accId)}" style="cursor:pointer;${nameStyle}"` : ` style="${nameStyle}"`;
+    html += `<div class="legend-item"><span class="swatch" style="background:${color}"></span><span class="legend-name"${clickAttrs}>${escapeHTML(d.label)}</span><span class="legend-pct num" style="${pctStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
     if(i < data.length - 1){
       const next = data[i+1];
       let showDivider = false;
