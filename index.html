@@ -3281,12 +3281,9 @@ function renderStockHistoryAccordion(key){
   document.body.appendChild(slot);
 
   const title = (isCashHolding(h) && h.currency && h.currency !== 'KRW') ? `${h.currency} 환율` : (h.name || '종목');
-  const ownerAcc = getAccount(info.accId);
-  const accName = ownerAcc ? ownerAcc.name : '';
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;position:relative;">
-      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;min-width:0;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(title)}</span>
-      ${accName ? `<span style="position:absolute;left:50%;top:0;bottom:0;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;color:#666666;pointer-events:none;">${escapeHTML(accName)}</span>` : ''}
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(title)}</span>
       <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
       <button data-stock-history-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
