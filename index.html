@@ -335,6 +335,10 @@
   <div style="position:relative;max-width:min(420px,96vw);text-align:center;">
     <img id="introGuideImage" src="in001.png" alt="종목추가 가이드" style="max-width:100%;max-height:min(80vh,620px);width:auto;height:auto;display:block;border-radius:10px;margin:0 auto;">
     <div id="introGuideStepLabel" style="margin-top:12px;font-size:13px;color:var(--text-dim);font-weight:600;">1 / 3 · 화면을 터치하면 다음으로</div>
+    <label id="introGuideDontShowAgainLabel" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-size:12px;color:var(--text-dim);cursor:pointer;">
+      <input type="checkbox" id="introGuideDontShowAgain">
+      다시 보지 않기
+    </label>
   </div>
 </div>
 
@@ -375,7 +379,7 @@
     </div>
     <label style="display:flex;align-items:center;gap:6px;margin-top:20px;font-size:13px;color:var(--text-dim);cursor:pointer;">
       <input type="checkbox" id="welcomeDontShowAgain">
-      다음에 보이지 않기
+      다시 보지 않기
     </label>
     <div style="display:flex;justify-content:flex-end;margin-top:12px;">
       <button class="btn btn-primary" id="welcomeCloseBtn">확인했어요</button>
@@ -5027,15 +5031,17 @@ function checkNoticeHtml(){
 }
 
 (async function(){
-  // notice.png → notice.html → FAQ → 종목추가 가이드(in001~003, 매번 표시) → 매뉴얼
+  // notice.png → notice.html → FAQ → 종목추가 가이드(in001~003, '다시 보지 않기' 체크 시 저장) → 매뉴얼
   await checkNoticePng();
   await checkNoticeHtml();
 
   // ===== 종목추가 가이드 (in001 → in002 → in003) =====
-  // FAQ 다음에 표시. 클릭/터치로 순서 전환. 매번 다시 나옴 (저장 안 함)
+  // FAQ 다음에 표시. 클릭/터치로 순서 전환. '다시 보지 않기' 체크 후 닫으면 그 다음부터 표시 안 함
+  const INTRO_KEY = 'moneypie_intro_dismissed';
   const introModal = document.getElementById('introGuideModal');
   const introImg = document.getElementById('introGuideImage');
   const introStepLabel = document.getElementById('introGuideStepLabel');
+  const introDontShowChk = document.getElementById('introGuideDontShowAgain');
   const introSteps = ['in001.png', 'in002.png', 'in003.png'];
   let introIdx = 0;
   let introListenersBound = false;
@@ -5049,6 +5055,9 @@ function checkNoticeHtml(){
   }
 
   function closeIntroGuide(){
+    if(introDontShowChk && introDontShowChk.checked){
+      try { localStorage.setItem(INTRO_KEY, '1'); } catch(e){}
+    }
     if(introModal) introModal.style.display = 'none';
     // 가이드 종료 후 매뉴얼
     showManualIfNeeded();
@@ -5064,12 +5073,15 @@ function checkNoticeHtml(){
   }
 
   function showIntroGuide(){
-    if(!introModal){
+    let introDismissed = false;
+    try { introDismissed = localStorage.getItem(INTRO_KEY) === '1'; } catch(e){}
+    if(introDismissed || !introModal){
       showManualIfNeeded();
       return;
     }
     introIdx = 0;
     updateIntroUI();
+    if(introDontShowChk) introDontShowChk.checked = false;
     introModal.style.display = 'flex';
     // 리스너는 한 번만 등록
     if(!introListenersBound){
@@ -5077,6 +5089,7 @@ function checkNoticeHtml(){
       let lastAdvance = 0;
       const onAdvance = (e) => {
         if(introModal.style.display === 'none') return;
+        if(e.target.closest('#introGuideDontShowAgainLabel')) return; // 체크박스/라벨 클릭은 단계 전환에서 제외
         const now = Date.now();
         if(now - lastAdvance < 400) return;
         lastAdvance = now;
