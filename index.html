@@ -2618,7 +2618,7 @@ function duoRingSVG(usedFraction, usedColor, remainFraction, remainColor, cx, cy
   const remainDash = Math.max(0, Math.min(1, remainFraction)) * circumference;
   const transform = `translate(${2*cx},0) scale(-1,1) rotate(-90 ${cx} ${cy})`;
   const usedCircle = `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${usedColor}" stroke-width="${strokeWidth}" stroke-dasharray="${usedDash.toFixed(2)} ${(circumference-usedDash).toFixed(2)}" stroke-dashoffset="0" transform="${transform}" data-ring="${ringName}"><title>${escapeHTML(usedLabel || '')} ${(usedFraction*100).toFixed(1)}%</title></circle>`;
-  const remainCircle = `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${remainColor}" stroke-width="${strokeWidth}" stroke-dasharray="${remainDash.toFixed(2)} ${(circumference-remainDash).toFixed(2)}" stroke-dashoffset="${(-usedDash).toFixed(2)}" opacity="0.7" transform="${transform}" data-ring="${ringName}"><title>${escapeHTML(remainLabel || '')} ${(remainFraction*100).toFixed(1)}%</title></circle>`;
+  const remainCircle = `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${remainColor}" stroke-width="${strokeWidth}" stroke-dasharray="${remainDash.toFixed(2)} ${(circumference-remainDash).toFixed(2)}" stroke-dashoffset="${(-usedDash).toFixed(2)}" opacity="0.3" transform="${transform}" data-ring="${ringName}"><title>${escapeHTML(remainLabel || '')} ${(remainFraction*100).toFixed(1)}%</title></circle>`;
   // 잔여액을 먼저 그리고 사용액을 나중에(위에) 그려서, 잔여 구간이 원을 한 바퀴 넘어가며 겹치는 경우에도
   // 사용액이 항상 보이도록 한다.
   return remainCircle + usedCircle;
@@ -2722,7 +2722,7 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
   // 그 바깥에 링들을 간격 없이 안쪽부터 순서대로 이어 붙인다. 전체 캔버스만 그만큼 넓어진다.
   const pieR = 74, ringW = 6;
   const hasPartialLabel = rings.some(r => r.partial && r.partial.amountLabel);
-  const outerSize = 2 * (pieR + rings.length * ringW + (hasPartialLabel ? 20 : 6));
+  const outerSize = 2 * (pieR + rings.length * ringW + (hasPartialLabel ? 14 : 6));
   const cx = outerSize/2, cy = outerSize/2;
   const pieInner = donutSVG(ordered, 160, 'stock').replace(/^<div class="donut-wrap">/, '').replace(/<\/div>$/, '');
   // 계좌유형링을 삭제해서 링 개수가 전반적으로 1개씩 줄어든 만큼, 크기 기준도 한 단계씩 낮춰서
