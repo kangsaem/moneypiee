@@ -207,8 +207,7 @@
   </div>
   <header>
     <div>
-      <h1><span style="font-size:1.2em;display:inline-block;vertical-align:bottom;">머니파이</span> <span style="opacity:0.2;display:inline-block;vertical-align:bottom;">MONEY PIE</span></h1>
-      <p class="sub" style="font-size:11px;margin:2px 0 0;">종목/주식수/섹터를 입력하면 비중이 자동 계산됩니다.</p>
+      <h1><img src="apple-touch-icon_old.png" alt="" style="height:1.05em;width:1.05em;display:inline-block;vertical-align:bottom;border-radius:6px;margin-right:6px;"><span style="font-size:1.05em;display:inline-block;vertical-align:bottom;">머니파이</span> <span style="opacity:0.2;display:inline-block;vertical-align:bottom;">MONEY PIE</span></h1>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <button class="btn" id="exportBtn">데이터 저장하기</button>
@@ -4696,6 +4695,8 @@ function renderPanel(){
         ${stockDetailButtonBlock(holdings, region === 'domestic' ? '원화' : '외화')}
       </div>
     `;
+    const accountBtnSelectorInit = document.getElementById('accountBtnSelector');
+    if(accountBtnSelectorInit) accountBtnSelectorInit.scrollLeft = 0;
     bindSectorAccordionHandlers();
     const stockDetailBtnRegion = document.getElementById('stock-detail-btn');
     if(stockDetailBtnRegion) stockDetailBtnRegion.addEventListener('click', toggleStockDetailAccordion);
@@ -4713,11 +4714,15 @@ function renderPanel(){
     });
     panel.querySelectorAll('[data-subtype-filter]').forEach(el => {
       el.addEventListener('click', () => {
+        const selectorEl = document.getElementById('accountBtnSelector');
+        const scrollPos = selectorEl ? selectorEl.scrollLeft : 0;
         const clicked = el.dataset.subtypeFilter;
         const newArr = toggleTypeInAccountFilter(accountFilterSel, clicked);
         if(isDomestic) state.domesticAccountFilter = newArr;
         else state.overseasAccountFilter = newArr;
         render();
+        const newSelectorEl = document.getElementById('accountBtnSelector');
+        if(newSelectorEl) newSelectorEl.scrollLeft = scrollPos;
       });
     });
     panel.querySelectorAll('[data-account-filter]').forEach(el => {
@@ -4807,6 +4812,8 @@ function renderPanel(){
         ${stockDetailButtonBlock(scopedHoldings)}
       </div>
     `;
+    const accountBtnSelectorInitTotal = document.getElementById('accountBtnSelector');
+    if(accountBtnSelectorInitTotal) accountBtnSelectorInitTotal.scrollLeft = 0;
     bindSectorAccordionHandlers();
     bindRegionAccordionHandlers();
     panel.querySelectorAll('[data-memosnap]').forEach(btn => {
@@ -4814,9 +4821,13 @@ function renderPanel(){
     });
     panel.querySelectorAll('[data-accounttype-filter]').forEach(el => {
       el.addEventListener('click', () => {
+        const selectorEl = document.getElementById('accountBtnSelector');
+        const scrollPos = selectorEl ? selectorEl.scrollLeft : 0;
         const clicked = el.dataset.accounttypeFilter;
         totalAccountFilterSel = toggleTypeInAccountFilter(totalAccountFilterSel, clicked);
         render();
+        const newSelectorEl = document.getElementById('accountBtnSelector');
+        if(newSelectorEl) newSelectorEl.scrollLeft = scrollPos;
       });
     });
     panel.querySelectorAll('[data-account-filter]').forEach(el => {
