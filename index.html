@@ -207,7 +207,7 @@
   </div>
   <header>
     <div>
-      <h1><img src="apple-touch-icon_old.png" alt="" style="height:1.05em;width:1.05em;display:inline-block;vertical-align:bottom;border-radius:6px;margin-right:6px;"><span style="font-size:1.05em;display:inline-block;vertical-align:bottom;">머니파이</span> <span style="opacity:0.2;display:inline-block;vertical-align:bottom;">MONEY PIE</span></h1>
+      <h1><img src="apple-touch-icon_old.png" alt="" style="height:1.2em;width:1.2em;display:inline-block;vertical-align:bottom;border-radius:6px;margin-right:6px;"><span style="font-size:1.05em;display:inline-block;vertical-align:bottom;">머니파이</span> <span style="opacity:0.2;display:inline-block;vertical-align:bottom;">MONEY PIE</span></h1>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <button class="btn" id="exportBtn">데이터 저장하기</button>
@@ -1077,6 +1077,20 @@ const ACCOUNT_TYPES = ['연금','DC','IRP','ISA','직투'];
 function accountsOfType(type){
   return state.accounts.filter(a => (a.accountType||'직투') === type).map(a => a.id);
 }
+// 계좌 버튼 행이 화면보다 넓어 스크롤이 필요하면 왼쪽 정렬(맨 왼쪽 버튼부터 보이게)로,
+// 넓지 않아 스크롤이 필요 없으면 가운데 정렬을 유지하도록 전환한다.
+// justify-content:center인 채로 오버플로우가 생기면 왼쪽 끝부분이 화면 밖으로 밀려나
+// scrollLeft=0을 줘도 안 보이는 문제가 있어, 오버플로우 여부에 따라 정렬 자체를 바꿔야 한다.
+function syncAccountBtnScroll(preserveScrollLeft){
+  const el = document.getElementById('accountBtnSelector');
+  if(!el) return;
+  el.style.justifyContent = (el.scrollWidth > el.clientWidth) ? 'flex-start' : 'center';
+  el.scrollLeft = preserveScrollLeft != null ? preserveScrollLeft : 0;
+}
+function initAccountBtnScrollAlignment(){
+  syncAccountBtnScroll(0);
+}
+
 function toggleTypeInAccountFilter(filterArr, type){
   const ids = accountsOfType(type);
   if(ids.length === 0) return filterArr;
@@ -4695,8 +4709,7 @@ function renderPanel(){
         ${stockDetailButtonBlock(holdings, region === 'domestic' ? '원화' : '외화')}
       </div>
     `;
-    const accountBtnSelectorInit = document.getElementById('accountBtnSelector');
-    if(accountBtnSelectorInit) accountBtnSelectorInit.scrollLeft = 0;
+    initAccountBtnScrollAlignment();
     bindSectorAccordionHandlers();
     const stockDetailBtnRegion = document.getElementById('stock-detail-btn');
     if(stockDetailBtnRegion) stockDetailBtnRegion.addEventListener('click', toggleStockDetailAccordion);
@@ -4721,8 +4734,7 @@ function renderPanel(){
         if(isDomestic) state.domesticAccountFilter = newArr;
         else state.overseasAccountFilter = newArr;
         render();
-        const newSelectorEl = document.getElementById('accountBtnSelector');
-        if(newSelectorEl) newSelectorEl.scrollLeft = scrollPos;
+        syncAccountBtnScroll(scrollPos);
       });
     });
     panel.querySelectorAll('[data-account-filter]').forEach(el => {
@@ -4734,8 +4746,7 @@ function renderPanel(){
         if(isDomestic) state.domesticAccountFilter = newArr;
         else state.overseasAccountFilter = newArr;
         render();
-        const newSelectorEl = document.getElementById('accountBtnSelector');
-        if(newSelectorEl) newSelectorEl.scrollLeft = scrollPos;
+        syncAccountBtnScroll(scrollPos);
       });
     });
     panel.querySelectorAll('[data-locked-region-toggle]').forEach(el => {
@@ -4812,8 +4823,7 @@ function renderPanel(){
         ${stockDetailButtonBlock(scopedHoldings)}
       </div>
     `;
-    const accountBtnSelectorInitTotal = document.getElementById('accountBtnSelector');
-    if(accountBtnSelectorInitTotal) accountBtnSelectorInitTotal.scrollLeft = 0;
+    initAccountBtnScrollAlignment();
     bindSectorAccordionHandlers();
     bindRegionAccordionHandlers();
     panel.querySelectorAll('[data-memosnap]').forEach(btn => {
@@ -4826,8 +4836,7 @@ function renderPanel(){
         const clicked = el.dataset.accounttypeFilter;
         totalAccountFilterSel = toggleTypeInAccountFilter(totalAccountFilterSel, clicked);
         render();
-        const newSelectorEl = document.getElementById('accountBtnSelector');
-        if(newSelectorEl) newSelectorEl.scrollLeft = scrollPos;
+        syncAccountBtnScroll(scrollPos);
       });
     });
     panel.querySelectorAll('[data-account-filter]').forEach(el => {
@@ -4839,8 +4848,7 @@ function renderPanel(){
           ? totalAccountFilterSel.filter(id => id !== clicked)
           : [...totalAccountFilterSel, clicked];
         render();
-        const newSelectorEl = document.getElementById('accountBtnSelector');
-        if(newSelectorEl) newSelectorEl.scrollLeft = scrollPos;
+        syncAccountBtnScroll(scrollPos);
       });
     });
     const stockDetailBtn = document.getElementById('stock-detail-btn');
