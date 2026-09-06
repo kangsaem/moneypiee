@@ -207,7 +207,7 @@
   </div>
   <header>
     <div>
-      <h1><img src="apple-touch-icon_old.png" alt="" style="height:1.2em;width:1.2em;display:inline-block;vertical-align:bottom;border-radius:6px;margin-right:6px;"><span style="font-size:1.05em;display:inline-block;vertical-align:bottom;">머니파이</span> <span style="opacity:0.2;display:inline-block;vertical-align:bottom;">MONEY PIE</span></h1>
+      <h1><img id="hardReloadIcon" src="apple-touch-icon_old.png" alt="새로고침" title="새로고침" style="height:1.2em;width:1.2em;display:inline-block;vertical-align:bottom;border-radius:6px;margin-right:6px;cursor:pointer;"><span style="font-size:1.05em;display:inline-block;vertical-align:bottom;">머니파이</span> <span style="opacity:0.2;display:inline-block;vertical-align:bottom;">MONEY PIE</span></h1>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <button class="btn" id="exportBtn">데이터 저장하기</button>
@@ -1074,8 +1074,9 @@ const ACCOUNT_TYPES = ['연금','DC','IRP','ISA','직투'];
 // 계좌유형 버튼과 계좌 버튼을 하나의 계좌 선택 배열로 연동하기 위한 헬퍼.
 // 계좌유형 버튼을 누르면 그 유형에 속한 계좌들이 계좌 선택 배열에 토글되어(모두 선택->모두 해제, 일부만 선택->모두 선택)
 // 계좌 버튼도 같이 활성화된다.
-function accountsOfType(type){
-  return state.accounts.filter(a => (a.accountType||'직투') === type).map(a => a.id);
+function accountsOfType(type, eligibleIds){
+  const ids = state.accounts.filter(a => (a.accountType||'직투') === type).map(a => a.id);
+  return eligibleIds ? ids.filter(id => eligibleIds.includes(id)) : ids;
 }
 // 계좌 버튼 행이 화면보다 넓어 스크롤이 필요하면 왼쪽 정렬(맨 왼쪽 버튼부터 보이게)로,
 // 넓지 않아 스크롤이 필요 없으면 가운데 정렬을 유지하도록 전환한다.
@@ -1091,8 +1092,8 @@ function initAccountBtnScrollAlignment(){
   syncAccountBtnScroll(0);
 }
 
-function toggleTypeInAccountFilter(filterArr, type){
-  const ids = accountsOfType(type);
+function toggleTypeInAccountFilter(filterArr, type, eligibleIds){
+  const ids = accountsOfType(type, eligibleIds);
   if(ids.length === 0) return filterArr;
   const allSelected = ids.every(id => filterArr.includes(id));
   if(allSelected) return filterArr.filter(id => !ids.includes(id));
@@ -1100,12 +1101,12 @@ function toggleTypeInAccountFilter(filterArr, type){
   ids.forEach(id => merged.add(id));
   return Array.from(merged);
 }
-function isTypeFullySelected(filterArr, type){
-  const ids = accountsOfType(type);
+function isTypeFullySelected(filterArr, type, eligibleIds){
+  const ids = accountsOfType(type, eligibleIds);
   return ids.length > 0 && ids.every(id => filterArr.includes(id));
 }
-function selectedTypesFromAccountFilter(filterArr){
-  return ACCOUNT_TYPES.filter(t => isTypeFullySelected(filterArr, t));
+function selectedTypesFromAccountFilter(filterArr, eligibleIds){
+  return ACCOUNT_TYPES.filter(t => isTypeFullySelected(filterArr, t, eligibleIds));
 }
 
 function hexToRgb(hex){
@@ -4677,8 +4678,9 @@ function renderPanel(){
     const total = _.sumBy(holdings, 'amount');
 
     const regionHoldingsWithType = _.flatMap(state.accounts, a => a.holdings.filter(h => (h.region||'domestic') === region).map(h => ({ ...h, accountTypeLabel: a.accountType || '직투', _accId: a.id })));
+    const eligibleAccountIds = computeAccountBarData(regionHoldingsWithType, state.accounts).map(d => d.id);
     const accountBarHtml = accountBarChartBlock(regionHoldingsWithType, state.accounts, accountFilterSel);
-    const subTypeBarHtml = subTypeBarBlock(regionHoldingsWithType, selectedTypesFromAccountFilter(accountFilterSel));
+    const subTypeBarHtml = subTypeBarBlock(regionHoldingsWithType, selectedTypesFromAccountFilter(accountFilterSel, eligibleAccountIds));
 
     const cashTotal = _.sumBy(holdings.filter(isCashHolding), 'amount');
     const cashPct = total ? (cashTotal/total*100) : 0;
@@ -4730,7 +4732,7 @@ function renderPanel(){
         const selectorEl = document.getElementById('accountBtnSelector');
         const scrollPos = selectorEl ? selectorEl.scrollLeft : 0;
         const clicked = el.dataset.subtypeFilter;
-        const newArr = toggleTypeInAccountFilter(accountFilterSel, clicked);
+        const newArr = toggleTypeInAccountFilter(accountFilterSel, clicked, eligibleAccountIds);
         if(isDomestic) state.domesticAccountFilter = newArr;
         else state.overseasAccountFilter = newArr;
         render();
@@ -4754,7 +4756,7 @@ function renderPanel(){
     });
     panel.querySelectorAll('[data-subtype-jump]').forEach(el => {
       el.addEventListener('click', () => {
-        const newArr = toggleTypeInAccountFilter(accountFilterSel, el.dataset.subtypeJump);
+        const newArr = toggleTypeInAccountFilter(accountFilterSel, el.dataset.subtypeJump, eligibleAccountIds);
         if(isDomestic) state.domesticAccountFilter = newArr;
         else state.overseasAccountFilter = newArr;
         render();
@@ -4766,6 +4768,7 @@ function renderPanel(){
   if(state.activeId === '__total__'){
     const allHoldings = _.flatMap(state.accounts, a => a.holdings);
     const holdingsWithType = _.flatMap(state.accounts, a => a.holdings.map(h => ({ ...h, accountTypeLabel: a.accountType || '직투', _accId: a.id })));
+    const eligibleAccountIdsTotal = computeAccountBarData(holdingsWithType, state.accounts).map(d => d.id);
     const scopedHoldings = totalAccountFilterSel.length > 0
       ? holdingsWithType.filter(h => totalAccountFilterSel.includes(h._accId))
       : holdingsWithType;
@@ -4802,7 +4805,7 @@ function renderPanel(){
           ${accountButtonsRowHtml(computeAccountBarData(holdingsWithType, state.accounts), totalAccountFilterSel)}
           <div style="display:flex;flex-direction:column;max-width:800px;width:100%;min-width:0;margin:0 auto;">
             ${accountBarOnlyHtml(computeAccountBarData(holdingsWithType, state.accounts), totalAccountFilterSel)}
-            ${accountTypeBarChartBlock(selectedTypesFromAccountFilter(totalAccountFilterSel))}
+            ${accountTypeBarChartBlock(selectedTypesFromAccountFilter(totalAccountFilterSel, eligibleAccountIdsTotal))}
           </div>
         </div>
         ${sectorChartBlock(scopedHoldings)}
@@ -4834,7 +4837,7 @@ function renderPanel(){
         const selectorEl = document.getElementById('accountBtnSelector');
         const scrollPos = selectorEl ? selectorEl.scrollLeft : 0;
         const clicked = el.dataset.accounttypeFilter;
-        totalAccountFilterSel = toggleTypeInAccountFilter(totalAccountFilterSel, clicked);
+        totalAccountFilterSel = toggleTypeInAccountFilter(totalAccountFilterSel, clicked, eligibleAccountIdsTotal);
         render();
         syncAccountBtnScroll(scrollPos);
       });
@@ -5044,6 +5047,11 @@ async function handleResetAllData(){
   });
 }
 document.getElementById('snapshotBtn').addEventListener('click', saveSnapshot);
+document.getElementById('hardReloadIcon').addEventListener('click', () => {
+  // 캐시된 index.html을 쓰지 않고 서버에서 새로 받아오도록, 캐시 무효화용 쿼리스트링을 붙여서 이동한다.
+  const base = location.pathname;
+  location.href = base + '?_r=' + Date.now();
+});
 document.getElementById('exportBtn').addEventListener('click', exportData);
 document.getElementById('exportXlsxBtn').addEventListener('click', exportXLSX);
 document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
