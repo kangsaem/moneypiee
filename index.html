@@ -640,7 +640,7 @@ function applyReloadBtnCooldownVisual(btn){
       if(liveLabel){
         liveLabel.style.display = 'flex';
         if(elapsed < 10000){
-          liveLabel.textContent = '시세 갱신됨';
+          liveLabel.textContent = '20분 지연 시세';
         } else {
           const remainMin = Math.ceil(remain / 60000);
           liveLabel.textContent = `${remainMin}분간 쿨다운`;
@@ -668,6 +668,9 @@ function bindReloadPricesBtn(){
     btn.classList.remove('reload-spin');
     void btn.offsetWidth; // 리플로우 강제로 애니메이션 재시작 가능하게
     btn.classList.add('reload-spin');
+    // 하단 새로고침 시 상단 시장 지표도 함께 갱신
+    loadMarketData(true);
+    applyMarketRefreshCooldownVisual();
     const hasQty = state.accounts.some(a => (a.holdings||[]).some(h => h.quantity != null && h.symbol));
     if(!hasQty) return;
     btn.disabled = true;
@@ -993,14 +996,6 @@ async function setMarketRange(key, targetRange){
       data.marketOpen = kr.open;
       data.marketClose = kr.close;
     }
-    // 1일 범위에서 코스피/코스닥은 네이버 실시간 가격·등락률로 덮어쓴다.
-    if(targetRange === '1d' && data && NAVER_INDEX_MAP[key]){
-      const naver = await fetchNaverIndex(NAVER_INDEX_MAP[key]);
-      if(naver && naver.price != null){
-        data.price = naver.price;
-        data.naverChangePct = naver.changePct;
-      }
-    }
     marketFetchCache[cacheKey] = data;
     marketData[key] = data;
   }catch(e){}
@@ -1031,7 +1026,7 @@ function applyMarketRefreshCooldownVisual(){
     if(remain > 0){
       label.style.display = '';
       if(elapsed < 10000){
-        label.textContent = '- 시세 갱신됨';
+        label.textContent = '- 20분 지연 시세';
       } else {
         const remainMin = Math.ceil(remain / 60000);
         label.textContent = `- ${remainMin}분간 쿨다운`;
@@ -1060,13 +1055,7 @@ async function loadMarketData(forceRefresh){
   }
   lastMarketRefreshAt = Date.now();
   try { localStorage.setItem(LS_MARKET_REFRESH_KEY, String(lastMarketRefreshAt)); } catch(e){}
-  // 야후 차트(스파크라인용) + 코스피/코스닥 네이버 실시간 가격을 병렬로 가져온다.
-  const [yahooResults, naverKospi, naverKosdaq] = await Promise.all([
-    Promise.allSettled(MARKET_SYMBOLS.map(cfg => fetchYahooChart(cfg.symbol, '1d', KOREA_SESSION_KEYS.includes(cfg.key)))),
-    fetchNaverIndex(NAVER_INDEX_MAP.kospi),
-    fetchNaverIndex(NAVER_INDEX_MAP.kosdaq)
-  ]);
-  const results = yahooResults;
+  const results = await Promise.allSettled(MARKET_SYMBOLS.map(cfg => fetchYahooChart(cfg.symbol, '1d', KOREA_SESSION_KEYS.includes(cfg.key))));
   const dataMap = {};
   const kr = koreanMarketTimesForToday();
   MARKET_SYMBOLS.forEach((cfg, i) => {
@@ -1074,17 +1063,6 @@ async function loadMarketData(forceRefresh){
     if(value && KR_OVERRIDE_KEYS.includes(cfg.key)){
       value.marketOpen = kr.open;
       value.marketClose = kr.close;
-    }
-    // 코스피/코스닥은 네이버 실시간 시세로 가격·등락률을 덮어쓴다 (야후는 20분 지연).
-    if(value){
-      if(cfg.key === 'kospi' && naverKospi && naverKospi.price != null){
-        value.price = naverKospi.price;
-        value.naverChangePct = naverKospi.changePct;
-      }
-      if(cfg.key === 'kosdaq' && naverKosdaq && naverKosdaq.price != null){
-        value.price = naverKosdaq.price;
-        value.naverChangePct = naverKosdaq.changePct;
-      }
     }
     dataMap[cfg.key] = value;
     marketRangeState[cfg.key] = '1d';
