@@ -776,9 +776,12 @@ const MARKET_RANGE_LABEL = { '1d':'1일', '1mo':'1개월', '3mo':'3개월', '6mo
 const MARKET_CACHE_KEY = 'moneypie:marketcache';
 const MARKET_CACHE_TTL = 1000 * 60 * 60 * 2; // 2시간
 
-let marketData = {};
+let marketData = {}; // "현재지수" 그 자체 - 항상 1일(실시간) 기준 하나만 유지된다.
 let marketRangeState = {};
-let marketFetchCache = {};
+// 기간 탭(1개월/3개월/6개월/12개월)별 "차트용 과거 종가"만 따로 저장하는 캐시.
+// 현재지수(marketData[key].price)는 이 캐시와 무관하다.
+// -> 기간 탭을 눌러도 상단에 표시되는 "현재지수" 숫자는 바뀌지 않고, 등락률/그래프만 바뀐다.
+let marketRangeChart = {};
 
 async function fetchYahooChart(symbol, range, wideIntraday){
   range = range || '1d';
@@ -819,7 +822,10 @@ async function fetchYahooChart(symbol, range, wideIntraday){
   };
 }
 
-function computePeriodChange(d, range){
+// periodCloses: range!=='1d'일 때 사용할 "그 기간의 과거 종가 배열"(marketRangeChart 캐시에서 옴).
+// 1일 탭 외의 등락률은 항상 "현재지수(d.price, 실시간)" 대비 "기간 시작 종가"로 계산한다.
+// -> 기간 탭을 오갈 때 d.price 자체는 절대 바뀌지 않으므로, 탭마다 다른 "현재지수"가 노출되는 일이 없다.
+function computePeriodChange(d, range, periodCloses){
   if(!d) return 0;
   if(range === '1d'){
     if(d.naverChangePct !== undefined && d.naverChangePct !== null && !isNaN(d.naverChangePct)){
@@ -833,6 +839,13 @@ function computePeriodChange(d, range){
     const last = closes[closes.length-1], prev = closes[closes.length-2];
     return prev ? (last-prev)/prev*100 : 0;
   }
+  // periodCloses가 주어진 경우(지수탭 카드): "현재지수(d.price, 실시간 고정값)" 대비 기간 시작 종가로 계산.
+  if(periodCloses){
+    if(periodCloses.length < 1 || d.price === undefined || d.price === null) return 0;
+    const first = periodCloses[0];
+    return first ? (d.price - first) / first * 100 : 0;
+  }
+  // periodCloses가 없는 경우(종목 히스토리 등 기존 호출부): 기존 방식 그대로 d.closes의 첫값~끝값으로 계산.
   const closes = d.closes || [];
   if(closes.length < 2) return 0;
   const first = closes[0], last = closes[closes.length-1];
@@ -925,6 +938,8 @@ function renderMarketTicker(){
   const el = document.getElementById('marketTicker');
   if(!el) return;
   const cards = MARKET_SYMBOLS.map(cfg => {
+    // "현재지수"는 항상 marketData[key] 하나만 본다 - 기간 탭(1개월/3개월/6개월/12개월)을 눌러도
+    // 이 값 자체는 절대 바뀌지 않고, 아래 range 분기에서 차트/등락률만 바뀐다.
     const d = marketData[cfg.key];
     const range = marketRangeState[cfg.key] || '1d';
     if(!d || d.price === undefined){
@@ -942,26 +957,44 @@ function renderMarketTicker(){
       </div>`;
     }
 
-    const change = computePeriodChange(d, range);
-    const changeColor = change > 0 ? '#E87BA4' : (change < 0 ? '#5FB8E0' : 'var(--text-dim)');
-    const arrow = change > 0 ? '▲' : (change < 0 ? '▼' : '');
     // 장마감 후 야후가 meta.currentTradingPeriod를 "내일 장 시간"으로 잘못 줄 때가 있어
     // (구간이 하루보다 훨씬 길어짐) - 이 경우 오늘 한국장 시간(09:00~15:30)으로 안전하게 보정
-    if(range === '1d' && d.marketOpen && d.marketClose && (d.marketClose - d.marketOpen) > 20*3600 && cfg.key !== 'us10y'){
+    if(d.marketOpen && d.marketClose && (d.marketClose - d.marketOpen) > 20*3600 && cfg.key !== 'us10y'){
       const kr = koreanMarketTimesForToday();
       d.marketOpen = kr.open;
       d.marketClose = kr.close;
     }
-    const useFixedAxis = range === '1d' && KR_OVERRIDE_KEYS.includes(cfg.key);
+    const useFixedAxis = KR_OVERRIDE_KEYS.includes(cfg.key);
     if(useFixedAxis){
       const kr = koreanMarketTimesForToday();
       d.marketOpen = kr.open;
       d.marketClose = kr.close;
     }
-    const baseline = range === '1d' ? d.prevClose : ((d.closes && d.closes[0]) || undefined);
-    const chart = (range === '1d' && d.intradayPoints && d.intradayPoints.length >= 2)
-      ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 90, 24, baseline, useFixedAxis)
-      : sparklineSVG(d.closes || [], 90, 24, baseline);
+
+    let chart, periodCloses;
+    if(range === '1d'){
+      const baseline = d.prevClose;
+      chart = (d.intradayPoints && d.intradayPoints.length >= 2)
+        ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 90, 24, baseline, useFixedAxis)
+        : sparklineSVG(d.closes || [], 90, 24, baseline);
+    } else {
+      periodCloses = (marketRangeChart[cfg.key] && marketRangeChart[cfg.key][range]) || null;
+      if(!periodCloses){
+        // 이 기간의 차트 데이터를 아직 못 받아온 상태 - 현재지수는 그대로 보여주고 그래프/등락률만 로딩 표시.
+        return `<div class="mkt-card" data-mktkey="${cfg.key}">
+          <div class="mkt-name" style="display:flex;justify-content:space-between;align-items:baseline;"><span>${cfg.name}</span><span style="color:var(--text-dim);">${MARKET_RANGE_LABEL[range]}</span></div>
+          <div class="mkt-value">${formatMarketValue(cfg.key, d.price)}</div>
+          <div class="mkt-change" style="color:var(--text-dim);font-size:9px;">불러오는 중...</div>
+          <div style="height:24px;margin-top:4px;"></div>
+        </div>`;
+      }
+      chart = sparklineSVG(periodCloses, 90, 24, periodCloses[0]);
+    }
+
+    const change = computePeriodChange(d, range, periodCloses);
+    const changeColor = change > 0 ? '#E87BA4' : (change < 0 ? '#5FB8E0' : 'var(--text-dim)');
+    const arrow = change > 0 ? '▲' : (change < 0 ? '▼' : '');
+
     return `<div class="mkt-card" data-mktkey="${cfg.key}">
       <div class="mkt-name" style="display:flex;justify-content:space-between;align-items:baseline;"><span>${cfg.name}</span><span style="color:var(--text-dim);">${MARKET_RANGE_LABEL[range]}</span></div>
       <div class="mkt-value">${formatMarketValue(cfg.key, d.price)}</div>
@@ -979,31 +1012,42 @@ async function setMarketRange(key, targetRange){
   const cfg = MARKET_SYMBOLS.find(c => c.key === key);
   if(!cfg) return;
   marketRangeState[key] = targetRange;
+  renderMarketTicker(); // 탭 전환 즉시 "불러오는 중" 등 상태를 먼저 보여준다 (현재지수 값은 그대로 유지됨)
 
-  const cacheKey = key + '_' + targetRange;
-  if(marketFetchCache[cacheKey]){
-    marketData[key] = marketFetchCache[cacheKey];
+  if(targetRange === '1d'){
+    // 1일(실시간) 탭: marketData[key]가 곧 "현재지수" 그 자체다.
+    // 이미 값이 있으면 재요청하지 않고(=값이 바뀔 일이 없고), 없을 때만 새로 받아온다.
+    if(!marketData[key]){
+      try{
+        const data = await fetchYahooChart(cfg.symbol, '1d', KOREA_SESSION_KEYS.includes(key));
+        // 코스피/코스닥은 네이버 실시간 가격·등락률로 덮어쓴다.
+        if(data && NAVER_INDEX_MAP[key]){
+          const naver = await fetchNaverIndex(NAVER_INDEX_MAP[key]);
+          if(naver && naver.price != null){
+            data.price = naver.price;
+            data.naverChangePct = naver.changePct;
+          }
+        }
+        marketData[key] = data;
+      }catch(e){}
+    }
+    renderMarketTicker();
+    return;
+  }
+
+  // 1개월/3개월/6개월/12개월 탭: "차트용 과거 종가"만 별도로 받아온다.
+  // 여기서 받는 데이터의 price는 절대 marketData[key](현재지수)에 반영하지 않는다 -> 현재지수 값 불변.
+  if(!marketRangeChart[key]) marketRangeChart[key] = {};
+  if(marketRangeChart[key][targetRange]){
     renderMarketTicker();
     return;
   }
   try{
     const data = await fetchYahooChart(cfg.symbol, targetRange, KOREA_SESSION_KEYS.includes(key));
-    if(targetRange === '1d' && KR_OVERRIDE_KEYS.includes(key) && data){
-      const kr = koreanMarketTimesForToday();
-      data.marketOpen = kr.open;
-      data.marketClose = kr.close;
-    }
-    // 1일 범위에서 코스피/코스닥은 네이버 실시간 가격·등락률로 덮어쓴다.
-    if(targetRange === '1d' && data && NAVER_INDEX_MAP[key]){
-      const naver = await fetchNaverIndex(NAVER_INDEX_MAP[key]);
-      if(naver && naver.price != null){
-        data.price = naver.price;
-        data.naverChangePct = naver.changePct;
-      }
-    }
-    marketFetchCache[cacheKey] = data;
-    marketData[key] = data;
-  }catch(e){}
+    marketRangeChart[key][targetRange] = (data && data.closes) || [];
+  }catch(e){
+    marketRangeChart[key][targetRange] = [];
+  }
   renderMarketTicker();
 }
 
@@ -1088,9 +1132,9 @@ async function loadMarketData(forceRefresh){
     }
     dataMap[cfg.key] = value;
     marketRangeState[cfg.key] = '1d';
-    marketFetchCache[cfg.key + '_1d'] = dataMap[cfg.key];
   });
   marketData = dataMap;
+  marketRangeChart = {}; // 현재지수가 새로 갱신됐으니, 기간 탭 차트도 다음 클릭 때 새로 받아오도록 비운다.
   renderMarketTicker();
   try{ localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: dataMap })); }catch(e){}
 }
