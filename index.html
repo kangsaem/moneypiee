@@ -2668,13 +2668,13 @@ function renderPreservingOpenChartAccordions(){
       ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null);
   let savedSectorPos = null;
   if(savedSectorLabel){
-    const openSectorAcc = document.querySelector('[id^="sector-slot-"] .floating-acc');
+    const openSectorAcc = document.querySelector('[id^="sector-slot-"] .floating-acc')
+      || document.querySelector('#orphan-sector-slot .floating-acc');
     if(openSectorAcc){
       const rect = openSectorAcc.getBoundingClientRect();
       savedSectorPos = { left: rect.left + 'px', top: rect.top + 'px', zIndex: openSectorAcc.style.zIndex };
       rememberedSectorAccordion = { label: savedSectorLabel, pos: savedSectorPos };
     } else if(rememberedSectorAccordion && rememberedSectorAccordion.label === savedSectorLabel){
-      // DOM에 없어도(필터로 잠시 사라짐) 기억된 위치 사용
       savedSectorPos = rememberedSectorAccordion.pos;
     }
   }
@@ -2683,7 +2683,8 @@ function renderPreservingOpenChartAccordions(){
     : (rememberedRegionAccordion && rememberedRegionAccordion.label) || null;
   let savedRegionPos = null;
   if(savedRegionLabel){
-    const openRegionAcc = document.querySelector('[id^="region-slot-"] .floating-acc');
+    const openRegionAcc = document.querySelector('[id^="region-slot-"] .floating-acc')
+      || document.querySelector('#orphan-region-slot .floating-acc');
     if(openRegionAcc){
       const rect = openRegionAcc.getBoundingClientRect();
       savedRegionPos = { left: rect.left + 'px', top: rect.top + 'px', zIndex: openRegionAcc.style.zIndex };
@@ -2709,8 +2710,10 @@ function renderPreservingOpenChartAccordions(){
         applyAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`, savedSectorPos);
         rememberedSectorAccordion = { label: savedSectorLabel, pos: savedSectorPos };
       }
+    } else {
+      // 필터 결과에 해당 섹터가 없어도 팝업은 유지하고 본문에 안내
+      showOrphanSectorAccordion(savedSectorLabel, savedSectorPos || (rememberedSectorAccordion && rememberedSectorAccordion.pos));
     }
-    // 필터 결과에 없으면 닫힌 상태 유지하되 위치 기억은 유지(다음에 다시 잡히면 복원)
   }
   if(savedRegionLabel){
     const el = document.querySelector(`[data-region-label="${CSS.escape(savedRegionLabel)}"]`);
@@ -2720,6 +2723,8 @@ function renderPreservingOpenChartAccordions(){
         applyAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`, savedRegionPos);
         rememberedRegionAccordion = { label: savedRegionLabel, pos: savedRegionPos };
       }
+    } else {
+      showOrphanRegionAccordion(savedRegionLabel, savedRegionPos || (rememberedRegionAccordion && rememberedRegionAccordion.pos));
     }
   }
   if(savedLockedRegionOpen && document.getElementById('locked-region-slot')){
@@ -2773,8 +2778,10 @@ function cycleStockSort(){
         applyAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`, savedSectorPos);
         rememberedSectorAccordion = { label: savedSectorLabel, pos: savedSectorPos };
       }
+    } else {
+      // 필터 결과에 해당 섹터가 없어도 팝업은 유지하고 본문에 안내
+      showOrphanSectorAccordion(savedSectorLabel, savedSectorPos || (rememberedSectorAccordion && rememberedSectorAccordion.pos));
     }
-    // 필터 결과에 없으면 닫힌 상태 유지하되 위치 기억은 유지(다음에 다시 잡히면 복원)
   }
   if(savedRegionLabel){
     const el = document.querySelector(`[data-region-label="${CSS.escape(savedRegionLabel)}"]`);
@@ -2784,6 +2791,8 @@ function cycleStockSort(){
         applyAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`, savedRegionPos);
         rememberedRegionAccordion = { label: savedRegionLabel, pos: savedRegionPos };
       }
+    } else {
+      showOrphanRegionAccordion(savedRegionLabel, savedRegionPos || (rememberedRegionAccordion && rememberedRegionAccordion.pos));
     }
   }
   if(savedLockedRegionOpen){
@@ -3222,7 +3231,8 @@ let rememberedRegionAccordion = null; // { label, pos }
 
 function rememberOpenSectorPos(label){
   if(!label) return;
-  const openAcc = document.querySelector('[id^="sector-slot-"] .floating-acc');
+  const openAcc = document.querySelector('[id^="sector-slot-"] .floating-acc')
+    || document.querySelector('#orphan-sector-slot .floating-acc');
   if(!openAcc) return;
   const rect = openAcc.getBoundingClientRect();
   rememberedSectorAccordion = {
@@ -3232,13 +3242,99 @@ function rememberOpenSectorPos(label){
 }
 function rememberOpenRegionPos(label){
   if(!label) return;
-  const openAcc = document.querySelector('[id^="region-slot-"] .floating-acc');
+  const openAcc = document.querySelector('[id^="region-slot-"] .floating-acc')
+    || document.querySelector('#orphan-region-slot .floating-acc');
   if(!openAcc) return;
   const rect = openAcc.getBoundingClientRect();
   rememberedRegionAccordion = {
     label,
     pos: { left: rect.left + 'px', top: rect.top + 'px', zIndex: openAcc.style.zIndex }
   };
+}
+
+function ensureOrphanSlot(id){
+  let slot = document.getElementById(id);
+  if(!slot){
+    slot = document.createElement('div');
+    slot.id = id;
+    document.body.appendChild(slot);
+  }
+  return slot;
+}
+
+function closeOrphanSectorAccordion(){
+  const slot = document.getElementById('orphan-sector-slot');
+  if(slot) slot.innerHTML = '';
+  sectorAccordionOpenLabel = null;
+  sectorAccordionOpenIdx = null;
+  rememberedSectorAccordion = null;
+}
+function closeOrphanRegionAccordion(){
+  const slot = document.getElementById('orphan-region-slot');
+  if(slot) slot.innerHTML = '';
+  regionAccordionOpenIdx = null;
+  rememberedRegionAccordion = null;
+}
+
+// 필터 결과에 해당 섹터가 없을 때, 닫지 않고 "해당 섹터 없음" 팝업을 같은 위치에 유지
+function showOrphanSectorAccordion(label, pos){
+  // 실제 섹터 슬롯은 모두 비움
+  document.querySelectorAll('[id^="sector-slot-"]').forEach(s => { s.innerHTML = ''; });
+  const slot = ensureOrphanSlot('orphan-sector-slot');
+  sectorAccordionOpenIdx = null;
+  sectorAccordionOpenLabel = label;
+  const posStyle = pos
+    ? `position:fixed;left:${pos.left};top:${pos.top};transform:none;margin:0;`
+    : 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);';
+  const z = (pos && pos.zIndex) ? pos.zIndex : (++accordionZIndexCounter);
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${z};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
+      <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">0</span>
+      <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
+      <button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#FFFFFF;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
+    </div>
+    <div class="acc-body" style="padding:8px 12px;">
+      <div class="empty" style="padding:12px 0;text-align:center;color:#777777;font-size:13px;">해당 섹터 없음</div>
+    </div>
+  </div>`;
+  makeAccordionDraggable(slot.querySelector('.floating-acc'));
+  if(pos){
+    applyAccordionPos('#orphan-sector-slot .floating-acc', pos);
+    slot.querySelector('.floating-acc').dataset.dragged = 'true';
+  }
+  const btn = slot.querySelector('[data-acc-close]');
+  if(btn) btn.addEventListener('click', closeOrphanSectorAccordion);
+  rememberedSectorAccordion = { label, pos: pos || rememberedSectorAccordion && rememberedSectorAccordion.pos };
+}
+
+function showOrphanRegionAccordion(label, pos){
+  document.querySelectorAll('[id^="region-slot-"]').forEach(s => { s.innerHTML = ''; });
+  const slot = ensureOrphanSlot('orphan-region-slot');
+  regionAccordionOpenIdx = null;
+  const posStyle = pos
+    ? `position:fixed;left:${pos.left};top:${pos.top};transform:none;margin:0;`
+    : 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);';
+  const z = (pos && pos.zIndex) ? pos.zIndex : (++accordionZIndexCounter);
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${z};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
+      <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">0</span>
+      <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
+      <button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#FFFFFF;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
+    </div>
+    <div class="acc-body" style="padding:8px 12px;">
+      <div class="empty" style="padding:12px 0;text-align:center;color:#777777;font-size:13px;">해당 지역 없음</div>
+    </div>
+  </div>`;
+  makeAccordionDraggable(slot.querySelector('.floating-acc'));
+  if(pos){
+    applyAccordionPos('#orphan-region-slot .floating-acc', pos);
+    slot.querySelector('.floating-acc').dataset.dragged = 'true';
+  }
+  const btn = slot.querySelector('[data-acc-close]');
+  if(btn) btn.addEventListener('click', closeOrphanRegionAccordion);
+  rememberedRegionAccordion = { label, pos: pos || rememberedRegionAccordion && rememberedRegionAccordion.pos };
 }
 
 function renderSectorBreakdown(label, slot, triggerEl, idx){
@@ -3260,9 +3356,12 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
     </div>
     <div class="acc-body" style="padding:8px 12px;">
       ${regionBarHtml}
-      ${rows || '<div class="empty">데이터 없음</div>'}
+      ${rows || '<div class="empty" style="padding:12px 0;text-align:center;color:#777777;font-size:13px;">해당 섹터 없음</div>'}
     </div>
   </div>`;
+  // 정상 섹터 슬롯에 열리면 orphan 슬롯은 비운다
+  const orphanSec = document.getElementById('orphan-sector-slot');
+  if(orphanSec) orphanSec.innerHTML = '';
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const closeBtn = slot.querySelector('[data-acc-close]');
   if(closeBtn) closeBtn.addEventListener('click', () => triggerEl.click());
@@ -3495,9 +3594,11 @@ function bindRegionAccordionHandlers(){
           <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
         </div>
         <div class="acc-body" style="padding:8px 12px;">
-          ${rows || '<div class="empty">데이터 없음</div>'}
+          ${rows || '<div class="empty" style="padding:12px 0;text-align:center;color:#777777;font-size:13px;">해당 지역 없음</div>'}
         </div>
       </div>`;
+      const orphanReg = document.getElementById('orphan-region-slot');
+      if(orphanReg) orphanReg.innerHTML = '';
       makeAccordionDraggable(slot.querySelector('.floating-acc'));
       const regionCloseBtn = slot.querySelector('[data-acc-close]');
       if(regionCloseBtn) regionCloseBtn.addEventListener('click', () => el.click());
@@ -4565,6 +4666,8 @@ function renderTabs(){
       regionAccordionOpenIdx = null;
       rememberedSectorAccordion = null;
       rememberedRegionAccordion = null;
+      const _os = document.getElementById('orphan-sector-slot'); if(_os) _os.innerHTML = '';
+      const _or = document.getElementById('orphan-region-slot'); if(_or) _or.innerHTML = '';
       // 현금비중 평가액 팝업은 탭 이동 시 닫는다 (닫기 버튼으로만 닫힘, 다른 이벤트로는 유지)
       cashAmountAccordionOpen = false;
       render();
