@@ -3501,7 +3501,29 @@ function bindSectorAccordionHandlers(){
     el.addEventListener('click', () => {
       const idx = el.dataset.sectorIdx;
       const label = el.dataset.sectorLabel;
-      if(label === '현금') return;
+      if(label === '현금'){
+        // 섹터 목록의 현금 → 현금비중 평가액 팝업
+        const cashHoldings = (sectorAccordionHoldings || []).filter(h => isCashHolding(h));
+        const amount = _.sumBy(cashHoldings, 'amount') || 0;
+        if(cashAmountAccordionOpen){
+          toggleCashAmountAccordion();
+          return;
+        }
+        let breakdown = null;
+        const cashBadge = document.querySelector('[data-cashbadge]');
+        if(cashBadge && cashBadge.dataset.cashDomestic !== undefined){
+          breakdown = {
+            domestic: parseFloat(cashBadge.dataset.cashDomestic),
+            foreign: parseFloat(cashBadge.dataset.cashForeign)
+          };
+        } else if(cashHoldings.length){
+          const domestic = _.sumBy(cashHoldings.filter(h => (h.region||'domestic') !== 'overseas'), 'amount');
+          const foreign = _.sumBy(cashHoldings.filter(h => h.region === 'overseas'), 'amount');
+          breakdown = { domestic, foreign };
+        }
+        toggleCashAmountAccordion(amount, el, breakdown);
+        return;
+      }
       if(label === '기타'){
         sectorOtherExpanded = true;
         render();
