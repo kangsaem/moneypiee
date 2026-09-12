@@ -3270,6 +3270,9 @@ let rememberedRegionAccordion = null; // { label, pos }
 // 도넛/목록 클릭으로 섹터·지역을 바꿀 때, 기존 팝업 위치를 다음 팝업에 넘기기 위한 임시값
 let pendingSectorAccordionPos = null;
 let pendingRegionAccordionPos = null;
+// 목록에서 닫은 직후의 위치를 기억. 다시 열 때 목록 근처가 아니라 여기로 연다.
+let lastClosedSectorPos = null;
+let lastClosedRegionPos = null;
 
 function captureCurrentSectorPos(){
   const openAcc = document.querySelector('[id^="sector-slot-"] .floating-acc')
@@ -3321,6 +3324,7 @@ function ensureOrphanSlot(id){
 }
 
 function closeOrphanSectorAccordion(){
+  lastClosedSectorPos = captureCurrentSectorPos() || lastClosedSectorPos;
   const slot = document.getElementById('orphan-sector-slot');
   if(slot) slot.innerHTML = '';
   sectorAccordionOpenLabel = null;
@@ -3328,6 +3332,7 @@ function closeOrphanSectorAccordion(){
   rememberedSectorAccordion = null;
 }
 function closeOrphanRegionAccordion(){
+  lastClosedRegionPos = captureCurrentRegionPos() || lastClosedRegionPos;
   const slot = document.getElementById('orphan-region-slot');
   if(slot) slot.innerHTML = '';
   regionAccordionOpenIdx = null;
@@ -3432,7 +3437,9 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
   sectorAccordionOpenLabel = label;
   // 이전에 같은 섹터를 열어 둔 위치가 있으면 그곳으로 복원
   // pending이 있으면(전환) 무조건 그 위치. 없으면 같은 라벨의 기억 위치만 사용(최초 오픈은 트리거 근처)
+  // pending(전환) > 최근 닫힌 위치 > 같은 라벨 기억 위치. 모두 없으면 클릭 목록 근처(초기 HTML)
   const sectorPosToApply = pendingSectorAccordionPos
+    || lastClosedSectorPos
     || (rememberedSectorAccordion && rememberedSectorAccordion.label === label && rememberedSectorAccordion.pos)
     || null;
   pendingSectorAccordionPos = null;
@@ -3464,7 +3471,8 @@ function bindSectorAccordionHandlers(){
       if(!slot) return;
       // 같은 항목 재클릭 → 닫기
       if(sectorAccordionOpenIdx === idx || sectorAccordionOpenLabel === label){
-        // orphan 포함 모든 섹터 팝업 닫기
+        // 닫기 직전 위치 기억 → 다음에 목록에서 다시 열 때 사용
+        lastClosedSectorPos = captureCurrentSectorPos() || lastClosedSectorPos;
         document.querySelectorAll('[id^="sector-slot-"]').forEach(s => { s.innerHTML = ''; });
         const orphanSec = document.getElementById('orphan-sector-slot');
         if(orphanSec) orphanSec.innerHTML = '';
@@ -3579,6 +3587,7 @@ function toggleLockedRegionAccordion(){
   const slot = document.getElementById('locked-region-slot');
   if(!slot) return;
   if(lockedRegionAccordionOpen){
+    lastClosedRegionPos = captureCurrentRegionPos() || lastClosedRegionPos;
     slot.innerHTML = '';
     lockedRegionAccordionOpen = false;
     rememberedRegionAccordion = null;
@@ -3605,6 +3614,7 @@ function toggleLockedRegionAccordion(){
   const lockedFixedPos = fixedAccordionStyleNear(lockedTrigger, 220);
   // 전환/필터 시 위치 유지
   const posToApply = pendingRegionAccordionPos
+    || lastClosedRegionPos
     || (rememberedRegionAccordion && rememberedRegionAccordion.label === lockedRegionAccordionPlainLabel && rememberedRegionAccordion.pos)
     || null;
   pendingRegionAccordionPos = null;
@@ -3694,6 +3704,7 @@ function bindRegionAccordionHandlers(){
       if(!slot) return;
       // 같은 항목 재클릭 → 닫기
       if(regionAccordionOpenIdx === idx){
+        lastClosedRegionPos = captureCurrentRegionPos() || lastClosedRegionPos;
         slot.innerHTML = '';
         document.querySelectorAll('[id^="region-slot-"]').forEach(s => { s.innerHTML = ''; });
         const orphanReg = document.getElementById('orphan-region-slot');
@@ -3742,6 +3753,7 @@ function bindRegionAccordionHandlers(){
       const centerLabelEl2 = document.getElementById('region-center-label');
       if(centerLabelEl2) centerLabelEl2.textContent = label;
       const regionPosToApply = pendingRegionAccordionPos
+        || lastClosedRegionPos
         || (rememberedRegionAccordion && rememberedRegionAccordion.label === label && rememberedRegionAccordion.pos)
         || null;
       pendingRegionAccordionPos = null;
@@ -4806,6 +4818,10 @@ function renderTabs(){
       regionAccordionOpenIdx = null;
       rememberedSectorAccordion = null;
       rememberedRegionAccordion = null;
+      lastClosedSectorPos = null;
+      lastClosedRegionPos = null;
+      pendingSectorAccordionPos = null;
+      pendingRegionAccordionPos = null;
       const _os = document.getElementById('orphan-sector-slot'); if(_os) _os.innerHTML = '';
       const _or = document.getElementById('orphan-region-slot'); if(_or) _or.innerHTML = '';
       // 현금비중 평가액 팝업은 탭 이동 시 닫는다 (닫기 버튼으로만 닫힘, 다른 이벤트로는 유지)
@@ -5823,9 +5839,15 @@ window.addEventListener('mousemove', (e) => {
 window.addEventListener('mouseup', () => {
   if(!draggingAccordionEl) return;
   // 드래그가 끝난 시점의 위치를 섹터/지역 기억에 반영
-  if(sectorAccordionOpenLabel) rememberOpenSectorPos(sectorAccordionOpenLabel);
+  if(sectorAccordionOpenLabel){
+    rememberOpenSectorPos(sectorAccordionOpenLabel);
+    lastClosedSectorPos = captureCurrentSectorPos() || lastClosedSectorPos;
+  }
   if(regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)]){
     rememberOpenRegionPos(regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label);
+    lastClosedRegionPos = captureCurrentRegionPos() || lastClosedRegionPos;
+  } else if(lockedRegionAccordionOpen){
+    lastClosedRegionPos = captureCurrentRegionPos() || lastClosedRegionPos;
   }
   draggingAccordionEl = null;
   accordionJustDragged = true;
@@ -5841,9 +5863,15 @@ window.addEventListener('touchmove', (e) => {
 }, { passive: false });
 window.addEventListener('touchend', () => {
   if(!draggingAccordionEl) return;
-  if(sectorAccordionOpenLabel) rememberOpenSectorPos(sectorAccordionOpenLabel);
+  if(sectorAccordionOpenLabel){
+    rememberOpenSectorPos(sectorAccordionOpenLabel);
+    lastClosedSectorPos = captureCurrentSectorPos() || lastClosedSectorPos;
+  }
   if(regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)]){
     rememberOpenRegionPos(regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label);
+    lastClosedRegionPos = captureCurrentRegionPos() || lastClosedRegionPos;
+  } else if(lockedRegionAccordionOpen){
+    lastClosedRegionPos = captureCurrentRegionPos() || lastClosedRegionPos;
   }
   draggingAccordionEl = null;
   accordionJustDragged = true;
