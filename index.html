@@ -5324,31 +5324,30 @@ document.addEventListener('click', (e) => {
   const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],[data-stock-history-name],[data-tab],#stock-sortable-chart,#total-memo-edit,#total-memo-save');
   const isInsideAccordion = e.target.closest('.floating-acc');
   if(isTrigger || isInsideAccordion || accordionJustDragged) return;
-  if(sectorAccordionOpenIdx !== null){
-    const s = document.getElementById('sector-slot-' + sectorAccordionOpenIdx);
-    if(s) s.innerHTML = '';
-    const sectorTriggerEl = document.querySelector(`[data-sector-idx="${sectorAccordionOpenIdx}"]`);
-    if(sectorTriggerEl) clearChartHighlight(sectorTriggerEl, 'decorative-sector');
-    sectorAccordionOpenIdx = null;
-    const sectorCenterEl = document.getElementById('sector-center-label');
-    if(sectorCenterEl) sectorCenterEl.textContent = '섹터';
-  }
-  if(regionAccordionOpenIdx !== null){
-    const s = document.getElementById('region-slot-' + regionAccordionOpenIdx);
-    if(s) s.innerHTML = '';
-    const regionTriggerEl = document.querySelector(`[data-region-idx="${regionAccordionOpenIdx}"]`);
-    if(regionTriggerEl) clearRegionGroupHighlight(regionTriggerEl);
-    regionAccordionOpenIdx = null;
-    const regionCenterEl = document.getElementById('region-center-label');
-    if(regionCenterEl) regionCenterEl.textContent = '지역';
-  }
+  // 섹터/지역 팝업 아코디언은 바깥 영역을 클릭해도 닫지 않는다.
+  // × 닫기 버튼 또는 다른 탭으로 이동할 때만 닫힌다.
   if(lockedRegionAccordionOpen){
     const s = document.getElementById('locked-region-slot');
     if(s) s.innerHTML = '';
     lockedRegionAccordionOpen = false;
   }
-  // 메모창은 화면 외곽을 클릭해도 닫지 않는다.
-  // 메모창 내부의 × 닫기 버튼으로만 닫는다.
+  // 메모창(스냅샷별/총자산): "작성/수정 중"(텍스트가 입력된 상태)이면 바깥 클릭으로 닫지 않는다.
+  // 메모가 비어있는 상태이거나(아직 아무것도 안 쓴 빈 textarea), 저장된 메모를 보기만 하는 중(textarea 없음)이면 바깥 클릭 시 닫는다.
+  const memoBoxHasUnsavedText = (slotEl) => {
+    if(!slotEl) return false;
+    const ta = slotEl.querySelector('textarea');
+    return !!(ta && ta.value.trim() !== '');
+  };
+  document.querySelectorAll('[id^="snap-memo-slot-"]').forEach(s => {
+    if(!memoBoxHasUnsavedText(s)) s.innerHTML = '';
+  });
+  if(openTotalMemoId){
+    const s = document.getElementById('total-memo-slot');
+    if(s && !memoBoxHasUnsavedText(s)){
+      s.innerHTML = '';
+      openTotalMemoId = null;
+    }
+  }
   if(cashAmountAccordionOpen){
     const s = document.getElementById('cash-amount-slot');
     if(s) s.innerHTML = '';
