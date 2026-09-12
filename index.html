@@ -2661,12 +2661,28 @@ function applyAccordionPos(selector, pos){
 }
 
 function renderPreservingOpenChartAccordions(){
-  const savedSectorLabel = (sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
-    ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null;
-  const savedSectorPos = savedSectorLabel ? captureAccordionPosAlways(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`) : null;
+  // 라벨 기준 저장: 계좌/계좌유형 필터 변경 후에도 같은 섹터·지역 팝업을 그 위치에 다시 연다
+  const savedSectorLabel = sectorAccordionOpenLabel
+    || ((sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
+      ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null);
+  let savedSectorPos = null;
+  if(savedSectorLabel){
+    const openSectorAcc = document.querySelector('[id^="sector-slot-"] .floating-acc');
+    if(openSectorAcc){
+      const rect = openSectorAcc.getBoundingClientRect();
+      savedSectorPos = { left: rect.left + 'px', top: rect.top + 'px', zIndex: openSectorAcc.style.zIndex };
+    }
+  }
   const savedRegionLabel = (regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
     ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label : null;
-  const savedRegionPos = savedRegionLabel ? captureAccordionPosAlways(`#region-slot-${regionAccordionOpenIdx} .floating-acc`) : null;
+  let savedRegionPos = null;
+  if(savedRegionLabel){
+    const openRegionAcc = document.querySelector('[id^="region-slot-"] .floating-acc');
+    if(openRegionAcc){
+      const rect = openRegionAcc.getBoundingClientRect();
+      savedRegionPos = { left: rect.left + 'px', top: rect.top + 'px', zIndex: openRegionAcc.style.zIndex };
+    }
+  }
   const savedLockedRegionOpen = lockedRegionAccordionOpen;
   const savedLockedRegionPos = savedLockedRegionOpen ? captureAccordionPosAlways('#locked-region-slot .floating-acc') : null;
   const savedCashOpen = cashAmountAccordionOpen;
@@ -5078,7 +5094,7 @@ function renderPanel(){
         const newArr = toggleTypeInAccountFilter(accountFilterSel, clicked, eligibleAccountIds);
         if(isDomestic) state.domesticAccountFilter = newArr;
         else state.overseasAccountFilter = newArr;
-        render();
+        renderPreservingOpenChartAccordions();
         syncAccountBtnScroll(scrollPos);
       });
     });
@@ -5090,7 +5106,7 @@ function renderPanel(){
         const newArr = accountFilterSel.includes(clicked) ? accountFilterSel.filter(id => id !== clicked) : [...accountFilterSel, clicked];
         if(isDomestic) state.domesticAccountFilter = newArr;
         else state.overseasAccountFilter = newArr;
-        render();
+        renderPreservingOpenChartAccordions();
         syncAccountBtnScroll(scrollPos);
       });
     });
@@ -5102,7 +5118,7 @@ function renderPanel(){
         const newArr = toggleTypeInAccountFilter(accountFilterSel, el.dataset.subtypeJump, eligibleAccountIds);
         if(isDomestic) state.domesticAccountFilter = newArr;
         else state.overseasAccountFilter = newArr;
-        render();
+        renderPreservingOpenChartAccordions();
       });
     });
     return;
@@ -5187,7 +5203,7 @@ function renderPanel(){
         const scrollPos = selectorEl ? selectorEl.scrollLeft : 0;
         const clicked = el.dataset.accounttypeFilter;
         totalAccountFilterSel = toggleTypeInAccountFilter(totalAccountFilterSel, clicked, eligibleAccountIdsTotal);
-        render();
+        renderPreservingOpenChartAccordions();
         syncAccountBtnScroll(scrollPos);
       });
     });
@@ -5199,7 +5215,7 @@ function renderPanel(){
         totalAccountFilterSel = totalAccountFilterSel.includes(clicked)
           ? totalAccountFilterSel.filter(id => id !== clicked)
           : [...totalAccountFilterSel, clicked];
-        render();
+        renderPreservingOpenChartAccordions();
         syncAccountBtnScroll(scrollPos);
       });
     });
