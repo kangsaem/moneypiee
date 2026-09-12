@@ -4193,18 +4193,19 @@ function renderTrendAccordionContent(){
   const series = trendSeriesData[openTrendSeriesPrefix] || [];
   const entry = series[openTrendIdx];
   if(!entry) return;
+  const savedPos = captureAccordionPos('#trend-accordion-box');
   const rows = entry.byKey.map(d => accordionRowHTML(d.label, d.pct)).join('');
   const canPrev = openTrendIdx < series.length - 1; // 이전달(더 과거) = 인덱스 증가
   const canNext = openTrendIdx > 0;                 // 다음달(더 최근) = 인덱스 감소
   root.innerHTML = `
-  <div class="floating-acc" id="trend-accordion-box" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);touch-action:pan-y;overflow:hidden;">
-    <div class="acc-header" style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;">
+  <div class="floating-acc" id="trend-accordion-box" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);overflow:hidden;">
+    <div class="acc-header" style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;cursor:grab;">
       <button data-trendnav="1" ${canPrev?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrev?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrev?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
       <button data-trendnav="-1" ${canNext?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canNext?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canNext?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">›</button>
       <span style="flex:1;text-align:center;font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;justify-content:center;">${escapeHTML(entry.monthLabel)}</span>
       <button data-trendclose style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#FFFFFF;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
     </div>
-    <div style="padding:12px 16px;overflow-y:auto;">
+    <div class="acc-body" style="padding:12px 16px;overflow-y:auto;">
       ${rows || '<div class="empty">데이터 없음</div>'}
     </div>
   </div>`;
@@ -4216,7 +4217,8 @@ function renderTrendAccordionContent(){
       navigateTrendMonth(parseInt(btn.dataset.trendnav, 10));
     });
   });
-  attachSwipeNav(document.getElementById('trend-accordion-box'), navigateTrendMonth, canPrev, canNext);
+  makeAccordionDraggable(document.getElementById('trend-accordion-box'));
+  applyAccordionPos('#trend-accordion-box', savedPos);
 }
 
 function trendBarsHTML(snapshots, groupKey, type, title, compact, idPrefix){
