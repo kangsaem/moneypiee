@@ -180,8 +180,12 @@
   /* 전체탭 종목 도넛 하단목록: 월별탭 종목 아코디언(폭 300px, 좌우 패딩 16px)과 동일한 표시 폭 */
   .stock-sortable-legend{width:268px;max-width:100%;}
   .stock-sortable-legend .legend-item{width:100%;min-width:0;}
-  .stock-sortable-legend .legend-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .stock-sortable-legend .legend-pct{flex-shrink:0;cursor:pointer;user-select:none;}
+  .stock-sortable-legend .legend-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
+  .stock-sortable-legend .legend-pct{flex-shrink:0;cursor:pointer;user-select:none;font-weight:500 !important;}
+  .sector-sortable-legend{width:268px;max-width:100%;}
+  .legend-item.sector-sortable-legend{width:100%;min-width:0;box-sizing:border-box;}
+  .legend-item.sector-sortable-legend .legend-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
+  .legend-item.sector-sortable-legend .legend-pct{flex-shrink:0;text-align:right;min-width:52px;font-weight:700;}
   .reset-link{color:var(--text-dim);font-size:13px;text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;margin-top:8px;font-weight:500;}
   .snapshot-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:14px;color:var(--text-dim);}
   .trend-wrap{margin-top:8px;}
@@ -2902,7 +2906,7 @@ function sectorLegendHTML(holdings){
     const isCashLabel = isCashLikeLabel(d.label);
     const cashStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : '';
     return `<div style="position:relative;">
-      <div class="legend-item" data-sector-idx="${i}" data-sector-label="${escapeHTML(d.label)}" style="cursor:pointer;"><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${cashStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${cashStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>
+      <div class="legend-item sector-sortable-legend" data-sector-idx="${i}" data-sector-label="${escapeHTML(d.label)}" style="cursor:pointer;"><span class="swatch" style="background:${color}"></span><span class="legend-name" style="${cashStyle}">${escapeHTML(d.label)}</span><span class="legend-pct num" style="${cashStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>
       <div id="sector-slot-${i}"></div>
     </div>`;
   }).join('');
@@ -4853,7 +4857,7 @@ function renderPanel(){
         ${sectorChartBlock(holdings)}
         ${stockChartBlockSortable(holdings, false, [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' }
-        ])}
+        ], undefined, true)}
         ${stockDetailButtonBlock(holdings, region === 'domestic' ? '원화' : '외화')}
       </div>
     `;
@@ -4867,6 +4871,13 @@ function renderPanel(){
     const stockSortChart = document.getElementById('stock-sortable-chart');
     const stockDonut = stockSortChart ? stockSortChart.querySelector('[data-donut-cycle]') : null;
     if(stockDonut) stockDonut.addEventListener('click', cycleStockSort);
+    panel.querySelectorAll('[data-stock-value-toggle]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        stockLegendValueMode = stockLegendValueMode === 'pct' ? 'amount' : 'pct';
+        render();
+      });
+    });
     panel.querySelectorAll('[data-stock-history-name]').forEach(cell => {
       cell.addEventListener('click', (e) => {
         e.stopPropagation();
