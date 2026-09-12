@@ -3206,18 +3206,14 @@ function cycleSectorSelection(){
   const total = fullOrdered.length;
   if(total === 0) return;
   const curIdx = sectorAccordionOpenLabel === null ? -1 : fullOrdered.findIndex(d => d.label === sectorAccordionOpenLabel);
-  const nextIdx = curIdx + 1;
-  if(nextIdx >= total){
-    // 끝까지 순환했으면 마지막 항목을 다시 클릭해 닫는다
-    const el = document.querySelector(`[data-sector-label="${CSS.escape(sectorAccordionOpenLabel || '')}"]`);
-    if(el) el.click();
-    return;
-  }
-  // 내용만 바꾸고 위치는 유지
+  // 마지막 다음 클릭은 닫지 않고 첫 항목으로 순환. 위치는 유지.
+  const nextIdx = curIdx < 0 ? 0 : (curIdx + 1) % total;
   pendingSectorAccordionPos = captureCurrentSectorPos()
     || (rememberedSectorAccordion && rememberedSectorAccordion.pos)
     || null;
   const nextLabel = fullOrdered[nextIdx].label;
+  // 이미 해당 섹터가 열려 있으면(항목 1개 등) 닫지 않고 유지
+  if(sectorAccordionOpenLabel === nextLabel) return;
   const isOtherMember = sectorOtherItems.some(d => d.label === nextLabel);
   if(isOtherMember && !sectorOtherExpanded){
     sectorOtherExpanded = true;
@@ -3585,15 +3581,13 @@ function cycleRegionSelection(){
   const total = regionAccordionOrdered ? regionAccordionOrdered.length : 0;
   if(total === 0) return;
   const curIdx = regionAccordionOpenIdx === null ? -1 : parseInt(regionAccordionOpenIdx, 10);
-  const nextIdx = curIdx + 1;
-  if(nextIdx >= total){
-    const el = document.querySelector(`[data-region-idx="${curIdx}"]`);
-    if(el) el.click();
-    return;
-  }
+  // 마지막 다음 클릭은 닫지 않고 첫 항목으로 순환. 위치는 유지.
+  const nextIdx = curIdx < 0 ? 0 : (curIdx + 1) % total;
   pendingRegionAccordionPos = captureCurrentRegionPos()
     || (rememberedRegionAccordion && rememberedRegionAccordion.pos)
     || null;
+  // 이미 해당 지역이 열려 있으면 닫지 않고 유지
+  if(regionAccordionOpenIdx !== null && parseInt(regionAccordionOpenIdx, 10) === nextIdx) return;
   const el = document.querySelector(`[data-region-idx="${nextIdx}"]`);
   if(el) el.click();
 }
