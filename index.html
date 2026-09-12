@@ -2850,12 +2850,12 @@ function accordionRowHTML(label, pct){
   return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num">${pct.toFixed(1)}%</span></div>`;
 }
 
-function trendStockRowHTML(label, pct, amount){
+function trendStockRowHTML(label, pct, amount, showAmount){
   const name = label === '현금' ? '현금' : escapeHTML(label);
-  return `<div style="display:flex;align-items:center;gap:16px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;">
-    <span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>
-    <span class="num" style="width:44px;text-align:right;flex-shrink:0;">${pct.toFixed(1)}%</span>
-    <span class="num" style="text-align:left;flex-shrink:0;">${amount.toLocaleString()}</span>
+  const value = showAmount ? amount.toLocaleString() : (pct.toFixed(1) + '%');
+  return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;">
+    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>
+    <span class="num" data-trend-value-toggle style="cursor:pointer;text-align:right;flex-shrink:0;user-select:none;">${value}</span>
   </div>`;
 }
 
@@ -4041,9 +4041,9 @@ function renderTotalMemoBox(snapId){
 }
 
 let trendSeriesData = {};
-let openTrendRowId = null;
-let openTrendSeriesPrefix = null;
-let openTrendIdx = null;
+// 종류(섹터/지역/종목)별로 독립적으로 열린 팝업을 유지. 닫기 버튼으로만 닫힌다.
+// { [prefix]: { idx, rowId, showAmount } }
+let openTrendAccordions = {};
 
 function bindTrendAccordionHandlers(){
   document.querySelectorAll('[data-trendrow]').forEach(el => {
@@ -4157,65 +4157,135 @@ function toggleStockDetailAccordion(){
 
 function openTrendAccordionRow(rowId){
   // 이미 열려 있는 행을 다시 클릭해도 닫지 않는다. 닫기는 닫기 버튼으로만 한다.
-  if(openTrendRowId === rowId) return;
   const lastDash = rowId.lastIndexOf('-');
-  openTrendSeriesPrefix = rowId.slice(0, lastDash);
-  openTrendIdx = parseInt(rowId.slice(lastDash + 1), 10);
-  openTrendRowId = rowId;
-  renderTrendAccordionContent();
+  const prefix = rowId.slice(0, lastDash);
+  const idx = parseInt(rowId.slice(lastDash + 1), 10);
+  const existing = openTrendAccordions[prefix];
+  if(existing && existing.rowId === rowId) return;
+  openTrendAccordions[prefix] = {
+    idx,
+    rowId,
+    // 같은 종류에서 월만 바꾼 경우 비중/평가액 표시 모드 유지
+    showAmount: existing ? !!existing.showAmount : false
+  };
+  renderTrendAccordionForPrefix(prefix);
 }
 
-function closeTrendAccordion(){
-  const root = document.getElementById('trend-accordion-root');
-  if(root) root.innerHTML = '';
-  openTrendRowId = null;
-  openTrendSeriesPrefix = null;
-  openTrendIdx = null;
+function closeTrendAccordion(prefix){
+  if(prefix == null){
+    openTrendAccordions = {};
+    const root = document.getElementById('trend-accordion-root');
+    if(root) root.innerHTML = '';
+    return;
+  }
+  delete openTrendAccordions[prefix];
+  const box = document.getElementById('trend-accordion-box-' + prefix);
+  if(box) box.remove();
 }
 
-function navigateTrendMonth(delta){
-  const series = trendSeriesData[openTrendSeriesPrefix] || [];
-  const newIdx = openTrendIdx + delta;
+function navigateTrendMonth(prefix, delta){
+  const st = openTrendAccordions[prefix];
+  if(!st) return;
+  const series = trendSeriesData[prefix] || [];
+  const newIdx = st.idx + delta;
   if(newIdx < 0 || newIdx >= series.length) return;
-  openTrendIdx = newIdx;
-  renderTrendAccordionContent();
+  st.idx = newIdx;
+  st.rowId = prefix + '-' + newIdx;
+  renderTrendAccordionForPrefix(prefix);
 }
 
-function renderTrendAccordionContent(){
+function toggleTrendStockShowAmount(prefix){
+  const st = openTrendAccordions[prefix];
+  if(!st) return;
+  st.showAmount = !st.showAmount;
+  renderTrendAccordionForPrefix(prefix);
+}
+
+function renderAllTrendAccordions(){
   const root = document.getElementById('trend-accordion-root');
   if(!root) return;
-  if(!openTrendRowId){ root.innerHTML = ''; return; }
-  const series = trendSeriesData[openTrendSeriesPrefix] || [];
-  const entry = series[openTrendIdx];
+  const prefixes = Object.keys(openTrendAccordions);
+  if(prefixes.length === 0){ root.innerHTML = ''; return; }
+  const savedPositions = {};
+  prefixes.forEach(prefix => {
+    savedPositions[prefix] = captureAccordionPosAlways('#trend-accordion-box-' + prefix);
+  });
+  root.innerHTML = '';
+  prefixes.forEach(prefix => {
+    renderTrendAccordionForPrefix(prefix, savedPositions[prefix]);
+  });
+}
+
+function renderTrendAccordionForPrefix(prefix, savedPos){
+  const root = document.getElementById('trend-accordion-root');
+  if(!root) return;
+  const st = openTrendAccordions[prefix];
+  if(!st){
+    const old = document.getElementById('trend-accordion-box-' + prefix);
+    if(old) old.remove();
+    return;
+  }
+  const series = trendSeriesData[prefix] || [];
+  const entry = series[st.idx];
   if(!entry) return;
-  const savedPos = captureAccordionPos('#trend-accordion-box');
-  const rows = entry.byKey.map(d => openTrendSeriesPrefix === 'stock' ? trendStockRowHTML(d.label, d.pct, d.amount) : accordionRowHTML(d.label, d.pct)).join('');
-  const canPrev = openTrendIdx < series.length - 1; // 이전달(더 과거) = 인덱스 증가
-  const canNext = openTrendIdx > 0;                 // 다음달(더 최근) = 인덱스 감소
-  const boxWidth = openTrendSeriesPrefix === 'stock' ? 300 : 260;
-  root.innerHTML = `
-  <div class="floating-acc" id="trend-accordion-box" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:${boxWidth}px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);overflow:hidden;">
+  if(savedPos === undefined){
+    // 이미 열려 있던 박스는 드래그 여부와 관계없이 현재 화면 위치를 유지
+    savedPos = document.getElementById('trend-accordion-box-' + prefix)
+      ? captureAccordionPosAlways('#trend-accordion-box-' + prefix)
+      : null;
+  }
+  const showAmount = !!st.showAmount;
+  const rows = entry.byKey.map(d => prefix === 'stock'
+    ? trendStockRowHTML(d.label, d.pct, d.amount, showAmount)
+    : accordionRowHTML(d.label, d.pct)
+  ).join('');
+  const canPrev = st.idx < series.length - 1; // 이전달(더 과거) = 인덱스 증가
+  const canNext = st.idx > 0;                 // 다음달(더 최근) = 인덱스 감소
+  const boxWidth = prefix === 'stock' ? 300 : 260;
+  const boxId = 'trend-accordion-box-' + prefix;
+  // 이미 같은 종류 박스가 있으면 교체, 없으면 추가 (다른 종류 팝업은 그대로 유지)
+  let box = document.getElementById(boxId);
+  if(!box){
+    box = document.createElement('div');
+    box.id = boxId;
+    root.appendChild(box);
+  }
+  // 여러 종류가 동시에 열릴 때 완전 겹치지 않도록, 저장된 위치가 없을 때만 살짝 오프셋
+  const offsetIdx = Object.keys(openTrendAccordions).indexOf(prefix);
+  const hasSaved = savedPos && savedPos.left != null;
+  const transformStyle = hasSaved ? 'transform:none;' : `transform:translate(calc(-50% + ${offsetIdx * 18}px), calc(-50% + ${offsetIdx * 18}px));`;
+  const z = 1000 + offsetIdx;
+  box.className = 'floating-acc';
+  box.style.cssText = `background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:${boxWidth}px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;${transformStyle}z-index:${z};box-shadow:0 8px 24px rgba(0,0,0,0.5);overflow:hidden;`;
+  box.innerHTML = `
     <div class="acc-header" style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;cursor:grab;">
-      <button data-trendnav="1" ${canPrev?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrev?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrev?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
-      <button data-trendnav="-1" ${canNext?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canNext?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canNext?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">›</button>
+      <button data-trendnav="1" data-trend-prefix="${prefix}" ${canPrev?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrev?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrev?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
+      <button data-trendnav="-1" data-trend-prefix="${prefix}" ${canNext?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canNext?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canNext?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">›</button>
       <span style="flex:1;text-align:center;font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;justify-content:center;">${escapeHTML(entry.monthLabel)}</span>
       <span class="drag-grip-icon" style="padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
-      <button data-trendclose style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#FFFFFF;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
+      <button data-trendclose data-trend-prefix="${prefix}" style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#FFFFFF;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
     </div>
     <div class="acc-body" style="padding:12px 16px;overflow-y:auto;">
       ${rows || '<div class="empty">데이터 없음</div>'}
-    </div>
-  </div>`;
-  const closeBtn = root.querySelector('[data-trendclose]');
-  if(closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeTrendAccordion(); });
-  root.querySelectorAll('[data-trendnav]').forEach(btn => {
+    </div>`;
+  const closeBtn = box.querySelector('[data-trendclose]');
+  if(closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeTrendAccordion(prefix); });
+  box.querySelectorAll('[data-trendnav]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      navigateTrendMonth(parseInt(btn.dataset.trendnav, 10));
+      navigateTrendMonth(prefix, parseInt(btn.dataset.trendnav, 10));
     });
   });
-  makeAccordionDraggable(document.getElementById('trend-accordion-box'));
-  applyAccordionPos('#trend-accordion-box', savedPos);
+  if(prefix === 'stock'){
+    box.querySelectorAll('[data-trend-value-toggle]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleTrendStockShowAmount(prefix);
+      });
+    });
+  }
+  makeAccordionDraggable(box);
+  applyAccordionPos('#' + boxId, savedPos);
 }
 
 function trendBarsHTML(snapshots, groupKey, type, title, compact, idPrefix){
@@ -5024,8 +5094,8 @@ function render(){
   renderPanel();
   // 월별탭 막대그래프 팝업 아코디언은 #panel 밖(trend-accordion-root)에 그려지므로
   // 탭 전환이나 다른 아코디언 오픈으로 #panel이 다시 그려져도 사라지지 않는다.
-  // 열려 있는 동안에는 최신 데이터로만 갱신하고, 닫기 버튼을 누를 때만 닫는다.
-  if(openTrendRowId) renderTrendAccordionContent();
+  // 종류별로 독립 유지되며, 닫기 버튼을 누를 때만 닫는다.
+  if(Object.keys(openTrendAccordions).length > 0) renderAllTrendAccordions();
 }
 
 document.getElementById('editCancelBtn').addEventListener('click', closeEditModal);
