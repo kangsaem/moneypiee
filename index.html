@@ -3455,40 +3455,19 @@ function bindSectorAccordionHandlers(){
       const idx = el.dataset.sectorIdx;
       const label = el.dataset.sectorLabel;
       if(label === '현금') return;
-      // 이미 다른 섹터 팝업이 열려 있으면(orphan 포함) 그 위치를 이어받음
-      if(sectorAccordionOpenLabel && sectorAccordionOpenLabel !== label){
-        if(!pendingSectorAccordionPos){
-          pendingSectorAccordionPos = captureCurrentSectorPos()
-            || (rememberedSectorAccordion && rememberedSectorAccordion.pos)
-            || null;
-        }
-      }
       if(label === '기타'){
         sectorOtherExpanded = true;
         render();
         return;
       }
-      const isOtherMember = sectorOtherItems.some(d => d.label === label);
-      if(sectorOtherExpanded && !isOtherMember){
-        // 큰 섹터(기타 소속이 아닌 항목)를 클릭하면 기타 목록은 접는다
-        sectorOtherExpanded = false;
-        sectorAccordionOpenIdx = null;
-        sectorAccordionOpenLabel = null;
-        render();
-        const newEl = document.querySelector(`[data-sector-label="${CSS.escape(label)}"]`);
-        if(newEl) newEl.click();
-        return;
-      }
-      if(sectorAccordionOpenIdx !== null && sectorAccordionOpenIdx !== idx){
-        // 다른 섹터로 바꿀 때 기존 팝업 위치 유지
-        if(!pendingSectorAccordionPos) pendingSectorAccordionPos = captureCurrentSectorPos();
-        const prevSlot = document.getElementById('sector-slot-' + sectorAccordionOpenIdx);
-        if(prevSlot) prevSlot.innerHTML = '';
-      }
       const slot = document.getElementById('sector-slot-' + idx);
       if(!slot) return;
-      if(sectorAccordionOpenIdx === idx){
-        slot.innerHTML = '';
+      // 같은 항목 재클릭 → 닫기
+      if(sectorAccordionOpenIdx === idx || sectorAccordionOpenLabel === label){
+        // orphan 포함 모든 섹터 팝업 닫기
+        document.querySelectorAll('[id^="sector-slot-"]').forEach(s => { s.innerHTML = ''; });
+        const orphanSec = document.getElementById('orphan-sector-slot');
+        if(orphanSec) orphanSec.innerHTML = '';
         sectorAccordionOpenIdx = null;
         sectorAccordionOpenLabel = null;
         rememberedSectorAccordion = null;
@@ -3498,6 +3477,36 @@ function bindSectorAccordionHandlers(){
         if(centerLabelEl) centerLabelEl.textContent = '섹터';
         return;
       }
+      // 목록/도넛으로 다른 섹터를 열 때: 이미 떠 있는 팝업이 있으면 그 위치 유지
+      const existingPos = captureCurrentSectorPos()
+        || (rememberedSectorAccordion && rememberedSectorAccordion.pos)
+        || null;
+      if(existingPos) pendingSectorAccordionPos = existingPos;
+
+      const isOtherMember = sectorOtherItems.some(d => d.label === label);
+      if(sectorOtherExpanded && !isOtherMember){
+        // 큰 섹터 클릭 시 기타 목록 접기 — 위치는 pending으로 이어감
+        sectorOtherExpanded = false;
+        document.querySelectorAll('[id^="sector-slot-"]').forEach(s => { s.innerHTML = ''; });
+        sectorAccordionOpenIdx = null;
+        // openLabel은 유지하지 않음(새 라벨로 열림)
+        sectorAccordionOpenLabel = null;
+        render();
+        const newEl = document.querySelector(`[data-sector-label="${CSS.escape(label)}"]`);
+        if(newEl){
+          // pending은 render 후에도 유지되어 있어야 함
+          const newSlot = document.getElementById('sector-slot-' + newEl.dataset.sectorIdx);
+          if(newSlot) renderSectorBreakdown(label, newSlot, newEl, newEl.dataset.sectorIdx);
+        }
+        return;
+      }
+      // 이전 슬롯 비우기
+      if(sectorAccordionOpenIdx !== null && sectorAccordionOpenIdx !== idx){
+        const prevSlot = document.getElementById('sector-slot-' + sectorAccordionOpenIdx);
+        if(prevSlot) prevSlot.innerHTML = '';
+      }
+      const orphanSec = document.getElementById('orphan-sector-slot');
+      if(orphanSec) orphanSec.innerHTML = '';
       renderSectorBreakdown(label, slot, el, idx);
     });
   });
@@ -3681,26 +3690,14 @@ function bindRegionAccordionHandlers(){
       const idx = el.dataset.regionIdx;
       const label = el.dataset.regionLabel;
       const group = el.dataset.regionGroup;
-      // 이미 다른 지역 팝업이 열려 있으면 위치 유지
-      const curRegionLabel = (regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
-        ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label
-        : (rememberedRegionAccordion && rememberedRegionAccordion.label);
-      if(curRegionLabel && curRegionLabel !== label){
-        if(!pendingRegionAccordionPos){
-          pendingRegionAccordionPos = captureCurrentRegionPos()
-            || (rememberedRegionAccordion && rememberedRegionAccordion.pos)
-            || null;
-        }
-      }
-      if(regionAccordionOpenIdx !== null && regionAccordionOpenIdx !== idx){
-        if(!pendingRegionAccordionPos) pendingRegionAccordionPos = captureCurrentRegionPos();
-        const prevSlot = document.getElementById('region-slot-' + regionAccordionOpenIdx);
-        if(prevSlot) prevSlot.innerHTML = '';
-      }
       const slot = document.getElementById('region-slot-' + idx);
       if(!slot) return;
+      // 같은 항목 재클릭 → 닫기
       if(regionAccordionOpenIdx === idx){
         slot.innerHTML = '';
+        document.querySelectorAll('[id^="region-slot-"]').forEach(s => { s.innerHTML = ''; });
+        const orphanReg = document.getElementById('orphan-region-slot');
+        if(orphanReg) orphanReg.innerHTML = '';
         regionAccordionOpenIdx = null;
         rememberedRegionAccordion = null;
         pendingRegionAccordionPos = null;
@@ -3709,6 +3706,17 @@ function bindRegionAccordionHandlers(){
         if(centerLabelEl) centerLabelEl.textContent = '지역';
         return;
       }
+      // 목록/도넛으로 다른 지역을 열 때: 이미 떠 있는 팝업 위치 유지
+      const existingPos = captureCurrentRegionPos()
+        || (rememberedRegionAccordion && rememberedRegionAccordion.pos)
+        || null;
+      if(existingPos) pendingRegionAccordionPos = existingPos;
+      if(regionAccordionOpenIdx !== null && regionAccordionOpenIdx !== idx){
+        const prevSlot = document.getElementById('region-slot-' + regionAccordionOpenIdx);
+        if(prevSlot) prevSlot.innerHTML = '';
+      }
+      const orphanReg = document.getElementById('orphan-region-slot');
+      if(orphanReg) orphanReg.innerHTML = '';
       const holdings = regionAccordionHoldings.filter(h => (h.region||'domestic') === group);
       const cashLabel = group === 'domestic' ? '원화' : '외화';
       const relabeledHoldings = holdings.map(h => isCashHolding(h) ? { ...h, group: cashLabel } : h);
@@ -3726,8 +3734,6 @@ function bindRegionAccordionHandlers(){
           ${rows || '<div class="empty" style="padding:12px 0;text-align:center;color:#777777;font-size:13px;">해당 지역 없음</div>'}
         </div>
       </div>`;
-      const orphanReg = document.getElementById('orphan-region-slot');
-      if(orphanReg) orphanReg.innerHTML = '';
       makeAccordionDraggable(slot.querySelector('.floating-acc'));
       const regionCloseBtn = slot.querySelector('[data-acc-close]');
       if(regionCloseBtn) regionCloseBtn.addEventListener('click', () => el.click());
