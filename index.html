@@ -181,7 +181,9 @@
   .stock-sortable-legend{width:268px;max-width:100%;}
   .stock-sortable-legend .legend-item{width:100%;min-width:0;}
   .stock-sortable-legend .legend-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
-  .stock-sortable-legend .legend-pct{flex-shrink:0;cursor:pointer;user-select:none;font-weight:500 !important;}
+  .stock-sortable-legend .legend-pct{flex-shrink:0;cursor:pointer;user-select:none;}
+  .stock-sortable-legend .stock-value-pct{font-weight:700 !important;}
+  .stock-sortable-legend .stock-value-amount{font-weight:500 !important;}
   .sector-sortable-legend{width:268px;max-width:100%;}
   .legend-item.sector-sortable-legend{width:100%;min-width:0;box-sizing:border-box;}
   .legend-item.sector-sortable-legend .legend-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
@@ -2592,8 +2594,6 @@ function applyAccordionPos(selector, pos){
 function cycleStockSort(){
   const savedTotalMemoOpen = openTotalMemoId;
   const savedTotalMemoPos = savedTotalMemoOpen ? captureAccordionPos('#total-memo-slot .floating-acc') : null;
-  const savedStockDetailOpen = totalStockDetailOpen;
-  const savedStockDetailPos = savedStockDetailOpen ? captureAccordionPos('#stock-detail-slot .floating-acc') : null;
   const savedSectorLabel = (sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
     ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null;
   const savedSectorPos = savedSectorLabel ? captureAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`) : null;
@@ -2640,11 +2640,6 @@ function cycleStockSort(){
       toggleCashAmountAccordion(parseFloat(cashBadge.dataset.cashbadge), cashBadge, breakdown);
       applyAccordionPos('#cash-amount-slot .floating-acc', savedCashPos);
     }
-  }
-  if(savedStockDetailOpen){
-    totalStockDetailOpen = false;
-    toggleStockDetailAccordion();
-    applyAccordionPos('#stock-detail-slot .floating-acc', savedStockDetailPos);
   }
   if(savedTotalMemoOpen){
     openTotalMemoId = null;
@@ -2772,7 +2767,8 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
       : `${d.pct.toFixed(1)}<span class="pct-sign">%</span>`;
     const valueTitle = compactTotalMode ? (stockLegendValueMode === 'amount' ? '평가액 보기' : '비율 보기') : '';
     const valueAttrs = compactTotalMode ? ` data-stock-value-toggle title="${valueTitle}"` : '';
-    html += `<div class="legend-item"><span class="swatch" style="background:${color}"></span><span class="legend-name"${clickAttrs}>${escapeHTML(d.label)}</span><span class="legend-pct num"${valueAttrs} style="${pctStyle}">${valueText}</span></div>`;
+    const valueModeClass = compactTotalMode ? (stockLegendValueMode === 'amount' ? 'stock-value-amount' : 'stock-value-pct') : '';
+    html += `<div class="legend-item"><span class="swatch" style="background:${color}"></span><span class="legend-name"${clickAttrs}>${escapeHTML(d.label)}</span><span class="legend-pct num ${valueModeClass}"${valueAttrs} style="${pctStyle}">${valueText}</span></div>`;
     if(i < data.length - 1){
       const next = data[i+1];
       let showDivider = false;
@@ -4123,53 +4119,12 @@ function attachSwipeNav(el, onNavigate, canPrev, canNext){
   el.addEventListener('mouseleave', onCancel);
 }
 
-let totalStockDetailHoldings = [];
-let totalStockDetailCashLabel = '현금';
 let lockedRegionAccordionOpen = false;
 let lockedRegionAccordionCashLabel = '원화';
 let lockedRegionAccordionRegionLabel = '국내';
 let lockedRegionAccordionPlainLabel = '국내';
 let lockedRegionAccordionCashAmount = 0;
 let lockedRegionAccordionInvestAmount = 0;
-let totalStockDetailOpen = false;
-
-function stockDetailButtonBlock(holdings, cashLabel){
-  totalStockDetailHoldings = holdings;
-  totalStockDetailCashLabel = cashLabel || '현금';
-  totalStockDetailOpen = false;
-  return `<div style="grid-column:1/-1;text-align:center;margin-top:4px;">
-    <button class="btn-memo" id="stock-detail-btn">종목별 평가액</button>
-    <div id="stock-detail-slot"></div>
-  </div>`;
-}
-
-function toggleStockDetailAccordion(){
-  const slot = document.getElementById('stock-detail-slot');
-  if(!slot) return;
-  if(totalStockDetailOpen){
-    slot.innerHTML = '';
-    totalStockDetailOpen = false;
-    return;
-  }
-  const byStock = reorderCashFirst(computeWeights(totalStockDetailHoldings, 'name'));
-  const rows = byStock.map(d => {
-    const name = d.label === '현금' ? escapeHTML(totalStockDetailCashLabel) : escapeHTML(d.label);
-    return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num" style="text-align:right;">${d.amount.toLocaleString()}</span></div>`;
-  }).join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;overflow:hidden;">
-    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;flex-shrink:0;">
-      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">종목별 평가액</span>
-      <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
-    </div>
-    <div class="acc-body" style="padding:12px 16px;overflow-y:auto;">
-      ${rows || '<div class="empty">데이터 없음</div>'}
-    </div>
-  </div>`;
-  totalStockDetailOpen = true;
-  makeAccordionDraggable(slot.querySelector('.floating-acc'));
-  const detailCloseBtn = slot.querySelector('[data-acc-close]');
-  if(detailCloseBtn) detailCloseBtn.addEventListener('click', toggleStockDetailAccordion);
-}
 
 function openTrendAccordionRow(rowId){
   // 이미 열려 있는 행을 다시 클릭해도 닫지 않는다. 닫기는 닫기 버튼으로만 한다.
@@ -4858,13 +4813,10 @@ function renderPanel(){
         ${stockChartBlockSortable(holdings, false, [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' }
         ], undefined, true)}
-        ${stockDetailButtonBlock(holdings, region === 'domestic' ? '원화' : '외화')}
       </div>
     `;
     initAccountBtnScrollAlignment();
     bindSectorAccordionHandlers();
-    const stockDetailBtnRegion = document.getElementById('stock-detail-btn');
-    if(stockDetailBtnRegion) stockDetailBtnRegion.addEventListener('click', toggleStockDetailAccordion);
     const cashBadgeRegion = panel.querySelector('[data-cashbadge]');
     if(cashBadgeRegion) cashBadgeRegion.addEventListener('click', () => toggleCashAmountAccordion(parseFloat(cashBadgeRegion.dataset.cashbadge), cashBadgeRegion));
     bindReloadPricesBtn();
@@ -4980,7 +4932,6 @@ function renderPanel(){
             amountLabel: `${Math.floor(totalCreditUsed/10000).toLocaleString()}`
           }, name: 'decorative-credit' }] : [])
         ], undefined, true)}
-        ${stockDetailButtonBlock(scopedHoldings)}
       </div>
     `;
     initAccountBtnScrollAlignment();
@@ -5018,8 +4969,6 @@ function renderPanel(){
         syncAccountBtnScroll(scrollPos);
       });
     });
-    const stockDetailBtn = document.getElementById('stock-detail-btn');
-    if(stockDetailBtn) stockDetailBtn.addEventListener('click', toggleStockDetailAccordion);
     const cashBadgeTotal = panel.querySelector('[data-cashbadge]');
     if(cashBadgeTotal) cashBadgeTotal.addEventListener('click', () => toggleCashAmountAccordion(parseFloat(cashBadgeTotal.dataset.cashbadge), cashBadgeTotal, {
       domestic: parseFloat(cashBadgeTotal.dataset.cashDomestic),
@@ -5336,7 +5285,7 @@ window.addEventListener('touchend', () => {
 });
 
 document.addEventListener('click', (e) => {
-  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],[data-stock-history-name],[data-tab],#stock-sortable-chart,#stock-detail-btn,#total-memo-edit,#total-memo-save');
+  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],[data-stock-history-name],[data-tab],#stock-sortable-chart,#total-memo-edit,#total-memo-save');
   const isInsideAccordion = e.target.closest('.floating-acc');
   if(isTrigger || isInsideAccordion || accordionJustDragged) return;
   if(sectorAccordionOpenIdx !== null){
@@ -5383,11 +5332,6 @@ document.addEventListener('click', (e) => {
     const s = document.getElementById('cash-amount-slot');
     if(s) s.innerHTML = '';
     cashAmountAccordionOpen = false;
-  }
-  if(totalStockDetailOpen){
-    const s = document.getElementById('stock-detail-slot');
-    if(s) s.innerHTML = '';
-    totalStockDetailOpen = false;
   }
   // 종목별 아코디언은 바깥을 클릭해도 닫지 않는다. 각 아코디언의 × 버튼으로만 닫는다.
 });
