@@ -3213,6 +3213,10 @@ function cycleSectorSelection(){
     if(el) el.click();
     return;
   }
+  // 내용만 바꾸고 위치는 유지
+  pendingSectorAccordionPos = captureCurrentSectorPos()
+    || (rememberedSectorAccordion && rememberedSectorAccordion.pos)
+    || null;
   const nextLabel = fullOrdered[nextIdx].label;
   const isOtherMember = sectorOtherItems.some(d => d.label === nextLabel);
   if(isOtherMember && !sectorOtherExpanded){
@@ -3228,6 +3232,24 @@ let sectorAccordionOpenLabel = null;
 // 사용자가 ×/재클릭으로 명시적으로 닫거나 탭을 이동하면 초기화한다.
 let rememberedSectorAccordion = null; // { label, pos: {left,top,zIndex} }
 let rememberedRegionAccordion = null; // { label, pos }
+// 도넛/목록 클릭으로 섹터·지역을 바꿀 때, 기존 팝업 위치를 다음 팝업에 넘기기 위한 임시값
+let pendingSectorAccordionPos = null;
+let pendingRegionAccordionPos = null;
+
+function captureCurrentSectorPos(){
+  const openAcc = document.querySelector('[id^="sector-slot-"] .floating-acc')
+    || document.querySelector('#orphan-sector-slot .floating-acc');
+  if(!openAcc) return null;
+  const rect = openAcc.getBoundingClientRect();
+  return { left: rect.left + 'px', top: rect.top + 'px', zIndex: openAcc.style.zIndex };
+}
+function captureCurrentRegionPos(){
+  const openAcc = document.querySelector('[id^="region-slot-"] .floating-acc')
+    || document.querySelector('#orphan-region-slot .floating-acc');
+  if(!openAcc) return null;
+  const rect = openAcc.getBoundingClientRect();
+  return { left: rect.left + 'px', top: rect.top + 'px', zIndex: openAcc.style.zIndex };
+}
 
 function rememberOpenSectorPos(label){
   if(!label) return;
@@ -3368,8 +3390,14 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
   sectorAccordionOpenIdx = idx;
   sectorAccordionOpenLabel = label;
   // 이전에 같은 섹터를 열어 둔 위치가 있으면 그곳으로 복원
-  if(rememberedSectorAccordion && rememberedSectorAccordion.label === label && rememberedSectorAccordion.pos){
-    applyAccordionPos(`#sector-slot-${idx} .floating-acc`, rememberedSectorAccordion.pos);
+  // pending이 있으면(전환) 무조건 그 위치. 없으면 같은 라벨의 기억 위치만 사용(최초 오픈은 트리거 근처)
+  const sectorPosToApply = pendingSectorAccordionPos
+    || (rememberedSectorAccordion && rememberedSectorAccordion.label === label && rememberedSectorAccordion.pos)
+    || null;
+  pendingSectorAccordionPos = null;
+  if(sectorPosToApply){
+    applyAccordionPos(`#sector-slot-${idx} .floating-acc`, sectorPosToApply);
+    rememberedSectorAccordion = { label, pos: sectorPosToApply };
   }
   rememberOpenSectorPos(label);
   highlightChartSlice(triggerEl, idx, 'decorative-sector');
@@ -3386,6 +3414,14 @@ function bindSectorAccordionHandlers(){
       const idx = el.dataset.sectorIdx;
       const label = el.dataset.sectorLabel;
       if(label === '현금') return;
+      // 이미 다른 섹터 팝업이 열려 있으면(orphan 포함) 그 위치를 이어받음
+      if(sectorAccordionOpenLabel && sectorAccordionOpenLabel !== label){
+        if(!pendingSectorAccordionPos){
+          pendingSectorAccordionPos = captureCurrentSectorPos()
+            || (rememberedSectorAccordion && rememberedSectorAccordion.pos)
+            || null;
+        }
+      }
       if(label === '기타'){
         sectorOtherExpanded = true;
         render();
@@ -3403,6 +3439,8 @@ function bindSectorAccordionHandlers(){
         return;
       }
       if(sectorAccordionOpenIdx !== null && sectorAccordionOpenIdx !== idx){
+        // 다른 섹터로 바꿀 때 기존 팝업 위치 유지
+        if(!pendingSectorAccordionPos) pendingSectorAccordionPos = captureCurrentSectorPos();
         const prevSlot = document.getElementById('sector-slot-' + sectorAccordionOpenIdx);
         if(prevSlot) prevSlot.innerHTML = '';
       }
@@ -3413,6 +3451,7 @@ function bindSectorAccordionHandlers(){
         sectorAccordionOpenIdx = null;
         sectorAccordionOpenLabel = null;
         rememberedSectorAccordion = null;
+        pendingSectorAccordionPos = null;
         clearChartHighlight(el, 'decorative-sector');
         const centerLabelEl = document.getElementById('sector-center-label');
         if(centerLabelEl) centerLabelEl.textContent = '섹터';
@@ -3552,6 +3591,9 @@ function cycleRegionSelection(){
     if(el) el.click();
     return;
   }
+  pendingRegionAccordionPos = captureCurrentRegionPos()
+    || (rememberedRegionAccordion && rememberedRegionAccordion.pos)
+    || null;
   const el = document.querySelector(`[data-region-idx="${nextIdx}"]`);
   if(el) el.click();
 }
@@ -3565,7 +3607,19 @@ function bindRegionAccordionHandlers(){
       const idx = el.dataset.regionIdx;
       const label = el.dataset.regionLabel;
       const group = el.dataset.regionGroup;
+      // 이미 다른 지역 팝업이 열려 있으면 위치 유지
+      const curRegionLabel = (regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
+        ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label
+        : (rememberedRegionAccordion && rememberedRegionAccordion.label);
+      if(curRegionLabel && curRegionLabel !== label){
+        if(!pendingRegionAccordionPos){
+          pendingRegionAccordionPos = captureCurrentRegionPos()
+            || (rememberedRegionAccordion && rememberedRegionAccordion.pos)
+            || null;
+        }
+      }
       if(regionAccordionOpenIdx !== null && regionAccordionOpenIdx !== idx){
+        if(!pendingRegionAccordionPos) pendingRegionAccordionPos = captureCurrentRegionPos();
         const prevSlot = document.getElementById('region-slot-' + regionAccordionOpenIdx);
         if(prevSlot) prevSlot.innerHTML = '';
       }
@@ -3575,6 +3629,7 @@ function bindRegionAccordionHandlers(){
         slot.innerHTML = '';
         regionAccordionOpenIdx = null;
         rememberedRegionAccordion = null;
+        pendingRegionAccordionPos = null;
         clearRegionGroupHighlight(el);
         const centerLabelEl = document.getElementById('region-center-label');
         if(centerLabelEl) centerLabelEl.textContent = '지역';
@@ -3606,8 +3661,13 @@ function bindRegionAccordionHandlers(){
       highlightRegionGroup(el, group);
       const centerLabelEl2 = document.getElementById('region-center-label');
       if(centerLabelEl2) centerLabelEl2.textContent = label;
-      if(rememberedRegionAccordion && rememberedRegionAccordion.label === label && rememberedRegionAccordion.pos){
-        applyAccordionPos(`#region-slot-${idx} .floating-acc`, rememberedRegionAccordion.pos);
+      const regionPosToApply = pendingRegionAccordionPos
+        || (rememberedRegionAccordion && rememberedRegionAccordion.label === label && rememberedRegionAccordion.pos)
+        || null;
+      pendingRegionAccordionPos = null;
+      if(regionPosToApply){
+        applyAccordionPos(`#region-slot-${idx} .floating-acc`, regionPosToApply);
+        rememberedRegionAccordion = { label, pos: regionPosToApply };
       }
       rememberOpenRegionPos(label);
     });
