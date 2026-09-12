@@ -2678,9 +2678,13 @@ function renderPreservingOpenChartAccordions(){
       savedSectorPos = rememberedSectorAccordion.pos;
     }
   }
-  const savedRegionLabel = (regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
+  // 순환형 지역 팝업(전체 탭)과 locked 지역 팝업(국내/해외 탭)을 분리한다.
+  const isLockedRegionTab = state.activeId === '__domestic__' || state.activeId === '__overseas__';
+  const savedRegionLabel = (!isLockedRegionTab && regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
     ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label
-    : (rememberedRegionAccordion && rememberedRegionAccordion.label) || null;
+    : ((!isLockedRegionTab && rememberedRegionAccordion && regionAccordionOpenIdx !== null)
+        ? rememberedRegionAccordion.label
+        : null);
   let savedRegionPos = null;
   if(savedRegionLabel){
     const openRegionAcc = document.querySelector('[id^="region-slot-"] .floating-acc')
@@ -2693,8 +2697,10 @@ function renderPreservingOpenChartAccordions(){
       savedRegionPos = rememberedRegionAccordion.pos;
     }
   }
-  const savedLockedRegionOpen = lockedRegionAccordionOpen
-    || !!(document.querySelector('#locked-region-slot .floating-acc') || document.querySelector('#orphan-region-slot .floating-acc'));
+  const savedLockedRegionOpen = isLockedRegionTab && (
+    lockedRegionAccordionOpen
+    || !!document.querySelector('#locked-region-slot .floating-acc')
+  );
   let savedLockedRegionPos = null;
   if(savedLockedRegionOpen){
     const lockedAcc = document.querySelector('#locked-region-slot .floating-acc')
@@ -2739,10 +2745,12 @@ function renderPreservingOpenChartAccordions(){
     }
   }
   if(savedLockedRegionOpen){
+    // 국내/해외 탭: 지역 팝업은 locked 슬롯 단 하나만. orphan 잔여 제거
+    const orphanReg = document.getElementById('orphan-region-slot');
+    if(orphanReg) orphanReg.innerHTML = '';
     const lockedSlot = document.getElementById('locked-region-slot');
     if(lockedSlot){
       lockedRegionAccordionOpen = false;
-      // 필터로 데이터가 없어도 팝업은 "해당 지역 없음"으로 다시 연다
       pendingRegionAccordionPos = savedLockedRegionPos
         || (rememberedRegionAccordion && rememberedRegionAccordion.pos)
         || null;
@@ -2750,15 +2758,8 @@ function renderPreservingOpenChartAccordions(){
       if(savedLockedRegionPos){
         applyAccordionPos('#locked-region-slot .floating-acc', savedLockedRegionPos);
       }
-    } else {
-      // 슬롯 자체가 없으면 orphan 팝업으로 유지
-      const lbl = lockedRegionAccordionPlainLabel
-        || (state.activeId === '__overseas__' ? '해외' : '국내');
-      showOrphanRegionAccordion(lbl, savedLockedRegionPos
-        || (rememberedRegionAccordion && rememberedRegionAccordion.pos)
-        || null);
-      lockedRegionAccordionOpen = true; // 다음 필터에서도 복원 시도
     }
+    // locked-region-slot 이 없으면(필터로 차트 자체 미표시) 팝업도 열지 않음 — 차트와 한 세트
   }
   if(savedCashOpen){
     const cashBadge = document.querySelector('[data-cashbadge]');
@@ -2824,6 +2825,8 @@ function cycleStockSort(){
     }
   }
   if(savedLockedRegionOpen){
+    const orphanReg = document.getElementById('orphan-region-slot');
+    if(orphanReg) orphanReg.innerHTML = '';
     const lockedSlot = document.getElementById('locked-region-slot');
     if(lockedSlot){
       lockedRegionAccordionOpen = false;
@@ -2834,13 +2837,6 @@ function cycleStockSort(){
       if(savedLockedRegionPos){
         applyAccordionPos('#locked-region-slot .floating-acc', savedLockedRegionPos);
       }
-    } else {
-      const lbl = lockedRegionAccordionPlainLabel
-        || (state.activeId === '__overseas__' ? '해외' : '국내');
-      showOrphanRegionAccordion(lbl, savedLockedRegionPos
-        || (rememberedRegionAccordion && rememberedRegionAccordion.pos)
-        || null);
-      lockedRegionAccordionOpen = true;
     }
   }
   if(savedCashOpen){
@@ -3371,7 +3367,12 @@ function showOrphanSectorAccordion(label, pos){
 }
 
 function showOrphanRegionAccordion(label, pos){
+  // 국내/해외 locked 지역 탭에서는 orphan을 쓰지 않는다 (중복 방지)
+  if(state.activeId === '__domestic__' || state.activeId === '__overseas__') return;
   document.querySelectorAll('[id^="region-slot-"]').forEach(s => { s.innerHTML = ''; });
+  const lockedSlot = document.getElementById('locked-region-slot');
+  if(lockedSlot) lockedSlot.innerHTML = '';
+  lockedRegionAccordionOpen = false;
   const slot = ensureOrphanSlot('orphan-region-slot');
   regionAccordionOpenIdx = null;
   const posStyle = pos
@@ -3575,6 +3576,9 @@ function toggleLockedRegionAccordion(){
     pendingRegionAccordionPos = null;
     return;
   }
+  // 중복 방지: orphan 지역 팝업이 있으면 제거 (국내/해외는 locked 하나만)
+  const orphanReg = document.getElementById('orphan-region-slot');
+  if(orphanReg) orphanReg.innerHTML = '';
   const hasData = (lockedRegionAccordionCashAmount + lockedRegionAccordionInvestAmount) > 0;
   let bodyHtml;
   if(hasData){
