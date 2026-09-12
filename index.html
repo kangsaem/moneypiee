@@ -2859,7 +2859,10 @@ let sectorAccordionShowRegionBar = true;
 
 function accordionRowHTML(label, pct){
   const name = label === '현금' ? '현금' : escapeHTML(label);
-  return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num">${pct.toFixed(1)}%</span></div>`;
+  return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;min-width:0;">
+    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>
+    <span class="num" style="flex:0 0 auto;white-space:nowrap;text-align:right;">${pct.toFixed(1)}%</span>
+  </div>`;
 }
 
 function trendStockRowHTML(label, pct, amount, showAmount){
