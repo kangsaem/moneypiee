@@ -4712,7 +4712,7 @@ function renderTabs(){
     el.addEventListener('click', () => {
       state.activeId = el.dataset.tab;
       accountTableSortMode = null;
-      stockLegendSortMode = 'amount';
+      // 금액순 도넛 정렬(금액순/섹터순/지역순/이름순)은 전체·국내·해외 탭에서 공유·유지한다.
       // 탭을 이동하면 섹터/지역 아코디언은 닫는다(팝업 DOM은 render()로 어차피 사라지지만,
       // 내부 상태값도 함께 초기화해야 다른 탭에서 같은 idx로 다시 열 때 꼬이지 않는다).
       sectorAccordionOpenIdx = null;
