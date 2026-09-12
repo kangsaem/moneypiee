@@ -2663,6 +2663,7 @@ function applyAccordionPos(selector, pos){
 function renderPreservingOpenChartAccordions(){
   // 라벨 기준 저장: 계좌/계좌유형 필터 변경 후에도 같은 섹터·지역 팝업을 그 위치에 다시 연다
   const savedSectorLabel = sectorAccordionOpenLabel
+    || (rememberedSectorAccordion && rememberedSectorAccordion.label)
     || ((sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
       ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null);
   let savedSectorPos = null;
@@ -2671,16 +2672,24 @@ function renderPreservingOpenChartAccordions(){
     if(openSectorAcc){
       const rect = openSectorAcc.getBoundingClientRect();
       savedSectorPos = { left: rect.left + 'px', top: rect.top + 'px', zIndex: openSectorAcc.style.zIndex };
+      rememberedSectorAccordion = { label: savedSectorLabel, pos: savedSectorPos };
+    } else if(rememberedSectorAccordion && rememberedSectorAccordion.label === savedSectorLabel){
+      // DOM에 없어도(필터로 잠시 사라짐) 기억된 위치 사용
+      savedSectorPos = rememberedSectorAccordion.pos;
     }
   }
   const savedRegionLabel = (regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
-    ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label : null;
+    ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label
+    : (rememberedRegionAccordion && rememberedRegionAccordion.label) || null;
   let savedRegionPos = null;
   if(savedRegionLabel){
     const openRegionAcc = document.querySelector('[id^="region-slot-"] .floating-acc');
     if(openRegionAcc){
       const rect = openRegionAcc.getBoundingClientRect();
       savedRegionPos = { left: rect.left + 'px', top: rect.top + 'px', zIndex: openRegionAcc.style.zIndex };
+      rememberedRegionAccordion = { label: savedRegionLabel, pos: savedRegionPos };
+    } else if(rememberedRegionAccordion && rememberedRegionAccordion.label === savedRegionLabel){
+      savedRegionPos = rememberedRegionAccordion.pos;
     }
   }
   const savedLockedRegionOpen = lockedRegionAccordionOpen;
@@ -2696,14 +2705,21 @@ function renderPreservingOpenChartAccordions(){
     const el = document.querySelector(`[data-sector-label="${CSS.escape(savedSectorLabel)}"]`);
     if(el){
       el.click();
-      applyAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`, savedSectorPos);
+      if(savedSectorPos){
+        applyAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`, savedSectorPos);
+        rememberedSectorAccordion = { label: savedSectorLabel, pos: savedSectorPos };
+      }
     }
+    // 필터 결과에 없으면 닫힌 상태 유지하되 위치 기억은 유지(다음에 다시 잡히면 복원)
   }
   if(savedRegionLabel){
     const el = document.querySelector(`[data-region-label="${CSS.escape(savedRegionLabel)}"]`);
     if(el){
       el.click();
-      applyAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`, savedRegionPos);
+      if(savedRegionPos){
+        applyAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`, savedRegionPos);
+        rememberedRegionAccordion = { label: savedRegionLabel, pos: savedRegionPos };
+      }
     }
   }
   if(savedLockedRegionOpen && document.getElementById('locked-region-slot')){
@@ -2753,14 +2769,21 @@ function cycleStockSort(){
     const el = document.querySelector(`[data-sector-label="${CSS.escape(savedSectorLabel)}"]`);
     if(el){
       el.click();
-      applyAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`, savedSectorPos);
+      if(savedSectorPos){
+        applyAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`, savedSectorPos);
+        rememberedSectorAccordion = { label: savedSectorLabel, pos: savedSectorPos };
+      }
     }
+    // 필터 결과에 없으면 닫힌 상태 유지하되 위치 기억은 유지(다음에 다시 잡히면 복원)
   }
   if(savedRegionLabel){
     const el = document.querySelector(`[data-region-label="${CSS.escape(savedRegionLabel)}"]`);
     if(el){
       el.click();
-      applyAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`, savedRegionPos);
+      if(savedRegionPos){
+        applyAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`, savedRegionPos);
+        rememberedRegionAccordion = { label: savedRegionLabel, pos: savedRegionPos };
+      }
     }
   }
   if(savedLockedRegionOpen){
@@ -3192,6 +3215,32 @@ function cycleSectorSelection(){
 }
 
 let sectorAccordionOpenLabel = null;
+// 필터로 팝업이 잠시 사라져도 마지막 위치를 기억해 다시 열릴 때 복원한다.
+// 사용자가 ×/재클릭으로 명시적으로 닫거나 탭을 이동하면 초기화한다.
+let rememberedSectorAccordion = null; // { label, pos: {left,top,zIndex} }
+let rememberedRegionAccordion = null; // { label, pos }
+
+function rememberOpenSectorPos(label){
+  if(!label) return;
+  const openAcc = document.querySelector('[id^="sector-slot-"] .floating-acc');
+  if(!openAcc) return;
+  const rect = openAcc.getBoundingClientRect();
+  rememberedSectorAccordion = {
+    label,
+    pos: { left: rect.left + 'px', top: rect.top + 'px', zIndex: openAcc.style.zIndex }
+  };
+}
+function rememberOpenRegionPos(label){
+  if(!label) return;
+  const openAcc = document.querySelector('[id^="region-slot-"] .floating-acc');
+  if(!openAcc) return;
+  const rect = openAcc.getBoundingClientRect();
+  rememberedRegionAccordion = {
+    label,
+    pos: { left: rect.left + 'px', top: rect.top + 'px', zIndex: openAcc.style.zIndex }
+  };
+}
+
 function renderSectorBreakdown(label, slot, triggerEl, idx){
   const holdings = sectorAccordionHoldings.filter(h => h.group === label);
   const regionLabelFn = (label === '현금') ? regionLabelFor : mergedRegionLabelFor;
@@ -3219,6 +3268,11 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
   if(closeBtn) closeBtn.addEventListener('click', () => triggerEl.click());
   sectorAccordionOpenIdx = idx;
   sectorAccordionOpenLabel = label;
+  // 이전에 같은 섹터를 열어 둔 위치가 있으면 그곳으로 복원
+  if(rememberedSectorAccordion && rememberedSectorAccordion.label === label && rememberedSectorAccordion.pos){
+    applyAccordionPos(`#sector-slot-${idx} .floating-acc`, rememberedSectorAccordion.pos);
+  }
+  rememberOpenSectorPos(label);
   highlightChartSlice(triggerEl, idx, 'decorative-sector');
   const centerLabelEl2 = document.getElementById('sector-center-label');
   if(centerLabelEl2) centerLabelEl2.textContent = label;
@@ -3259,6 +3313,7 @@ function bindSectorAccordionHandlers(){
         slot.innerHTML = '';
         sectorAccordionOpenIdx = null;
         sectorAccordionOpenLabel = null;
+        rememberedSectorAccordion = null;
         clearChartHighlight(el, 'decorative-sector');
         const centerLabelEl = document.getElementById('sector-center-label');
         if(centerLabelEl) centerLabelEl.textContent = '섹터';
@@ -3420,6 +3475,7 @@ function bindRegionAccordionHandlers(){
       if(regionAccordionOpenIdx === idx){
         slot.innerHTML = '';
         regionAccordionOpenIdx = null;
+        rememberedRegionAccordion = null;
         clearRegionGroupHighlight(el);
         const centerLabelEl = document.getElementById('region-center-label');
         if(centerLabelEl) centerLabelEl.textContent = '지역';
@@ -3449,6 +3505,10 @@ function bindRegionAccordionHandlers(){
       highlightRegionGroup(el, group);
       const centerLabelEl2 = document.getElementById('region-center-label');
       if(centerLabelEl2) centerLabelEl2.textContent = label;
+      if(rememberedRegionAccordion && rememberedRegionAccordion.label === label && rememberedRegionAccordion.pos){
+        applyAccordionPos(`#region-slot-${idx} .floating-acc`, rememberedRegionAccordion.pos);
+      }
+      rememberOpenRegionPos(label);
     });
   });
 }
@@ -4503,6 +4563,8 @@ function renderTabs(){
       sectorAccordionOpenIdx = null;
       sectorAccordionOpenLabel = null;
       regionAccordionOpenIdx = null;
+      rememberedSectorAccordion = null;
+      rememberedRegionAccordion = null;
       // 현금비중 평가액 팝업은 탭 이동 시 닫는다 (닫기 버튼으로만 닫힘, 다른 이벤트로는 유지)
       cashAmountAccordionOpen = false;
       render();
@@ -5517,6 +5579,11 @@ window.addEventListener('mousemove', (e) => {
 });
 window.addEventListener('mouseup', () => {
   if(!draggingAccordionEl) return;
+  // 드래그가 끝난 시점의 위치를 섹터/지역 기억에 반영
+  if(sectorAccordionOpenLabel) rememberOpenSectorPos(sectorAccordionOpenLabel);
+  if(regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)]){
+    rememberOpenRegionPos(regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label);
+  }
   draggingAccordionEl = null;
   accordionJustDragged = true;
   setTimeout(() => { accordionJustDragged = false; }, 50);
@@ -5531,6 +5598,10 @@ window.addEventListener('touchmove', (e) => {
 }, { passive: false });
 window.addEventListener('touchend', () => {
   if(!draggingAccordionEl) return;
+  if(sectorAccordionOpenLabel) rememberOpenSectorPos(sectorAccordionOpenLabel);
+  if(regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)]){
+    rememberOpenRegionPos(regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label);
+  }
   draggingAccordionEl = null;
   accordionJustDragged = true;
   setTimeout(() => { accordionJustDragged = false; }, 50);
