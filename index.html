@@ -4376,7 +4376,17 @@ function renderTabs(){
   tabs.innerHTML = html;
 
   tabs.querySelectorAll('[data-tab]').forEach(el => {
-    el.addEventListener('click', () => { state.activeId = el.dataset.tab; accountTableSortMode = null; stockLegendSortMode = 'amount'; render(); });
+    el.addEventListener('click', () => {
+      state.activeId = el.dataset.tab;
+      accountTableSortMode = null;
+      stockLegendSortMode = 'amount';
+      // 탭을 이동하면 섹터/지역 아코디언은 닫는다(팝업 DOM은 render()로 어차피 사라지지만,
+      // 내부 상태값도 함께 초기화해야 다른 탭에서 같은 idx로 다시 열 때 꼬이지 않는다).
+      sectorAccordionOpenIdx = null;
+      sectorAccordionOpenLabel = null;
+      regionAccordionOpenIdx = null;
+      render();
+    });
   });
   document.getElementById('addAccountBtn').addEventListener('click', addAccount);
 }
@@ -5353,40 +5363,8 @@ window.addEventListener('touchend', () => {
   setTimeout(() => { accordionJustDragged = false; }, 50);
 });
 
-document.addEventListener('click', (e) => {
-  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],[data-stock-history-name],[data-tab],#stock-sortable-chart,#total-memo-edit,#total-memo-save,#reloadPricesBtn');
-  const isInsideAccordion = e.target.closest('.floating-acc');
-  if(isTrigger || isInsideAccordion || accordionJustDragged) return;
-  // 섹터/지역 아코디언은 화면 외곽을 눌러도 닫지 않는다. × 버튼으로만 닫는다.
-  if(lockedRegionAccordionOpen){
-    const s = document.getElementById('locked-region-slot');
-    if(s) s.innerHTML = '';
-    lockedRegionAccordionOpen = false;
-  }
-  // 메모창(스냅샷별/총자산): "작성/수정 중"(텍스트가 입력된 상태)이면 바깥 클릭으로 닫지 않는다.
-  // 메모가 비어있는 상태이거나(아직 아무것도 안 쓴 빈 textarea), 저장된 메모를 보기만 하는 중(textarea 없음)이면 바깥 클릭 시 닫는다.
-  const memoBoxHasUnsavedText = (slotEl) => {
-    if(!slotEl) return false;
-    const ta = slotEl.querySelector('textarea');
-    return !!(ta && ta.value.trim() !== '');
-  };
-  document.querySelectorAll('[id^="snap-memo-slot-"]').forEach(s => {
-    if(!memoBoxHasUnsavedText(s)) s.innerHTML = '';
-  });
-  if(openTotalMemoId){
-    const s = document.getElementById('total-memo-slot');
-    if(s && !memoBoxHasUnsavedText(s)){
-      s.innerHTML = '';
-      openTotalMemoId = null;
-    }
-  }
-  if(cashAmountAccordionOpen){
-    const s = document.getElementById('cash-amount-slot');
-    if(s) s.innerHTML = '';
-    cashAmountAccordionOpen = false;
-  }
-  // 종목별 아코디언은 바깥을 클릭해도 닫지 않는다. 각 아코디언의 × 버튼으로만 닫는다.
-});
+// 어떤 팝업 아코디언(섹터/지역/잠금지역/메모(스냅샷별·총자산)/현금평가액/종목별 시세 등)도
+// 화면 바깥(아코디언 외부)을 클릭한다고 해서 닫히지 않는다. 각 아코디언은 자신의 × 버튼으로만 닫는다.
 
 document.querySelectorAll('.inline-export-link').forEach(el => {
   el.addEventListener('click', exportData);
