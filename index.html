@@ -2580,11 +2580,6 @@ function applyAccordionPos(selector, pos){
 }
 
 function cycleStockSort(){
-  const openSnapMemoIds = Array.from(document.querySelectorAll('[id^="snap-memo-slot-"]'))
-    .filter(el => el.innerHTML !== '')
-    .map(el => el.id.replace('snap-memo-slot-', ''));
-  const savedSnapMemoPos = {};
-  openSnapMemoIds.forEach(id => { savedSnapMemoPos[id] = captureAccordionPos(`#snap-memo-slot-${id} .floating-acc`); });
   const savedTotalMemoOpen = openTotalMemoId;
   const savedTotalMemoPos = savedTotalMemoOpen ? captureAccordionPos('#total-memo-slot .floating-acc') : null;
   const savedStockDetailOpen = totalStockDetailOpen;
@@ -2641,13 +2636,6 @@ function cycleStockSort(){
     toggleStockDetailAccordion();
     applyAccordionPos('#stock-detail-slot .floating-acc', savedStockDetailPos);
   }
-  openSnapMemoIds.forEach(id => {
-    const btn = document.querySelector(`[data-memosnap="${id}"]`);
-    if(btn){
-      btn.click();
-      applyAccordionPos(`#snap-memo-slot-${id} .floating-acc`, savedSnapMemoPos[id]);
-    }
-  });
   if(savedTotalMemoOpen){
     openTotalMemoId = null;
     toggleTotalMemoAccordion(savedTotalMemoOpen);
@@ -2860,6 +2848,15 @@ let sectorAccordionShowRegionBar = true;
 function accordionRowHTML(label, pct){
   const name = label === '현금' ? '현금' : escapeHTML(label);
   return `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;"><span>${name}</span><span class="num">${pct.toFixed(1)}%</span></div>`;
+}
+
+function trendStockRowHTML(label, pct, amount){
+  const name = label === '현금' ? '현금' : escapeHTML(label);
+  return `<div style="display:flex;align-items:center;gap:16px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;">
+    <span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>
+    <span class="num" style="width:44px;text-align:right;flex-shrink:0;">${pct.toFixed(1)}%</span>
+    <span class="num" style="text-align:left;flex-shrink:0;">${amount.toLocaleString()}</span>
+  </div>`;
 }
 
 let sectorOtherItems = [];
@@ -4165,7 +4162,6 @@ function openTrendAccordionRow(rowId){
   openTrendSeriesPrefix = rowId.slice(0, lastDash);
   openTrendIdx = parseInt(rowId.slice(lastDash + 1), 10);
   openTrendRowId = rowId;
-  document.body.style.overflow = 'hidden';
   renderTrendAccordionContent();
 }
 
@@ -4175,7 +4171,6 @@ function closeTrendAccordion(){
   openTrendRowId = null;
   openTrendSeriesPrefix = null;
   openTrendIdx = null;
-  document.body.style.overflow = '';
 }
 
 function navigateTrendMonth(delta){
@@ -4194,11 +4189,12 @@ function renderTrendAccordionContent(){
   const entry = series[openTrendIdx];
   if(!entry) return;
   const savedPos = captureAccordionPos('#trend-accordion-box');
-  const rows = entry.byKey.map(d => accordionRowHTML(d.label, d.pct)).join('');
+  const rows = entry.byKey.map(d => openTrendSeriesPrefix === 'stock' ? trendStockRowHTML(d.label, d.pct, d.amount) : accordionRowHTML(d.label, d.pct)).join('');
   const canPrev = openTrendIdx < series.length - 1; // 이전달(더 과거) = 인덱스 증가
   const canNext = openTrendIdx > 0;                 // 다음달(더 최근) = 인덱스 감소
+  const boxWidth = openTrendSeriesPrefix === 'stock' ? 300 : 260;
   root.innerHTML = `
-  <div class="floating-acc" id="trend-accordion-box" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);overflow:hidden;">
+  <div class="floating-acc" id="trend-accordion-box" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:${boxWidth}px;max-height:70vh;display:flex;flex-direction:column;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,0.5);overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;cursor:grab;">
       <button data-trendnav="1" ${canPrev?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrev?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrev?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
       <button data-trendnav="-1" ${canNext?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canNext?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canNext?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">›</button>
@@ -4680,7 +4676,6 @@ function renderSnapshotsPanel(){
           <button class="del" data-delsnap="${s.id}">삭제</button>
         </div>
       </div>
-      <div id="snap-memo-slot-${s.id}"></div>
     </div>`;
   }).join('');
 
@@ -4863,7 +4858,7 @@ function renderPanel(){
         </div>
       </div>
       <div class="account-header" style="justify-content:center;flex-direction:column;gap:0;">
-        ${thisMonthSnap ? `<div style="position:relative;margin-bottom:14px;"><button class="btn-memo" data-memosnap="${thisMonthSnap.id}">메모</button><div id="snap-memo-slot-${thisMonthSnap.id}"></div></div>` : ''}
+        ${thisMonthSnap ? `<div style="position:relative;margin-bottom:14px;"><button class="btn-memo" data-memosnap="${thisMonthSnap.id}">메모</button></div>` : ''}
         <span class="total-badge">자산<span class="num">${grandTotal.toLocaleString()}원</span></span>
         <span class="total-badge" data-cashbadge="${cashTotalAll}" data-cash-domestic="${cashDomesticAll}" data-cash-foreign="${cashForeignAll}" style="position:relative;cursor:pointer;margin-top:1px;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPctAll)};">현금비중<span class="num" style="font-size:24px;color:${cashRatioColor(cashPctAll)};">${cashPctAll.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
         <div id="cash-amount-slot"></div>
@@ -5241,7 +5236,7 @@ window.addEventListener('touchend', () => {
 });
 
 document.addEventListener('click', (e) => {
-  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],[data-stock-history-name],#stock-sortable-chart,#stock-detail-btn,#total-memo-edit,#total-memo-save');
+  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],[data-stock-history-name],[data-tab],#stock-sortable-chart,#stock-detail-btn,#total-memo-edit,#total-memo-save');
   const isInsideAccordion = e.target.closest('.floating-acc');
   if(isTrigger || isInsideAccordion || accordionJustDragged) return;
   if(sectorAccordionOpenIdx !== null){
