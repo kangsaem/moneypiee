@@ -2577,6 +2577,22 @@ function sortStockData(data, mode){
   return [...cash, ...rest];
 }
 
+
+// 팝업 아코디언을 화면 스크롤에 영향받지 않도록 fixed로 배치할 때 쓰는 초기 좌표.
+// triggerEl이 있으면 그 바로 아래에, 없으면 화면 중앙에 둔다.
+function fixedAccordionStyleNear(triggerEl, width){
+  width = width || 240;
+  if(triggerEl){
+    const rect = triggerEl.getBoundingClientRect();
+    let top = rect.bottom + 4;
+    let left = rect.left + rect.width/2 - width/2;
+    left = Math.max(8, Math.min(left, window.innerWidth - width - 8));
+    if(top + 80 > window.innerHeight) top = Math.max(8, rect.top - 4);
+    return `position:fixed;top:${top}px;left:${left}px;transform:none;margin:0;`;
+  }
+  return `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);margin:0;`;
+}
+
 function captureAccordionPosAlways(selector){
   const el = document.querySelector(selector);
   if(!el) return null;
@@ -3121,7 +3137,8 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
   const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
   const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
   const sectorTotalAmount = _.sumBy(holdings, 'amount');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  const sectorFixedPos = fixedAccordionStyleNear(triggerEl, 240);
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${sectorFixedPos}z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
       <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">${sectorTotalAmount.toLocaleString()}</span>
@@ -3256,7 +3273,9 @@ function toggleLockedRegionAccordion(){
     accordionRowHTML(lockedRegionAccordionCashLabel, cashPct),
     accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
   ].join('');
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:220px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  const lockedTrigger = document.querySelector('[data-locked-region-toggle]');
+  const lockedFixedPos = fixedAccordionStyleNear(lockedTrigger, 220);
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:220px;${lockedFixedPos}z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(lockedRegionAccordionPlainLabel)}</span>
       <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
@@ -3347,7 +3366,8 @@ function bindRegionAccordionHandlers(){
       const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
       const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
       const regionTotalAmount = _.sumBy(holdings, 'amount');
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+      const regionFixedPos = fixedAccordionStyleNear(el, 240);
+      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${regionFixedPos}z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
         <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
           <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
           <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">${regionTotalAmount.toLocaleString()}</span>
@@ -4095,14 +4115,40 @@ function renderTotalMemoBox(snapId){
       <button class="btn btn-primary" id="total-memo-edit" style="padding:4px 10px;font-size:12px;">메모수정</button>
     </div>`;
   }
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:500;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
-    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#E87BA4;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
-    <div style="font-size:11px;color:#555555;margin-bottom:4px;">${escapeHTML(monthLabel)}</div>
+  const sortedSnapsTotal = state.snapshots.slice().sort((a,b) => String(a.label).localeCompare(String(b.label)));
+  const totalMemoIdx = sortedSnapsTotal.findIndex(s => s.id === snapId);
+  const canPrevTotal = totalMemoIdx > 0;
+  const canNextTotal = totalMemoIdx >= 0 && totalMemoIdx < sortedSnapsTotal.length - 1;
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;overflow:hidden;">
+    <div class="acc-header" style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;cursor:grab;">
+      <button data-total-memonav="-1" ${canPrevTotal?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrevTotal?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrevTotal?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
+      <button data-total-memonav="1" ${canNextTotal?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canNextTotal?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canNextTotal?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">›</button>
+      <span style="flex:1;text-align:center;font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;justify-content:center;">${escapeHTML(monthLabel)}</span>
+      <span class="drag-grip-icon" style="padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
+      <button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#FFFFFF;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
+    </div>
+    <div class="acc-body" style="padding:12px 16px;">
     ${inner}
+    </div>
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const totalMemoCloseBtn = slot.querySelector('[data-acc-close]');
   if(totalMemoCloseBtn) totalMemoCloseBtn.addEventListener('click', () => toggleTotalMemoAccordion(snapId));
+  slot.querySelectorAll('[data-total-memonav]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const delta = parseInt(btn.dataset.totalMemonav, 10);
+      if(!canPrevTotal && delta < 0) return;
+      if(!canNextTotal && delta > 0) return;
+      const nextSnap = sortedSnapsTotal[totalMemoIdx + delta];
+      if(!nextSnap) return;
+      const pos = captureAccordionPosAlways('#total-memo-slot .floating-acc');
+      openTotalMemoId = nextSnap.id;
+      delete totalMemoEditState[nextSnap.id];
+      renderTotalMemoBox(nextSnap.id);
+      applyAccordionPos('#total-memo-slot .floating-acc', pos);
+    });
+  });
   const saveBtn = document.getElementById('total-memo-save');
   if(saveBtn) saveBtn.addEventListener('click', () => {
     if(snap) snap.memo = document.getElementById('total-memo-textarea').value;
@@ -4385,6 +4431,8 @@ function renderTabs(){
       sectorAccordionOpenIdx = null;
       sectorAccordionOpenLabel = null;
       regionAccordionOpenIdx = null;
+      // 현금비중 평가액 팝업은 탭 이동 시 닫는다 (닫기 버튼으로만 닫힘, 다른 이벤트로는 유지)
+      cashAmountAccordionOpen = false;
       render();
     });
   });
@@ -4742,13 +4790,18 @@ function renderMemoBox(snapId, zIndexOverride){
   }
   const monthLabel = snap ? fullMonthLabel(snap.label) : '';
   const isCenterMode = slot.dataset.floatingCenter === 'true';
-  const posStyle = isCenterMode
-    ? 'position:fixed;top:50vh;left:50vw;transform:translate(-50%,-50%);'
-    : 'position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;';
+  const posStyle = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);';
+  const sortedSnapsMemo = state.snapshots.slice().sort((a,b) => String(a.label).localeCompare(String(b.label)));
+  const memoIdx = sortedSnapsMemo.findIndex(s => s.id === snapId);
+  const canPrevMemo = memoIdx > 0;
+  const canNextMemo = memoIdx >= 0 && memoIdx < sortedSnapsMemo.length - 1;
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${zIndex};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
-      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(monthLabel)}</span>
-      <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+    <div class="acc-header" style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;cursor:grab;">
+      <button data-memonav="-1" ${canPrevMemo?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrevMemo?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrevMemo?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
+      <button data-memonav="1" ${canNextMemo?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canNextMemo?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canNextMemo?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">›</button>
+      <span style="flex:1;text-align:center;font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;justify-content:center;">${escapeHTML(monthLabel)}</span>
+      <span class="drag-grip-icon" style="padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
+      <button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#FFFFFF;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
     </div>
     <div class="acc-body" style="padding:8px 12px;">
     ${inner}
@@ -4757,6 +4810,29 @@ function renderMemoBox(snapId, zIndexOverride){
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const memoCloseBtn = slot.querySelector('[data-acc-close]');
   if(memoCloseBtn) memoCloseBtn.addEventListener('click', () => toggleMemoAccordion(snapId));
+  slot.querySelectorAll('[data-memonav]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const delta = parseInt(btn.dataset.memonav, 10);
+      if(!canPrevMemo && delta < 0) return;
+      if(!canNextMemo && delta > 0) return;
+      const nextSnap = sortedSnapsMemo[memoIdx + delta];
+      if(!nextSnap) return;
+      const pos = captureAccordionPosAlways(`#snap-memo-slot-${snapId} .floating-acc`);
+      slot.innerHTML = '';
+      let nextSlot = document.getElementById('snap-memo-slot-' + nextSnap.id);
+      if(!nextSlot){
+        nextSlot = document.createElement('div');
+        nextSlot.id = 'snap-memo-slot-' + nextSnap.id;
+        nextSlot.dataset.floatingCenter = slot.dataset.floatingCenter || 'true';
+        document.body.appendChild(nextSlot);
+      }
+      delete memoEditState[nextSnap.id];
+      openMemoSnapId = nextSnap.id;
+      renderMemoBox(nextSnap.id, zIndex);
+      applyAccordionPos(`#snap-memo-slot-${nextSnap.id} .floating-acc`, pos);
+    });
+  });
   const saveBtn = slot.querySelector('[data-savememo]');
   if(saveBtn) saveBtn.addEventListener('click', () => saveSnapshotMemo(snapId));
   const editBtn = slot.querySelector('[data-editmemo]');
