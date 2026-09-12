@@ -4090,9 +4090,16 @@ function toggleTotalMemoAccordion(snapId){
     openTotalMemoId = null;
     return;
   }
+  // 스냅 메모가 열려 있으면 그 위치에 이어서 쓰지 않고, 스냅 메모는 닫아 하나만 유지
+  const snapSlot = document.getElementById('snap-memo-slot');
+  const existingPos = (snapSlot && snapSlot.querySelector('.floating-acc'))
+    ? captureAccordionPosAlways('#snap-memo-slot .floating-acc')
+    : (slot.querySelector('.floating-acc') ? captureAccordionPosAlways('#total-memo-slot .floating-acc') : null);
+  if(snapSlot){ snapSlot.innerHTML = ''; openMemoSnapId = null; }
   openTotalMemoId = snapId;
   delete totalMemoEditState[snapId];
   renderTotalMemoBox(snapId);
+  if(existingPos) applyAccordionPos('#total-memo-slot .floating-acc', existingPos);
 }
 
 function renderTotalMemoBox(snapId){
@@ -4752,25 +4759,57 @@ function renderDeleteAccountsPanel(){
 let openMemoSnapId = null;
 let memoEditState = {};
 
-function toggleMemoAccordion(snapId){
-  let slot = document.getElementById('snap-memo-slot-' + snapId);
+// 메모 팝업은 전역에 단 하나만 존재. 스냅샷별 슬롯을 만들지 않는다.
+function ensureSingleMemoSlot(){
+  // 과거에 스냅샷별로 만들어졌을 수 있는 잔여 슬롯 전부 제거
+  document.querySelectorAll('[id^="snap-memo-slot"]').forEach(el => {
+    if(el.id !== 'snap-memo-slot') el.remove();
+  });
+  let slot = document.getElementById('snap-memo-slot');
   if(!slot){
     slot = document.createElement('div');
-    slot.id = 'snap-memo-slot-' + snapId;
+    slot.id = 'snap-memo-slot';
     slot.dataset.floatingCenter = 'true';
     document.body.appendChild(slot);
   }
-  if(slot.innerHTML !== ''){
-    slot.innerHTML = '';
+  return slot;
+}
+
+function closeMemoAccordion(){
+  const slot = document.getElementById('snap-memo-slot');
+  if(slot) slot.innerHTML = '';
+  openMemoSnapId = null;
+  // total-memo 와 중복 방지
+  const totalSlot = document.getElementById('total-memo-slot');
+  if(totalSlot) totalSlot.innerHTML = '';
+  openTotalMemoId = null;
+}
+
+function toggleMemoAccordion(snapId){
+  const slot = ensureSingleMemoSlot();
+  // 같은 달 메모가 이미 열려 있으면 닫기
+  if(openMemoSnapId === snapId && slot.querySelector('.floating-acc')){
+    closeMemoAccordion();
     return;
   }
+  // 다른 달 메모가 열려 있으면 그 위치에 내용만 교체
+  const existingPos = slot.querySelector('.floating-acc')
+    ? captureAccordionPosAlways('#snap-memo-slot .floating-acc')
+    : null;
+  // total-memo 가 열려 있으면 닫아 중복 방지
+  const totalSlot = document.getElementById('total-memo-slot');
+  if(totalSlot && totalSlot.innerHTML){
+    totalSlot.innerHTML = '';
+    openTotalMemoId = null;
+  }
+  openMemoSnapId = snapId;
   delete memoEditState[snapId];
   renderMemoBox(snapId);
+  if(existingPos) applyAccordionPos('#snap-memo-slot .floating-acc', existingPos);
 }
 
 function renderMemoBox(snapId, zIndexOverride){
-  const slot = document.getElementById('snap-memo-slot-' + snapId);
-  if(!slot) return;
+  const slot = ensureSingleMemoSlot();
   const zIndex = zIndexOverride || (++accordionZIndexCounter);
   const snap = state.snapshots.find(s => s.id === snapId);
   const memoText = snap ? (snap.memo || '') : '';
@@ -4778,18 +4817,17 @@ function renderMemoBox(snapId, zIndexOverride){
   const editing = memoEditState[snapId] !== undefined ? memoEditState[snapId] : !hasMemo;
   let inner;
   if(editing){
-    inner = `<textarea id="memo-textarea-${snapId}" placeholder="메모를 입력하세요" rows="8" style="width:100%;box-sizing:border-box;background:#FFFFFF;color:#333333;border:1px solid #C9C9C9;border-radius:4px;padding:6px;font-size:16px;font-family:inherit;resize:vertical;">${escapeHTML(memoText)}</textarea>
+    inner = `<textarea id="memo-textarea" placeholder="메모를 입력하세요" rows="8" style="width:100%;box-sizing:border-box;background:#FFFFFF;color:#333333;border:1px solid #C9C9C9;border-radius:4px;padding:6px;font-size:16px;font-family:inherit;resize:vertical;">${escapeHTML(memoText)}</textarea>
     <div style="text-align:right;margin-top:6px;">
-      <button class="btn btn-primary" data-savememo="${snapId}" style="padding:4px 10px;font-size:12px;">메모저장</button>
+      <button class="btn btn-primary" data-savememo style="padding:4px 10px;font-size:12px;">메모저장</button>
     </div>`;
   } else {
     inner = `<div style="white-space:pre-wrap;font-size:13px;line-height:1.5;">${escapeHTML(memoText)}</div>
     <div style="text-align:right;margin-top:6px;">
-      <button class="btn btn-primary" data-editmemo="${snapId}" style="padding:4px 10px;font-size:12px;">메모수정</button>
+      <button class="btn btn-primary" data-editmemo style="padding:4px 10px;font-size:12px;">메모수정</button>
     </div>`;
   }
   const monthLabel = snap ? fullMonthLabel(snap.label) : '';
-  const isCenterMode = slot.dataset.floatingCenter === 'true';
   const posStyle = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);';
   const sortedSnapsMemo = state.snapshots.slice().sort((a,b) => String(a.label).localeCompare(String(b.label)));
   const memoIdx = sortedSnapsMemo.findIndex(s => s.id === snapId);
@@ -4809,7 +4847,7 @@ function renderMemoBox(snapId, zIndexOverride){
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const memoCloseBtn = slot.querySelector('[data-acc-close]');
-  if(memoCloseBtn) memoCloseBtn.addEventListener('click', () => toggleMemoAccordion(snapId));
+  if(memoCloseBtn) memoCloseBtn.addEventListener('click', () => closeMemoAccordion());
   slot.querySelectorAll('[data-memonav]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -4818,19 +4856,12 @@ function renderMemoBox(snapId, zIndexOverride){
       if(!canNextMemo && delta > 0) return;
       const nextSnap = sortedSnapsMemo[memoIdx + delta];
       if(!nextSnap) return;
-      const pos = captureAccordionPosAlways(`#snap-memo-slot-${snapId} .floating-acc`);
-      slot.innerHTML = '';
-      let nextSlot = document.getElementById('snap-memo-slot-' + nextSnap.id);
-      if(!nextSlot){
-        nextSlot = document.createElement('div');
-        nextSlot.id = 'snap-memo-slot-' + nextSnap.id;
-        nextSlot.dataset.floatingCenter = slot.dataset.floatingCenter || 'true';
-        document.body.appendChild(nextSlot);
-      }
-      delete memoEditState[nextSnap.id];
+      // 같은 팝업 위치에 내용만 교체
+      const pos = captureAccordionPosAlways('#snap-memo-slot .floating-acc');
       openMemoSnapId = nextSnap.id;
+      delete memoEditState[nextSnap.id];
       renderMemoBox(nextSnap.id, zIndex);
-      applyAccordionPos(`#snap-memo-slot-${nextSnap.id} .floating-acc`, pos);
+      if(pos) applyAccordionPos('#snap-memo-slot .floating-acc', pos);
     });
   });
   const saveBtn = slot.querySelector('[data-savememo]');
@@ -4838,24 +4869,22 @@ function renderMemoBox(snapId, zIndexOverride){
   const editBtn = slot.querySelector('[data-editmemo]');
   if(editBtn) editBtn.addEventListener('click', () => {
     memoEditState[snapId] = true;
-    const pos = captureAccordionPos(`#snap-memo-slot-${snapId} .floating-acc`);
-    if(pos) pos.zIndex = null;
+    const pos = captureAccordionPosAlways('#snap-memo-slot .floating-acc');
     renderMemoBox(snapId);
-    applyAccordionPos(`#snap-memo-slot-${snapId} .floating-acc`, pos);
+    if(pos) applyAccordionPos('#snap-memo-slot .floating-acc', pos);
   });
 }
 
 function saveSnapshotMemo(snapId){
   const snap = state.snapshots.find(s => s.id === snapId);
   if(!snap) return;
-  const ta = document.getElementById('memo-textarea-' + snapId);
+  const ta = document.getElementById('memo-textarea');
   snap.memo = ta ? ta.value : '';
   saveSnapshots();
   memoEditState[snapId] = false;
-  const pos = captureAccordionPos(`#snap-memo-slot-${snapId} .floating-acc`);
-  if(pos) pos.zIndex = null;
+  const pos = captureAccordionPosAlways('#snap-memo-slot .floating-acc');
   renderMemoBox(snapId);
-  applyAccordionPos(`#snap-memo-slot-${snapId} .floating-acc`, pos);
+  if(pos) applyAccordionPos('#snap-memo-slot .floating-acc', pos);
 }
 
 function renderSnapshotsPanel(){
