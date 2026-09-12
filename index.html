@@ -2004,6 +2004,11 @@ function cashRatioColor(pct){
 }
 
 let cashAmountAccordionOpen = false;
+function closeCashAmountAccordion(){
+  const slot = document.getElementById('cash-amount-slot');
+  if(slot) slot.innerHTML = '';
+  cashAmountAccordionOpen = false;
+}
 function toggleCashAmountAccordion(amount, triggerEl, breakdown){
   const slot = document.getElementById('cash-amount-slot');
   if(!slot) return;
@@ -2612,8 +2617,10 @@ function renderPreservingOpenChartAccordions(){
   const savedRegionPos = savedRegionLabel ? captureAccordionPosAlways(`#region-slot-${regionAccordionOpenIdx} .floating-acc`) : null;
   const savedLockedRegionOpen = lockedRegionAccordionOpen;
   const savedLockedRegionPos = savedLockedRegionOpen ? captureAccordionPosAlways('#locked-region-slot .floating-acc') : null;
-  const savedCashOpen = cashAmountAccordionOpen;
-  const savedCashPos = savedCashOpen ? captureAccordionPosAlways('#cash-amount-slot .floating-acc') : null;
+  // 현금비중 평가액 팝업은 재렌더링/탭 전환 시 유지하지 않는다.
+  closeCashAmountAccordion();
+  const savedCashOpen = false;
+  const savedCashPos = null;
   const savedTotalMemoOpen = openTotalMemoId;
   const savedTotalMemoPos = savedTotalMemoOpen ? captureAccordionPosAlways('#total-memo-slot .floating-acc') : null;
 
@@ -2668,8 +2675,10 @@ function cycleStockSort(){
   const savedRegionPos = savedRegionLabel ? captureAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`) : null;
   const savedLockedRegionOpen = lockedRegionAccordionOpen;
   const savedLockedRegionPos = savedLockedRegionOpen ? captureAccordionPos('#locked-region-slot .floating-acc') : null;
-  const savedCashOpen = cashAmountAccordionOpen;
-  const savedCashPos = savedCashOpen ? captureAccordionPosAlways('#cash-amount-slot .floating-acc') : null;
+  // 금액순/섹터순/지역순/이름순 전환 시 현금비중 평가액 팝업은 복원하지 않는다.
+  closeCashAmountAccordion();
+  const savedCashOpen = false;
+  const savedCashPos = null;
 
   const cycle = stockSortCycleActive || STOCK_SORT_CYCLE_FULL;
   const idx = cycle.indexOf(stockLegendSortMode);
@@ -4075,6 +4084,21 @@ function toggleTotalMemoAccordion(snapId){
   renderTotalMemoBox(snapId);
 }
 
+function navigateTotalMemoMonth(snapId, delta){
+  const idx = state.snapshots.findIndex(s => s.id === snapId);
+  if(idx < 0) return;
+  const newIdx = idx + delta;
+  if(newIdx < 0 || newIdx >= state.snapshots.length) return;
+  const nextSnapId = state.snapshots[newIdx].id;
+  const slot = document.getElementById('total-memo-slot');
+  if(!slot) return;
+  const pos = captureAccordionPos('#total-memo-slot .floating-acc');
+  if(pos) pos.zIndex = null;
+  renderTotalMemoBox(nextSnapId);
+  applyAccordionPos('#total-memo-slot .floating-acc', pos);
+  openTotalMemoId = nextSnapId;
+}
+
 function renderTotalMemoBox(snapId){
   const slot = document.getElementById('total-memo-slot');
   if(!slot) return;
@@ -4095,14 +4119,30 @@ function renderTotalMemoBox(snapId){
       <button class="btn btn-primary" id="total-memo-edit" style="padding:4px 10px;font-size:12px;">메모수정</button>
     </div>`;
   }
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;padding:12px 16px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:500;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;">
-    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#E87BA4;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
-    <div style="font-size:11px;color:#555555;margin-bottom:4px;">${escapeHTML(monthLabel)}</div>
+  const snapIndex = snap ? state.snapshots.findIndex(s => s.id === snap.id) : -1;
+  const canPrev = snapIndex >= 0 && snapIndex < state.snapshots.length - 1;
+  const canNext = snapIndex > 0;
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:8px;text-align:left;box-sizing:border-box;width:260px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:500;box-shadow:0 8px 24px rgba(0,0,0,0.5);cursor:grab;overflow:hidden;">
+    <div class="acc-header" style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;cursor:grab;">
+      <button data-totalmemonav="1" ${canPrev?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrev?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrev?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
+      <button data-totalmemonav="-1" ${canNext?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canNext?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canNext?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">›</button>
+      <span style="flex:1;text-align:center;font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;justify-content:center;">${escapeHTML(monthLabel)}</span>
+      <span class="drag-grip-icon" style="padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
+      <button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#FFFFFF;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
+    </div>
+    <div class="acc-body" style="padding:12px 16px;">
     ${inner}
+    </div>
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const totalMemoCloseBtn = slot.querySelector('[data-acc-close]');
   if(totalMemoCloseBtn) totalMemoCloseBtn.addEventListener('click', () => toggleTotalMemoAccordion(snapId));
+  slot.querySelectorAll('[data-totalmemonav]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navigateTotalMemoMonth(snapId, parseInt(btn.dataset.totalmemonav, 10));
+    });
+  });
   const saveBtn = document.getElementById('total-memo-save');
   if(saveBtn) saveBtn.addEventListener('click', () => {
     if(snap) snap.memo = document.getElementById('total-memo-textarea').value;
@@ -4380,6 +4420,8 @@ function renderTabs(){
       state.activeId = el.dataset.tab;
       accountTableSortMode = null;
       stockLegendSortMode = 'amount';
+      // 현금비중 평가액 팝업은 탭을 이동하면 항상 닫는다.
+      closeCashAmountAccordion();
       // 탭을 이동하면 섹터/지역 아코디언은 닫는다(팝업 DOM은 render()로 어차피 사라지지만,
       // 내부 상태값도 함께 초기화해야 다른 탭에서 같은 idx로 다시 열 때 꼬이지 않는다).
       sectorAccordionOpenIdx = null;
@@ -4720,6 +4762,23 @@ function toggleMemoAccordion(snapId){
   renderMemoBox(snapId);
 }
 
+function navigateMemoMonth(snapId, delta){
+  const idx = state.snapshots.findIndex(s => s.id === snapId);
+  if(idx < 0) return;
+  const newIdx = idx + delta;
+  if(newIdx < 0 || newIdx >= state.snapshots.length) return;
+  const nextSnapId = state.snapshots[newIdx].id;
+  const slot = document.getElementById('snap-memo-slot-' + snapId);
+  if(!slot) return;
+  const pos = captureAccordionPos(`#snap-memo-slot-${snapId} .floating-acc`);
+  if(pos) pos.zIndex = null;
+  // 현재 메모창을 새 월의 메모창으로 이어서 표시한다.
+  slot.id = 'snap-memo-slot-' + nextSnapId;
+  delete memoEditState[snapId];
+  renderMemoBox(nextSnapId);
+  applyAccordionPos(`#snap-memo-slot-${nextSnapId} .floating-acc`, pos);
+}
+
 function renderMemoBox(snapId, zIndexOverride){
   const slot = document.getElementById('snap-memo-slot-' + snapId);
   if(!slot) return;
@@ -4745,10 +4804,16 @@ function renderMemoBox(snapId, zIndexOverride){
   const posStyle = isCenterMode
     ? 'position:fixed;top:50vh;left:50vw;transform:translate(-50%,-50%);'
     : 'position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;';
+  const snapIndex = snap ? state.snapshots.findIndex(s => s.id === snap.id) : -1;
+  const canPrev = snapIndex >= 0 && snapIndex < state.snapshots.length - 1; // 이전달(더 과거)
+  const canNext = snapIndex > 0; // 다음달(더 최근)
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${zIndex};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
-    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
-      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(monthLabel)}</span>
-      <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
+    <div class="acc-header" style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;cursor:grab;">
+      <button data-memonav="1" ${canPrev?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrev?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrev?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
+      <button data-memonav="-1" ${canNext?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canNext?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canNext?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">›</button>
+      <span style="flex:1;text-align:center;font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;justify-content:center;">${escapeHTML(monthLabel)}</span>
+      <span class="drag-grip-icon" style="padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
+      <button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
     <div class="acc-body" style="padding:8px 12px;">
     ${inner}
@@ -4757,6 +4822,12 @@ function renderMemoBox(snapId, zIndexOverride){
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const memoCloseBtn = slot.querySelector('[data-acc-close]');
   if(memoCloseBtn) memoCloseBtn.addEventListener('click', () => toggleMemoAccordion(snapId));
+  slot.querySelectorAll('[data-memonav]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navigateMemoMonth(snapId, parseInt(btn.dataset.memonav, 10));
+    });
+  });
   const saveBtn = slot.querySelector('[data-savememo]');
   if(saveBtn) saveBtn.addEventListener('click', () => saveSnapshotMemo(snapId));
   const editBtn = slot.querySelector('[data-editmemo]');
