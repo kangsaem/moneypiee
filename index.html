@@ -2004,9 +2004,42 @@ function cashRatioColor(pct){
 }
 
 let cashAmountAccordionOpen = false;
+
+function bindCashLegendOpeners(root){
+  const scope = root || document;
+  scope.querySelectorAll('[data-open-cash-amount]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const amount = parseFloat(el.dataset.openCashAmount);
+      if(isNaN(amount)) return;
+      // 이미 열려 있으면 토글(닫기). 닫혀 있으면 클릭한 위치에 연다.
+      if(cashAmountAccordionOpen){
+        toggleCashAmountAccordion();
+        return;
+      }
+      let breakdown = null;
+      // 전체 현금(또는 합산) 클릭 시에만 상단 뱃지의 원화/외화 분해를 함께 표시
+      const label = el.dataset.openCashLabel || '';
+      const cashBadge = document.querySelector('[data-cashbadge]');
+      if(cashBadge && (label === '현금' || label === '') && cashBadge.dataset.cashDomestic !== undefined){
+        breakdown = {
+          domestic: parseFloat(cashBadge.dataset.cashDomestic),
+          foreign: parseFloat(cashBadge.dataset.cashForeign)
+        };
+      }
+      toggleCashAmountAccordion(amount, el, breakdown);
+    });
+  });
+}
+
 function toggleCashAmountAccordion(amount, triggerEl, breakdown){
-  const slot = document.getElementById('cash-amount-slot');
-  if(!slot) return;
+  let slot = document.getElementById('cash-amount-slot');
+  if(!slot){
+    // 계좌 탭 등 상단 뱃지 슬롯이 없는 화면에서도 현금 목록 클릭으로 열 수 있도록 body에 생성
+    slot = document.createElement('div');
+    slot.id = 'cash-amount-slot';
+    document.body.appendChild(slot);
+  }
   if(cashAmountAccordionOpen){
     slot.innerHTML = '';
     cashAmountAccordionOpen = false;
@@ -2023,11 +2056,19 @@ function toggleCashAmountAccordion(amount, triggerEl, breakdown){
       <span>외화</span><span class="num">${breakdown.foreign.toLocaleString()}원</span>
     </div>`
     : '';
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;border-radius:8px;padding:14px 20px;box-sizing:border-box;position:fixed;top:${topPx}px;left:50%;transform:translateX(-50%);z-index:${++accordionZIndexCounter};box-shadow:0 8px 24px rgba(0,0,0,0.5);width:180px;text-align:center;cursor:grab;">
-    <span class="drag-grip-icon" style="position:absolute;top:6px;left:8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;">⠿</span>
-    <button data-acc-close style="position:absolute;top:-10px;right:-10px;width:28px;height:28px;background:#E87BA4;border:none;border-radius:6px;color:#EDEDED;font-size:17px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:10;">&times;</button>
-    <span class="num" style="display:inline-block;padding:6px 4px;font-size:16px;color:#333333;border-bottom:1px solid #C9C9C9;">${amount.toLocaleString()}원</span>
-    ${breakdownHtml}
+  const cashLeftPx = triggerEl
+    ? Math.max(8, Math.min(triggerEl.getBoundingClientRect().left + triggerEl.getBoundingClientRect().width/2 - 90, window.innerWidth - 188))
+    : (window.innerWidth/2 - 90);
+  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:center;box-sizing:border-box;width:180px;position:fixed;top:${topPx}px;left:${cashLeftPx}px;transform:none;margin:0;z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+    <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;cursor:grab;">
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">현금</span>
+      <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span>
+      <button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#FFFFFF;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">×</button>
+    </div>
+    <div class="acc-body" style="padding:12px 14px;">
+      <span class="num" style="display:inline-block;padding:4px 2px;font-size:16px;color:#333333;font-weight:700;">${amount.toLocaleString()}원</span>
+      ${breakdownHtml}
+    </div>
   </div>`;
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
   const cashCloseBtn = slot.querySelector('[data-acc-close]');
@@ -2842,8 +2883,16 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     const nameStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : (isQtyMode ? 'color:#FFFFFF;' : (d.quantity == null ? 'color:var(--text-dim);' : ''));
     const pctStyle = isCashLabel ? 'color:#F0DA8C;font-weight:700;' : (isQtyMode ? 'color:#FFFFFF;' : (d.quantity == null ? 'color:var(--text-dim);' : ''));
     // 계좌탭과 동일하게 개수가 입력된(또는 수량 정보가 있는) 종목만 클릭해 가격변화 아코디언을 연다.
+    // 현금(원화/외화 포함)은 클릭 시 현금비중 평가액 팝업을 해당 위치에 연다.
     const canOpenStockHistory = !isCashLabel && d.quantity != null && d.accId && d.holdId;
-    const clickAttrs = canOpenStockHistory ? ` data-stock-history-name="${escapeHTML(d.holdId)}" data-stock-history-acc="${escapeHTML(d.accId)}" style="cursor:pointer;${nameStyle}"` : ` style="${nameStyle}"`;
+    let clickAttrs;
+    if(canOpenStockHistory){
+      clickAttrs = ` data-stock-history-name="${escapeHTML(d.holdId)}" data-stock-history-acc="${escapeHTML(d.accId)}" style="cursor:pointer;${nameStyle}"`;
+    } else if(isCashLabel){
+      clickAttrs = ` data-open-cash-amount="${d.amount}" data-open-cash-label="${escapeHTML(d.label)}" style="cursor:pointer;${nameStyle}"`;
+    } else {
+      clickAttrs = ` style="${nameStyle}"`;
+    }
     const valueText = compactTotalMode && stockLegendValueMode === 'amount'
       ? d.amount.toLocaleString()
       : `${d.pct.toFixed(1)}<span class="pct-sign">%</span>`;
@@ -5020,6 +5069,7 @@ function renderPanel(){
         openStockHistoryAccordion(cell.dataset.stockHistoryAcc, cell.dataset.stockHistoryName, cell);
       });
     });
+    bindCashLegendOpeners(panel);
     panel.querySelectorAll('[data-subtype-filter]').forEach(el => {
       el.addEventListener('click', () => {
         const selectorEl = document.getElementById('accountBtnSelector');
@@ -5168,6 +5218,7 @@ function renderPanel(){
         openStockHistoryAccordion(cell.dataset.stockHistoryAcc, cell.dataset.stockHistoryName, cell);
       });
     });
+    bindCashLegendOpeners(panel);
     return;
   }
 
@@ -5237,6 +5288,7 @@ function renderPanel(){
       openStockHistoryAccordion(cell.dataset.stockHistoryAcc, cell.dataset.stockHistoryName, cell);
     });
   });
+  bindCashLegendOpeners(panel);
   panel.querySelectorAll('[data-qtytoggle]').forEach(cell => {
     cell.addEventListener('click', () => {
       const scrollEl = document.getElementById('holdingsTableScroll');
