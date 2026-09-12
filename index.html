@@ -2591,6 +2591,39 @@ function applyAccordionPos(selector, pos){
   el.dataset.dragged = 'true';
 }
 
+function renderPreservingOpenChartAccordions(){
+  const savedSectorLabel = (sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
+    ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null;
+  const savedSectorPos = savedSectorLabel ? captureAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`) : null;
+  const savedRegionLabel = (regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
+    ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label : null;
+  const savedRegionPos = savedRegionLabel ? captureAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`) : null;
+  const savedLockedRegionOpen = lockedRegionAccordionOpen;
+  const savedLockedRegionPos = savedLockedRegionOpen ? captureAccordionPos('#locked-region-slot .floating-acc') : null;
+
+  render();
+
+  if(savedSectorLabel){
+    const el = document.querySelector(`[data-sector-label="${CSS.escape(savedSectorLabel)}"]`);
+    if(el){
+      el.click();
+      applyAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`, savedSectorPos);
+    }
+  }
+  if(savedRegionLabel){
+    const el = document.querySelector(`[data-region-label="${CSS.escape(savedRegionLabel)}"]`);
+    if(el){
+      el.click();
+      applyAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`, savedRegionPos);
+    }
+  }
+  if(savedLockedRegionOpen && document.getElementById('locked-region-slot')){
+    lockedRegionAccordionOpen = false;
+    toggleLockedRegionAccordion();
+    applyAccordionPos('#locked-region-slot .floating-acc', savedLockedRegionPos);
+  }
+}
+
 function cycleStockSort(){
   const savedTotalMemoOpen = openTotalMemoId;
   const savedTotalMemoPos = savedTotalMemoOpen ? captureAccordionPos('#total-memo-slot .floating-acc') : null;
@@ -4310,7 +4343,7 @@ function renderTabs(){
   tabs.innerHTML = html;
 
   tabs.querySelectorAll('[data-tab]').forEach(el => {
-    el.addEventListener('click', () => { state.activeId = el.dataset.tab; accountTableSortMode = null; stockLegendSortMode = 'amount'; historyAccountFilter = []; totalAccountFilterSel = []; render(); });
+    el.addEventListener('click', () => { state.activeId = el.dataset.tab; accountTableSortMode = null; stockLegendSortMode = 'amount'; render(); });
   });
   document.getElementById('addAccountBtn').addEventListener('click', addAccount);
 }
@@ -4830,7 +4863,7 @@ function renderPanel(){
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         stockLegendValueMode = stockLegendValueMode === 'pct' ? 'amount' : 'pct';
-        render();
+        renderPreservingOpenChartAccordions();
       });
     });
     panel.querySelectorAll('[data-stock-history-name]').forEach(cell => {
@@ -4947,7 +4980,7 @@ function renderPanel(){
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         stockLegendValueMode = stockLegendValueMode === 'pct' ? 'amount' : 'pct';
-        render();
+        renderPreservingOpenChartAccordions();
       });
     });
     panel.querySelectorAll('[data-accounttype-filter]').forEach(el => {
