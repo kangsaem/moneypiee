@@ -2606,10 +2606,10 @@ function applyAccordionPos(selector, pos){
 function renderPreservingOpenChartAccordions(){
   const savedSectorLabel = (sectorAccordionOpenIdx !== null && sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)])
     ? sectorAccordionOrdered[parseInt(sectorAccordionOpenIdx,10)].label : null;
-  const savedSectorPos = savedSectorLabel ? captureAccordionPos(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`) : null;
+  const savedSectorPos = savedSectorLabel ? captureAccordionPosAlways(`#sector-slot-${sectorAccordionOpenIdx} .floating-acc`) : null;
   const savedRegionLabel = (regionAccordionOpenIdx !== null && regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)])
     ? regionAccordionOrdered[parseInt(regionAccordionOpenIdx,10)].label : null;
-  const savedRegionPos = savedRegionLabel ? captureAccordionPos(`#region-slot-${regionAccordionOpenIdx} .floating-acc`) : null;
+  const savedRegionPos = savedRegionLabel ? captureAccordionPosAlways(`#region-slot-${regionAccordionOpenIdx} .floating-acc`) : null;
   const savedLockedRegionOpen = lockedRegionAccordionOpen;
   const savedLockedRegionPos = savedLockedRegionOpen ? captureAccordionPosAlways('#locked-region-slot .floating-acc') : null;
   const savedCashOpen = cashAmountAccordionOpen;
@@ -5354,27 +5354,10 @@ window.addEventListener('touchend', () => {
 });
 
 document.addEventListener('click', (e) => {
-  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],[data-stock-history-name],[data-tab],#stock-sortable-chart,#total-memo-edit,#total-memo-save');
+  const isTrigger = e.target.closest('[data-sector-idx],[data-region-idx],[data-memosnap],[data-editmemo],[data-savememo],[data-snap-idx],[data-cashbadge],[data-donut-cycle-sector],[data-donut-cycle-region],[data-donut-cycle],[data-locked-region-toggle],[data-stock-history-name],[data-tab],#stock-sortable-chart,#total-memo-edit,#total-memo-save,#reloadPricesBtn');
   const isInsideAccordion = e.target.closest('.floating-acc');
   if(isTrigger || isInsideAccordion || accordionJustDragged) return;
-  if(sectorAccordionOpenIdx !== null){
-    const s = document.getElementById('sector-slot-' + sectorAccordionOpenIdx);
-    if(s) s.innerHTML = '';
-    const sectorTriggerEl = document.querySelector(`[data-sector-idx="${sectorAccordionOpenIdx}"]`);
-    if(sectorTriggerEl) clearChartHighlight(sectorTriggerEl, 'decorative-sector');
-    sectorAccordionOpenIdx = null;
-    const sectorCenterEl = document.getElementById('sector-center-label');
-    if(sectorCenterEl) sectorCenterEl.textContent = '섹터';
-  }
-  if(regionAccordionOpenIdx !== null){
-    const s = document.getElementById('region-slot-' + regionAccordionOpenIdx);
-    if(s) s.innerHTML = '';
-    const regionTriggerEl = document.querySelector(`[data-region-idx="${regionAccordionOpenIdx}"]`);
-    if(regionTriggerEl) clearRegionGroupHighlight(regionTriggerEl);
-    regionAccordionOpenIdx = null;
-    const regionCenterEl = document.getElementById('region-center-label');
-    if(regionCenterEl) regionCenterEl.textContent = '지역';
-  }
+  // 섹터/지역 아코디언은 화면 외곽을 눌러도 닫지 않는다. × 버튼으로만 닫는다.
   if(lockedRegionAccordionOpen){
     const s = document.getElementById('locked-region-slot');
     if(s) s.innerHTML = '';
