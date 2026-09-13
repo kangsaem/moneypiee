@@ -679,7 +679,6 @@ function bindReloadPricesBtn(){
     btn.classList.add('reload-spin');
     // 하단 새로고침 시 상단 시장 지표도 함께 갱신
     loadMarketData(true);
-    applyMarketRefreshCooldownVisual();
     const hasQty = state.accounts.some(a => (a.holdings||[]).some(h => h.quantity != null && h.symbol));
     if(!hasQty) return;
     btn.disabled = true;
@@ -1082,52 +1081,20 @@ async function cycleMarketRange(key){
   await setMarketRange(key, nextRange);
 }
 
-const LS_MARKET_REFRESH_KEY = 'asset-tracker:lastMarketRefreshAt';
-const MARKET_REFRESH_COOLDOWN_MS = 5 * 60 * 1000; // 5분
-let lastMarketRefreshAt = 0;
-try { lastMarketRefreshAt = parseInt(localStorage.getItem(LS_MARKET_REFRESH_KEY), 10) || 0; } catch(e){}
-
-let mktRefreshCooldownInterval = null;
-function applyMarketRefreshCooldownVisual(){
-  if(mktRefreshCooldownInterval){ clearInterval(mktRefreshCooldownInterval); mktRefreshCooldownInterval = null; }
-  function tick(){
-    const btn = document.getElementById('mktRefreshBtn');
-    const label = document.getElementById('mktRefreshLabel');
-    if(!btn || !label){ if(mktRefreshCooldownInterval){ clearInterval(mktRefreshCooldownInterval); mktRefreshCooldownInterval = null; } return; }
-    const elapsed = Date.now() - lastMarketRefreshAt;
-    const remain = MARKET_REFRESH_COOLDOWN_MS - elapsed;
-    if(remain > 0){
-      label.style.display = '';
-      if(elapsed < 10000){
-        label.textContent = '- 시세 갱신됨';
-      } else {
-        const remainMin = Math.ceil(remain / 60000);
-        label.textContent = `- ${remainMin}분간 쿨다운`;
-      }
-    } else {
-      label.style.display = 'none';
-      if(mktRefreshCooldownInterval){ clearInterval(mktRefreshCooldownInterval); mktRefreshCooldownInterval = null; }
-    }
-  }
-  tick();
-  mktRefreshCooldownInterval = setInterval(tick, 1000);
-}
-
 async function loadMarketData(forceRefresh){
-  const withinCooldown = (Date.now() - lastMarketRefreshAt) < MARKET_REFRESH_COOLDOWN_MS;
-  if(!forceRefresh || withinCooldown){
+  // 지수탭 전용 리로드 버튼이 더 이상 없고, 본문 리로드 버튼(reloadPricesBtn)을 통해서만
+  // forceRefresh=true로 호출된다. 지수탭 자체의 별도 쿨타임은 두지 않고,
+  // forceRefresh가 아닐 때만 캐시 TTL(2시간)을 확인해 캐시를 재사용한다.
+  if(!forceRefresh){
     try{
       const cached = JSON.parse(localStorage.getItem(MARKET_CACHE_KEY) || 'null');
-      if(cached && (withinCooldown || (Date.now() - cached.timestamp) < MARKET_CACHE_TTL)){
+      if(cached && (Date.now() - cached.timestamp) < MARKET_CACHE_TTL){
         marketData = cached.data;
         renderMarketTicker();
         return;
       }
     }catch(e){}
-    if(withinCooldown) return; // 캐시조차 없는 극초반이면 그냥 대기(무리하게 호출 안 함)
   }
-  lastMarketRefreshAt = Date.now();
-  try { localStorage.setItem(LS_MARKET_REFRESH_KEY, String(lastMarketRefreshAt)); } catch(e){}
   // 야후 차트(스파크라인용) + 코스피/코스닥 네이버 실시간 가격을 병렬로 가져온다.
   const [yahooResults, naverKospi, naverKosdaq] = await Promise.all([
     Promise.allSettled(MARKET_SYMBOLS.map(cfg => fetchYahooChart(cfg.symbol, '1d', KOREA_SESSION_KEYS.includes(cfg.key)))),
@@ -5629,7 +5596,7 @@ function renderPanel(){
       ${stockChartBlockSortable(acc.holdings, true, [
         { data: computeWeights(acc.holdings, 'group'), type: 'group', name: 'decorative-sector' },
         { data: regionQuadRingData(acc.holdings), type: 'region', name: 'decorative-region', preOrdered: true }
-      ], acc.id)}
+      ], acc.id, true)}
     </div>
   `;
 
@@ -5662,6 +5629,13 @@ function renderPanel(){
     cell.addEventListener('click', (e) => {
       e.stopPropagation();
       openStockHistoryAccordion(cell.dataset.stockHistoryAcc, cell.dataset.stockHistoryName, cell);
+    });
+  });
+  panel.querySelectorAll('[data-stock-value-toggle]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      stockLegendValueMode = stockLegendValueMode === 'pct' ? 'amount' : 'pct';
+      render();
     });
   });
   bindCashLegendOpeners(panel);
@@ -5926,7 +5900,6 @@ document.querySelectorAll('.inline-export-link').forEach(el => {
 
 load();
 loadMarketData(true);
-applyMarketRefreshCooldownVisual();
 
 function checkNoticePng(){
   return new Promise((resolve) => {
