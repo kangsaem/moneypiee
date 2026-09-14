@@ -630,7 +630,7 @@ function syncQuantityHoldingsAmounts(){
 const LS_PRICE_REFRESH_KEY = 'asset-tracker:lastPriceRefreshAt';
 let lastPriceRefreshAt = 0;
 try { lastPriceRefreshAt = parseInt(localStorage.getItem(LS_PRICE_REFRESH_KEY), 10) || 0; } catch(e){}
-const PRICE_REFRESH_COOLDOWN_MS = 5 * 60 * 1000; // 5분
+const PRICE_REFRESH_COOLDOWN_MS = 1 * 60 * 1000; // 1분
 
 let reloadBtnCooldownInterval = null;
 function applyReloadBtnCooldownVisual(btn){
