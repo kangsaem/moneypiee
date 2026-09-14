@@ -3829,8 +3829,9 @@ function mergeHoldingsByKey(holdings){
 
 let stockHistoryAccordions = {};
 
-// 종목 히스토리 그래프(1일/1개월/3개월/6개월/12개월) 캐시. 같은 팝업에서 기간을 오갈 때 재요청하지 않고 재사용한다.
-// key: `${yahooSymbol}|${range}` -> fetchYahooChart 결과
+// 종목 히스토리 그래프 기간별 캐시. 상단 지수 탭과 같이 기간을 누를 때마다 해당 range만 개별 조회하고,
+// 같은 심볼·기간은 재요청하지 않는다. key: `${yahooSymbol}|${range}` -> fetchYahooChart 결과
+// 현재가 숫자는 1일(1d) 캐시(또는 네이버 lastPrice)를 고정으로 쓰고, 기간 탭은 차트/등락률만 바꾼다.
 let stockHistoryChartCache = {};
 // 심볼 조회에 실패한 종목(holdId)을 잠깐 동안 기억해서, 기간 탭을 연타해도 매번 재조회를 시도하지
 // 않게 한다. 다만 네트워크 일시 오류로 계속 막히는 걸 막기 위해 "영구 차단"이 아니라 짧은 쿨다운만 둔다.
@@ -3844,37 +3845,12 @@ function resetStockHistoryCache(){
   stockHistoryChartCache = {};
   stockHistorySymbolFailCache = {};
   stockHistoryResolvePending = {};
-  stockHistoryBatchFetchPending = {};
 }
 
-// 심볼 하나에 대해 1일/1개월/3개월/6개월/12개월 차트를 한 번에 요청해서 캐시에 저장한다.
-// 기간 탭을 누를 때마다 그때그때 개별 요청하면 요청 시점마다(=현재가 조회 시점마다) 현재가가
-// 서로 다르게 잡혀 기간별로 가격이 들쭉날쭉해 보이는 문제가 있었다. 그래서 특정 기간이 캐시에
-// 없으면(최초 조회든, 리로드로 캐시가 비워진 뒤 재조회든) 그 기간 하나만 받아오지 않고 5개
-// 기간을 동시에 받아와 같은 시점의 데이터로 캐시를 채운다. 같은 심볼에 대해 동시에 여러 번
-// 호출돼도 실제 네트워크 요청은 한 번만 나가도록 pending Promise를 공유한다.
-let stockHistoryBatchFetchPending = {}; // symbol -> Promise
-
-async function fetchAllStockHistoryRanges(symbol){
-  if(stockHistoryBatchFetchPending[symbol]) return stockHistoryBatchFetchPending[symbol];
-  const promise = (async () => {
-    const results = await Promise.allSettled(
-      STOCK_HISTORY_RANGES.map(r => fetchYahooChart(symbol, r.key, r.key === '1d'))
-    );
-    results.forEach((result, idx) => {
-      const rangeKey = STOCK_HISTORY_RANGES[idx].key;
-      if(result.status === 'fulfilled' && result.value){
-        stockHistoryChartCache[`${symbol}|${rangeKey}`] = result.value;
-      }
-    });
-  })();
-  stockHistoryBatchFetchPending[symbol] = promise;
-  try{
-    await promise;
-  } finally {
-    delete stockHistoryBatchFetchPending[symbol];
-  }
-}
+// 상단 지수 탭과 동일한 방식:
+// - 최초(1일) 조회 시 현재가를 확정하고, 이후 기간 탭을 바꿔도 현재가 숫자는 유지한다.
+// - 기간별 차트/등락률만 해당 range를 개별 호출해서 채운다.
+// - 같은 심볼·같은 기간은 stockHistoryChartCache에 캐시해 재요청하지 않는다.
 
 const STOCK_HISTORY_RANGES = [
   { key:'1d', label:'1일' },
@@ -4063,39 +4039,46 @@ async function loadStockHistoryGraph(key, token){
   }
   const cacheKey = `${symbol}|${info.range}`;
   try{
+    // 상단 지수 탭과 동일: 요청한 기간만 개별 조회. 캐시에 있으면 재사용.
     let data = stockHistoryChartCache[cacheKey];
     if(!data){
-      // 이 기간이 캐시에 없으면(최초 조회 또는 리로드 후 첫 조회) 5개 기간을 한 번에 받아와
-      // 같은 시점의 현재가로 캐시를 채운다.
-      await fetchAllStockHistoryRanges(symbol);
-      if(token !== info.loadingToken) return;
-      data = stockHistoryChartCache[cacheKey];
-    }
-    if(!data){
-      // 일괄 조회에서 이 기간만 실패했다면 개별로 한 번 더 시도한다.
       data = await fetchYahooChart(symbol, info.range, info.range === '1d');
       if(token !== info.loadingToken) return;
       stockHistoryChartCache[cacheKey] = data;
     }
+    if(!data){
+      if(chartEl) chartEl.innerHTML = '<div style="font-size:11px;color:#777777;text-align:center;">그래프 데이터가 없습니다.</div>';
+      return;
+    }
+
+    // 현재가 고정: 1일 조회 결과(또는 네이버 lastPrice)를 기간 탭이 바뀌어도 그대로 유지.
+    // 1개월~12개월 응답의 price는 표시에 쓰지 않는다 (요청 시점마다 달라질 수 있음).
+    const isNaverPriced = h.listingRegion && h.listingRegion !== 'overseas' && h.lastPrice != null;
+    const dayData = stockHistoryChartCache[`${symbol}|1d`];
+    const fixedPrice = isNaverPriced
+      ? h.lastPrice
+      : (dayData && dayData.price != null ? dayData.price : data.price);
+
     let svg = '';
+    let periodCloses = null;
     if(info.range === '1d'){
       svg = sparklineIntradaySVG(data.intradayPoints || [], data.marketOpen, data.marketClose, 216, 94, data.prevClose, true);
     } else {
-      svg = sparklineSVG(data.closes || [], 216, 94, (data.closes && data.closes.length) ? data.closes[0] : undefined);
+      periodCloses = data.closes || [];
+      svg = sparklineSVG(periodCloses, 216, 94, periodCloses.length ? periodCloses[0] : undefined);
     }
     if(!svg){ chartEl.innerHTML = '<div style="font-size:11px;color:#777777;text-align:center;">그래프 데이터가 없습니다.</div>'; return; }
 
-    // 국내상장(네이버 우선 조회) 종목은 큰 숫자를 목록과 동일한 h.lastPrice로 표시해 화면 간 가격 불일치를 없앤다.
-    // 1일 화면의 등락률도 네이버의 당일 등락률(h.lastChangePct)을 쓴다 - 야후 데이터와 재조회 시점이 달라
-    // 생기는 오차를 피하기 위함. 1개월~12개월 등락률은 네이버가 기간별 데이터를 안 주므로 야후 기준 유지.
-    const isNaverPriced = h.listingRegion && h.listingRegion !== 'overseas' && h.lastPrice != null;
+    // 1일: 네이버 등락률 우선, 그 외는 1d 데이터 기준.
+    // 1개월~12개월: 고정 현재가 대비 기간 시작 종가로 등락률 계산 (상단 지수 탭과 동일).
     const change = (isNaverPriced && info.range === '1d' && h.lastChangePct != null)
       ? h.lastChangePct
-      : computePeriodChange(data, info.range);
+      : (info.range === '1d'
+          ? computePeriodChange(data, '1d')
+          : computePeriodChange({ price: fixedPrice }, info.range, periodCloses));
     const changeColor = change > 0 ? '#B0466B' : (change < 0 ? '#4F8FB5' : '#777777');
     const arrow = change > 0 ? '▲' : (change < 0 ? '▼' : '');
-    const displayPrice = isNaverPriced ? h.lastPrice : data.price;
-    const priceText = displayPrice != null ? displayPrice.toLocaleString(undefined,{maximumFractionDigits:2}) : '-';
+    const priceText = fixedPrice != null ? fixedPrice.toLocaleString(undefined,{maximumFractionDigits:2}) : '-';
     chartEl.innerHTML = `
       <div style="width:216px;">
         <div style="display:flex;align-items:baseline;justify-content:center;gap:9px;margin-bottom:2px;line-height:1;">
