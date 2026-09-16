@@ -492,9 +492,19 @@ async function fetchYahooHoldingPrice(symbol){
   const res = await fetchYahooProxied(targetUrl);
   const data = await res.json();
   const result = data.chart && data.chart.result && data.chart.result[0];
-  const price = result && result.meta && result.meta.regularMarketPrice;
+  const meta = result && result.meta;
+  const price = meta && meta.regularMarketPrice;
   if(price == null) return null;
-  return { price, currency: result.meta.currency };
+  // previousClose까지 같이 받아두면, 이후 시세그래프(별도 API 호출)가 실패하더라도
+  // 이 값만으로 당일 등락률을 계산해 표시할 수 있다.
+  const previousClose = meta.previousClose ?? meta.chartPreviousClose;
+  return { price, currency: meta.currency, previousClose: (typeof previousClose === 'number') ? previousClose : null };
+}
+
+// price/previousClose로 당일 등락률(%)을 계산한다. previousClose가 없거나 0이면 null.
+function computeChangePctFromPrevClose(price, previousClose){
+  if(price == null || previousClose == null || previousClose === 0) return null;
+  return (price - previousClose) / previousClose * 100;
 }
 
 // code(네이버 코드) + region + fallbackText(유저가 원래 검색창에 입력한 원문, 해외종목용)를 받아
@@ -523,7 +533,7 @@ async function resolveYahooPrice(code, region, fallbackText, nationName){
   for(const sym of candidates){
     const result = await fetchYahooHoldingPrice(sym);
     if(result && result.price != null){
-      return { symbol: sym, price: result.price, currency: result.currency };
+      return { symbol: sym, price: result.price, currency: result.currency, previousClose: result.previousClose };
     }
   }
   return null;
@@ -581,19 +591,25 @@ async function refreshHoldingPrice(h){
   if(h.yahooSymbol){
     const result = await fetchYahooHoldingPrice(h.yahooSymbol);
     if(result && result.price != null){
-      holdingPriceCache[h.yahooSymbol] = { price: result.price, currency: result.currency, fetchedAt: Date.now() };
+      holdingPriceCache[h.yahooSymbol] = { price: result.price, currency: result.currency, previousClose: result.previousClose, fetchedAt: Date.now() };
       h.lastPrice = result.price;
       h.currency = result.currency;
+      // 해외종목도 국내(네이버)종목처럼 당일 등락률을 미리 저장해둔다 - 이후 시세그래프
+      // 팝업을 열었을 때 그래프 API가 실패하더라도 이 값으로 등락률을 표시할 수 있다.
+      const changePct = computeChangePctFromPrevClose(result.price, result.previousClose);
+      if(changePct != null) h.lastChangePct = changePct;
       await fetchFxRate(result.currency);
       return { symbol: h.yahooSymbol, price: result.price, currency: result.currency, krwPrice: krwPrice(result.price, result.currency) };
     }
   }
   const resolved = await resolveYahooPrice(h.symbol, h.region, h.fallbackText, h.nationName);
   if(!resolved) return null;
-  holdingPriceCache[resolved.symbol] = { price: resolved.price, currency: resolved.currency, fetchedAt: Date.now() };
+  holdingPriceCache[resolved.symbol] = { price: resolved.price, currency: resolved.currency, previousClose: resolved.previousClose, fetchedAt: Date.now() };
   h.yahooSymbol = resolved.symbol; // 다음부터는 이 형태로 바로 조회
   h.lastPrice = resolved.price;
   h.currency = resolved.currency;
+  const resolvedChangePct = computeChangePctFromPrevClose(resolved.price, resolved.previousClose);
+  if(resolvedChangePct != null) h.lastChangePct = resolvedChangePct;
   await fetchFxRate(resolved.currency);
   return { ...resolved, krwPrice: krwPrice(resolved.price, resolved.currency) };
 }
@@ -618,6 +634,8 @@ function syncQuantityHoldingsAmounts(){
           h.amount = Math.round(h.quantity * krwPrice(cached.price, cached.currency));
           h.lastPrice = cached.price;
           h.currency = cached.currency;
+          const cachedChangePct = computeChangePctFromPrevClose(cached.price, cached.previousClose);
+          if(cachedChangePct != null) h.lastChangePct = cachedChangePct;
         }
       } else if(h.quantity != null && h.symbol && h.listingRegion && h.listingRegion !== 'overseas' && h.lastPrice != null){
         // 네이버 기준 가격은 항상 원화이므로 amount만 재계산(가격/통화는 그대로 유지)
@@ -708,6 +726,9 @@ async function refreshAllQuantityHoldingPrices(){
     const token = info.loadingToken;
     const chartEl = document.getElementById(`stock-history-chart-${key}`);
     if(chartEl) chartEl.innerHTML = '<div style="font-size:11px;color:#777777;">그래프 갱신 중...</div>';
+    const h2 = findHoldingById(info.accId, info.holdId);
+    const priceEl = document.getElementById(`stock-history-price-${key}`);
+    if(h2 && priceEl) priceEl.innerHTML = stockHistoryPriceHeaderHTML(h2.lastPrice, info.range === '1d' ? h2.lastChangePct : null);
     loadStockHistoryGraph(key, token);
   });
 }
@@ -2117,6 +2138,7 @@ function addHolding(accId, name, group, amount, region, opts){
     if(opts.lastPrice != null) holding.lastPrice = opts.lastPrice;
     if(opts.currency) holding.currency = opts.currency;
     if(opts.listingRegion) holding.listingRegion = opts.listingRegion;
+    if(opts.lastChangePct != null) holding.lastChangePct = opts.lastChangePct;
   }
   acc.holdings.push(holding);
   save(); render();
@@ -2249,7 +2271,7 @@ async function saveEditModal(){
   const name = document.getElementById('editName').value.trim();
   const group = document.getElementById('editGroup').value.trim();
   const region = document.getElementById('editRegion').value;
-  let amount, quantity = null, symbol = null, yahooSymbol = null, fallbackText = null, nationName = null, lastPrice = null, priceCurrency = null, isCashCurrency = false, listingRegion = null;
+  let amount, quantity = null, symbol = null, yahooSymbol = null, fallbackText = null, nationName = null, lastPrice = null, priceCurrency = null, isCashCurrency = false, listingRegion = null, lastChangePct = null;
   if(editMode === 'qty' && editResolvedCode && editResolvedCode.isCashCurrency){
     quantity = parseFloat(document.getElementById('editQty').value);
     if(isNaN(quantity)){ alert('금액을 확인해주세요.'); return; }
@@ -2273,6 +2295,7 @@ async function saveEditModal(){
     amount = Math.round(quantity * result.krwPrice);
     lastPrice = result.price;
     priceCurrency = result.currency;
+    lastChangePct = priceReq.lastChangePct != null ? priceReq.lastChangePct : null;
     // 네이버 검색 시점에 판별된 진짜 상장지역(코스피/코스닥 여부)을 저장해둔다.
     // 이후 시세 조회시 이 값으로 네이버 우선 조회 여부를 정확히 판단할 수 있다.
     // 재검색해서 새로 고른 경우엔 editResolvedCode.region(그 시점의 진짜 상장지역)을 쓰고,
@@ -2284,7 +2307,7 @@ async function saveEditModal(){
     if(!name || isNaN(amount)){ alert('종목명과 평가액을 확인해주세요.'); return; }
   }
   if(isNew){
-    const opts = editMode === 'qty' ? { quantity, symbol: isCashCurrency ? priceCurrency : symbol, yahooSymbol, fallbackText, nationName, lastPrice, currency: priceCurrency, isCashCurrency, listingRegion } : null;
+    const opts = editMode === 'qty' ? { quantity, symbol: isCashCurrency ? priceCurrency : symbol, yahooSymbol, fallbackText, nationName, lastPrice, currency: priceCurrency, isCashCurrency, listingRegion, lastChangePct } : null;
     addHolding(acc.id, name, group, amount, region, opts);
     closeEditModal();
     return;
@@ -2301,7 +2324,7 @@ async function saveEditModal(){
     h.group = (group && String(group).trim()) ? String(group).trim() : '?';
     h.region = region;
   }
-  if(editMode === 'qty'){ h.quantity = quantity; h.symbol = isCashCurrency ? priceCurrency : symbol; h.yahooSymbol = yahooSymbol; h.fallbackText = fallbackText; h.nationName = nationName; h.lastPrice = lastPrice; h.currency = priceCurrency; if(listingRegion) h.listingRegion = listingRegion; }
+  if(editMode === 'qty'){ h.quantity = quantity; h.symbol = isCashCurrency ? priceCurrency : symbol; h.yahooSymbol = yahooSymbol; h.fallbackText = fallbackText; h.nationName = nationName; h.lastPrice = lastPrice; h.currency = priceCurrency; if(listingRegion) h.listingRegion = listingRegion; if(lastChangePct != null) h.lastChangePct = lastChangePct; }
   else { delete h.quantity; delete h.symbol; delete h.yahooSymbol; delete h.fallbackText; delete h.listingRegion; }
   save();
   closeEditModal();
@@ -3949,6 +3972,19 @@ function stockHistoryInitialPosition(triggerEl){
   return { left, top, zIndex:null };
 }
 
+// 가격 + 등락률만 그리는 헬퍼. change가 null이면 등락률 배지는 생략하고 가격만 보여준다.
+// 그래프(SVG) 로딩 성공/실패와 무관하게 독립적으로 갱신할 수 있도록 분리해뒀다.
+function stockHistoryPriceHeaderHTML(price, change){
+  const priceText = price != null ? price.toLocaleString(undefined,{maximumFractionDigits:2}) : '-';
+  let changeHtml = '';
+  if(change != null){
+    const changeColor = change > 0 ? '#B0466B' : (change < 0 ? '#4F8FB5' : '#777777');
+    const arrow = change > 0 ? '▲' : (change < 0 ? '▼' : '');
+    changeHtml = `<span style="font-size:15px;font-weight:800;color:${changeColor};">${arrow} ${Math.abs(change).toFixed(2)}<span style="font-size:0.65em;">%</span></span>`;
+  }
+  return `<span style="font-size:21px;font-weight:800;color:#333333;">${priceText}</span>${changeHtml}`;
+}
+
 function updateStockHistoryRangeButtonsUI(key){
   const info = stockHistoryAccordions[key];
   if(!info) return;
@@ -3984,6 +4020,10 @@ function renderStockHistoryAccordion(key){
   document.body.appendChild(slot);
 
   const title = (isCashHolding(h) && h.currency && h.currency !== 'KRW') ? `${h.currency} 환율` : (h.name || '종목');
+  // 팝업을 여는 시점에 이미 알고 있는 값(h.lastPrice/h.lastChangePct)으로 가격/등락률을
+  // 먼저 그려둔다. 이 값들은 시세그래프 API 호출과 무관하게 이미 확보돼 있는 정보라서,
+  // 그래프 로딩이 느리거나 실패하더라도 곧바로 표시된다. 1일(기본 탭)만 등락률 fallback이 있다.
+  const initialHeaderHtml = stockHistoryPriceHeaderHTML(h.lastPrice, info.range === '1d' ? h.lastChangePct : null);
   slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(title)}</span>
@@ -3992,8 +4032,11 @@ function renderStockHistoryAccordion(key){
     </div>
     <div class="acc-body" style="padding:6px 10px;">
       <div style="display:flex;gap:3px;margin-bottom:5px;">${stockHistoryRangeButtons(info.range)}</div>
-      <div id="stock-history-chart-${key}" style="min-height:109px;display:flex;align-items:center;justify-content:center;">
-        <div style="font-size:11px;color:#777777;">그래프 불러오는 중...</div>
+      <div style="width:216px;margin:0 auto;">
+        <div id="stock-history-price-${key}" style="display:flex;align-items:baseline;justify-content:center;gap:9px;margin-bottom:2px;line-height:1;min-height:21px;">${initialHeaderHtml}</div>
+        <div id="stock-history-chart-${key}" style="min-height:94px;display:flex;align-items:center;justify-content:center;">
+          <div style="font-size:11px;color:#777777;">그래프 불러오는 중...</div>
+        </div>
       </div>
     </div>
   </div>`;
@@ -4019,14 +4062,26 @@ function renderStockHistoryAccordion(key){
     updateStockHistoryRangeButtonsUI(key);
     const chartEl = document.getElementById(`stock-history-chart-${key}`);
     if(chartEl) chartEl.innerHTML = '<div style="font-size:11px;color:#777777;">그래프 불러오는 중...</div>';
+    // 가격 헤더는 그래프와 별개로 갱신: 1일 탭은 이미 알고 있는 등락률로 즉시 표시,
+    // 그 외 기간은 그래프 데이터가 있어야 등락률을 알 수 있으므로 일단 가격만 표시.
+    const h2 = findHoldingById(current.accId, current.holdId);
+    const priceEl = document.getElementById(`stock-history-price-${key}`);
+    if(h2 && priceEl) priceEl.innerHTML = stockHistoryPriceHeaderHTML(h2.lastPrice, nextRange === '1d' ? h2.lastChangePct : null);
     await loadStockHistoryGraph(key, current.loadingToken);
   });
+}
+
+// 그래프(SVG) 로딩에 실패해도 가격 헤더(#stock-history-price-*)는 절대 지우지 않는다.
+// 실패 메시지는 항상 그래프 영역(#stock-history-chart-*)에만 표시한다.
+function showStockHistoryGraphFailure(chartEl, message){
+  if(chartEl) chartEl.innerHTML = `<div style="font-size:11px;color:#777777;text-align:center;">${message}</div>`;
 }
 
 async function loadStockHistoryGraph(key, token){
   const info = stockHistoryAccordions[key];
   if(!info || token !== info.loadingToken) return;
   const chartEl = document.getElementById(`stock-history-chart-${key}`);
+  const priceEl = document.getElementById(`stock-history-price-${key}`);
   if(!chartEl) return;
   const h = findHoldingById(info.accId, info.holdId);
   if(!h) return;
@@ -4034,7 +4089,8 @@ async function loadStockHistoryGraph(key, token){
   const symbol = await resolveHoldingHistorySymbol(h);
   if(token !== info.loadingToken) return; // 조회하는 동안 다른 기간으로 전환됨
   if(!symbol){
-    if(chartEl) chartEl.innerHTML = '<div style="font-size:11px;color:#777777;text-align:center;">시세 그래프를 불러올 수 없습니다.</div>';
+    // 심볼 조회 자체가 안 되는 경우 - 그래도 이미 알고 있는 가격/등락률(fallback)은 그대로 둔다.
+    showStockHistoryGraphFailure(chartEl, '시세 그래프를 불러올 수 없습니다.');
     return;
   }
   const cacheKey = `${symbol}|${info.range}`;
@@ -4047,7 +4103,7 @@ async function loadStockHistoryGraph(key, token){
       stockHistoryChartCache[cacheKey] = data;
     }
     if(!data){
-      if(chartEl) chartEl.innerHTML = '<div style="font-size:11px;color:#777777;text-align:center;">그래프 데이터가 없습니다.</div>';
+      showStockHistoryGraphFailure(chartEl, '그래프 데이터가 없습니다.');
       return;
     }
 
@@ -4067,7 +4123,7 @@ async function loadStockHistoryGraph(key, token){
       periodCloses = data.closes || [];
       svg = sparklineSVG(periodCloses, 216, 94, periodCloses.length ? periodCloses[0] : undefined);
     }
-    if(!svg){ chartEl.innerHTML = '<div style="font-size:11px;color:#777777;text-align:center;">그래프 데이터가 없습니다.</div>'; return; }
+    if(!svg){ showStockHistoryGraphFailure(chartEl, '그래프 데이터가 없습니다.'); return; }
 
     // 1일: 네이버 등락률 우선, 그 외는 1d 데이터 기준.
     // 1개월~12개월: 고정 현재가 대비 기간 시작 종가로 등락률 계산 (상단 지수 탭과 동일).
@@ -4076,20 +4132,13 @@ async function loadStockHistoryGraph(key, token){
       : (info.range === '1d'
           ? computePeriodChange(data, '1d')
           : computePeriodChange({ price: fixedPrice }, info.range, periodCloses));
-    const changeColor = change > 0 ? '#B0466B' : (change < 0 ? '#4F8FB5' : '#777777');
-    const arrow = change > 0 ? '▲' : (change < 0 ? '▼' : '');
-    const priceText = fixedPrice != null ? fixedPrice.toLocaleString(undefined,{maximumFractionDigits:2}) : '-';
-    chartEl.innerHTML = `
-      <div style="width:216px;">
-        <div style="display:flex;align-items:baseline;justify-content:center;gap:9px;margin-bottom:2px;line-height:1;">
-          <span style="font-size:21px;font-weight:800;color:#333333;">${priceText}</span>
-          <span style="font-size:15px;font-weight:800;color:${changeColor};">${arrow} ${Math.abs(change).toFixed(2)}<span style="font-size:0.65em;">%</span></span>
-        </div>
-        ${svg}
-      </div>`;
+    if(priceEl) priceEl.innerHTML = stockHistoryPriceHeaderHTML(fixedPrice, change);
+    chartEl.innerHTML = svg;
   }catch(e){
     delete stockHistoryChartCache[cacheKey];
-    if(token === info.loadingToken && chartEl) chartEl.innerHTML = '<div style="font-size:11px;color:#777777;text-align:center;">그래프를 불러오지 못했습니다.</div>';
+    // 그래프 API 호출 자체가 실패한 경우(네트워크/프록시 오류 등) - 가격 헤더는
+    // 이미 popup을 열 때 채워둔 fallback(h.lastPrice/h.lastChangePct)을 그대로 유지한다.
+    if(token === info.loadingToken) showStockHistoryGraphFailure(chartEl, '그래프를 불러오지 못했습니다.');
   }
 }
 
