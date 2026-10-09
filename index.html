@@ -4928,14 +4928,14 @@ function renderTabs(){
   let html = state.accounts.map(a => `
     <div class="tab ${a.id===state.activeId?'active':''}" data-tab="${a.id}">${escapeHTML(a.name)}</div>
   `).join('');
-  html += `<div class="tab ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}">관심</div>`;
   html += `<div class="tab total ${state.activeId==='__creditLines__'?'active':''}" data-tab="__creditLines__" style="color:#B85450;">마통</div>`;
   html += `<div class="tab total ${state.activeId==='__domestic__'?'active':''}" data-tab="__domestic__">국내</div>`;
   html += `<div class="tab total ${state.activeId==='__overseas__'?'active':''}" data-tab="__overseas__">해외</div>`;
   html += `<div class="tab total ${state.activeId==='__total__'?'active':''}" data-tab="__total__">전체</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
+  html += `<div class="tab ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}" style="color:rgba(212,255,61,0.7);">관심</div>`;
+  html += `<div class="tab ${state.activeId==='__analysis__'?'active':''}" data-tab="__analysis__" style="color:#D4FF3D;">분석</div>`;
   html += `<div class="tab-add ${state.activeId==='__snapshots__'?'active':''}" data-tab="__snapshots__">관리</div>`;
-  html += `<div class="tab-add ${state.activeId==='__analysis__'?'active':''}" data-tab="__analysis__" style="color:#D4FF3D;">분석</div>`;
   html += `<div class="tab-add" id="addAccountBtn">+ 계좌 추가</div>`;
   html += `<div class="tab-add ${state.activeId==='__deleteAccounts__'?'active-dashed':''}" data-tab="__deleteAccounts__">계좌 삭제</div>`;
   tabs.innerHTML = html;
@@ -6561,15 +6561,22 @@ async function anFetchYahoo(sym, years){
   if(!r || !r.timestamp) throw new Error('야후 데이터 없음');
   const off = (r.meta && r.meta.gmtoffset) || 0;
   const q = (r.indicators.quote && r.indicators.quote[0]) || {};
-  const adj = r.indicators.adjclose && r.indicators.adjclose[0] && r.indicators.adjclose[0].adjclose;
+  // 종가는 분할만 반영된 값(배당 미반영)을 쓴다. 증권사 차트·Python 리포트(FinanceDataReader)와 같은 가격.
+  // 배당 반영 수정주가(adjclose)를 쓰면 고배당 종목은 과거 가격이 낮아져 50일 이격도 등이 달라진다.
   const map = new Map();
+  let lastTs = null, lastKey = null;
   r.timestamp.forEach((t, i) => {
     const cl = q.close ? q.close[i] : null;
     if(cl == null) return;
-    const ac = adj && adj[i] != null ? adj[i] : cl;          // 수정주가(배당·분할 반영) = yfinance auto_adjust
-    const hi = q.high && q.high[i] != null ? q.high[i] * (cl ? ac / cl : 1) : ac;
-    map.set(anFmtMs((t + off) * 1000), [ac, hi]);
+    const hi = q.high && q.high[i] != null ? q.high[i] : cl;
+    const key = anFmtMs((t + off) * 1000);
+    map.set(key, [cl, hi]);
+    lastTs = t; lastKey = key;
   });
+  // 장중에 받으면 마지막 봉이 미완성이므로 뺀다(마감된 봉까지만 계산)
+  const tp = r.meta && r.meta.currentTradingPeriod && r.meta.currentTradingPeriod.regular;
+  const nowSec = Date.now() / 1000;
+  if(tp && lastTs != null && nowSec < tp.end && lastTs >= tp.start) map.delete(lastKey);
   if(map.size < 2) throw new Error('야후 데이터 부족');
   return anFromMap(map);
 }
@@ -6590,6 +6597,10 @@ async function anFetchNaver(code, years){
     if(!(close > 0)) continue;
     map.set(`${m[1].slice(0,4)}-${m[1].slice(4,6)}-${m[1].slice(6,8)}`, [close, high > 0 ? high : close]);
   }
+  // 국장 마감(15:30) 전에 받은 오늘 봉은 미완성이므로 뺀다
+  const kHm = k.getUTCHours() * 100 + k.getUTCMinutes(), kDow = k.getUTCDay();
+  const todayKey = `${k.getUTCFullYear()}-${anPad(k.getUTCMonth()+1)}-${anPad(k.getUTCDate())}`;
+  if(kDow >= 1 && kDow <= 5 && kHm < 1530) map.delete(todayKey);
   if(map.size < 30) throw new Error('네이버 데이터 부족');
   return anFromMap(map);
 }
@@ -6609,7 +6620,7 @@ function anLastClose(market){
 
 // 캐시가 마지막 장 마감 이후 것이면 그대로, 아니면 새로 받음. 새로 못 받으면 예전 캐시라도 사용
 async function anGetBars(spec){
-  const ck = 'bars:' + spec.key;
+  const ck = 'bars2:' + spec.key;   // bars2 = 배당 미반영 종가·미완성 봉 제외 (예전 bars: 캐시는 버리고 새로 받음)
   const cached = await anDB.get(ck);
   if(cached && cached.fetchedAt >= anLastClose(spec.market)) return cached;
   let lastErr = null;
