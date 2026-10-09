@@ -158,14 +158,15 @@
   .stock-donut-center-label{font-size:11px;}
   @media(max-width:640px){.stock-donut-center-label{font-size:16px;}}
   .mkt-card{
-    flex-shrink:0;width:108px;
+    /* PC: 남는 폭을 카드들이 나눠 가져 한 줄을 꽉 채움 / 모바일: 최소 폭 유지 + 가로 스크롤 */
+    flex:1 0 92px;min-width:92px;
     background:var(--surface);border:1px solid var(--border);border-radius:8px;
-    padding:10px 12px 12px;
+    padding:10px 8px 12px;
     box-sizing:border-box;
     cursor:pointer;
   }
   .mkt-name{font-size:9px;color:var(--text-dim);margin-bottom:4px;line-height:1.5;}
-  .mkt-value{font-size:17px;font-weight:700;margin-top:2px;}
+  .mkt-value{font-size:16px;font-weight:700;margin-top:2px;letter-spacing:-0.3px;white-space:nowrap;}
   .mkt-change{font-size:16px;font-weight:700;margin:3px 0;}
   @keyframes reloadSpin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
   .reload-spin{ animation:reloadSpin 0.6s linear; }
@@ -464,6 +465,7 @@ const MARKET_SYMBOLS = [
   { key:'kosdaq', symbol:'^KQ11', name:'코스닥' },
   { key:'sp500', symbol:'^GSPC', name:'S&P500' },
   { key:'nasdaq', symbol:'^IXIC', name:'나스닥' },
+  { key:'vix', symbol:'^VIX', name:'VIX' },
   { key:'us10y', symbol:'^TNX', name:'미국채10년' },
   { key:'usdkrw', symbol:'KRW=X', name:'달러환율' },
   { key:'wti', symbol:'CL=F', name:'WTI' },
@@ -920,9 +922,9 @@ function baselineLinePaths(pixelPoints, baselineY, width, height, uid){
       <clipPath id="${clipAboveId}"><rect x="0" y="0" width="${width}" height="${by.toFixed(1)}"/></clipPath>
       <clipPath id="${clipBelowId}"><rect x="0" y="${by.toFixed(1)}" width="${width}" height="${(height-by).toFixed(1)}"/></clipPath>
     </defs>
-    <line x1="0" y1="${by.toFixed(1)}" x2="${width}" y2="${by.toFixed(1)}" stroke="#9A9BA1" stroke-width="0.75"/>
-    <polyline points="${pts}" fill="none" stroke="#E87BA4" stroke-width="1.5" clip-path="url(#${clipAboveId})"/>
-    <polyline points="${pts}" fill="none" stroke="#5FB8E0" stroke-width="1.5" clip-path="url(#${clipBelowId})"/>
+    <line x1="0" y1="${by.toFixed(1)}" x2="${width}" y2="${by.toFixed(1)}" stroke="#9A9BA1" stroke-width="0.75" vector-effect="non-scaling-stroke"/>
+    <polyline points="${pts}" fill="none" stroke="#E87BA4" stroke-width="1.5" vector-effect="non-scaling-stroke" clip-path="url(#${clipAboveId})"/>
+    <polyline points="${pts}" fill="none" stroke="#5FB8E0" stroke-width="1.5" vector-effect="non-scaling-stroke" clip-path="url(#${clipBelowId})"/>
   `;
 }
 
@@ -935,7 +937,7 @@ function sparklineSVG(closes, width, height, baselineValue){
   const base = (baselineValue !== undefined && baselineValue !== null) ? baselineValue : closes[0];
   const baselineY = height-((base-min)/range)*height;
   const uid = ++sparklineIdCounter;
-  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;margin-top:4px;">${baselineLinePaths(pixelPoints, baselineY, width, height, uid)}</svg>`;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="display:block;margin-top:4px;width:100%;">${baselineLinePaths(pixelPoints, baselineY, width, height, uid)}</svg>`;
 }
 
 function sparklineIntradaySVG(points, marketOpen, marketClose, width, height, baselineValue, fixedAxis){
@@ -978,14 +980,14 @@ function sparklineIntradaySVG(points, marketOpen, marketClose, width, height, ba
   // 장 마감 시각 위치를 아주 옅은 기준선으로 표시
   const closeLine = `<line x1="${width}" y1="0" x2="${width}" y2="${height}" stroke="var(--border)" stroke-width="1" stroke-dasharray="2 2"/>`;
   const uid = ++sparklineIdCounter;
-  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;margin-top:4px;">${closeLine}${baselineLinePaths(pixelPoints, baselineY, width, height, uid)}</svg>`;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="display:block;margin-top:4px;width:100%;">${closeLine}${baselineLinePaths(pixelPoints, baselineY, width, height, uid)}</svg>`;
 }
 
 function formatMarketValue(key, price){
   if(price === undefined || price === null || isNaN(price)) return '-';
   if(key === 'usdkrw') return Math.round(price).toLocaleString();
   if(key === 'us10y') return price.toFixed(2);
-  if(key === 'wti' || key === 'gold') return price.toFixed(2);
+  if(key === 'wti' || key === 'gold' || key === 'vix') return price.toFixed(2);
   return price.toLocaleString(undefined, {maximumFractionDigits:2});
 }
 
@@ -1030,8 +1032,8 @@ function renderMarketTicker(){
     if(range === '1d'){
       const baseline = d.prevClose;
       chart = (d.intradayPoints && d.intradayPoints.length >= 2)
-        ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 90, 24, baseline, useFixedAxis)
-        : sparklineSVG(d.closes || [], 90, 24, baseline);
+        ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 80, 24, baseline, useFixedAxis)
+        : sparklineSVG(d.closes || [], 80, 24, baseline);
     } else {
       periodCloses = (marketRangeChart[cfg.key] && marketRangeChart[cfg.key][range]) || null;
       if(!periodCloses){
@@ -1043,7 +1045,7 @@ function renderMarketTicker(){
           <div style="height:24px;margin-top:4px;"></div>
         </div>`;
       }
-      chart = sparklineSVG(periodCloses, 90, 24, periodCloses[0]);
+      chart = sparklineSVG(periodCloses, 80, 24, periodCloses[0]);
     }
 
     const change = computePeriodChange(d, range, periodCloses);
@@ -1058,6 +1060,12 @@ function renderMarketTicker(){
     </div>`;
   }).join('');
   el.innerHTML = cards;
+  // 코스피·코스닥 카드: 50일 이격도·RSI 한 줄 (기간 탭과 무관하게 항상 일봉 기준)
+  Object.keys(MKT_IND_SPECS).forEach(key => {
+    const card = el.querySelector(`.mkt-card[data-mktkey="${key}"]`);
+    const line = mktIndicatorLine(key);
+    if(card && line) card.insertAdjacentHTML('beforeend', line);
+  });
   el.querySelectorAll('.mkt-card[data-mktkey]').forEach(card => {
     card.addEventListener('click', () => cycleMarketRange(card.dataset.mktkey));
   });
@@ -1122,6 +1130,7 @@ async function loadMarketData(forceRefresh){
       const cached = JSON.parse(localStorage.getItem(MARKET_CACHE_KEY) || 'null');
       if(cached && (Date.now() - cached.timestamp) < MARKET_CACHE_TTL){
         marketData = cached.data;
+        loadMarketIndicatorBars();
         renderMarketTicker();
         return;
       }
@@ -1160,6 +1169,7 @@ async function loadMarketData(forceRefresh){
   marketRangeChart = {}; // 현재지수가 새로 갱신됐으니, 기간 탭 차트도 다음 클릭 때 새로 받아오도록 비운다.
   renderMarketTicker();
   try{ localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: dataMap })); }catch(e){}
+  loadMarketIndicatorBars();
 }
 const ACCOUNT_TYPES = ['연금','DC','IRP','ISA','직투'];
 
@@ -7090,6 +7100,56 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 }
 </style>`);
 
+
+// ===== 상단 코스피·코스닥 카드의 50일 이격도·RSI =====
+// 일봉은 분석 탭과 같은 캐시(IndexedDB 'idx:kospi' 등, 12년치)를 공유 → 하루 한 번만 새로 받고 분석 결과와 숫자가 같다.
+// 장중에는 현재가를 오늘 종가로 보고 계산(증권사 앱 RSI와 같은 방식).
+const MKT_IND_SPECS = { kospi: ['KOSPI', '^KS11'], kosdaq: ['KOSDAQ', '^KQ11'] };
+let mktIndicatorBars = {};
+let mktIndicatorLoading = false;
+async function loadMarketIndicatorBars(){
+  if(mktIndicatorLoading) return;
+  mktIndicatorLoading = true;
+  try{
+    await Promise.all(Object.entries(MKT_IND_SPECS).map(async ([key, [nv, yh]]) => {
+      try{
+        mktIndicatorBars[key] = await anGetBars({ key: 'idx:' + key, market: 'KR',
+          fetchers: [() => anFetchNaver(nv, AN.YEARS), () => anFetchYahoo(yh, AN.YEARS)] });
+      }catch(e){}
+    }));
+  } finally { mktIndicatorLoading = false; }
+  renderMarketTicker();
+}
+function mktIndicatorLine(key){
+  const b = mktIndicatorBars[key];
+  if(!b || !b.close || b.close.length < 60) return '';
+  const dates = b.dates.slice(), c = b.close.slice();
+  const d = marketData[key];
+  // 실시간 가격이 일봉 마지막 종가와 15% 넘게 다르면(출처 단위 차이 등) 섞지 않고 일봉만 사용
+  if(d && anOk(d.price) && Math.abs(d.price / c[c.length - 1] - 1) < 0.15){
+    const today = anFmtMs(Date.now() + 9 * 3600e3);
+    const pts = d.intradayPoints;
+    const lastTs = pts && pts.length ? pts[pts.length - 1].ts : null;
+    const tradedToday = lastTs != null && anFmtMs(lastTs * 1000 + 9 * 3600e3) === today;   // 휴장일엔 추가하지 않음
+    if(dates[dates.length - 1] === today) c[c.length - 1] = d.price;
+    else if(tradedToday){ dates.push(today); c.push(d.price); }
+  }
+  const dd = anDisp(dates, c), rsi = anRsi(c)[c.length - 1];
+  let dispHtml = '';
+  if(dd){
+    const v = anDispView(dd);
+    const st = v.side === 'high'
+      ? (v.strong ? 'background:#E87BA4;color:#1E1F22;' : 'color:#E87BA4;')
+      : (v.strong ? 'background:#5FB8E0;color:#1E1F22;' : 'color:#5FB8E0;');
+    dispHtml = `<span style="${st}padding:0 2px;border-radius:3px;" title="50일 이격도 (과거 최소 ${anN(dd.min)} / 최대 ${anN(dd.max)})">이격 ${dd.cur.toFixed(1)}</span>`;
+  }
+  let rsiHtml = '';
+  if(anOk(rsi)){
+    const st = rsi >= 70 ? 'background:#E87BA4;color:#1E1F22;' : rsi <= 30 ? 'background:#5FB8E0;color:#1E1F22;' : 'color:var(--text-dim);';
+    rsiHtml = `<span style="${st}padding:0 2px;border-radius:3px;">RSI ${rsi.toFixed(0)}</span>`;
+  }
+  return `<div style="display:flex;justify-content:space-between;gap:2px;margin-top:5px;font-size:9px;font-weight:600;line-height:1.5;white-space:nowrap;letter-spacing:-0.2px;">${dispHtml}${rsiHtml}</div>`;
+}
 
 load();
 loadMarketData(true);
