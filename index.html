@@ -6057,10 +6057,11 @@ const AN_SIGNAL_GROUPS = [
   ['불타기', 'add', '후보', 'buy'],
   ['익절검토', 'sell', '과열', 'sell'],
   ['비중축소', 'sell', '관심', 'sell'],
+  ['눌림진행', 'buy', '눌림', 'watch'],
   ['하락진행', 'buy', '보류', 'watch'],
   ['반등대기', 'buy', '관심', 'watch']
 ];
-const AN_SG_CLS = { '매수': 'buy strong', '매도': 'sell strong', '불타기': 'add', '익절검토': 'tp', '비중축소': 'sell', '하락진행': 'hold', '반등대기': 'buy' };
+const AN_SG_CLS = { '매수': 'buy strong', '매도': 'sell strong', '불타기': 'add', '익절검토': 'tp', '비중축소': 'sell', '눌림진행': 'buy', '하락진행': 'hold', '반등대기': 'buy' };
 
 // ------------------------------------------------------------------ IndexedDB (없으면 메모리)
 const anDB = (() => {
@@ -6293,6 +6294,12 @@ function anAnalyze(bars, code, name){
   return r;
 }
 
+// 장기 추세 상승: 월봉 정배열(5월>10월) 또는 종가가 10월선 위 (market_report.long_up)
+function anLongUp(r){
+  const mo = r.month, m10 = r.chart ? r.chart.m10[r.chart.m10.length - 1] : null;
+  return !!((mo.ok && mo.above) || (m10 != null && r.close >= m10));
+}
+
 // ------------------------------------------------------------------ 종목 시그널 (market_report.stock_signals)
 function anSignals(r){
   const d = r.disp, dy = r.day;
@@ -6327,7 +6334,8 @@ function anSignals(r){
   let sell = level(sell_c, sell_t);
   if(sell === '관심' && strong_up) sell = '과열';
   let buy = level(buy_c, buy_t);
-  if(buy === '관심' && falling) buy = '보류';
+  // 싸 보이지만 아직 하락 중: 장기 추세가 상승이면 '눌림진행', 장기 추세도 하락이면 '하락진행'
+  if(buy === '관심' && falling) buy = anLongUp(r) ? '눌림' : '보류';
 
   // 불타기 후보: 추세 유지 + 과열 아님 + 20일선 눌림 뒤 반등
   const ak = {}, add_c = [], add_t = [];
