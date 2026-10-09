@@ -4924,7 +4924,8 @@ function renderTabs(){
   html += `<div class="tab total ${state.activeId==='__total__'?'active':''}" data-tab="__total__">전체</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
   html += `<div class="tab-add ${state.activeId==='__snapshots__'?'active':''}" data-tab="__snapshots__">관리</div>`;
-  html += `<div class="tab-add ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}">분석</div>`;
+  html += `<div class="tab-add ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}">관심</div>`;
+  html += `<div class="tab-add ${state.activeId==='__analysis__'?'active':''}" data-tab="__analysis__">분석</div>`;
   html += `<div class="tab-add" id="addAccountBtn">+ 계좌 추가</div>`;
   html += `<div class="tab-add ${state.activeId==='__deleteAccounts__'?'active-dashed':''}" data-tab="__deleteAccounts__">계좌 삭제</div>`;
   tabs.innerHTML = html;
@@ -5437,6 +5438,13 @@ function renderPanel(){
     return;
   }
 
+  if(state.activeId === '__analysis__'){
+    // 분석 탭: 돋보기 버튼(오른쪽 위) + 결과만. 대상 = 전체 계좌 종목 + 관심종목
+    panel.innerHTML = `${anButtonHtml()}<div id="analysisRoot" class="an an-tab"></div>`;
+    anMount();
+    return;
+  }
+
   if(state.activeId === '__snapshots__'){
     renderSnapshotsPanel();
     return;
@@ -5694,7 +5702,7 @@ function renderPanel(){
         <div id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;display:flex;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></div>
       </div>
       <button class="btn-memo" id="openAddHoldingBtn" style="height:26px;padding:0 12px;font-size:12px;">종목추가</button>
-      ${acc.id === WATCHLIST_ID ? anButtonHtml() : '<div></div>'}
+      <div></div>
     </div>
     <div class="account-header" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;">
       <div></div>
@@ -5716,10 +5724,8 @@ function renderPanel(){
         { data: regionQuadRingData(acc.holdings), type: 'region', name: 'decorative-region', preOrdered: true }
       ], acc.id, true)}
     </div>
-    ${acc.id === WATCHLIST_ID ? '<div id="analysisRoot" class="an"></div>' : ''}
   `;
 
-  if(acc.id === WATCHLIST_ID) anMount();
   const typeBtnEl = document.getElementById('typeBtn');
   if(typeBtnEl) typeBtnEl.addEventListener('click', () => changeAccountType(acc.id));
   bindSectorAccordionHandlers();
@@ -6381,7 +6387,7 @@ function anSummarySections(results){
   const sec = (head, items, fn, tone) => { const lines = []; items.forEach(r => lines.push(...fn(r))); S.push([head, items.length, lines, tone || '']); };
   [true, false].forEach(golden => [3, 2].forEach(k => {
     const hit = results.filter(r => anCrossCount(r, golden) === k);
-    sec(`${golden ? '골든' : '데드'}크로스 X${k}  (최근: 일 ${AN_CROSS_WIN.day}거래일 · 주 ${AN_CROSS_WIN.week}주 · 월 ${AN_CROSS_WIN.month}개월 이내)`,
+    sec(`${golden ? '골든' : '데드'}크로스 X${k} (${AN_CROSS_WIN.day}일·${AN_CROSS_WIN.week}주·${AN_CROSS_WIN.month}개월 이내)`,
         hit, r => [`• ${anTl(r)}`, anTransLine(r)], golden ? 'buy' : 'sell');
   }));
   const hot = results.filter(r => r.sig.sell_c.length >= 2);
@@ -6765,10 +6771,11 @@ function anSvgChart(ch){
       if(F && proj[k]) o.push(`<path class="an-ch-${k} an-ch-f" d="${anPath(proj[k], i => x(n - 1 + i), y)}"/>`);
     });
     const ly = y(close[n-1]);
-    o.push(`<circle class="an-ch-dot" cx="${x(n-1).toFixed(1)}" cy="${ly.toFixed(1)}" r="3"/>`);
     const lastTxt = anPrice(close[n-1]);
     // 점 바로 오른쪽. 좁은 화면에서 오른쪽 끝을 넘으면 넘는 만큼만 안쪽으로 당김
-    const lbl = `<span class="an-lastlbl" style="left:min(${((x(n-1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(lastTxt.length * 0.6 + 0.2).toFixed(1)}em));top:${(ly / H * 100).toFixed(2)}%">${lastTxt}</span>`;
+    // 오늘 종가 점: 화면 폭과 상관없이 같은 크기로 보이도록 HTML로 겹쳐 그림
+    const dot = `<span class="an-lastdot" style="left:${(x(n-1) / W * 100).toFixed(2)}%;top:${(ly / H * 100).toFixed(2)}%"></span>`;
+    const lbl = dot + `<span class="an-lastlbl" style="left:min(${((x(n-1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(lastTxt.length * 0.6 + 0.2).toFixed(1)}em));top:calc(${(ly / H * 100).toFixed(2)}% - 5px)">${lastTxt}</span>`;
     o.push(`<text class="an-ch-t" x="${pl}" y="${H - 3}">${ch.dates[0]}</text>`);
     o.push(`<text class="an-ch-t" x="${x(n-1).toFixed(1)}" y="${H - 3}" text-anchor="middle">${ch.dates[n-1]}</text>`);
     if(RH){
@@ -6908,22 +6915,21 @@ function anRenderResult(res){
 
   // 실패·참고
   const notes = [];
-  if(res.failed && res.failed.length) notes.push('[시세 조회 실패 종목]\n' + res.failed.join('\n'));
-  if(res.unresolved && res.unresolved.length) notes.push('[코드를 찾지 못해 제외된 종목] ' + res.unresolved.join(', '));
-  if(res.stale && res.stale.length) notes.push('[최신 시세를 받지 못해 이전에 받아둔 시세로 분석] ' + res.stale.join(', '));
-  if(res.snap && res.snap.err && res.snap.err.length) notes.push('[시장 지표 가져오기 실패] ' + res.snap.err.join(', '));
+  if(res.unresolved && res.unresolved.length) notes.push('제외된 종목 : ' + res.unresolved.join(', '));
+  if(res.failed && res.failed.length) notes.push('조회 실패 : ' + res.failed.join(', '));
+  if(res.stale && res.stale.length) notes.push('이전 시세로 분석 : ' + res.stale.join(', '));
+  if(res.snap && res.snap.err && res.snap.err.length) notes.push('시장 지표 실패 : ' + res.snap.err.join(', '));
 
   return `
-    <div class="an-head"><b>${title}</b><span>분석 ${stamp} · 종목 ${results.length}개 · 규칙 기반 참고 신호이며 투자 판단 책임은 본인에게 있습니다</span></div>
+    <div class="an-head"><b>${title}</b><span>분석 ${stamp} · 종목 ${results.length}개</span></div>
     <div class="an-idxch">${chartIdx.map(k => anIndexChart(idx[k])).join('')}</div>
     <div class="an-gauges an-sec">${anGauge(res.msig, 'risk', '시장 위험 지표')}${anGauge(res.msig, 'bottom', '시장 바닥 지표')}</div>
     <div class="an-sgrid an-sec">${sigHtml || '<div class="an-none">오늘 해당하는 시그널이 없습니다</div>'}</div>
-    <div class="an-legend">매수 = 싼 조건 2개 이상 + 반등 트리거 / 매도 = 과열 조건 2개 이상 + 꺾임 트리거 / 불타기 = 상승 추세 · 과열 아님 · 20일선 눌림 후 반등 / 익절검토 = 과열이지만 일·주봉 정배열 / 비중축소 = 과열인데 일·주봉 중 역배열 / 하락진행 = 싸지만 5일 -5% 이하이거나 20일 신저가 갱신 중 / 반등대기 = 싸고 하락은 멈췄지만 반등 신호 전. 상승·정배열·이격도 높음 = 분홍, 하락·역배열·이격도 낮음 = 하늘. 조건에 걸린 항목은 굵은 테두리, 트리거는 바깥 윤곽선. 50일 이격 태그는 과거 범위의 높은 쪽이면 최대 대비 %, 낮은 쪽이면 최소 대비 %이고 진한 색은 최대×0.9 이상 또는 최소×1.1 이하.</div>
     <h2 class="an-h2">종목 스크리닝</h2>
     <div class="an-dgrid">${screenHtml}</div>
     <h2 class="an-h2">종목별 세부내용</h2>
     <div class="an-dgrid">${detailHtml || '<div class="an-none">분석된 종목이 없습니다</div>'}</div>
-    ${notes.length ? `<pre class="an-warn">${anE(notes.join('\n\n'))}</pre>` : ''}`;
+    ${notes.length ? `<pre class="an-warn">${anE(notes.join('\n'))}</pre>` : ''}`;
 }
 
 function anBindRoot(root){
@@ -7000,6 +7006,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
   --an-tp:#9CAAD4; --an-warn:#F0DA8C; --an-warnbg:rgba(240,218,140,0.12); --an-ok:#4FD1C0; --an-okbg:rgba(79,209,192,0.12);
   --c5:#F472B6; --c20:#F87171; --cw5:#A3E635; --cw10:#22C55E; --cm5:#60A5FA; --cm10:#818CF8; --bignum:1.1rem;
   margin-top:28px; padding-top:18px; border-top:1px solid var(--border); text-align:left; font-size:13px; line-height:1.5; }
+.an.an-tab { margin-top:12px; padding-top:0; border-top:0; }
 .an-empty { color:var(--text-dim); font-size:13px; text-align:center; padding:24px 0; }
 .an-none { color:var(--text-dim); font-size:12px; padding:6px 0; }
 .an-head { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; margin-bottom:10px; }
@@ -7029,7 +7036,6 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sg h3 { margin:0 0 4px; font-size:14px; } .an-sg h3 small, .an-det summary small { color:var(--text-dim); font-weight:400; }
 .an-sg.buy { border-left-color:var(--an-up); } .an-sg.buy h3 { color:var(--an-up); }
 .an-sg.sell { border-left-color:var(--an-dn); } .an-sg.sell h3 { color:var(--an-dn); }
-.an-sg.buy.strong, .an-sg.add { background:var(--an-upbg); } .an-sg.sell.strong { background:var(--an-dnbg); }
 .an-sg.add { border-left-color:var(--an-up); } .an-sg.add h3 { color:var(--an-up); }
 .an-sg.tp { border-left-color:var(--an-tp); } .an-sg.tp h3 { color:var(--an-tp); }
 .an-sg.hold { border-left-color:var(--text-dim); } .an-sg.hold h3 { color:var(--text-dim); }
@@ -7048,8 +7054,8 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-legend { font-size:11px; color:var(--text-dim); margin-top:6px; line-height:1.55; }
 .an-det { background:var(--surface); border:1px solid var(--border); border-radius:8px; margin-bottom:6px; }
 .an-det summary { cursor:pointer; padding:9px 11px; font-size:13px; }
-.an-det.an-dbuy { background:var(--an-upbg); } .an-det.an-dsell { background:var(--an-dnbg); } .an-det.an-dhot { background:var(--an-warnbg); }
-.an-det pre, .an-warn { white-space:pre-wrap; word-break:break-all; font-size:11.5px; line-height:1.55; margin:0; padding:2px 11px 11px; font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--text); }
+.an-det.an-dbuy, .an-det.an-dsell, .an-det.an-dhot { border-left-width:4px; } .an-det.an-dbuy { border-left-color:var(--an-up); } .an-det.an-dsell { border-left-color:var(--an-dn); } .an-det.an-dhot { border-left-color:var(--an-warn); }
+.an-det pre, .an-warn { white-space:pre-wrap; word-break:break-all; font-size:11.5px; line-height:1.55; margin:0; padding:2px 11px 11px; font-family:inherit; font-weight:500; color:var(--text); }
 .an-warn { background:var(--an-warnbg); border-radius:8px; padding:10px 12px; margin-top:14px; }
 .an-chwrap { padding:0 10px 6px; }
 .an-code { color:var(--text-dim); font-size:11px; }
@@ -7065,14 +7071,14 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sw-close { background:var(--text); border-radius:50%; } .an-sw-ma5 { background:var(--c5); } .an-sw-ma20 { background:var(--c20); }
 .an-sw-w5 { background:var(--cw5); } .an-sw-w10 { background:var(--cw10); } .an-sw-m5 { background:var(--cm5); } .an-sw-m10 { background:var(--cm10); }
 .an-svgbox { position:relative; }
-.an-lastlbl { position:absolute; transform:translateY(-50%); font-size:var(--bignum); font-weight:700; line-height:1; white-space:nowrap; color:var(--text); text-shadow:0 0 3px var(--surface2),0 0 3px var(--surface2),0 0 2px var(--surface2); pointer-events:none; }
+.an-lastlbl { position:absolute; transform:translateY(-100%); font-size:11px; font-weight:700; line-height:1; white-space:nowrap; color:var(--text); text-shadow:0 0 3px var(--surface2),0 0 3px var(--surface2),0 0 2px var(--surface2); pointer-events:none; }
 .an-chart { width:100%; height:auto; display:block; }
 .an-chart path { fill:none; stroke-linejoin:round; stroke-linecap:round; stroke-width:1px; vector-effect:non-scaling-stroke; }
 .an-chart line { vector-effect:non-scaling-stroke; stroke-width:1px; }
 .an-ch-bg { fill:none; stroke:var(--border); } .an-ch-grid { stroke:var(--text-dim); stroke-dasharray:3 3; opacity:.5; }
 .an-ch-ma5 { stroke:var(--c5); } .an-ch-ma20 { stroke:var(--c20); } .an-ch-w5 { stroke:var(--cw5); } .an-ch-w10 { stroke:var(--cw10); }
 .an-ch-m5 { stroke:var(--cm5); } .an-ch-m10 { stroke:var(--cm10); } .an-ch-rsi { stroke:var(--text); }
-.an-ch-dot { fill:var(--text); } .an-chart path.an-ch-f { stroke-dasharray:3 3; } .an-ch-fc { fill:var(--text); opacity:.04; }
+.an-lastdot { position:absolute; width:9px; height:9px; border-radius:50%; background:#FFFFFF; border:2px solid #1E1F22; box-shadow:0 0 0 1px rgba(255,255,255,0.35); transform:translate(-50%,-50%); box-sizing:border-box; pointer-events:none; } .an-chart path.an-ch-f { stroke-dasharray:3 3; } .an-ch-fc { fill:var(--text); opacity:.04; }
 .an-ch-vl { stroke:var(--text); opacity:.1; } .an-ch-mo { fill:var(--text-dim); font-size:9px; }
 .an-ch-t { fill:var(--text-dim); font-size:9px; } .an-ch-last { fill:var(--text); font-size:9.5px; font-weight:700; }
 .an-ch-in { paint-order:stroke; stroke:var(--surface2); stroke-width:3px; stroke-linejoin:round; }
