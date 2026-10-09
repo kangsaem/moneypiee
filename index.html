@@ -4928,14 +4928,14 @@ function renderTabs(){
   let html = state.accounts.map(a => `
     <div class="tab ${a.id===state.activeId?'active':''}" data-tab="${a.id}">${escapeHTML(a.name)}</div>
   `).join('');
+  html += `<div class="tab ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}">관심</div>`;
   html += `<div class="tab total ${state.activeId==='__creditLines__'?'active':''}" data-tab="__creditLines__" style="color:#B85450;">마통</div>`;
   html += `<div class="tab total ${state.activeId==='__domestic__'?'active':''}" data-tab="__domestic__">국내</div>`;
   html += `<div class="tab total ${state.activeId==='__overseas__'?'active':''}" data-tab="__overseas__">해외</div>`;
   html += `<div class="tab total ${state.activeId==='__total__'?'active':''}" data-tab="__total__">전체</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
   html += `<div class="tab-add ${state.activeId==='__snapshots__'?'active':''}" data-tab="__snapshots__">관리</div>`;
-  html += `<div class="tab-add ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}">관심</div>`;
-  html += `<div class="tab-add ${state.activeId==='__analysis__'?'active':''}" data-tab="__analysis__">분석</div>`;
+  html += `<div class="tab-add ${state.activeId==='__analysis__'?'active':''}" data-tab="__analysis__" style="color:#D4FF3D;">분석</div>`;
   html += `<div class="tab-add" id="addAccountBtn">+ 계좌 추가</div>`;
   html += `<div class="tab-add ${state.activeId==='__deleteAccounts__'?'active-dashed':''}" data-tab="__deleteAccounts__">계좌 삭제</div>`;
   tabs.innerHTML = html;
@@ -6966,7 +6966,7 @@ function anFillRoot(){
   if(!anState.result){
     root.innerHTML = anState.running
       ? `<div class="an-empty">분석 중 ${anState.done}/${anState.total}… 처음에는 종목마다 12년치 시세를 받느라 시간이 걸려요.</div>`
-      : (anState.loaded ? '<div class="an-empty">오른쪽 위 빨간 돋보기 버튼을 누르면 보유 종목과 관심종목 전체를 분석해요.</div>' : '');
+      : (anState.loaded ? '<div class="an-empty">오른쪽 위 돋보기 버튼을 누르면 보유 종목과 관심종목 전체를 분석해요.</div>' : '');
     return;
   }
   if(!anState.html){
@@ -7005,8 +7005,8 @@ function anMount(){
 function anButtonHtml(){
   return `<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
     <div id="analysisLabel" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></div>
-    <button id="analysisBtn" title="보유+관심 종목 분석" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#E5484D;border:none;border-radius:6px;cursor:pointer;padding:0;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
+    <button id="analysisBtn" title="보유+관심 종목 분석" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
     </button>
   </div>`;
 }
