@@ -6698,15 +6698,15 @@ function anMarketSignals(snap, results){
   const weak = n ? results.filter(r => r.rsi <= 35).length / n : null;
   const pc = x => Math.round(x * 100) + '%';
   const risk = [
-    ['코스피 50일 이격도 120 이상 (과열)', ks ? anF(ks.disp, 1) : '-', ks ? ks.disp >= 120 : null],
+    ['코스피 50일 이격도 120 이상', ks ? anF(ks.disp, 1) : '-', ks ? ks.disp >= 120 : null],
     ['코스피 RSI 70 이상', ks ? anF(ks.rsi, 0) : '-', ks ? ks.rsi >= 70 : null],
     ['VIX 25 이상 또는 10일간 30% 이상 급등', vix ? anF(vix.last, 1) : '-',
       vix ? (vix.last >= 25 || (vix.pct10 != null && vix.pct10 >= 30)) : null],
     ['미국 10년물 금리 10일간 0.3%p 이상 상승', y10 && y10.chg10 != null ? anS(y10.chg10, 2) + '%p' : '-',
       y10 && y10.chg10 != null ? y10.chg10 >= 0.3 : null],
     ['내 종목 70% 이상이 일봉 역배열', bear != null ? pc(bear) : '-', bear != null ? bear >= 0.7 : null],
-    [`신용잔고/예탁금 비율 과거 상위 ${100 - AN.CREDIT_TOP}% (빚투 과열)`,
-      snap.credit ? `${snap.credit.ratio.toFixed(1)}% · 상위 ${Math.max(100 - snap.credit.pct, 0).toFixed(0)}%` : '-',
+    [`신용잔고/예탁금 비율 5년 중 높은 ${100 - AN.CREDIT_TOP}%`,
+      snap.credit ? `${snap.credit.ratio.toFixed(1)}%` + (snap.credit.max != null ? ` (5년 최대 ${snap.credit.max.toFixed(1)}%)` : '') : '-',
       snap.credit ? snap.credit.pct >= AN.CREDIT_TOP : null]
   ];
   const bottom = [
@@ -6716,7 +6716,7 @@ function anMarketSignals(snap, results){
     ['코스피 52주 고점 대비 -20% 이하 + 최근 20거래일 신저점 없음',
       ks ? `${anF(ks.from_high, 1)}% · 저점 ${ks.days_since_low}일 전` : '-',
       ks ? (ks.from_high <= -20 && ks.days_since_low >= 20) : null],
-    ['VIX 30 이상 (공포 극단)', vix ? anF(vix.last, 1) : '-', vix ? vix.last >= 30 : null],
+    ['VIX 30 이상', vix ? anF(vix.last, 1) : '-', vix ? vix.last >= 30 : null],
     ['내 종목 30% 이상이 RSI 35 이하', weak != null ? pc(weak) : '-', weak != null ? weak >= 0.3 : null]
   ];
   const out = {};
@@ -7168,59 +7168,43 @@ function anDispTag(d, prefix){
 }
 
 // 종목 한 줄 요약 태그. 조건에 걸린 태그는 굵은 테두리, 트리거에 걸린 태그는 바깥 윤곽선
-function anMetricsHtml(r, side, lv){
+function anMetricsHtml(r, side, lv, flags){
   try{
     const keys = r.sig[side + '_k'] || {};
     const tag = (key, txt, color, title) => {
       const mark = { c: ' cond', t: ' trig' }[keys[key]] || '';
       return `<span class="an-mt ${color}${mark}"${title ? ` title="${anE(title)}"` : ''}>${anE(txt)}</span>`;
     };
-    const out = [];
-    const d = r.disp;
-    if(d){ const t = anDispTag(d, '이격도'); out.push(tag('disp', `이격도 ${d.cur.toFixed(1)} (${anN(d.min)}~${anN(d.max)})`, t.cls,
-      `50일 이격도 현재 ${d.cur.toFixed(1)} · 과거 최소 ${d.min.toFixed(1)} / 최대 ${d.max.toFixed(1)} · 높음 기준 ${d.max_thr.toFixed(1)} 이상 / 낮음 기준 ${d.min_thr.toFixed(1)} 이하`)); }
+    // 1줄: 숫자
+    const nums = [];
     const trig = r.sig[side + '_t'] || [];
-    const ago = r.day.ok && r.day.cross ? r.day.cross.ago : 0;
-    let dayNote = '';
-    trig.forEach(t => {
-      if(t.includes('임박')) dayNote = ' · 골든 임박';
-      else if(t.includes('골든')) dayNote = ` · 골든 ${ago}일전`;
-      else if(t.includes('데드')) dayNote = ` · 데드 ${ago}일전`;
-    });
     const rsiNote = trig.map(t => t.includes('반등') ? ' ↗반등' : t.includes('꺾임') ? ' ↘꺾임' : '').join('');
-    [['day', '일봉'], ['week', '주봉'], ['month', '월봉']].forEach(([k, nm]) => {
+    nums.push(tag('rsi', `RSI ${anF(r.rsi, 0)}${rsiNote}`, r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : 'n'));
+    const d = r.disp;
+    if(d){ const t = anDispTag(d, '이격도'); nums.push(tag('disp', `이격도 ${d.cur.toFixed(1)} (${anN(d.min)}~${anN(d.max)})`, t.cls,
+      `50일 이격도 현재 ${d.cur.toFixed(1)} · 과거 최소 ${d.min.toFixed(1)} / 최대 ${d.max.toFixed(1)} · 높음 기준 ${d.max_thr.toFixed(1)} 이상 / 낮음 기준 ${d.min_thr.toFixed(1)} 이하`)); }
+    nums.push(tag('ret5', `5일 ${anS(r.ret5, 1)}%`, r.ret5 > 0 ? 'up' : 'dn'));
+    nums.push(tag('high', `52주 고점 ${anS(r.from_high, 0)}%` + (anOk(r.from_low) ? ` / 저점 ${anS(r.from_low, 0)}%` : ''), 'n',
+      `52주 최고가 ${anPrice(r.high52)}` + (anOk(r.low52) ? ` · 최저가 ${anPrice(r.low52)}` : '')));
+    if(anOk(r.rs60)) nums.push(tag('', `상대강도 ${anS(r.rs60, 1)}%p`, r.rs60 >= 0 ? 'up' : 'dn', '최근 60거래일 수익률 - 지수 수익률'));
+    // 2줄: 추세(일·주·월 정/역, 일봉 최근 크로스) + 플래그
+    const tr = [];
+    const c = r.day.ok && r.day.cross;
+    const near = trig.some(t => t.includes('임박'));
+    const dayNote = near ? ' · 골든 임박' : c && c.ago < 5 ? ` · ${c.golden ? '골든' : '데드'} ${c.ago}일 전` : '';
+    [['day', '일'], ['week', '주'], ['month', '월']].forEach(([k, nm]) => {
       const x = r[k];
       const [txt, cls] = x.ok && x.above ? ['정', 'arr up'] : x.ok ? ['역', 'arr dn'] : ['-', 'n'];
-      out.push(tag(k === 'day' ? 'day' : '', txt + (k === 'day' ? dayNote : ''), cls, `${nm} 5·10선 배열`));
+      tr.push(tag(k === 'day' ? 'day' : '', `${nm} ${txt}` + (k === 'day' ? dayNote : ''), cls, `${nm}봉 5·10선 배열`));
     });
-    const m20 = r.chart.ma20.at(-1);
-    if(m20){
-      const g20 = (r.close / m20 - 1) * 100;
-      out.push(tag('ma20', `20일 ${Math.abs(g20).toFixed(1)}% ${g20 >= 0 ? '▲' : '▼'}`, g20 >= 0 ? 'up' : 'dn', '눌림 기준선(20일선) 대비 종가 위치'));
-    }
-    const g = (r.close / r.ma10 - 1) * 100;
-    out.push(tag('', `10일 ${Math.abs(g).toFixed(1)}% ${g >= 0 ? '▲' : '▼'}` + (lv === '과열' ? ` · 이탈선 ${anPrice(r.ma10)}` : ''), g >= 0 ? 'up' : 'dn'));
-    [['10주', 'w10'], ['10월', 'm10']].forEach(([lab, k]) => {
-      const mv = r.chart[k].at(-1);
-      if(mv){
-        const gp = (r.close / mv - 1) * 100;
-        out.push(tag('', `${lab} ${Math.abs(gp).toFixed(0)}% ${gp >= 0 ? '▲' : '▼'}`, gp >= 0 ? 'up' : 'dn',
-                     `종가가 ${lab}선보다 ${Math.abs(gp).toFixed(1)}% ${gp >= 0 ? '위' : '아래 (위쪽 저항 가능)'}`));
-      }
+    (flags || []).forEach(f => {
+      if(f === '바닥근접' && r.bottom_near){ const bi = r.bottom_info || {};
+        tr.push(`<span class="an-mt an-bt" title="${anE(`단계 ${r.bottom}/3 · 저점 ${anPrice(bi.low)} (${bi.low_date ? anShort(bi.low_date) : '-'}, 1년 고점 대비 ${anF(bi.drop, 0)}%, ${bi.since}거래일 전)`)}">바닥근접</span>`); }
+      else if(f === '꼭지근접' && r.top_near){ const ti = r.top_info || {};
+        tr.push(`<span class="an-mt an-tp" title="${anE(`단계 ${r.top}/3 · 고점 ${anPrice(ti.high)} (${ti.high_date ? anShort(ti.high_date) : '-'}, 1년 저점 대비 +${anF(ti.rise, 0)}%, ${ti.since}거래일 전)`)}">꼭지근접</span>`); }
+      else tr.push(`<span class="an-mt n">${anE(f)}</span>`);
     });
-    out.push(tag('rsi', `RSI ${anF(r.rsi, 0)}${rsiNote}`, r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : 'n'));
-    out.push(tag('ret5', `5일 ${anS(r.ret5, 1)}%`, r.ret5 > 0 ? 'up' : 'dn'));
-    out.push(tag('high', `52주 고점 ${anS(r.from_high, 0)}%`, 'n', `52주 최고가 ${anPrice(r.high52)}`));
-    if(anOk(r.from_low)) out.push(tag('', `52주 저점 ${anS(r.from_low, 0)}%`, 'n', `52주 최저가 ${anPrice(r.low52)}`));
-    if(r.bottom_near){
-      const bi = r.bottom_info || {};
-      out.push(`<span class="an-mt an-bt" title="${anE(`단계 ${r.bottom}/3 · 저점 ${anPrice(bi.low)} (${bi.low_date ? anShort(bi.low_date) : '-'}, 1년 고점 대비 ${anF(bi.drop, 0)}%, ${bi.since}거래일 전)`)}">바닥근접</span>`);
-    }
-    if(r.top_near){
-      const ti = r.top_info || {};
-      out.push(`<span class="an-mt an-tp" title="${anE(`단계 ${r.top}/3 · 고점 ${anPrice(ti.high)} (${ti.high_date ? anShort(ti.high_date) : '-'}, 1년 저점 대비 +${anF(ti.rise, 0)}%, ${ti.since}거래일 전)`)}">꼭지근접</span>`);
-    }
-    return '<div class="an-mrow">' + out.join('') + '</div>';
+    return '<div class="an-mrow">' + nums.join('') + '</div><div class="an-mrow">' + tr.join('') + '</div>';
   }catch(e){ return ''; }
 }
 
@@ -7244,7 +7228,7 @@ function anGauge(msig, key, title){
   const extra = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
     ? `<a class="an-glink" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피200 PBR 확인 → <small>과거 대비 싼 구간인지 (indexergo)</small></a>` : '';
   // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
-  return `<details class="an-gauge ${key} ${g.cls}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
+  return `<details class="an-gauge ${key} ${g.cls} s${Math.min(g.score, 3)}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
 }
 
@@ -7281,10 +7265,8 @@ function anRenderResult(res){
 
   // 분류 탭: 개수만, 누르면 그 칸 종목만
   const cnt = k => rows.filter(x => x.keys.includes(k)).length;
-  const none = rows.filter(x => !x.keys.length).length;
   const tabs = [`<button class="an-ftab on" data-f="">전체 <b>${rows.length}</b></button>`]
-    .concat(AN_LIST_ORDER.map(k => cnt(k) ? `<button class="an-ftab t-${k}" data-f="${k}">${anE(AN_REVIEW.find(x => x[0] === k)[1])} <b>${cnt(k)}</b></button>` : ''))
-    .concat(none ? [`<button class="an-ftab" data-f="none">신호 없음 <b>${none}</b></button>`] : []).join('');
+    .concat(AN_LIST_ORDER.map(k => `<button class="an-ftab t-${k}${cnt(k) ? '' : ' zero'}" data-f="${k}">${anE(AN_REVIEW.find(x => x[0] === k)[1])} <b>${cnt(k)}</b></button>`)).join('');
 
   // 종목 목록(접힘): 제목줄 = 이름·코드·RSI·칸 칩, 펼치면 근거·태그·차트·세부
   const CH = { buy: 'buy', sell: 'sell', watch: 'flag watch', warn: 'warn', hold2: 'hold2', hold1: 'hold1' };
@@ -7292,15 +7274,18 @@ function anRenderResult(res){
   rows.forEach(({ r, i, rv, keys, top }) => {
     try{
       const tones = Object.fromEntries(anReviewGroups(r).map(([nm, t]) => [nm, t]));
-      const chips = anFlags(r).map(f => `<span class="an-chip ${CH[tones[f.split(' ●')[0]]] || 'flag'}">${anE(f)}</span>`).join('');
+      const allF = anFlags(r);
+      const gchips = allF.filter(f => tones[f.split(' ●')[0]]).map(f => `<span class="an-chip ${CH[tones[f.split(' ●')[0]]]}">${anE(f)}</span>`).join('');
+      const others = allF.filter(f => !tones[f.split(' ●')[0]] && f !== '최근골든' && f !== '최근데드');   // 크로스는 추세 줄에
       const rc = r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : '';
       const whys = keys.map(k => `<div class="an-whyrow"><span class="an-whyh ${k}">${anE(AN_REVIEW.find(x => x[0] === k)[1])}</span>`
-        + rv[k].why.map(w => `<span class="an-why ${k}">${anE(w)}</span>`).join('') + `<div class="an-ex">${anE(AN_REV_NOTE[k])}</div></div>`).join('');
+        + rv[k].why.map(w => `<span class="an-why ${k}">${anE(w)}</span>`).join('') + `</div>`).join('');
       const side = top ? AN_REV_SIDE[top] : 'none';
       const lv = side === 'buy' || side === 'sell' ? r.sig[side] : null;
       listHtml += `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${keys.join(' ') || 'none'}">
-        <summary><b>${anE(r.name)}</b> <span class="an-code">${anE(r.code)}</span> <span class="an-rsi ${rc}">RSI ${anF(r.rsi, 0)}</span> ${chips}</summary>
-        <div class="an-sbody">${whys}${anMetricsHtml(r, side, lv)}<div class="an-chwrap" data-an-chart="${i}"></div><pre>${anE(anDetailText(r))}</pre></div></details>`;
+        <summary><b>${anE(r.name)}</b> ${gchips}<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span></summary>
+        <div class="an-sbody">${whys}${anMetricsHtml(r, side, lv, others)}<div class="an-chwrap" data-an-chart="${i}"></div>
+          <details class="an-sub" data-an-key="x:${anE(r.code)}"><summary>세부 보기 <small>${anE(r.code)}</small></summary><pre>${anE(anDetailText(r))}</pre></details></div></details>`;
     }catch(e){ listHtml += `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
   });
 
@@ -7330,7 +7315,7 @@ function anRenderResult(res){
       매도검토 = 매도·비중축소에 상대강도↓(최근 60거래일 수익률이 지수보다 낮음)가 겹치거나, 익절검토에 거래량 폭증(최근 5일 중 20일 평균의 2.5배 이상)이 겹칠 때.
       추격매수 주의 = 경고는 떴지만 정리 근거 없음 — 보유 유지, 추가 매수 금지. 홀딩 유지 = 주·월 정배열 + 종가 10주선 위 + 경고 없음.
       바닥근접 / 꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 가격이 저점 +30%(고점 -20%) 안일 때만 — 참고. 이격도 = 50일 이격도 현재값(과거 최소~최대).
-      목록 순서 = 매도검토 → 매수검토 → 추격매수 주의 → 상승중 → 대기 → 하락-대기 → 홀딩 유지 → 신호 없음(같은 칸이면 ● 많은 순).</div>
+      목록 순서 = 매도검토 → 매수검토 → 추격매수 주의 → 상승중 → 대기 → 하락-대기 → 홀딩 유지 → 신호 없음(같은 칸이면 ● 많은 순). 홀딩 유지·순항 = 일봉도 정배열, 눌림 = 일봉만 역배열(팔 이유 아님).</div>
     <h2 class="an-h2">종목 스크리닝</h2>
     <div class="an-dgrid">${screenHtml}</div>
     ${notes.length ? `<pre class="an-warn">${anE(notes.join('\n'))}</pre>` : ''}`;
@@ -7427,10 +7412,10 @@ function anUpdateViewBtn(){
 function anButtonHtml(){
   return `<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
     <div id="analysisLabel" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></div>
-    <button id="analysisHistBtn" title="지난 신호와 그 뒤 결과" style="height:26px;padding:0 10px;font-size:12px;font-weight:700;border:1px solid #D4FF3D;border-radius:6px;background:transparent;color:#D4FF3D;cursor:pointer;">히스토리</button>
     <button id="analysisBtn" title="보유+관심 종목 분석" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
     </button>
+    <button id="analysisHistBtn" title="지난 신호와 그 뒤 결과" style="height:26px;padding:0 10px;font-size:12px;font-weight:700;border:1px solid #D4FF3D;border-radius:6px;background:transparent;color:#D4FF3D;cursor:pointer;">히스토리</button>
   </div>`;
 }
 
@@ -7536,18 +7521,29 @@ details.an-gauge > summary::before { content:'▸'; margin-right:6px; color:var(
 details.an-gauge > summary span { flex:1; } details.an-gauge .an-bar, details.an-gauge ul, details.an-gauge .an-glink { margin-left:12px; margin-right:12px; }
 details.an-gauge ul { padding-bottom:10px; }
 .an-gauge.risk.lv1 .an-gh b { color:var(--an-warn); } .an-gauge.risk.lv2 .an-gh b { color:var(--an-up); } .an-gauge.bottom.lv1 .an-gh b, .an-gauge.bottom.lv2 .an-gh b { color:var(--an-ok); }
-.an-ftabs { display:flex; flex-wrap:wrap; gap:5px; }
+.an-ftabs { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
 .an-ftab { font:inherit; font-size:11.5px; padding:2px 9px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
 .an-ftab b { font-weight:700; margin-left:2px; } .an-ftab.on { background:#D4FF3D; color:#111111; border-color:#D4FF3D; }
 .an-ftab.t-buy b, .an-ftab.t-up b { color:var(--an-up); } .an-ftab.t-sell b { color:var(--an-dn); } .an-ftab.t-caution b { color:var(--an-amber); } .an-ftab.t-hold b { color:var(--an-green); }
 .an-ftab.on b { color:#111111; }
-.an-list { margin-top:8px; display:grid; gap:6px; } .an-list .an-det { margin-bottom:0; }
+.an-list { margin-top:6px; display:grid; gap:3px; } .an-list .an-det { margin-bottom:0; }
 .an-stock, .an-stock[open] { background:var(--surface) !important; border-left-width:1px !important; }
-.an-sbody { padding:0 11px 4px; } .an-sbody .an-mrow { margin-bottom:6px; } .an-sbody pre { padding:6px 0 10px; }
+.an-sbody { padding:0 11px 6px; } .an-stock > summary { padding:6px 11px; display:flex; flex-wrap:wrap; align-items:center; gap:4px; } .an-stock > summary > b { margin-right:2px; } .an-rsir { margin-left:auto; } .an-sbody .an-mrow { margin-bottom:6px; } .an-sbody pre { padding:6px 0 10px; }
 .an-whyrow { display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin:2px 0 6px; } .an-whyrow .an-ex { flex-basis:100%; margin:0; }
 .an-whyh { font-size:11px; font-weight:800; margin-right:2px; }
 .an-whyh.buy, .an-whyh.up { color:var(--an-up); } .an-whyh.sell { color:var(--an-dn); } .an-whyh.caution { color:var(--an-amber); } .an-whyh.hold { color:var(--an-green); } .an-whyh.wait, .an-whyh.waitdn { color:var(--text-dim); }
 .an-dgrid .an-det { border-left-width:1px !important; background:var(--surface) !important; }
+.an-ftab.zero { color:var(--text-dim); } .an-ftab.zero b { color:var(--text-dim) !important; }
+.an-sub { margin-top:6px; border-top:1px dashed var(--border); } .an-sub > summary { cursor:pointer; padding:6px 0; font-size:12px; color:var(--text-dim); } .an-sub pre { padding:0 0 6px !important; }
+/* 시장 지표: 켜진 개수만큼 진해짐 (과열 = 핑크, 바닥 = 하늘) */
+details.an-gauge.risk.s1 { background:#ff5fa21f !important; border-color:#ff5fa255; }
+details.an-gauge.risk.s2 { background:#ff5fa252 !important; border-color:#ff5fa2aa; }
+details.an-gauge.risk.s3 { background:#c2185b !important; border-color:#ff5fa2; }
+details.an-gauge.bottom.s1 { background:#4fc3f71f !important; border-color:#4fc3f755; }
+details.an-gauge.bottom.s2 { background:#4fc3f752 !important; border-color:#4fc3f7aa; }
+details.an-gauge.bottom.s3 { background:#0277bd !important; border-color:#4fc3f7; }
+details.an-gauge.s3, details.an-gauge.s3 .an-gh b, details.an-gauge.s3 li, details.an-gauge.s3 li.off, details.an-gauge.s3 li.na, details.an-gauge.s3 summary::before { color:#ffffff !important; }
+details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#ffffff !important; }
 .an-glink { display:block; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:12px; color:var(--text); text-decoration:none; }
 .an-glink small { color:var(--text-dim); }
 .an-dots { margin-left:auto; font-style:normal; letter-spacing:1px; font-size:12px; }
