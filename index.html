@@ -6048,6 +6048,9 @@ const AN = {
   CROSS_DAYS: 5, MOVE_PCT: 8.0, CROSS_NEAR: 0.7, FALL_PCT: -5.0, NEAR_MAX: 0.9, NEAR_MIN: 1.1,
   ADD_DISP_MAX: 90, RSI_HI: 70, RSI_HI_STRONG: 80, RSI_LO: 35, RSI_LO_WEAK: 30, CHART_DAYS: 132, ADD_TOUCH: 2.0,
   YEARS: 12, CONCURRENCY: 3,
+  // 신용잔고·고객예탁금은 브라우저(GET 프록시)로 받을 수 없어 GitHub 리포트가 매일 내보내는 파일을 읽음. 실패하면 그 항목은 '-'
+  MARKET_JSON: 'https://kangsaem.github.io/moneypier/market.json', CREDIT_TOP: 90,
+  PBR_LINK: 'https://www.indexergo.com/series/?frq=D&idxDetail=20406',
   // v1 (2026-10-10 백테스트로 확정) — market_report.py 와 같은 값
   BOTTOM_DROP: 25, BOTTOM_WIN: 120, BOTTOM_QUIET: 20, TOP_RISE: 50, TOP_WIN: 120, TOP_QUIET: 10, TOP_FAST: true, BOTTOM_FAST: false,
   RS_DAYS: 60, VOL_SPIKE: 2.5
@@ -6604,9 +6607,17 @@ function anDetailText(r){
   if(d){
     L.push(`50일 이격도: 현재 ${d.cur.toFixed(1)} (과거 분포 하위 ${d.pct.toFixed(0)}%)`);
     L.push(`  최대 ${d.max.toFixed(1)} (${d.max_date}) / 최소 ${d.min.toFixed(1)} (${d.min_date})`);
-    L.push(`  현재는 최대의 ${anP0(d.up)} (기준 ${d.max_thr.toFixed(1)}) / 최소의 ${anP0(d.down)} (기준 ${d.min_thr.toFixed(1)})  (자료 ${d.since}~)`);
+    L.push(`  높음 기준 ${d.max_thr.toFixed(1)} 이상 / 낮음 기준 ${d.min_thr.toFixed(1)} 이하  (자료 ${d.since}~)`);
   }
   L.push(`52주 최고가(장중): ${anPrice(r.high52)} → 현재 ${anS(r.from_high, 1)}%`);
+  if(anOk(r.from_low)) L.push(`52주 최저가(장중): ${anPrice(r.low52)} → 현재 ${anS(r.from_low, 1)}%`);
+  if(anOk(r.rs60)) L.push(`상대강도(60거래일, 지수 대비): ${anS(r.rs60, 1)}%p` + (r.rs60 < 0 ? '  (지수보다 약함)' : ''));
+  if(anOk(r.vol5)) L.push(`거래량: 최근 5일 중 최대 20일 평균의 ${r.vol5.toFixed(1)}배` + (r.vol5 >= AN.VOL_SPIKE ? '  (폭증)' : ''));
+  [['bottom', '바닥', '저점', 'low', '고점'], ['top', '꼭지', '고점', 'high', '저점']].forEach(([k, nm, ex, ek, base]) => {
+    if(!r[k]) return;
+    const i = r[k + '_info'] || {};
+    L.push(`${nm}근접: 단계 ${r[k]}/3 · ${ex} ${anPrice(i[ek])} (${i.ext_date}, 1년 ${base} 대비 ${anS(i.move, 0)}%, ${i.since}거래일 전)`);
+  });
   L.push(`최근 5거래일 등락률: ${anS(r.ret5, 2)}%  (일별 ` + r.rets.map(x => anS(x, 1) + '%').join(', ') + ')');
   return L.join('\n');
 }
@@ -6661,6 +6672,12 @@ async function anMarketSnapshot(isUS){
       }catch(e){ snap.err.push(`${nm} (${e.message})`); }
     })());
   });
+  jobs.push((async () => {                      // 신용잔고/고객예탁금 (GitHub 리포트가 내보낸 파일)
+    try{
+      const res = await fetchWithTimeout(AN.MARKET_JSON + '?_=' + Date.now(), { cache: 'no-store' }, 8000);
+      if(res && res.ok){ const j = await res.json(); snap.credit = j.credit || null; snap.credit_time = j.time; }
+    }catch(e){}
+  })());
   await Promise.all(jobs);
   return snap;
 }
@@ -6683,7 +6700,10 @@ function anMarketSignals(snap, results){
       vix ? (vix.last >= 25 || (vix.pct10 != null && vix.pct10 >= 30)) : null],
     ['미국 10년물 금리 10일간 0.3%p 이상 상승', y10 && y10.chg10 != null ? anS(y10.chg10, 2) + '%p' : '-',
       y10 && y10.chg10 != null ? y10.chg10 >= 0.3 : null],
-    ['내 종목 70% 이상이 일봉 역배열', bear != null ? pc(bear) : '-', bear != null ? bear >= 0.7 : null]
+    ['내 종목 70% 이상이 일봉 역배열', bear != null ? pc(bear) : '-', bear != null ? bear >= 0.7 : null],
+    [`신용잔고/예탁금 비율 과거 상위 ${100 - AN.CREDIT_TOP}% (빚투 과열)`,
+      snap.credit ? `${snap.credit.ratio.toFixed(1)}% · 상위 ${Math.max(100 - snap.credit.pct, 0).toFixed(0)}%` : '-',
+      snap.credit ? snap.credit.pct >= AN.CREDIT_TOP : null]
   ];
   const bottom = [
     ['코스피 50일 이격도 90 이하 또는 과거 최소권', ks ? anF(ks.disp, 1) : '-',
@@ -7217,8 +7237,10 @@ function anGauge(msig, key, title){
   const g = msig[key];
   const rows = g.items.map(([lb, val, st]) => `<li class="${st ? 'on' : st == null ? 'na' : 'off'}"><span class="an-dot"></span><span class="an-gt">${anE(lb)}</span><b>${anE(val)}</b></li>`).join('');
   const pct = g.total ? Math.floor(100 * g.score / g.total) : 0;
+  const extra = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
+    ? `<a class="an-glink" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피200 PBR 확인 → <small>과거 대비 싼 구간인지 (indexergo)</small></a>` : '';
   return `<div class="an-gauge ${key} ${g.cls}"><div class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></div>
-    <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul></div>`;
+    <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</div>`;
 }
 
 function anRenderResult(res){
@@ -7494,6 +7516,8 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-hbtns button, .an-hbtns label { font:inherit; font-size:12px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
 .an { --an-amber:#F0B44A; --an-amberbg:rgba(240,180,74,0.13); --an-green:#A3D977; --an-green2bg:rgba(163,217,119,0.20); --an-green1bg:rgba(163,217,119,0.09); }
 .an-ex { font-size:11px; color:var(--text-dim); margin-bottom:4px; }
+.an-glink { display:block; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:12px; color:var(--text); text-decoration:none; }
+.an-glink small { color:var(--text-dim); }
 .an-dots { margin-left:auto; font-style:normal; letter-spacing:1px; font-size:12px; }
 .an-sg.buy .an-dots { color:var(--an-up); } .an-sg.sell .an-dots { color:var(--an-dn); }
 .an-whys { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
