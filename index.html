@@ -6484,9 +6484,10 @@ function anRelStrength(bars, bench, n){
   return (bars.close[L-1] / bars.close[L-1-n] - 1) * 100 - (b1 / b0 - 1) * 100;
 }
 
-// 리포트 칸 (market_report.REVIEW / review) — 매수검토·매도검토·추격매수 주의·홀딩 유지·상승중·대기·하락-대기
-const AN_REVIEW = [['buy', '매수검토', 'buy'], ['sell', '매도검토', 'sell'], ['caution', '추격매수 주의', 'warn'],
-                   ['hold', '홀딩 유지', 'hold'], ['up', '상승중', 'buy'], ['wait', '대기', 'watch'], ['waitdn', '하락-대기', 'watch']];
+// 리포트 칸 (market_report.REVIEW / review) — 매수검토·매도검토·매수보류·홀딩·상승중·반등대기·하락중
+const AN_REVIEW = [['buy', '매수검토', 'buy'], ['sell', '매도검토', 'sell'], ['caution', '매수보류', 'warn'],
+                   ['hold', '홀딩', 'hold'], ['up', '상승중', 'buy'], ['wait', '반등대기', 'watch'], ['waitdn', '하락중', 'watch']];
+const AN_STRENGTH_MAX = 3;   // 매수검토·매도검토 강도 ●1~3 (겹친 근거 수)
 function anReview(r){
   const sg = r.sig, rs = r.rs60, vol = r.vol5;
   const weak = anOk(rs) && rs < 0, spike = anOk(vol) && vol >= AN.VOL_SPIKE;
@@ -6497,13 +6498,21 @@ function anReview(r){
     if(sg.buy_c.length >= 3) why.push('싼 조건 3개 모두');
     if(anLongUp(r)) why.push('장기 추세 상승');
     if(r.bottom_near) why.push('바닥근접');
-    out.buy = { score: why.length, why };
+    out.buy = { score: Math.min(why.length, AN_STRENGTH_MAX), why };
   }
   const why = [], warn = [];
   if(sg.sell === '타점') (weak ? why : warn).push(weak ? `매도 + 상대강도↓(${anS(rs, 1)}%p)` : '매도(상대강도 양호)');
   if(sg.sell === '관심') (weak ? why : warn).push(weak ? `비중축소 + 상대강도↓(${anS(rs, 1)}%p)` : '비중축소(상대강도 양호)');
   if(sg.sell === '과열') (spike ? why : warn).push(spike ? `익절검토 + 거래량폭증(${vol.toFixed(1)}배)` : '익절검토(거래량 폭증 없음)');
-  if(why.length) out.sell = { score: why.length, why };
+  if(why.length){
+    // 강도: 기본 근거 + 겹친 근거(상대강도↓·거래량폭증 중 기본에 안 쓴 것, 10주선 이탈, 꼭지근접)
+    const base = why[0];
+    if(weak && !base.includes('상대강도')) why.push(`상대강도↓(${anS(rs, 1)}%p)`);
+    if(spike && !base.includes('거래량')) why.push(`거래량폭증(${vol.toFixed(1)}배)`);
+    if(r.w10 && r.close < r.w10) why.push('10주선 이탈');
+    if(r.top_near) why.push('꼭지근접');
+    out.sell = { score: Math.min(why.length, AN_STRENGTH_MAX), why };
+  }
   else if(warn.length) out.caution = { score: 0, why: warn.concat(['보유 유지 · 추가 매수 금지']) };
   const wk = r.week, mo = r.month;
   if(!out.sell && !out.caution && wk.ok && wk.above && mo.ok && mo.above && r.w10 && r.close > r.w10){
@@ -6516,7 +6525,7 @@ function anReview(r){
   if(sg.buy === '보류') out.waitdn = { score: 0, why: ['싸지만 아직 하락 중 · 장기 추세도 하락'] };
   return out;
 }
-// [이름, 성격, 강도] — 홀딩 유지는 '홀딩 유지·순항/눌림', 성격 hold2/hold1
+// [이름, 성격, 강도] — 홀딩은 '홀딩·순항/눌림', 성격 hold2/hold1
 function anReviewGroups(r){
   const rv = r.review || anReview(r);
   return AN_REVIEW.filter(([k]) => rv[k]).map(([k, nm, tone]) => {
@@ -6880,8 +6889,9 @@ function anCollectTargets(){
 // ------------------------------------------------------------------ 신호 기록(히스토리) — GitHub history/*.json 과 같은 형식(FORMAT 1)
 // 분석할 때마다 그날 종목별 칸을 IndexedDB('hist')에 저장. 같은 날 같은 리포트(국장/미장)를 다시 돌리면 덮어씀.
 // 20·60거래일 뒤 수익률은 저장된 시세 캐시로 계산(새로 받지 않음). 기준선 = 같은 날 기록된 전 종목 평균.
-const AN_HIST_GROUPS = ['매수검토', '매도검토', '추격매수 주의', '홀딩 유지·순항', '홀딩 유지·눌림', '상승중', '대기', '하락-대기'];
-const AN_HIST_WAY = { '매수검토': 1, '매도검토': -1, '추격매수 주의': -1, '홀딩 유지·순항': 1, '홀딩 유지·눌림': 1, '상승중': 1, '대기': 1, '하락-대기': 1 };
+const AN_HIST_GROUPS = ['매수검토', '매도검토', '매수보류', '홀딩·순항', '홀딩·눌림', '상승중', '반등대기', '하락중'];
+const AN_HIST_WAY = { '매수검토': 1, '매도검토': -1, '매수보류': -1, '홀딩·순항': 1, '홀딩·눌림': 1, '상승중': 1, '반등대기': 1, '하락중': 1 };
+const AN_HIST_OLD = { '추격매수 주의': '매수보류', '홀딩 유지·순항': '홀딩·순항', '홀딩 유지·눌림': '홀딩·눌림', '대기': '반등대기', '하락-대기': '하락중' };   // 2026-10-11 이전 기록
 
 async function anHistSave(res){
   const k = new Date(res.at + 9 * 3600e3);
@@ -6932,7 +6942,7 @@ async function anHistRender(){
   const rows = [];
   by.forEach(({ it }) => {
     const b = it.key ? bars[it.key] : null;
-    rows.push({ date: it.asof, name: it.name, code: it.code, key: it.key, groups: it.groups || [], f20: anHistFwd(b, it.asof, 20), f60: anHistFwd(b, it.asof, 60) });
+    rows.push({ date: it.asof, name: it.name, code: it.code, key: it.key, groups: (it.groups || []).map(x => Object.assign({}, x, { g: AN_HIST_OLD[x.g] || x.g })), f20: anHistFwd(b, it.asof, 20), f60: anHistFwd(b, it.asof, 60) });
   });
   [20, 60].forEach(h => {                                 // 기준선: 같은 날 전 종목 평균
     const sum = {}, cnt = {};
@@ -6970,7 +6980,7 @@ async function anHistRender(){
   const days = Array.from(new Set(rows.map(r => r.date))).sort();
   return `<div class="an-head"><b>신호 기록</b><span>기록 ${days.length}일${days.length ? ` (${days[0]} ~ ${days[days.length-1]})` : ''} · 분석할 때마다 자동 저장 · 이 기기(브라우저)에만 저장됨</span></div>
     <div class="an-legend" style="margin-top:0;">20·60일 뒤 = 그날 종가 대비 20·60거래일 뒤 수익률, 기준선 대비 = 같은 날 기록된 내 종목 평균보다 몇 %p 나았나.
-      초록 = 칸의 뜻대로 맞음(매수검토·홀딩 유지는 오르면, 매도검토·추격매수 주의는 덜 오르거나 내리면), 빨강 = 반대. 기간이 안 지났으면 '-'.
+      초록 = 칸의 뜻대로 맞음(매수검토·홀딩은 오르면, 매도검토·매수보류는 덜 오르거나 내리면), 빨강 = 반대. 기간이 안 지났으면 '-'.
       수익률은 마지막으로 받은 시세로 계산하므로, 분석을 돌린 뒤에 보면 최신입니다.</div>
     <h2 class="an-h2">월별 요약 <small style="font-weight:400;color:var(--text-dim);">칸별 건수 · 20일 뒤 기준선 대비 평균 · 그 달 수익률</small></h2>
     <div class="an-hwrap"><table class="an-ht"><tr><th class="c">월</th>${AN_HIST_GROUPS.map(g => `<th>${anE(g)}</th>`).join('')}<th class="g">내 종목</th><th>코스피</th><th>나스닥</th></tr>
@@ -7232,17 +7242,17 @@ function anGauge(msig, key, title){
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
 }
 
-// 종목 목록 정렬 순서: 매도검토 → 매수검토 → 추격매수 주의 → 상승중 → 대기 → 하락-대기 → 홀딩 유지 → 신호 없음 (같은 칸이면 ● 많은 순)
+// 종목 목록 정렬 순서: 매도검토 → 매수검토 → 매수보류 → 상승중 → 반등대기 → 하락중 → 홀딩 → 신호 없음 (같은 칸이면 ● 많은 순)
 const AN_LIST_ORDER = ['sell', 'buy', 'caution', 'up', 'wait', 'waitdn', 'hold'];
 const AN_REV_SIDE = { buy: 'buy', sell: 'sell', caution: 'sell', hold: 'buy', up: 'add', wait: 'buy', waitdn: 'buy' };
 const AN_REV_NOTE = {
-  buy: '매수 신호 또는 눌림진행 · ● = 근거 수(매수 신호/눌림진행 · 싼 조건 3개 모두 · 장기 추세 상승 · 바닥근접)',
-  sell: '● = 걸린 정리 근거 수(매도+상대강도↓ · 비중축소+상대강도↓ · 익절검토+거래량폭증)',
-  caution: '과열·경고는 떴지만 정리 근거(상대강도↓·거래량폭증)는 없음 — 보유는 유지, 추가 매수는 하지 말 것',
-  hold: '주봉·월봉 정배열 + 종가 10주선 위 + 경고 없음 — 그냥 들고 가기(순항 = 일봉도 정배열, 눌림 = 일봉만 역배열·팔 이유 아님)',
-  up: '상승 추세 · 과열 아님 · 20일선 눌림 뒤 반등 (백테스트상 효과는 뚜렷하지 않음 — 참고)',
-  wait: '싼 조건 2개 이상 · 하락은 멈췄지만 반등 신호 전',
-  waitdn: '싸지만 아직 하락 중이고 장기 추세도 하락 — 반등 확인 전까지 대기'
+  buy: '● 1~3 = 근거 수(기본 + 싼 조건 3개 모두 · 장기 추세 상승 · 바닥근접)',
+  sell: '● 1~3 = 겹친 근거 수(기본 + 상대강도↓·거래량폭증 · 10주선 이탈 · 꼭지근접)',
+  caution: '과열 — 보유 유지, 새로 사거나 더 사지 않음',
+  hold: '주·월 정배열 + 종가 10주선 위 + 경고 없음',
+  up: '20일선 눌림 뒤 반등(참고)',
+  wait: '싸고 하락 멈춤 · 반등 신호 전',
+  waitdn: '싸지만 아직 하락 중 · 장기 추세도 하락'
 };
 
 function anRenderResult(res){
@@ -7311,11 +7321,13 @@ function anRenderResult(res){
     ${oldNote}
     <div class="an-ftabs an-sec" id="anFtabs">${tabs}</div>
     <div class="an-list">${listHtml || '<div class="an-none">분석된 종목이 없습니다</div>'}</div>
-    <div class="an-legend">매수검토 = 매수 신호(싼 조건 2개 이상 + 반등 트리거) 또는 눌림진행(싸고 아직 빠지는 중이지만 장기 추세 상승).
-      매도검토 = 매도·비중축소에 상대강도↓(최근 60거래일 수익률이 지수보다 낮음)가 겹치거나, 익절검토에 거래량 폭증(최근 5일 중 20일 평균의 2.5배 이상)이 겹칠 때.
-      추격매수 주의 = 경고는 떴지만 정리 근거 없음 — 보유 유지, 추가 매수 금지. 홀딩 유지 = 주·월 정배열 + 종가 10주선 위 + 경고 없음.
+    <div class="an-legend">매수검토 = 매수 신호(싼 조건 2개 이상 + 반등 트리거) 또는 눌림진행(싸고 아직 빠지는 중이지만 장기 추세 상승). ● 1~3 = 근거 수(기본 + 싼 조건 3개 모두 · 장기 추세 상승 · 바닥근접).
+      매도검토 = 매도·비중축소에 상대강도↓(최근 60거래일 수익률이 지수보다 낮음)가 겹치거나, 익절검토에 거래량 폭증(최근 5일 중 20일 평균의 2.5배 이상)이 겹칠 때. ● 1~3 = 겹친 근거 수(기본 + 상대강도↓·거래량폭증 · 10주선 이탈 · 꼭지근접).
+      매수보류 = 과열·경고는 떴지만 정리 근거 없음 — 좋은 종목이라도 지금은 비쌈. 보유 유지, 새로 사거나 더 사지 않음.
+      홀딩 = 주·월 정배열 + 종가 10주선 위 + 경고 없음(순항 = 일봉도 정배열, 눌림 = 일봉만 역배열·팔 이유 아님). 상승중 = 오르는 추세에서 20일선까지 눌렸다 다시 오르는 자리(참고).
+      반등대기 = 싸고 하락은 멈췄지만 반등 신호 전. 하락중 = 싸지만 아직 떨어지는 중이고 장기 추세도 하락.
       바닥근접 / 꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 가격이 저점 +30%(고점 -20%) 안일 때만 — 참고. 이격도 = 50일 이격도 현재값(과거 최소~최대).
-      목록 순서 = 매도검토 → 매수검토 → 추격매수 주의 → 상승중 → 대기 → 하락-대기 → 홀딩 유지 → 신호 없음(같은 칸이면 ● 많은 순). 홀딩 유지·순항 = 일봉도 정배열, 눌림 = 일봉만 역배열(팔 이유 아님).</div>
+      목록 순서 = 매도검토 → 매수검토 → 매수보류 → 상승중 → 반등대기 → 하락중 → 홀딩 → 신호 없음(같은 칸이면 ● 많은 순).</div>
     <h2 class="an-h2">종목 스크리닝</h2>
     <div class="an-dgrid">${screenHtml}</div>
     ${notes.length ? `<pre class="an-warn">${anE(notes.join('\n'))}</pre>` : ''}`;
