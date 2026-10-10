@@ -6053,7 +6053,8 @@ const AN = {
   PBR_LINK: 'https://www.indexergo.com/series/?frq=D&idxDetail=20406',
   // v1 (2026-10-10 백테스트로 확정) — market_report.py 와 같은 값
   BOTTOM_DROP: 25, BOTTOM_WIN: 120, BOTTOM_QUIET: 20, TOP_RISE: 50, TOP_WIN: 120, TOP_QUIET: 10, TOP_FAST: true, BOTTOM_FAST: false,
-  RS_DAYS: 60, VOL_SPIKE: 2.5
+  RS_DAYS: 60, VOL_SPIKE: 2.5,
+  NEAR_BOTTOM: 30, NEAR_TOP: 20      // '바닥근접'은 저점 +30% 이내, '꼭지근접'은 고점 -20% 이내일 때만 표시
 };
 const AN_CROSS_WIN = { day: 5, week: 4, month: 2 };
 // (표시 이름, 신호 쪽, 내부 단계, 성격) — market_report.SIGNAL_GROUPS 와 같은 순서
@@ -6320,6 +6321,9 @@ function anAnalyze(bars, code, name){
     if(r.bottom_info.ext_date > r.top_info.ext_date){ r.top = 0; r.top_info = {}; }
     else { r.bottom = 0; r.bottom_info = {}; }
   }
+  const bi0 = r.bottom_info || {}, ti0 = r.top_info || {};
+  r.bottom_near = !!(r.bottom && bi0.low && r.close <= bi0.low * (1 + AN.NEAR_BOTTOM / 100));
+  r.top_near = !!(r.top && ti0.high && r.close >= ti0.high * (1 - AN.NEAR_TOP / 100));
   r.sig = anSignals(r);
   return r;
 }
@@ -6492,7 +6496,7 @@ function anReview(r){
     const why = [sg.buy === '타점' ? '매수 신호' : '눌림진행'];
     if(sg.buy_c.length >= 3) why.push('싼 조건 3개 모두');
     if(anLongUp(r)) why.push('장기 추세 상승');
-    if(r.bottom) why.push('바닥근접');
+    if(r.bottom_near) why.push('바닥근접');
     out.buy = { score: why.length, why };
   }
   const why = [], warn = [];
@@ -6541,8 +6545,8 @@ function anFlags(r){
   if(Math.abs(r.ret5) >= AN.MOVE_PCT || Math.abs(r.maxday) >= AN.MOVE_PCT) f.push(`${AN.MOVE_PCT}%↑변동`);
   if(r.disp && r.disp.up >= AN.NEAR_MAX) f.push('이격도상단');
   if(r.disp && r.disp.down <= AN.NEAR_MIN) f.push('이격도하단');
-  if(r.bottom) f.push('바닥근접');
-  if(r.top) f.push('꼭지근접');
+  if(r.bottom_near) f.push('바닥근접');
+  if(r.top_near) f.push('꼭지근접');
   return f;
 }
 
@@ -6616,7 +6620,7 @@ function anDetailText(r){
   [['bottom', '바닥', '저점', 'low', '고점'], ['top', '꼭지', '고점', 'high', '저점']].forEach(([k, nm, ex, ek, base]) => {
     if(!r[k]) return;
     const i = r[k + '_info'] || {};
-    L.push(`${nm}근접: 단계 ${r[k]}/3 · ${ex} ${anPrice(i[ek])} (${i.ext_date}, 1년 ${base} 대비 ${anS(i.move, 0)}%, ${i.since}거래일 전)`);
+    L.push(`${nm} 단계 ${r[k]}/3${r[k + '_near'] ? ' (근접)' : ''} · ${ex} ${anPrice(i[ek])} (${i.ext_date}, 지금 ${anS((r.close / i[ek] - 1) * 100, 0)}% · 1년 ${base} 대비 ${anS(i.move, 0)}%, ${i.since}거래일 전)`);
   });
   L.push(`최근 5거래일 등락률: ${anS(r.ret5, 2)}%  (일별 ` + r.rets.map(x => anS(x, 1) + '%').join(', ') + ')');
   return L.join('\n');
@@ -7011,7 +7015,7 @@ function anHistBind(root){
 }
 
 // ------------------------------------------------------------------ 실행
-const anState = { running: false, done: 0, total: 0, result: null, loaded: false, html: null, openKeys: new Set(), view: 'report' };
+const anState = { running: false, done: 0, total: 0, result: null, loaded: false, html: null, openKeys: new Set(), view: 'report', filter: '' };
 
 function anTick(){
   anState.done++;
@@ -7208,11 +7212,11 @@ function anMetricsHtml(r, side, lv){
     out.push(tag('ret5', `5일 ${anS(r.ret5, 1)}%`, r.ret5 > 0 ? 'up' : 'dn'));
     out.push(tag('high', `52주 고점 ${anS(r.from_high, 0)}%`, 'n', `52주 최고가 ${anPrice(r.high52)}`));
     if(anOk(r.from_low)) out.push(tag('', `52주 저점 ${anS(r.from_low, 0)}%`, 'n', `52주 최저가 ${anPrice(r.low52)}`));
-    if(r.bottom){
+    if(r.bottom_near){
       const bi = r.bottom_info || {};
       out.push(`<span class="an-mt an-bt" title="${anE(`단계 ${r.bottom}/3 · 저점 ${anPrice(bi.low)} (${bi.low_date ? anShort(bi.low_date) : '-'}, 1년 고점 대비 ${anF(bi.drop, 0)}%, ${bi.since}거래일 전)`)}">바닥근접</span>`);
     }
-    if(r.top){
+    if(r.top_near){
       const ti = r.top_info || {};
       out.push(`<span class="an-mt an-tp" title="${anE(`단계 ${r.top}/3 · 고점 ${anPrice(ti.high)} (${ti.high_date ? anShort(ti.high_date) : '-'}, 1년 저점 대비 +${anF(ti.rise, 0)}%, ${ti.since}거래일 전)`)}">꼭지근접</span>`);
     }
@@ -7239,9 +7243,23 @@ function anGauge(msig, key, title){
   const pct = g.total ? Math.floor(100 * g.score / g.total) : 0;
   const extra = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
     ? `<a class="an-glink" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피200 PBR 확인 → <small>과거 대비 싼 구간인지 (indexergo)</small></a>` : '';
-  return `<div class="an-gauge ${key} ${g.cls}"><div class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></div>
-    <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</div>`;
+  // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
+  return `<details class="an-gauge ${key} ${g.cls}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
+    <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
 }
+
+// 종목 목록 정렬 순서: 매도검토 → 매수검토 → 추격매수 주의 → 상승중 → 대기 → 하락-대기 → 홀딩 유지 → 신호 없음 (같은 칸이면 ● 많은 순)
+const AN_LIST_ORDER = ['sell', 'buy', 'caution', 'up', 'wait', 'waitdn', 'hold'];
+const AN_REV_SIDE = { buy: 'buy', sell: 'sell', caution: 'sell', hold: 'buy', up: 'add', wait: 'buy', waitdn: 'buy' };
+const AN_REV_NOTE = {
+  buy: '매수 신호 또는 눌림진행 · ● = 근거 수(매수 신호/눌림진행 · 싼 조건 3개 모두 · 장기 추세 상승 · 바닥근접)',
+  sell: '● = 걸린 정리 근거 수(매도+상대강도↓ · 비중축소+상대강도↓ · 익절검토+거래량폭증)',
+  caution: '과열·경고는 떴지만 정리 근거(상대강도↓·거래량폭증)는 없음 — 보유는 유지, 추가 매수는 하지 말 것',
+  hold: '주봉·월봉 정배열 + 종가 10주선 위 + 경고 없음 — 그냥 들고 가기(순항 = 일봉도 정배열, 눌림 = 일봉만 역배열·팔 이유 아님)',
+  up: '상승 추세 · 과열 아님 · 20일선 눌림 뒤 반등 (백테스트상 효과는 뚜렷하지 않음 — 참고)',
+  wait: '싼 조건 2개 이상 · 하락은 멈췄지만 반등 신호 전',
+  waitdn: '싸지만 아직 하락 중이고 장기 추세도 하락 — 반등 확인 전까지 대기'
+};
 
 function anRenderResult(res){
   const results = res.results || [];
@@ -7250,66 +7268,49 @@ function anRenderResult(res){
   const title = res.isUS ? '미장 마감 리포트' : '국장 마감 리포트';
   const idx = (res.snap && res.snap.idx) || {};
   const chartIdx = res.isUS ? ['spx', 'ndx'] : ['kospi', 'kosdaq'];
-
-  // 리포트 칸 (v1): 매수검토 / 매도검토 / 추격매수 주의 / 홀딩 유지 / 상승중 / 대기 / 하락-대기
-  const REV_SIDE = { buy: 'buy', sell: 'sell', caution: 'sell', hold: 'buy', up: 'add', wait: 'buy', waitdn: 'buy' };
-  const REV_CLS = { buy: 'buy strong', sell: 'sell strong', caution: 'warn', hold: 'okc', up: 'add', wait: 'hold', waitdn: 'hold' };
-  const REV_NOTE = {
-    buy: '매수 신호 또는 눌림진행 · ● = 근거 수(매수 신호/눌림진행 · 싼 조건 3개 모두 · 장기 추세 상승 · 바닥근접)',
-    sell: '● = 걸린 정리 근거 수(매도+상대강도↓ · 비중축소+상대강도↓ · 익절검토+거래량폭증)',
-    caution: '과열·경고는 떴지만 정리 근거(상대강도↓·거래량폭증)는 없음 — 보유는 유지, 추가 매수는 하지 말 것',
-    hold: '주봉·월봉 정배열 + 종가 10주선 위 + 경고 없음 — 그냥 들고 가기. 진한 연두 = 일봉도 정배열(순항), 옅은 연두 = 일봉만 역배열(눌림, 팔 이유 아님)',
-    up: '상승 추세 · 과열 아님 · 20일선 눌림 뒤 반등 (백테스트상 효과는 뚜렷하지 않음 — 참고)',
-    wait: '싼 조건 2개 이상 · 하락은 멈췄지만 반등 신호 전',
-    waitdn: '싸지만 아직 하락 중이고 장기 추세도 하락 — 반등 확인 전까지 대기'
-  };
   const rvOf = r => r.review || (r.review = anReview(r));
-  let sigHtml = '';
-  AN_REVIEW.forEach(([key, head]) => {
-    const hit = results.filter(r => rvOf(r)[key]).sort((a, b) => rvOf(b)[key].score - rvOf(a)[key].score);
-    if(!hit.length) return;
-    const side = REV_SIDE[key];
-    let body;
-    if(key === 'hold'){        // 홀딩 유지: 차트 없이 이름 칩만
-      body = '<div class="an-hchips">' + hit.slice().sort((a, b) => (rvOf(a).hold.level === '순항' ? 0 : 1) - (rvOf(b).hold.level === '순항' ? 0 : 1))
-        .map(r => `<span class="an-hchip ${rvOf(r).hold.level === '순항' ? 'h2' : 'h1'}" title="${anE(`${rvOf(r).hold.level} · RSI ${anF(r.rsi, 0)}${r.disp ? ' · 이격도 ' + r.disp.cur.toFixed(1) : ''} · 5일 ${anS(r.ret5, 1)}%`)}">${anE(r.name)}</span>`).join('') + '</div>';
-    } else {
-      body = hit.map(r => {
-        const rv = rvOf(r)[key];
-        const dots = rv.score ? `<em class="an-dots">${'●'.repeat(rv.score)}</em>` : '';
-        const why = rv.why.map(w => `<span class="an-why ${key}">${anE(w)}</span>`).join('');
-        const lv = side === 'add' ? null : r.sig[side];
-        return `<div class="an-sig"><div class="an-sh"><b>${anE(r.name)}</b><span>${anE(r.code)}</span>${dots}</div>
-          <div class="an-whys">${why}</div>${anMetricsHtml(r, side, lv)}<div class="an-sigch">${anSvgChart(r.chart)}</div></div>`;
-      }).join('');
-    }
-    sigHtml += `<div class="an-sg ${REV_CLS[key]}"><h3>${head} <small>${hit.length}</small></h3><div class="an-ex">${anE(REV_NOTE[key])}</div>${body}</div>`;
-  });
   const oldNote = results.length && !results[0].hasOwnProperty('w10') ? '<div class="an-none">이전 방식으로 분석한 결과입니다 — 돋보기 버튼으로 다시 분석하면 새 기준(v1)으로 보입니다.</div>' : '';
+
+  // 종목마다: 들어간 칸들, 대표 칸(정렬용)
+  const rows = results.map((r, i) => {
+    const rv = rvOf(r);
+    const keys = AN_LIST_ORDER.filter(k => rv[k]);
+    const top = keys.length ? keys[0] : null;
+    return { r, i, rv, keys, top, rank: top ? AN_LIST_ORDER.indexOf(top) : AN_LIST_ORDER.length, score: top ? rv[top].score : 0 };
+  }).sort((a, b) => a.rank - b.rank || b.score - a.score || a.r.name.localeCompare(b.r.name));
+
+  // 분류 탭: 개수만, 누르면 그 칸 종목만
+  const cnt = k => rows.filter(x => x.keys.includes(k)).length;
+  const none = rows.filter(x => !x.keys.length).length;
+  const tabs = [`<button class="an-ftab on" data-f="">전체 <b>${rows.length}</b></button>`]
+    .concat(AN_LIST_ORDER.map(k => cnt(k) ? `<button class="an-ftab t-${k}" data-f="${k}">${anE(AN_REVIEW.find(x => x[0] === k)[1])} <b>${cnt(k)}</b></button>` : ''))
+    .concat(none ? [`<button class="an-ftab" data-f="none">신호 없음 <b>${none}</b></button>`] : []).join('');
+
+  // 종목 목록(접힘): 제목줄 = 이름·코드·RSI·칸 칩, 펼치면 근거·태그·차트·세부
+  const CH = { buy: 'buy', sell: 'sell', watch: 'flag watch', warn: 'warn', hold2: 'hold2', hold1: 'hold1' };
+  let listHtml = '';
+  rows.forEach(({ r, i, rv, keys, top }) => {
+    try{
+      const tones = Object.fromEntries(anReviewGroups(r).map(([nm, t]) => [nm, t]));
+      const chips = anFlags(r).map(f => `<span class="an-chip ${CH[tones[f.split(' ●')[0]]] || 'flag'}">${anE(f)}</span>`).join('');
+      const rc = r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : '';
+      const whys = keys.map(k => `<div class="an-whyrow"><span class="an-whyh ${k}">${anE(AN_REVIEW.find(x => x[0] === k)[1])}</span>`
+        + rv[k].why.map(w => `<span class="an-why ${k}">${anE(w)}</span>`).join('') + `<div class="an-ex">${anE(AN_REV_NOTE[k])}</div></div>`).join('');
+      const side = top ? AN_REV_SIDE[top] : 'none';
+      const lv = side === 'buy' || side === 'sell' ? r.sig[side] : null;
+      listHtml += `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${keys.join(' ') || 'none'}">
+        <summary><b>${anE(r.name)}</b> <span class="an-code">${anE(r.code)}</span> <span class="an-rsi ${rc}">RSI ${anF(r.rsi, 0)}</span> ${chips}</summary>
+        <div class="an-sbody">${whys}${anMetricsHtml(r, side, lv)}<div class="an-chwrap" data-an-chart="${i}"></div><pre>${anE(anDetailText(r))}</pre></div></details>`;
+    }catch(e){ listHtml += `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
+  });
 
   // 스크리닝
   let screenHtml = '';
   try{
-    anSummarySections(results).forEach(([h, n, lines, tone], i) => {
-      const tcls = n ? ({ buy: ' an-dbuy', sell: ' an-dsell', hot: ' an-dhot' }[tone] || '') : '';
-      screenHtml += `<details class="an-det${tcls}" data-an-key="s${i}"><summary>${anE(h)} <small>${n}</small></summary><pre>${n ? anE(lines.join('\n')) : '해당 종목 없음'}</pre></details>`;
+    anSummarySections(results).forEach(([h, n, lines], i) => {
+      screenHtml += `<details class="an-det" data-an-key="s${i}"><summary>${anE(h)} <small>${n}</small></summary><pre>${n ? anE(lines.join('\n')) : '해당 종목 없음'}</pre></details>`;
     });
   }catch(e){ screenHtml = `<div class="an-none">스크리닝 실패: ${anE(e.message)}</div>`; }
-
-  // 종목별 세부
-  let detailHtml = '';
-  results.forEach((r, i) => {
-    try{
-      const groups = anReviewGroups(r), tones = Object.fromEntries(groups.map(([nm, t]) => [nm, t]));
-      const CH = { buy: 'buy', sell: 'sell', watch: 'flag watch', warn: 'warn', hold2: 'hold2', hold1: 'hold1' };
-      const chips = anFlags(r).map(f => `<span class="an-chip ${CH[tones[f.split(' ●')[0]]] || 'flag'}">${anE(f)}</span>`).join('');
-      const t0 = groups.map(x => x[1]).filter(t => t !== 'watch')[0];
-      const dcls = ({ buy: ' an-dbuy', sell: ' an-dsell', warn: ' an-dwarn', hold2: ' an-dhold2', hold1: ' an-dhold1' })[t0] || '';
-      const rc = r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : '';
-      detailHtml += `<details class="an-det${dcls}" data-an-key="d:${anE(r.code)}" data-an-idx="${i}"><summary><b>${anE(r.name)}</b> <span class="an-code">${anE(r.code)}</span> <span class="an-rsi ${rc}">RSI ${anF(r.rsi, 0)}</span> ${chips}</summary>
-        <div class="an-chwrap" data-an-chart="${i}"></div><pre>${anE(anDetailText(r))}</pre></details>`;
-    }catch(e){ detailHtml += `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
-  });
 
   // 실패·참고
   const notes = [];
@@ -7320,21 +7321,33 @@ function anRenderResult(res){
 
   return `
     <div class="an-head"><b>${title}</b><span>분석 ${stamp} · 종목 ${results.length}개</span></div>
-    <div class="an-idxch">${chartIdx.map(k => anIndexChart(idx[k])).join('')}</div>
-    <div class="an-gauges an-sec">${anGauge(res.msig, 'risk', '시장 위험 지표')}${anGauge(res.msig, 'bottom', '시장 바닥 지표')}</div>
-    ${oldNote}<div class="an-sgrid an-sec">${sigHtml || '<div class="an-none">오늘 해당하는 시그널이 없습니다</div>'}</div>
+    <div class="an-gauges">${anGauge(res.msig, 'risk', '시장 과열 지표')}${anGauge(res.msig, 'bottom', '시장 바닥 지표')}</div>
+    <div class="an-idxch an-sec">${chartIdx.map(k => anIndexChart(idx[k])).join('')}</div>
+    ${oldNote}
+    <div class="an-ftabs an-sec" id="anFtabs">${tabs}</div>
+    <div class="an-list">${listHtml || '<div class="an-none">분석된 종목이 없습니다</div>'}</div>
     <div class="an-legend">매수검토 = 매수 신호(싼 조건 2개 이상 + 반등 트리거) 또는 눌림진행(싸고 아직 빠지는 중이지만 장기 추세 상승).
       매도검토 = 매도·비중축소에 상대강도↓(최근 60거래일 수익률이 지수보다 낮음)가 겹치거나, 익절검토에 거래량 폭증(최근 5일 중 20일 평균의 2.5배 이상)이 겹칠 때.
-      추격매수 주의(호박색) = 경고는 떴지만 정리 근거 없음 — 보유 유지, 추가 매수 금지. 홀딩 유지(연두) = 주·월 정배열 + 종가 10주선 위 + 경고 없음.
-      바닥근접 / 꼭지근접 = 1년 고점 대비 25% 이상 빠진(오른) 종목이 돌아서는 중 — 참고(칸에 마우스를 올리면 단계·저점/고점). 이격도 = 50일 이격도 현재값(과거 최소~최대).</div>
+      추격매수 주의 = 경고는 떴지만 정리 근거 없음 — 보유 유지, 추가 매수 금지. 홀딩 유지 = 주·월 정배열 + 종가 10주선 위 + 경고 없음.
+      바닥근접 / 꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 가격이 저점 +30%(고점 -20%) 안일 때만 — 참고. 이격도 = 50일 이격도 현재값(과거 최소~최대).
+      목록 순서 = 매도검토 → 매수검토 → 추격매수 주의 → 상승중 → 대기 → 하락-대기 → 홀딩 유지 → 신호 없음(같은 칸이면 ● 많은 순).</div>
     <h2 class="an-h2">종목 스크리닝</h2>
     <div class="an-dgrid">${screenHtml}</div>
-    <h2 class="an-h2">종목별 세부내용</h2>
-    <div class="an-dgrid">${detailHtml || '<div class="an-none">분석된 종목이 없습니다</div>'}</div>
     ${notes.length ? `<pre class="an-warn">${anE(notes.join('\n'))}</pre>` : ''}`;
 }
 
 function anBindRoot(root){
+  const ft = root.querySelector('#anFtabs');
+  const applyF = f => {
+    anState.filter = f;
+    if(ft) ft.querySelectorAll('.an-ftab').forEach(b => b.classList.toggle('on', b.dataset.f === f));
+    root.querySelectorAll('.an-stock').forEach(d => { d.style.display = !f || d.dataset.f.split(' ').includes(f) ? '' : 'none'; });
+  };
+  if(ft) ft.addEventListener('click', e => {
+    const b = e.target.closest('.an-ftab'); if(!b) return;
+    applyF(anState.filter === b.dataset.f ? '' : b.dataset.f);     // 같은 탭을 다시 누르면 전체
+  });
+  if(anState.filter && ft && ft.querySelector(`[data-f="${anState.filter}"]`)) applyF(anState.filter);
   root.querySelectorAll('details[data-an-key]').forEach(det => {
     const key = det.dataset.anKey;
     det.addEventListener('toggle', () => {
@@ -7516,6 +7529,25 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-hbtns button, .an-hbtns label { font:inherit; font-size:12px; padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
 .an { --an-amber:#F0B44A; --an-amberbg:rgba(240,180,74,0.13); --an-green:#A3D977; --an-green2bg:rgba(163,217,119,0.20); --an-green1bg:rgba(163,217,119,0.09); }
 .an-ex { font-size:11px; color:var(--text-dim); margin-bottom:4px; }
+details.an-gauge { border-left-width:1px !important; background:var(--surface) !important; padding:0; }
+details.an-gauge > summary { list-style:none; cursor:pointer; padding:10px 12px; }
+details.an-gauge > summary::-webkit-details-marker { display:none; }
+details.an-gauge > summary::before { content:'▸'; margin-right:6px; color:var(--text-dim); } details.an-gauge[open] > summary::before { content:'▾'; }
+details.an-gauge > summary span { flex:1; } details.an-gauge .an-bar, details.an-gauge ul, details.an-gauge .an-glink { margin-left:12px; margin-right:12px; }
+details.an-gauge ul { padding-bottom:10px; }
+.an-gauge.risk.lv1 .an-gh b { color:var(--an-warn); } .an-gauge.risk.lv2 .an-gh b { color:var(--an-up); } .an-gauge.bottom.lv1 .an-gh b, .an-gauge.bottom.lv2 .an-gh b { color:var(--an-ok); }
+.an-ftabs { display:flex; flex-wrap:wrap; gap:5px; }
+.an-ftab { font:inherit; font-size:11.5px; padding:2px 9px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
+.an-ftab b { font-weight:700; margin-left:2px; } .an-ftab.on { background:#D4FF3D; color:#111111; border-color:#D4FF3D; }
+.an-ftab.t-buy b, .an-ftab.t-up b { color:var(--an-up); } .an-ftab.t-sell b { color:var(--an-dn); } .an-ftab.t-caution b { color:var(--an-amber); } .an-ftab.t-hold b { color:var(--an-green); }
+.an-ftab.on b { color:#111111; }
+.an-list { margin-top:8px; display:grid; gap:6px; } .an-list .an-det { margin-bottom:0; }
+.an-stock, .an-stock[open] { background:var(--surface) !important; border-left-width:1px !important; }
+.an-sbody { padding:0 11px 4px; } .an-sbody .an-mrow { margin-bottom:6px; } .an-sbody pre { padding:6px 0 10px; }
+.an-whyrow { display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin:2px 0 6px; } .an-whyrow .an-ex { flex-basis:100%; margin:0; }
+.an-whyh { font-size:11px; font-weight:800; margin-right:2px; }
+.an-whyh.buy, .an-whyh.up { color:var(--an-up); } .an-whyh.sell { color:var(--an-dn); } .an-whyh.caution { color:var(--an-amber); } .an-whyh.hold { color:var(--an-green); } .an-whyh.wait, .an-whyh.waitdn { color:var(--text-dim); }
+.an-dgrid .an-det { border-left-width:1px !important; background:var(--surface) !important; }
 .an-glink { display:block; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:12px; color:var(--text); text-decoration:none; }
 .an-glink small { color:var(--text-dim); }
 .an-dots { margin-left:auto; font-style:normal; letter-spacing:1px; font-size:12px; }
