@@ -7117,7 +7117,7 @@ async function anHistRender(){
     const op = t.filter(isOpen).length;
     const av = avg(d.map(x => x.ret));
     // 칸 맞춤(매수·매도 줄 숫자가 위아래로 정렬): 이름 │ ✓ │ ✕ (손절) │ ⏳ │ 평균
-    return `<div class="an-hsum"><b>${side === 'buy' ? '매수' : '매도'} 신호</b><b class="n">${t.length}번</b><i class="sep">│</i><span>${AN_HB.ok}${h.length}</span><i class="sep">│</i><span>${AN_HB.bad}${d.length - h.length}${side === 'buy' ? ` (${AN_HB.stop}${st.length})` : ''}</span><i class="sep">│</i><span>${AN_HB.wait}${op}</span>${side === 'buy' ? `<i class="sep">│</i><span>평균 <b class="${U(av)}">${av != null ? P(av) : '-'}</b></span>` : ''}</div>`;
+    return `<div class="an-hsum"><b>${side === 'buy' ? '매수' : '매도'} 신호</b><b class="n">${t.length}번</b><i class="sep">│</i><span>${AN_HB.ok}${h.length}</span><i class="sep">│</i><span>${AN_HB.bad}${d.length - h.length}${side === 'buy' ? `<span class="an-hstop">${AN_HB.stop}${st.length}</span>` : ''}</span><i class="sep">│</i><span>${AN_HB.wait}${op}</span>${side === 'buy' ? `<i class="sep">│</i><span>평균 <b class="${U(av)}">${av != null ? P(av) : '-'}</b></span>` : ''}</div>`;
   };
   const judge = t => isOpen(t) ? `<span class="an-hj op">${AN_HB.wait}진행중</span>`
     : t.why === 'gone' ? '<span class="an-hj mut">목록에서 빠짐</span>'
@@ -7585,19 +7585,60 @@ const AN_LIMITS = [
   '과거 성과가 미래를 보장하지 않음',
   '모든 매수·매도에 대한 책임은 사용자 본인에게 있음'
 ];
-function anRulesHtml(){
+// Logic V1 본문: LAB 아래 아코디언과 LAB 첫 클릭 안내창이 같이 씀
+function anLogicBody(){
   const per = [['1', '1년'], ['3', '3년'], ['5', '5년']];
-  return `<details class="an-rules" data-an-key="rules"><summary>Logic V1 <small>(2026.10.11)</small></summary>
-    <div class="an-rbody">
-      <p class="an-rfirst">${AN_RULES.map(anE).join(' / ')}</p>
+  return `<p class="an-rfirst">${AN_RULES.map(anE).join(' / ')}</p>
       <h4>백테스트 <small>총수익 · 칩을 누르면 선 켜고 끄기</small></h4>
       <div class="an-btper">${per.map(([k, nm]) => `<button type="button" data-btp="${k}"${k === anBtState.p ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>
-      <div class="an-btwrap" id="anBtWrap"></div>
+      <div class="an-btwrap"></div>
       <p class="an-rnote">${AN_BT_NOTES.map(anE).join(' / ')}</p>
       <h4>주의</h4><p>${AN_LIMITS.map(anE).join(' / ')}</p>
-      <h4>신호</h4><p>${AN_SIG_DEF.map(anE).join(' / ')}</p>
-    </div></details>`;
+      <h4>신호</h4><p>${AN_SIG_DEF.map(anE).join(' / ')}</p>`;
 }
+function anRulesHtml(){
+  return `<details class="an-rules" data-an-key="rules"><summary>Logic V1 <small>(2026.10.11)</small></summary>
+    <div class="an-rbody">${anLogicBody()}</div></details>`;
+}
+// 그래프 기간·선 켜고 끄기 (box = 아코디언 또는 안내창, isOpen = 지금 보이는지)
+function anBtWire(box, isOpen){
+  const wrap = box.querySelector('.an-btwrap');
+  const draw = () => { if(isOpen()) anBtDraw(wrap); };
+  box.addEventListener('click', e => {
+    const p = e.target.closest('[data-btp]'), c = e.target.closest('[data-bti]');
+    if(p){ anBtState.p = p.dataset.btp; box.querySelectorAll('[data-btp]').forEach(b => b.classList.toggle('on', b === p)); draw(); }
+    else if(c){ const i = +c.dataset.bti; anBtState.off.has(i) ? anBtState.off.delete(i) : anBtState.off.add(i); draw(); }
+  });
+  return draw;
+}
+// LAB 탭을 처음 누를 때 Logic V1 안내창 (공지창 모양, 어두운 색). '다시 보지 않기' 체크 후 닫으면 이 브라우저에선 다시 안 뜸
+const AN_LOGIC_POP_KEY = 'mp-logic-v1-hide';
+let anLogicPopShown = false;
+function anLogicPopup(){
+  let hide = false;
+  try{ hide = localStorage.getItem(AN_LOGIC_POP_KEY) === '1'; }catch(e){}
+  if(hide || anLogicPopShown) return;
+  anLogicPopShown = true;
+  const m = document.createElement('div');
+  m.id = 'anLogicModal';
+  m.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:center;justify-content:center;padding:16px;';
+  m.innerHTML = `<div class="an-lpop">
+      <h3>Logic V1</h3><div class="an-lsub">2026.10.11 · LAB 신호의 매매 규칙과 백테스트</div><hr>
+      <div class="an-rbody">${anLogicBody()}</div>
+      <label class="an-lchk"><input type="checkbox" id="anLogicHide"> 다시 보지 않기</label>
+      <div class="an-lbtn"><button class="btn btn-primary" id="anLogicOk">✓</button></div></div>`;
+  document.body.appendChild(m);
+  const box = m.querySelector('.an-lpop');
+  const draw = anBtWire(box, () => true);
+  requestAnimationFrame(draw);
+  const close = () => {
+    if(m.querySelector('#anLogicHide').checked){ try{ localStorage.setItem(AN_LOGIC_POP_KEY, '1'); }catch(e){} }
+    m.remove();
+  };
+  m.querySelector('#anLogicOk').addEventListener('click', close);
+  m.addEventListener('click', e => { if(e.target === m) close(); });
+}
+document.addEventListener('click', e => { if(e.target.closest('[data-tab="__analysis__"]')) setTimeout(anLogicPopup, 80); }, true);
 function anBtDraw(wrap){
   if(!wrap) return;
   const P = AN_BT_GRAPH.p[anBtState.p], names = AN_BT_GRAPH.names;
@@ -7621,14 +7662,8 @@ function anBtDraw(wrap){
 function anBtBind(root){
   const det = root.querySelector('.an-rules');
   if(!det) return;
-  const wrap = det.querySelector('#anBtWrap');
-  const draw = () => { if(det.open) anBtDraw(wrap); };
+  const draw = anBtWire(det, () => det.open);
   det.addEventListener('toggle', draw);
-  det.addEventListener('click', e => {
-    const p = e.target.closest('[data-btp]'), c = e.target.closest('[data-bti]');
-    if(p){ anBtState.p = p.dataset.btp; det.querySelectorAll('[data-btp]').forEach(b => b.classList.toggle('on', b === p)); draw(); }
-    else if(c){ const i = +c.dataset.bti; anBtState.off.has(i) ? anBtState.off.delete(i) : anBtState.off.add(i); draw(); }
-  });
   draw();
 }
 
@@ -8038,24 +8073,36 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 .an-chip.hold1 { background:var(--an-green1bg); color:var(--an-green); border-color:var(--an-green); }
 .an-det.an-dwarn, .an-det.an-dhold2, .an-det.an-dhold1 { border-left-width:4px; } .an-det.an-dwarn { border-left-color:var(--an-amber); background:var(--an-amberbg); }
 .an-det.an-dhold2 { border-left-color:var(--an-green); background:var(--an-green2bg); } .an-det.an-dhold1 { border-left-color:var(--an-green); background:var(--an-green1bg); }
+/* 2026-10-11 20:50: 히스토리·분석 버튼 같은 폭, 아이콘 기울임 없음, 손절 칸, 글자·줄 높이(B안), Logic V1 안내창 */
+#analysisHistBtn { width:62px; padding:0 !important; font-size:12px !important; text-align:center; white-space:nowrap; }
+.an-hb, .an-hg { font-style:normal !important; } .an-hstop { margin-left:6px; display:inline-flex; align-items:center; }
+.an-stock > summary { padding:4px 10px !important; } .an-stock > summary > b { font-size:12.5px; }
+.an-idx > summary { padding:4px 10px !important; } .an-idx > summary .an-in { font-size:12.5px; }
+details.an-gauge > summary { padding:6px 10px !important; font-weight:500 !important; font-size:12.5px; }
+.an-ht2 td b:not([class]) { font-weight:500; font-size:12px; }
+.an-lpop { position:relative; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:20px; width:560px; max-width:100%; max-height:84vh; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.45); }
+.an-lpop h3 { margin:0 0 4px; font-size:17px; font-weight:700; } .an-lpop .an-lsub { font-size:12px; color:var(--text-dim); margin-bottom:12px; }
+.an-lpop hr { border:none; border-top:1px solid var(--border); margin:0 0 12px; } .an-lpop .an-rbody { padding:0; font-size:12px; }
+.an-lchk { display:flex; align-items:center; gap:6px; margin-top:18px; font-size:13px; color:var(--text-dim); cursor:pointer; }
+.an-lbtn { display:flex; justify-content:flex-end; margin-top:12px; } .an-lbtn .btn { font-size:18px; line-height:1; padding:6px 16px; }
 /* 2026-10-11 20:20 화면 정리 */
 .an-stock > summary b { font-weight:500; }
 .an-rules { background:var(--surface) !important; } .an-rules + .an-warn { background:#3a3b40 !important; } .an-rfirst { margin-top:2px !important; }
 .an-htabs .an-ftab { width:42px; justify-content:center; padding:0 !important; font-size:11px !important; letter-spacing:-0.5px; white-space:nowrap; } .an-htabs #analysisHistBtn { padding:0 6px !important; white-space:nowrap; }
-.an-ftab.has.t-wh { color:#F4F6FA; border-color:#F4F6FA; } .an-ftab.on.t-wh { background:#F4F6FA; color:var(--bg); border-color:#F4F6FA; }
+.an-ftab.has.t-wh { color:#C9C9C9; border-color:#C9C9C9; } .an-ftab.on.t-wh { background:#C9C9C9; color:var(--bg); border-color:#C9C9C9; }
 .an-ftab.has.t-tl { color:#2BC4B0; border-color:#2BC4B0; } .an-ftab.on.t-tl { background:#2BC4B0; color:var(--bg); border-color:#2BC4B0; }
-.an-hsum { display:grid; grid-template-columns:47px 28px 7px 32px 7px 62px 7px 34px 7px 1fr; align-items:center; column-gap:2px; white-space:nowrap; font-size:11.5px !important; padding:6px 7px !important; }
+.an-hsum { display:grid; grid-template-columns:47px 28px 7px 32px 7px 66px 7px 34px 7px 1fr; align-items:center; column-gap:2px; white-space:nowrap; font-size:11.5px !important; padding:6px 7px !important; }
 .an-hsum .n { text-align:right; font-weight:700; } .an-hsum .sep { font-style:normal; color:var(--text-dim); text-align:center; }
 .an-hsum > span { display:inline-flex; align-items:center; gap:2px; }
 .an-hb, .an-hg { cursor:pointer; } .an-hsum .an-hg { font-size:14px; margin:0 2px 0 0; } .an-hsum .an-hb { margin-right:2px; }
-.an-htabs .an-ftab { width:33px !important; font-size:10.5px !important; letter-spacing:-0.6px !important; } .an-htabs #analysisHistBtn { padding:0 5px !important; font-size:11px !important; }
+.an-htabs .an-ftab { width:auto !important; flex:0 1 40px !important; min-width:30px; font-size:10.5px !important; letter-spacing:-0.6px !important; }
 .an-hsum { font-size:11px !important; padding:6px 4px !important; } .an-hsum .an-hb { width:16px !important; height:16px !important; font-size:10px !important; flex-shrink:0; } .an-hsum .an-hg { font-size:13px; } .an-htabs .an-hsep { margin:0 2px !important; }
 /* 종목 목록: 모서리 없음·간격 없이(지수처럼). 매매규칙·제외종목: 모서리 없음, 서로 붙임, 같은 색 */
 .an-list { gap:0 !important; margin-top:12px !important; } .an-list .an-det { border-radius:0 !important; border:none !important; border-bottom:1px solid var(--bg) !important; }
 .an-rules { border:none !important; border-radius:0 !important; margin-top:12px !important; }
 .an-warn { border-radius:0 !important; } .an-rules + .an-warn { margin-top:0 !important; border-top:1px solid var(--bg); }
 /* 히스토리: 탭 간격 좁게(묶음 사이만 띄움), 요약 줄 모서리 없이 붙임, 표 모서리 없음 */
-.an-htabs { gap:2px !important; flex-wrap:nowrap !important; } .an-htabs .an-hsep { margin:0 2px; } .an-htabs .an-ftab { flex-shrink:0; } .an-htabs #analysisBar { gap:3px !important; } .an-htabs .an-barslot { flex-shrink:0; }
+.an-htabs { gap:2px !important; flex-wrap:nowrap !important; } .an-htabs .an-hsep { margin:0 2px; }  .an-htabs #analysisBar { gap:3px !important; } .an-htabs .an-barslot { flex-shrink:0; }
 .an-hsum { border-radius:0 !important; margin:0 !important; border-bottom:1px solid var(--bg); } .an-hsum + .an-hwrap { margin-top:10px; }
 .an-hwrap { border-radius:0 !important; }
 .an-hb { width:18px !important; height:18px !important; font-size:11px !important; vertical-align:middle !important; margin-top:-3px; }
