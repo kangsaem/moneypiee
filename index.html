@@ -7933,7 +7933,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-mt.h2, .an-mt.hot { background:var(--an-up); color:#1E1F22; } .an-mt.cold, .an-mt.l2 { background:var(--an-dn); color:#1E1F22; }
 .an-mt.l1 { background:var(--an-dnbg); color:var(--an-dn); }
 .an-mt.arr { font-weight:700; }
-.an-mt.role { font-weight:800; outline:2px solid var(--text); outline-offset:1px; }
+.an-mt.role { font-weight:500; outline:none; box-shadow:inset 0 0 0 1px #C9C9C9; }   /* 강조 = 1px 밝은 회색, 칸에 붙임 */
 .an-sigch { padding-top:2px; }
 .an-legend { font-size:11px; color:var(--text-dim); margin-top:6px; line-height:1.55; }
 .an-rules { margin-top:10px; border:1px solid var(--border); border-radius:8px; background:var(--surface); }
@@ -8099,6 +8099,13 @@ details.an-gauge > summary { padding:6px 10px !important; font-weight:500 !impor
 details.an-gauge > summary, .an-idx > summary { display:flex !important; align-items:center; gap:0 !important; }
 details.an-gauge > summary::before, .an-idx > summary::before { display:inline-block; width:12px; margin:0 6px 0 0 !important; flex-shrink:0; }
 .an-idx > summary b, .an-idx > summary .an-ig { margin-left:8px; }
+/* 히스토리 종목 목록: 바깥 회색 테두리 없음, 줄 사이 = 분석 종목 탭 사이와 같은 어두운 줄 */
+.an-hwrap { border:none !important; background:transparent !important; } .an-ht2 tr { background:var(--surface); }
+.an-ht2 th, .an-ht2 td { border-bottom:1px solid var(--bg) !important; }
+/* 신호 없는 종목은 이름을 회색으로(신호 있는 종목은 그대로) */
+.an-stock[data-f="none"] > summary b { color:#9A9BA1; }
+/* 지표 칸 글자 굵기 모두 500 (일·주·월 정/역·강조 칸 포함) */
+.an-mt, .an-mt.arr, .an-mt.role, .an-mt.an-bt, .an-mt.an-tp { font-weight:500 !important; }
 /* 2026-10-11 20:20 화면 정리 */
 .an-stock > summary b { font-weight:500; }
 .an-rules { background:var(--surface) !important; } .an-rules + .an-warn { background:#3a3b40 !important; } .an-rfirst { margin-top:2px !important; }
