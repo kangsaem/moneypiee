@@ -7101,7 +7101,7 @@ async function runAnalysis(){
     const results = found.sort((a, b) => a[0] - b[0]).map(x => x[1]);
     const snap = await marketP;
     const msig = anMarketSignals(snap, results);
-    const result = { at: Date.now(), isUS, results, snap, msig, crash: anCrash(snap, msig), failed, unresolved, stale, todayPatched, todayMissing, krToday: anKrToday() };
+    const result = { at: Date.now(), isUS, results, snap, msig, failed, unresolved, stale, todayPatched, todayMissing, krToday: anKrToday() };
     anState.result = result;
     anState.html = null;
     await anDB.set('lastResult', result);
@@ -7324,9 +7324,7 @@ function anRenderResult(res){
     todayTxt = t ? (ok === krRes.length ? ' · 국장 오늘 종가 반영' : ` · 국장 오늘 종가 ${ok}/${krRes.length} (나머지 어제 시세)`) : ' · 국장 어제 종가 기준';
   }
 
-  // 폭락장
-  const cr = res.crash || anCrash(res.snap || {}, res.msig);
-  const crashHtml = cr.on ? `<div class="an-crash">폭락장 · ${anE(cr.why.join(' · '))}<small>지수 고점 -20%, VIX 30 이상, 바닥 지표 2개 이상 중 하나라도 켜짐 — 개별 종목 신호는 그대로. 돈을 어떻게 쓸지는 직접 판단</small></div>` : '';
+  // 폭락장 배너는 뺌(2026-10-11) — 시장 바닥 지표를 보고 직접 판단
 
   // 지수 4개 아코디언: 07:00~17:00 = 국장 펼침, 그 외 = 미장 펼침
   const nowK = new Date(Date.now() + 9 * 3600e3), hm = nowK.getUTCHours() * 100 + nowK.getUTCMinutes();
@@ -7382,13 +7380,7 @@ function anRenderResult(res){
     }catch(e){ listHtml += `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
   });
 
-  // 스크리닝
-  let screenHtml = '';
-  try{
-    anSummarySections(results).forEach(([h, n, lines], i) => {
-      screenHtml += `<details class="an-det" data-an-key="s${i}"><summary>${anE(h)} <small>${n}</small></summary><pre>${n ? anE(lines.join('\n')) : '해당 종목 없음'}</pre></details>`;
-    });
-  }catch(e){ screenHtml = `<div class="an-none">스크리닝 실패: ${anE(e.message)}</div>`; }
+  // 종목 스크리닝은 뺌(2026-10-11) — 분류 탭·종목 칩과 중복
 
   const notes = [];
   if(res.unresolved && res.unresolved.length) notes.push('제외된 종목 : ' + res.unresolved.join(', '));
@@ -7400,7 +7392,6 @@ function anRenderResult(res){
 
   return `
     <div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}</span></div>
-    ${crashHtml}
     <div class="an-gauges">${anGauge(res.msig, 'risk', '시장 과열 지표')}${anGauge(res.msig, 'bottom', '시장 바닥 지표')}</div>
     <div class="an-idxacc an-sec">${idxHtml}</div>
     ${oldNote}
@@ -7413,8 +7404,6 @@ function anRenderResult(res){
       보유 = 주·월 정배열 + 종가 10주선 위 + 경고 없음(순항 = 일봉도 정배열, 조정 = 일봉만 역배열·팔 이유 아님). 매수보류 = 과열 — 보유 유지, 새로 사거나 더 사지 않음.
       반등대기 = 싸고 하락은 멈췄지만 반등 신호 전. 하락 = 싸지만 아직 떨어지는 중이고 장기 추세도 하락.
       바닥근접 / 꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 가격이 저점 +30%(고점 -20%) 안일 때만 — 참고. 이격도 = 50일 이격도 현재값(과거 최소~최대).</div>
-    <h2 class="an-h2">종목 스크리닝</h2>
-    <div class="an-dgrid">${screenHtml}</div>
     ${notes.length ? `<pre class="an-warn">${anE(notes.join('\n'))}</pre>` : ''}`;
 }
 
