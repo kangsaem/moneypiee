@@ -6793,14 +6793,14 @@ function anMarketSignals(snap, results){
     ['미국 10년물 금리 10일간 0.3%p 이상 상승', y10 && y10.chg10 != null ? anS(y10.chg10, 2) + '%p' : '-',
       y10 && y10.chg10 != null ? y10.chg10 >= 0.3 : null],
     ['내 종목 70% 이상이 일봉 역배열', bear != null ? pc(bear) : '-', bear != null ? bear >= 0.7 : null],
-    [`빚투 비율 5년 중 상위 ${100 - AN.CREDIT_TOP}%` + (snap.credit ? '\n기준 ' + (snap.credit.thr != null ? `${snap.credit.thr.toFixed(1)}% · ` : '') + (snap.credit.max != null ? `최고 ${snap.credit.max.toFixed(1)}%` : '') : ''),
+    [`신용잔고/예탁금 비율 5년 중 상위 ${100 - AN.CREDIT_TOP}%`,
       snap.credit ? `${snap.credit.ratio.toFixed(1)}%` : '-',
       snap.credit ? snap.credit.pct >= AN.CREDIT_TOP : null]
   ];
   const bottom = [
     ['코스피 50일 이격도 90 이하', ks ? anF(ks.disp, 1) : '-', ks ? ks.disp <= 90 : null],
     ['코스피 RSI 35 이하', ks ? anF(ks.rsi, 0) : '-', ks ? ks.rsi <= 35 : null],
-    ['코스피 52주 고점 대비 -20% 이하이면서\n최근 20거래일 신저점 없음' + (ks ? ` (저점 ${ks.days_since_low}일 전)` : ''),
+    ['코스피 52주 고점 대비 -20% 이하이면서\n최근 20거래일 신저점 없음',
       ks ? `${anF(ks.from_high, 1)}%` : '-',
       ks ? (ks.from_high <= -20 && ks.days_since_low >= 20) : null],
     ['VIX 30 이상', vix ? anF(vix.last, 1) : '-', vix ? vix.last >= 30 : null],
@@ -7456,7 +7456,8 @@ function anRenderResult(res){
   const at = new Date(res.at + 9 * 3600e3);
   const stamp = `${at.getUTCFullYear()}-${anPad(at.getUTCMonth()+1)}-${anPad(at.getUTCDate())} ${anPad(at.getUTCHours())}:${anPad(at.getUTCMinutes())}`;
   const idx = (res.snap && res.snap.idx) || {};
-  const rvOf = r => (r.review = anReview(r));      // 저장된 이전 결과도 지금 규칙으로 다시 판정(계산은 가벼움)
+  const rvOf = r => (r.review = anReview(r));
+  try{ if(res.snap) res.msig = anMarketSignals(res.snap, results); }catch(e){}   // 시장 지표도 저장된 값으로 지금 문구·기준으로 다시 계산      // 저장된 이전 결과도 지금 규칙으로 다시 판정(계산은 가벼움)
   const oldNote = results.length && !results[0].hasOwnProperty('w10') ? '<div class="an-none">이전 방식으로 분석한 결과입니다 — 돋보기 버튼으로 다시 분석하면 새 기준(v1)으로 보입니다.</div>' : '';
   const ctx = (() => { try{ return anLimitCtx(); }catch(e){ return null; } })();
 
