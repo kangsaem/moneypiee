@@ -7249,6 +7249,7 @@ async function runAnalysis(){
     anState.html = null;
     await anDB.set('lastResult', result);
     try{ await anHistSave(result); }catch(e){}          // 신호 기록(히스토리)에 오늘 칸 저장
+    anGhCheck();                                          // 토큰 있는 기기만: GitHub 리포트 종목 목록과 비교
   }catch(e){
     showNoticeModal('분석 중 오류가 났습니다: ' + (e && e.message ? e.message : e));
   }finally{
@@ -7674,6 +7675,93 @@ function anBindRoot(root){
   });
 }
 
+// ------------------------------------------------------------------ GitHub 리포트 종목 목록(tickers.json) 동기화 — 토큰을 넣은 기기에서만
+// 토큰: 이 기기 localStorage에만(백업 파일에 안 들어감). 설정칸은 주소에 ?gh=1 을 붙여 열 때만 보임.
+// LAB 분석을 돌릴 때 GitHub 목록과 이름으로 비교 → 다르면 알림 → 확인하면 올림(그대로인 종목은 GitHub 쪽 코드 유지, [skip ci] = 즉시 실행 안 함)
+const AN_GH = { REPO: 'kangsaem/moneypier', PATH: 'tickers.json', KEY: 'mp-gh-token' };
+const anGh = { diff: null, err: '', busy: false };
+function anGhToken(){ try{ return localStorage.getItem(AN_GH.KEY) || ''; }catch(e){ return ''; } }
+function anGhSetupMode(){                      // 주소 어디에든 gh=1 (?gh=1, #gh=1, ?_r=..&gh=1 모두) — 한 번 보이면 이 탭을 닫을 때까지 유지
+  let on = /gh=1/.test(location.href);
+  try{ if(on) sessionStorage.setItem('mp-gh-setup', '1'); else on = sessionStorage.getItem('mp-gh-setup') === '1'; }catch(e){}
+  return on;
+}
+function anGhB64dec(t){ return new TextDecoder().decode(Uint8Array.from(atob(String(t).replace(/\s/g, '')), c => c.charCodeAt(0))); }
+function anGhB64enc(t){ let x = ''; new TextEncoder().encode(t).forEach(c => { x += String.fromCharCode(c); }); return btoa(x); }
+function anGhCode(h){
+  const sym = String(h.symbol || '').trim();
+  const kr = h.listingRegion ? h.listingRegion !== 'overseas' : anIsKrCode(sym);
+  return kr && sym ? sym : (h.yahooSymbol || sym || '');
+}
+function anGhLocal(){ return anCollectTargets().map(h => ({ code: anGhCode(h), name: h.name })); }
+async function anGhFetch(tok){
+  const r = await fetch(`https://api.github.com/repos/${AN_GH.REPO}/contents/${AN_GH.PATH}?t=${Date.now()}`,
+    { headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+  if(r.status === 404) return { list: [], sha: null };
+  if(!r.ok) throw new Error(r.status === 401 ? '토큰이 맞지 않거나 만료됨' : 'GitHub 응답 ' + r.status);
+  const j = await r.json();
+  return { list: JSON.parse(anGhB64dec(j.content)), sha: j.sha };
+}
+async function anGhCheck(){
+  const tok = anGhToken();
+  if(!tok) return;
+  try{
+    const rem = await anGhFetch(tok);
+    const loc = anGhLocal();
+    const rn = new Set(rem.list.map(x => x.name)), ln = new Set(loc.map(x => x.name));
+    const add = loc.filter(x => !rn.has(x.name)), del = rem.list.filter(x => !ln.has(x.name));
+    anGh.diff = add.length || del.length ? { add, del, rem, loc } : null;
+    anGh.err = '';
+  }catch(e){ anGh.diff = null; anGh.err = e && e.message ? e.message : String(e); }
+  anGhPaint();
+}
+async function anGhUpload(){
+  const d = anGh.diff, tok = anGhToken();
+  if(!d || !tok || anGh.busy) return;
+  anGh.busy = true;
+  try{
+    const ln = new Set(d.loc.map(x => x.name));
+    const list = d.rem.list.filter(x => ln.has(x.name)).concat(d.add);       // 그대로인 종목은 GitHub 쪽 코드 그대로
+    const body = { message: `종목 목록 갱신 (머니파이: 추가 ${d.add.length} · 빠짐 ${d.del.length}) [skip ci]`,
+                   content: anGhB64enc(JSON.stringify(list, null, 1) + '\n') };
+    if(d.rem.sha) body.sha = d.rem.sha;
+    const r = await fetch(`https://api.github.com/repos/${AN_GH.REPO}/contents/${AN_GH.PATH}`,
+      { method: 'PUT', headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if(!r.ok) throw new Error(r.status === 409 ? 'GitHub 목록이 그새 바뀜 — 다시 분석 후 시도' : r.status === 403 || r.status === 401 ? '토큰 권한 부족(Contents 쓰기 필요)' : 'GitHub 응답 ' + r.status);
+    anGh.diff = null; anGh.err = '';
+    showNoticeModal(`GitHub 리포트 종목 목록을 올렸어요 (${list.length}개). 다음 리포트(15:31 / 07:10)부터 반영돼요.`);
+  }catch(e){ showNoticeModal('올리지 못했습니다: ' + (e && e.message ? e.message : e)); }
+  finally{ anGh.busy = false; anGhPaint(); }
+}
+function anGhPaint(){
+  const root = document.getElementById('analysisRoot');
+  if(!root || anState.view === 'history') return;
+  let el = root.querySelector('#anGhBar');
+  if(!el){ el = document.createElement('div'); el.id = 'anGhBar'; const top = root.querySelector('#anFtabs'); top ? top.after(el) : root.prepend(el); }
+  const tok = anGhToken();
+  let h = '';
+  if(tok && anGh.diff) h += `<div class="an-gh">GitHub 리포트 목록과 달라요 · 추가 ${anGh.diff.add.length} / 빠짐 ${anGh.diff.del.length}<button type="button" id="anGhGo">확인</button></div>`;
+  if(tok && anGh.err) h += `<div class="an-gh err">GitHub 목록 확인 실패: ${anE(anGh.err)}</div>`;
+  if(anGhSetupMode()) h += `<div class="an-gh set"><b>GitHub 토큰</b> <small>${tok ? '이 기기에 저장됨' : '없음'} · 이 기기에만 저장(백업 파일에 안 들어감)</small>
+    <div class="an-ghrow"><input type="password" id="anGhTok" placeholder="github_pat_..." autocomplete="off"><button type="button" id="anGhSave">저장</button>${tok ? '<button type="button" id="anGhDel">삭제</button>' : ''}</div></div>`;
+  el.innerHTML = h;
+  const go = el.querySelector('#anGhGo');
+  if(go) go.addEventListener('click', () => {
+    const d = anGh.diff; if(!d) return;
+    const L = a => a.length ? a.map(x => anE(x.name)).join(', ') : '없음';
+    showConfirmModal(`GitHub 리포트 종목 목록을 바꿀까요?\n\n<b>추가 ${d.add.length}</b>: ${L(d.add)}\n<b>빠짐 ${d.del.length}</b>: ${L(d.del)}\n\n빠진 종목은 실전 기록 가상 계좌에서 마지막 기록일 종가에 매도로 처리돼요.`,
+      '올리기', '#4FC3F7', anGhUpload);
+  });
+  const sv = el.querySelector('#anGhSave');
+  if(sv) sv.addEventListener('click', () => {
+    const v = (el.querySelector('#anGhTok').value || '').trim(); if(!v) return;
+    try{ localStorage.setItem(AN_GH.KEY, v); }catch(e){}
+    anGhPaint(); anGhCheck();
+  });
+  const dl = el.querySelector('#anGhDel');
+  if(dl) dl.addEventListener('click', () => { try{ localStorage.removeItem(AN_GH.KEY); }catch(e){} anGh.diff = null; anGh.err = ''; anGhPaint(); });
+}
+
 function anFillRoot(){
   const root = document.getElementById('analysisRoot');
   if(!root) return;
@@ -7692,6 +7780,7 @@ function anFillRoot(){
     root.innerHTML = anState.running
       ? `<div class="an-empty">분석 중 ${anState.done}/${anState.total}… 처음에는 종목마다 12년치 시세를 받느라 시간이 걸려요.</div>`
       : (anState.loaded ? '<div class="an-empty">오른쪽 위 돋보기 버튼을 누르면 보유 종목과 관심종목 전체를 분석해요.</div>' : '');
+    if(!anState.running) anGhPaint();
     return;
   }
   if(!anState.html){
@@ -7701,6 +7790,7 @@ function anFillRoot(){
   root.innerHTML = anState.html;
   anBindRoot(root);
   placeBar();
+  anGhPaint();
 }
 
 function anUpdateProgress(){
@@ -7854,6 +7944,11 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-htag.g7 { color:#8b7fd6; border-color:#a99ff0; } .an-htag.g8 { color:#4aa8d8; border-color:#8fd0ef; }
 .an-hflt { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; } .an-hflt button { font:inherit; font-size:11.5px; padding:2px 10px; border-radius:99px;
   border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; } .an-hflt button.on { background:#D4FF3D; color:#111; border-color:#D4FF3D; }
+.an-gh { font-size:12px; margin:0 0 8px; padding:6px 9px; border-radius:8px; border:1px solid #4FC3F7; background:rgba(79,195,247,0.08); display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.an-gh button { font:inherit; font-size:11.5px; height:24px; padding:0 10px; border-radius:6px; border:none; background:#4FC3F7; color:#111; font-weight:700; cursor:pointer; margin-left:auto; }
+.an-gh.err { border-color:var(--an-amber); background:transparent; color:var(--an-amber); } .an-gh.set { border-color:var(--border); background:var(--surface); display:block; }
+.an-gh small { color:var(--text-dim); } .an-ghrow { display:flex; gap:6px; margin-top:5px; } .an-ghrow button { margin-left:0; }
+.an-ghrow input { flex:1; min-width:0; font:inherit; font-size:16px; padding:3px 8px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); }
 .an-hsum { font-size:12px; margin:4px 0; padding:6px 9px; border-radius:8px; background:var(--surface); border-left:3px solid var(--an-up); }
 .an-hsum.sell { border-left-color:#0284c7; } .an-hsep { width:1px; align-self:stretch; background:var(--border); margin:0 2px; }
 .an-ht .up { color:var(--an-up); } .an-ht .dn { color:var(--an-dn); } .an-hsum .up { color:var(--an-up); } .an-hsum .dn { color:var(--an-dn); }
