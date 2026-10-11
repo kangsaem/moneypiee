@@ -7115,7 +7115,7 @@ async function anHistRender(){
     const d = t.filter(x => x.done), h = d.filter(x => x.hit), st = d.filter(x => x.why === 'stop');
     const op = t.filter(isOpen).length;
     const av = avg(d.map(x => x.ret));
-    return `<div class="an-hsum"><b>${side === 'buy' ? '매수' : '매도'} 신호 ${t.length}번</b> ${AN_HB.ok}${h.length} · ${AN_HB.bad}${d.length - h.length}${side === 'buy' ? ` (손절 ${st.length})` : ''} · <span class="an-hg">⏳</span> ${op}${side === 'buy' && av != null ? ` · 평균 <span class="${U(av)}">${P(av)}</span>` : ''}</div>`;
+    return `<div class="an-hsum"><b>${side === 'buy' ? '매수' : '매도'} 신호 ${t.length}번</b> ${AN_HB.ok}${h.length} · ${AN_HB.bad}${d.length - h.length}${side === 'buy' ? ` (${AN_HB.stop}${st.length})` : ''} · <span class="an-hg">⏳</span> ${op}${side === 'buy' && av != null ? ` · 평균 <span class="${U(av)}">${P(av)}</span>` : ''}</div>`;
   };
   const judge = t => isOpen(t) ? '<span class="an-hj op"><span class="an-hg">⏳</span>진행 중</span>'
     : t.why === 'gone' ? '<span class="an-hj mut">목록에서 빠짐</span>'
@@ -7582,7 +7582,6 @@ function anBtDraw(wrap){
   if(!wrap) return;
   const P = AN_BT_GRAPH.p[anBtState.p], names = AN_BT_GRAPH.names;
   const fin = P.s.map(v => v[v.length - 1]);
-  const best = fin.indexOf(Math.max(...fin));
   const W = Math.max(300, Math.round(wrap.clientWidth || 340)), H = Math.round(Math.min(320, Math.max(220, W * 0.55))), L = 38, Rt = 6, T = 8, B = 20;   // 실제 폭으로 그림(노트북에서 선이 굵어지지 않게)
   const vis = P.s.map((v, i) => anBtState.off.has(i) ? null : v);
   const all = vis.filter(Boolean).flat();
@@ -7596,7 +7595,7 @@ function anBtDraw(wrap){
     grid += `<line x1="${L}" x2="${W - Rt}" y1="${y(g).toFixed(1)}" y2="${y(g).toFixed(1)}" class="${g === 0 ? 'z' : ''}"/><text x="${L - 4}" y="${(y(g) + 3).toFixed(1)}" text-anchor="end">${g}%</text>`;
   const lbl = [0, Math.floor((n - 1) / 2), n - 1].map(i => `<text x="${x(i).toFixed(1)}" y="${H - 5}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}">${P.d[i]}</text>`).join('');
   const lines = vis.map((v, i) => v ? `<path d="${v.map((a, j) => (j ? 'L' : 'M') + x(j).toFixed(1) + ' ' + y(a).toFixed(1)).join('')}" stroke="${AN_BT_COLORS[i]}" stroke-dasharray="${AN_BT_DASH[i]}" stroke-width="${i === 0 ? 1.8 : 1.2}" fill="none"/>` : '').join('');
-  const chips = names.map((nm, i) => `<button type="button" class="an-btc${anBtState.off.has(i) ? ' off' : ''}${i === best ? ' best' : ''}" data-bti="${i}"><i style="border-top:2px ${AN_BT_DASH[i] ? (i >= 5 ? 'dotted' : 'dashed') : 'solid'} ${AN_BT_COLORS[i]}"></i>${anE(nm)} <b>${fin[i] >= 0 ? '+' : ''}${Math.round(fin[i])}%</b></button>`).join('');
+  const chips = names.map((nm, i) => `<button type="button" class="an-btc${anBtState.off.has(i) ? ' off' : ''}" data-bti="${i}"><i style="border-top:2px ${AN_BT_DASH[i] ? (i >= 5 ? 'dotted' : 'dashed') : 'solid'} ${AN_BT_COLORS[i]}"></i>${anE(nm)} <b>${fin[i] >= 0 ? '+' : ''}${Math.round(fin[i])}%</b></button>`).join('');
   wrap.innerHTML = `<div class="an-btchips">${chips}</div><svg class="an-btsvg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${grid}${lbl}${lines}</svg>
     <div class="an-btrange">${P.d[0]} ~ ${P.d[n - 1]}</div>`;
 }
