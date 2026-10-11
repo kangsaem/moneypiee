@@ -6484,10 +6484,11 @@ function anRelStrength(bars, bench, n){
   return (bars.close[L-1] / bars.close[L-1-n] - 1) * 100 - (b1 / b0 - 1) * 100;
 }
 
-// 리포트 칸 (market_report.REVIEW / review) — 매수검토·매도검토·매수보류·홀딩·상승중·반등대기·하락중
-const AN_REVIEW = [['buy', '매수검토', 'buy'], ['sell', '매도검토', 'sell'], ['caution', '매수보류', 'warn'],
-                   ['hold', '홀딩', 'hold'], ['up', '상승중', 'buy'], ['wait', '반등대기', 'watch'], ['waitdn', '하락중', 'watch']];
-const AN_STRENGTH_MAX = 3;   // 매수검토·매도검토 강도 ●1~3 (겹친 근거 수)
+// 리포트 칸 (market_report.REVIEW / review) — v1 확정: 매도(전량)·매수(바닥)·매수(눌림)·매수(추세)·보유·매수보류·반등대기·하락 (순서 = 탭 순서)
+const AN_REVIEW = [['sell', '매도(전량)', 'sell'], ['buyb', '매수(바닥)', 'buy'], ['buy', '매수(눌림)', 'buy'], ['up', '매수(추세)', 'buy'],
+                   ['hold', '보유', 'hold'], ['caution', '매수보류', 'warn'], ['wait', '반등대기', 'wait'], ['waitdn', '하락', 'down']];
+const AN_BUY_KEYS = ['buyb', 'buy', 'up'];
+const AN_BOTTOM_MIN = 3;     // 매수 근거가 이만큼 이상이면 매수(바닥)
 function anReview(r){
   const sg = r.sig, rs = r.rs60, vol = r.vol5;
   const weak = anOk(rs) && rs < 0, spike = anOk(vol) && vol >= AN.VOL_SPIKE;
@@ -6498,34 +6499,26 @@ function anReview(r){
     if(sg.buy_c.length >= 3) why.push('싼 조건 3개 모두');
     if(anLongUp(r)) why.push('장기 추세 상승');
     if(r.bottom_near) why.push('바닥근접');
-    out.buy = { score: Math.min(why.length, AN_STRENGTH_MAX), why };
+    out[why.length >= AN_BOTTOM_MIN ? 'buyb' : 'buy'] = { score: why.length, why };
   }
   const why = [], warn = [];
   if(sg.sell === '타점') (weak ? why : warn).push(weak ? `매도 + 상대강도↓(${anS(rs, 1)}%p)` : '매도(상대강도 양호)');
   if(sg.sell === '관심') (weak ? why : warn).push(weak ? `비중축소 + 상대강도↓(${anS(rs, 1)}%p)` : '비중축소(상대강도 양호)');
   if(sg.sell === '과열') (spike ? why : warn).push(spike ? `익절검토 + 거래량폭증(${vol.toFixed(1)}배)` : '익절검토(거래량 폭증 없음)');
-  if(why.length){
-    // 강도: 기본 근거 + 겹친 근거(상대강도↓·거래량폭증 중 기본에 안 쓴 것, 10주선 이탈, 꼭지근접)
-    const base = why[0];
-    if(weak && !base.includes('상대강도')) why.push(`상대강도↓(${anS(rs, 1)}%p)`);
-    if(spike && !base.includes('거래량')) why.push(`거래량폭증(${vol.toFixed(1)}배)`);
-    if(r.w10 && r.close < r.w10) why.push('10주선 이탈');
-    if(r.top_near) why.push('꼭지근접');
-    out.sell = { score: Math.min(why.length, AN_STRENGTH_MAX), why };
-  }
-  else if(warn.length) out.caution = { score: 0, why: warn.concat(['보유 유지 · 추가 매수 금지']) };
+  if(why.length) out.sell = { score: 1, why };
+  else if(warn.length) out.caution = { score: 0, why: warn.concat(['보유 유지 · 새로 사거나 더 사지 않음']) };
   const wk = r.week, mo = r.month;
   if(!out.sell && !out.caution && wk.ok && wk.above && mo.ok && mo.above && r.w10 && r.close > r.w10){
     const cruise = !!(r.day.ok && r.day.above);
-    out.hold = { score: 0, level: cruise ? '순항' : '눌림',
-                 why: [cruise ? '일·주·월 정배열 — 추세 순항' : '주·월 정배열, 일봉만 역배열 — 추세 속 눌림(팔 이유 아님)'] };
+    out.hold = { score: 0, level: cruise ? '순항' : '조정',
+                 why: [cruise ? '일·주·월 정배열 — 추세 순항' : '주·월 정배열, 일봉만 역배열 — 추세 속 쉬어가기(팔 이유 아님)'] };
   }
   if(sg.add === '후보') out.up = { score: 0, why: sg.add_c };
   if(sg.buy === '관심') out.wait = { score: 0, why: ['싼 조건 2개 이상 · 하락 멈춤 · 반등 신호 전'] };
   if(sg.buy === '보류') out.waitdn = { score: 0, why: ['싸지만 아직 하락 중 · 장기 추세도 하락'] };
   return out;
 }
-// [이름, 성격, 강도] — 홀딩은 '홀딩·순항/눌림', 성격 hold2/hold1
+
 function anReviewGroups(r){
   const rv = r.review || anReview(r);
   return AN_REVIEW.filter(([k]) => rv[k]).map(([k, nm, tone]) => {
@@ -6546,8 +6539,8 @@ function anCrossCount(r, golden){
 }
 
 function anFlags(r){
-  // 리포트 칸(강도 ●) + 일봉 최근 크로스(트리거로 쓰이는 것만) + 과열·8% 변동·이격도·바닥/꼭지 근접
-  const f = anReviewGroups(r).map(([nm, , sc]) => nm + (sc ? ' ' + '●'.repeat(sc) : ''));
+  // 리포트 칸 + 일봉 최근 크로스(트리거로 쓰이는 것만) + 과열·8% 변동·이격도·바닥/꼭지 근접
+  const f = anReviewGroups(r).map(([nm]) => nm);
   const d = r.day;
   if(d.ok && d.cross && d.cross.ago < AN.CROSS_DAYS) f.push(d.cross.golden ? '최근골든' : '최근데드');
   if(r.sig.sell_c.length >= 2) f.push('과열');
@@ -6641,7 +6634,8 @@ function anIndexInfo(name, b){
   const dd = anDisp(b.dates, s);
   return { name, close: s[n-1], chg: (s[n-1] / s[n-2] - 1) * 100, date: b.dates[n-1],
            chart: anChartData(b.dates, s, null), rsi: anRsi(s)[n-1],
-           disp: dd ? { cur: dd.cur, max: dd.max, min: dd.min, up: dd.up, down: dd.down } : null };
+           disp: dd ? { cur: dd.cur, max: dd.max, min: dd.min, up: dd.up, down: dd.down } : null,
+           from_high: (s[n-1] / Math.max(...s.slice(-250)) - 1) * 100 };
 }
 
 function anKs(b){
@@ -6665,7 +6659,7 @@ async function anMarketSnapshot(isUS){
     kospi: ['코스피', 'KOSPI', '^KS11', 'KR'], kosdaq: ['코스닥', 'KOSDAQ', '^KQ11', 'KR'],
     spx: ['S&P500', null, '^GSPC', 'US'], ndx: ['나스닥', null, '^IXIC', 'US']
   };
-  const need = ['kospi'].concat(isUS ? ['spx', 'ndx'] : ['kosdaq']);
+  const need = ['kospi', 'kosdaq', 'spx', 'ndx'];      // 4개 모두(화면 아코디언 + 폭락장 판정)
   const jobs = need.map(async key => {
     const [nm, nv, yh, mk] = IDX[key];
     try{
@@ -6802,13 +6796,31 @@ async function anFetchNaver(code, years){
 }
 
 // 가장 최근 장 마감 시각(ms). KR = 평일 16:30 KST, US = 화~토 07:00 KST (미장 마감 후)
+// 국장 '오늘 종가'가 확정된 날짜(평일 15:30 이후면 오늘, 아니면 null)
+function anKrToday(){
+  const k = new Date(Date.now() + 9 * 3600e3), hm = k.getUTCHours() * 100 + k.getUTCMinutes(), dow = k.getUTCDay();
+  if(dow < 1 || dow > 5 || hm < 1530) return null;
+  return `${k.getUTCFullYear()}-${anPad(k.getUTCMonth()+1)}-${anPad(k.getUTCDate())}`;
+}
+
+// 폭락장 (market_report.crash_info): 지수 고점 -20% / VIX 30 / 바닥 지표 2개 — 하나라도 켜지면 표시만(돈 쓰는 방식은 본인 판단)
+const AN_CRASH = { DD: -20, VIX: 30, BOTTOM: 2, IDX: [['kospi', '코스피'], ['spx', 'S&P500'], ['ndx', '나스닥']] };
+function anCrash(snap, msig){
+  const why = [];
+  AN_CRASH.IDX.forEach(([k, nm]) => { const v = (snap.idx || {})[k]; if(v && anOk(v.from_high) && v.from_high <= AN_CRASH.DD) why.push(`${nm} 고점 ${v.from_high.toFixed(0)}%`); });
+  if(snap.vix && anOk(snap.vix.last) && snap.vix.last >= AN_CRASH.VIX) why.push(`VIX ${snap.vix.last.toFixed(0)}`);
+  const b = msig && msig.bottom;
+  if(b && b.score >= AN_CRASH.BOTTOM) why.push(`바닥 지표 ${b.score}개`);
+  return { on: why.length > 0, why };
+}
+
 function anLastClose(market){
   const now = Date.now(), KST = 9 * 3600e3;
   for(let back = 0; back < 10; back++){
     const k = new Date(now + KST - back * 864e5), dow = k.getUTCDay();
     const ok = market === 'KR' ? (dow >= 1 && dow <= 5) : (dow >= 2 && dow <= 6);
     if(!ok) continue;
-    const t = Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate(), market === 'KR' ? 16 : 7, market === 'KR' ? 30 : 0) - KST;
+    const t = Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate(), market === 'KR' ? 15 : 7, market === 'KR' ? 32 : 0) - KST;   // 국장 15:32(시간외 종가 15:40 전 확인), 미장 07:00
     if(t <= now) return t;
   }
   return 0;
@@ -6889,9 +6901,11 @@ function anCollectTargets(){
 // ------------------------------------------------------------------ 신호 기록(히스토리) — GitHub history/*.json 과 같은 형식(FORMAT 1)
 // 분석할 때마다 그날 종목별 칸을 IndexedDB('hist')에 저장. 같은 날 같은 리포트(국장/미장)를 다시 돌리면 덮어씀.
 // 20·60거래일 뒤 수익률은 저장된 시세 캐시로 계산(새로 받지 않음). 기준선 = 같은 날 기록된 전 종목 평균.
-const AN_HIST_GROUPS = ['매수검토', '매도검토', '매수보류', '홀딩·순항', '홀딩·눌림', '상승중', '반등대기', '하락중'];
-const AN_HIST_WAY = { '매수검토': 1, '매도검토': -1, '매수보류': -1, '홀딩·순항': 1, '홀딩·눌림': 1, '상승중': 1, '반등대기': 1, '하락중': 1 };
-const AN_HIST_OLD = { '추격매수 주의': '매수보류', '홀딩 유지·순항': '홀딩·순항', '홀딩 유지·눌림': '홀딩·눌림', '대기': '반등대기', '하락-대기': '하락중' };   // 2026-10-11 이전 기록
+const AN_HIST_GROUPS = ['매도(전량)', '매수(바닥)', '매수(눌림)', '매수(추세)', '보유·순항', '보유·조정', '매수보류', '반등대기', '하락'];
+const AN_HIST_WAY = { '매도(전량)': -1, '매수(바닥)': 1, '매수(눌림)': 1, '매수(추세)': 1, '보유·순항': 1, '보유·조정': 1, '매수보류': -1, '반등대기': 1, '하락': 1 };
+const AN_HIST_OLD = { '추격매수 주의': '매수보류', '홀딩 유지·순항': '보유·순항', '홀딩 유지·눌림': '보유·조정', '홀딩·순항': '보유·순항', '홀딩·눌림': '보유·조정',
+                      '대기': '반등대기', '하락-대기': '하락', '하락중': '하락', '상승중': '매수(추세)', '매도검토': '매도(전량)' };   // 2026-10-11 이전 기록
+const anHistName = x => x.g === '매수검토' ? ((x.s || 0) >= 3 ? '매수(바닥)' : '매수(눌림)') : (AN_HIST_OLD[x.g] || x.g);
 
 async function anHistSave(res){
   const k = new Date(res.at + 9 * 3600e3);
@@ -6942,7 +6956,7 @@ async function anHistRender(){
   const rows = [];
   by.forEach(({ it }) => {
     const b = it.key ? bars[it.key] : null;
-    rows.push({ date: it.asof, name: it.name, code: it.code, key: it.key, groups: (it.groups || []).map(x => Object.assign({}, x, { g: AN_HIST_OLD[x.g] || x.g })), f20: anHistFwd(b, it.asof, 20), f60: anHistFwd(b, it.asof, 60) });
+    rows.push({ date: it.asof, name: it.name, code: it.code, key: it.key, groups: (it.groups || []).map(x => Object.assign({}, x, { g: anHistName(x) })), f20: anHistFwd(b, it.asof, 20), f60: anHistFwd(b, it.asof, 60) });
   });
   [20, 60].forEach(h => {                                 // 기준선: 같은 날 전 종목 평균
     const sum = {}, cnt = {};
@@ -6974,18 +6988,18 @@ async function anHistRender(){
     if(!(x.g in AN_HIST_WAY)) return;
     const w = AN_HIST_WAY[x.g];
     det += `<tr data-g="${anE(x.g)}"><td class="c">${anShort(r.date)}</td><td class="c"><b>${anE(r.name)}</b></td>
-      <td class="c"><span class="an-htag g${AN_HIST_GROUPS.indexOf(x.g)}">${anE(x.g)}${x.s ? ' ' + '●'.repeat(x.s) : ''}</span></td>
+      <td class="c"><span class="an-htag g${AN_HIST_GROUPS.indexOf(x.g)}">${anE(x.g)}</span></td>
       <td class="${C(r.f20, w)}">${P(r.f20)}</td><td class="${C(r.x20, w)}">${P(r.x20)}</td><td class="${C(r.f60, w)}">${P(r.f60)}</td><td class="${C(r.x60, w)}">${P(r.x60)}</td></tr>`;
   }));
   const days = Array.from(new Set(rows.map(r => r.date))).sort();
   return `<div class="an-head"><b>신호 기록</b><span>기록 ${days.length}일${days.length ? ` (${days[0]} ~ ${days[days.length-1]})` : ''} · 분석할 때마다 자동 저장 · 이 기기(브라우저)에만 저장됨</span></div>
     <div class="an-legend" style="margin-top:0;">20·60일 뒤 = 그날 종가 대비 20·60거래일 뒤 수익률, 기준선 대비 = 같은 날 기록된 내 종목 평균보다 몇 %p 나았나.
-      초록 = 칸의 뜻대로 맞음(매수검토·홀딩은 오르면, 매도검토·매수보류는 덜 오르거나 내리면), 빨강 = 반대. 기간이 안 지났으면 '-'.
+      초록 = 칸의 뜻대로 맞음(매수·보유는 오르면, 매도(전량)·매수보류는 덜 오르거나 내리면), 빨강 = 반대. 기간이 안 지났으면 '-'.
       수익률은 마지막으로 받은 시세로 계산하므로, 분석을 돌린 뒤에 보면 최신입니다.</div>
     <h2 class="an-h2">월별 요약 <small style="font-weight:400;color:var(--text-dim);">칸별 건수 · 20일 뒤 기준선 대비 평균 · 그 달 수익률</small></h2>
     <div class="an-hwrap"><table class="an-ht"><tr><th class="c">월</th>${AN_HIST_GROUPS.map(g => `<th>${anE(g)}</th>`).join('')}<th class="g">내 종목</th><th>코스피</th><th>나스닥</th></tr>
       ${msum || '<tr><td class="mut c" colspan="12">아직 기록 없음 — 분석을 한 번 돌리면 그날부터 쌓입니다</td></tr>'}</table></div>
-    <div class="an-legend">월별 메모에 옮겨 적을 때: 그 달 줄(매수검토·매도검토가 맞았나, 내 종목 vs 코스피·나스닥) + 규칙 외 매매 횟수.</div>
+    <div class="an-legend">월별 메모에 옮겨 적을 때: 그 달 줄(매수·매도(전량)가 맞았나, 내 종목 vs 코스피·나스닥) + 규칙 외 매매 횟수.</div>
     <h2 class="an-h2">칸별 기록</h2>
     <div class="an-hflt" id="anHflt"><button data-g="" class="on">전체</button>${AN_HIST_GROUPS.map(g => `<button data-g="${anE(g)}">${anE(g)}</button>`).join('')}</div>
     <div class="an-hwrap"><table class="an-ht" id="anHtb"><tr><th class="c">날짜</th><th class="c">종목</th><th class="c">칸</th><th>20일 뒤</th><th>기준선 대비</th><th>60일 뒤</th><th>기준선 대비</th></tr>
@@ -7044,7 +7058,7 @@ async function runAnalysis(){
   try{
     const kst = new Date(Date.now() + 9 * 3600e3), hm = kst.getUTCHours() * 100 + kst.getUTCMinutes();
     const isUS = hm >= 500 && hm < 1530;          // 05:00~15:29 = 미장 마감 리포트
-    const found = [], failed = [], unresolved = [], stale = [];
+    const found = [], failed = [], unresolved = [], stale = [], todayPatched = [], todayMissing = [];
     const marketP = anMarketSnapshot(isUS).finally(anTick);
     // 상대강도 비교 지수: 국내·아시아 = 코스피, 그 외 = S&P500 (캐시 공유, 실패하면 상대강도 없이 진행)
     const benchP = Promise.all([
@@ -7058,10 +7072,23 @@ async function runAnalysis(){
         try{
           const spec = await anResolve(h);
           if(!spec){ unresolved.push(h.name); continue; }
-          const bars = await anGetBars(spec);
+          let bars = await anGetBars(spec);
           if(bars.stale) stale.push(h.name);
+          if(spec.market === 'KR'){                 // 15:30 이후인데 일봉에 오늘이 없으면 실시간 현재가(= 종가)로 오늘 봉을 붙임
+            const t = anKrToday();
+            if(t && bars.dates[bars.dates.length - 1] < t){
+              const q = await fetchNaverStockPrice(spec.code).catch(() => null);
+              if(q && q.price > 0){
+                bars = Object.assign({}, bars, { dates: bars.dates.concat([t]), close: bars.close.concat([q.price]), high: bars.high.concat([q.price]),
+                                                 low: bars.low.concat([q.price]), vol: (bars.vol || []).concat([null]) });
+                todayPatched.push(h.name);
+              } else todayMissing.push(h.name);
+            }
+          }
           const r = anAnalyze(bars, spec.code, h.name);
           r.key = spec.key;                          // 신호 기록에서 이 종목 시세 캐시를 다시 찾을 때 씀
+          r.market = spec.market;
+          r.hname = h.name;
           try{ r.rs60 = anRelStrength(bars, (await benchP)[spec.market]); }catch(e){ r.rs60 = null; }
           r.review = anReview(r);
           found.push([i, r]);
@@ -7073,7 +7100,8 @@ async function runAnalysis(){
     await Promise.all(Array.from({ length: AN.CONCURRENCY }, worker));
     const results = found.sort((a, b) => a[0] - b[0]).map(x => x[1]);
     const snap = await marketP;
-    const result = { at: Date.now(), isUS, results, snap, msig: anMarketSignals(snap, results), failed, unresolved, stale };
+    const msig = anMarketSignals(snap, results);
+    const result = { at: Date.now(), isUS, results, snap, msig, crash: anCrash(snap, msig), failed, unresolved, stale, todayPatched, todayMissing, krToday: anKrToday() };
     anState.result = result;
     anState.html = null;
     await anDB.set('lastResult', result);
@@ -7242,59 +7270,114 @@ function anGauge(msig, key, title){
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
 }
 
-// 종목 목록 정렬 순서: 매도검토 → 매수검토 → 매수보류 → 상승중 → 반등대기 → 하락중 → 홀딩 → 신호 없음 (같은 칸이면 ● 많은 순)
-const AN_LIST_ORDER = ['sell', 'buy', 'caution', 'up', 'wait', 'waitdn', 'hold'];
-const AN_REV_SIDE = { buy: 'buy', sell: 'sell', caution: 'sell', hold: 'buy', up: 'add', wait: 'buy', waitdn: 'buy' };
-const AN_REV_NOTE = {
-  buy: '● 1~3 = 근거 수(기본 + 싼 조건 3개 모두 · 장기 추세 상승 · 바닥근접)',
-  sell: '● 1~3 = 겹친 근거 수(기본 + 상대강도↓·거래량폭증 · 10주선 이탈 · 꼭지근접)',
-  caution: '과열 — 보유 유지, 새로 사거나 더 사지 않음',
-  hold: '주·월 정배열 + 종가 10주선 위 + 경고 없음',
-  up: '20일선 눌림 뒤 반등(참고)',
-  wait: '싸고 하락 멈춤 · 반등 신호 전',
-  waitdn: '싸지만 아직 하락 중 · 장기 추세도 하락'
-};
+// 종목 목록 정렬: 매도(전량) → 매수(바닥) → 매수(눌림) → 매수(추세) → 매수보류 → 반등대기 → 하락 → 보유 → 신호 없음
+const AN_LIST_ORDER = ['sell', 'buyb', 'buy', 'up', 'caution', 'wait', 'waitdn', 'hold'];
+const AN_TAB_ORDER = AN_REVIEW.map(x => x[0]);       // 탭: 매도(전량) → 매수(바닥) → 매수(눌림) → 매수(추세) → 보유 → 매수보류 → 반등대기 → 하락
+const AN_REV_SIDE = { buyb: 'buy', buy: 'buy', up: 'add', sell: 'sell', caution: 'sell', hold: 'buy', wait: 'buy', waitdn: 'buy' };
+
+// 매수 한도: 종목당 상한 = 전체 금융자산 × min(10%, 150 ÷ 보유 종목 수) — 안 가진 종목이면 보유 종목 수 + 1. 섹터 '지수'는 제외
+const AN_LIMIT = { TOTAL: 150, MAX: 10 };
+function anIsIndexGroup(h){ return String(h.group || '').trim() === '지수'; }
+function anLimitCtx(){
+  let total = 0;
+  const held = new Map();                        // 이름 → { value, group }
+  (state.accounts || []).forEach(acc => (acc.holdings || []).forEach(h => {
+    const v = Number(h.amount) || 0;
+    total += v;
+    if(isCashHolding(h) || !h.name || v <= 0) return;
+    const x = held.get(h.name) || { value: 0, group: h.group };
+    x.value += v; held.set(h.name, x);
+  }));
+  const count = [...held.values()].filter(x => !anIsIndexGroup(x)).length;
+  return { total, held, count };
+}
+function anGroupOf(name){
+  for(const acc of priceTrackedAccounts()) for(const h of (acc.holdings || [])) if(h.name === name) return h.group;
+  return '';
+}
+function anBuyLimit(r, ctx){
+  if(!ctx || !(ctx.total > 0) || anIsIndexGroup({ group: anGroupOf(r.hname || r.name) })) return null;
+  const x = ctx.held.get(r.hname || r.name);
+  const have = x ? x.value : 0;
+  const n = ctx.count + (have > 0 ? 0 : 1);
+  const pct = Math.min(AN_LIMIT.MAX, AN_LIMIT.TOTAL / Math.max(n, 1));
+  const cap = ctx.total * pct / 100;
+  return { pct, cap, have, left: Math.max(cap - have, 0), n };
+}
+function anWon(v){ return v >= 1e8 ? (v / 1e8).toFixed(2).replace(/\.?0+$/, '') + '억' : Math.round(v / 1e4).toLocaleString() + '만'; }
 
 function anRenderResult(res){
   const results = res.results || [];
   const at = new Date(res.at + 9 * 3600e3);
   const stamp = `${at.getUTCFullYear()}-${anPad(at.getUTCMonth()+1)}-${anPad(at.getUTCDate())} ${anPad(at.getUTCHours())}:${anPad(at.getUTCMinutes())}`;
-  const title = res.isUS ? '미장 마감 리포트' : '국장 마감 리포트';
   const idx = (res.snap && res.snap.idx) || {};
-  const chartIdx = res.isUS ? ['spx', 'ndx'] : ['kospi', 'kosdaq'];
-  const rvOf = r => r.review || (r.review = anReview(r));
+  const rvOf = r => (r.review = anReview(r));      // 저장된 이전 결과도 지금 규칙으로 다시 판정(계산은 가벼움)
   const oldNote = results.length && !results[0].hasOwnProperty('w10') ? '<div class="an-none">이전 방식으로 분석한 결과입니다 — 돋보기 버튼으로 다시 분석하면 새 기준(v1)으로 보입니다.</div>' : '';
+  const ctx = (() => { try{ return anLimitCtx(); }catch(e){ return null; } })();
+
+  // 국장 오늘 종가 반영 여부
+  const krRes = results.filter(r => r.market === 'KR');
+  let todayTxt = '';
+  if(krRes.length){
+    const t = res.krToday;
+    const ok = t ? krRes.filter(r => r.last === t).length : 0;
+    todayTxt = t ? (ok === krRes.length ? ' · 국장 오늘 종가 반영' : ` · 국장 오늘 종가 ${ok}/${krRes.length} (나머지 어제 시세)`) : ' · 국장 어제 종가 기준';
+  }
+
+  // 폭락장
+  const cr = res.crash || anCrash(res.snap || {}, res.msig);
+  const crashHtml = cr.on ? `<div class="an-crash">폭락장 · ${anE(cr.why.join(' · '))}<small>지수 고점 -20%, VIX 30 이상, 바닥 지표 2개 이상 중 하나라도 켜짐 — 개별 종목 신호는 그대로. 돈을 어떻게 쓸지는 직접 판단</small></div>` : '';
+
+  // 지수 4개 아코디언: 07:00~17:00 = 국장 펼침, 그 외 = 미장 펼침
+  const nowK = new Date(Date.now() + 9 * 3600e3), hm = nowK.getUTCHours() * 100 + nowK.getUTCMinutes();
+  const krOpen = hm >= 700 && hm < 1700;
+  const idxHtml = [['kospi', 'KR'], ['kosdaq', 'KR'], ['spx', 'US'], ['ndx', 'US']].map(([k, mk]) => {
+    const v = idx[k];
+    if(!v) return '';
+    const ud = v.chg > 0 ? 'up' : v.chg < 0 ? 'dn' : '';
+    return `<details class="an-idx"${(mk === 'KR') === krOpen ? ' open' : ''}><summary><span class="an-in">${anE(v.name)}</span>
+      <b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span>
+      ${anOk(v.from_high) ? `<small>고점 ${anF(v.from_high, 1)}%</small>` : ''}</summary>${anIndexChart(v)}</details>`;
+  }).join('');
 
   // 종목마다: 들어간 칸들, 대표 칸(정렬용)
   const rows = results.map((r, i) => {
     const rv = rvOf(r);
     const keys = AN_LIST_ORDER.filter(k => rv[k]);
     const top = keys.length ? keys[0] : null;
-    return { r, i, rv, keys, top, rank: top ? AN_LIST_ORDER.indexOf(top) : AN_LIST_ORDER.length, score: top ? rv[top].score : 0 };
-  }).sort((a, b) => a.rank - b.rank || b.score - a.score || a.r.name.localeCompare(b.r.name));
+    return { r, i, rv, keys, top, rank: top ? AN_LIST_ORDER.indexOf(top) : AN_LIST_ORDER.length };
+  }).sort((a, b) => a.rank - b.rank || a.r.name.localeCompare(b.r.name));
 
-  // 분류 탭: 개수만, 누르면 그 칸 종목만
+  // 분류 탭: 개수만, 누르면 그 칸 종목만 (0개는 점선)
   const cnt = k => rows.filter(x => x.keys.includes(k)).length;
   const tabs = [`<button class="an-ftab on" data-f="">전체 <b>${rows.length}</b></button>`]
-    .concat(AN_LIST_ORDER.map(k => `<button class="an-ftab t-${k}${cnt(k) ? '' : ' zero'}" data-f="${k}">${anE(AN_REVIEW.find(x => x[0] === k)[1])} <b>${cnt(k)}</b></button>`)).join('');
+    .concat(AN_TAB_ORDER.map(k => `<button class="an-ftab t-${k}${cnt(k) ? ' has' : ' zero'}" data-f="${k}">${anE(AN_REVIEW.find(x => x[0] === k)[1])} <b>${cnt(k)}</b></button>`)).join('');
 
-  // 종목 목록(접힘): 제목줄 = 이름·코드·RSI·칸 칩, 펼치면 근거·태그·차트·세부
-  const CH = { buy: 'buy', sell: 'sell', watch: 'flag watch', warn: 'warn', hold2: 'hold2', hold1: 'hold1' };
+  const CH = { buy: 'buy', sell: 'sell', wait: 'wait', down: 'down', warn: 'warn', hold2: 'hold2', hold1: 'hold1' };
   let listHtml = '';
   rows.forEach(({ r, i, rv, keys, top }) => {
     try{
       const tones = Object.fromEntries(anReviewGroups(r).map(([nm, t]) => [nm, t]));
       const allF = anFlags(r);
-      const gchips = allF.filter(f => tones[f.split(' ●')[0]]).map(f => `<span class="an-chip ${CH[tones[f.split(' ●')[0]]]}">${anE(f)}</span>`).join('');
-      const others = allF.filter(f => !tones[f.split(' ●')[0]] && f !== '최근골든' && f !== '최근데드');   // 크로스는 추세 줄에
+      const gchips = allF.filter(f => tones[f]).map(f => `<span class="an-chip ${CH[tones[f]]}">${anE(f)}</span>`).join('');
+      const others = allF.filter(f => !tones[f] && f !== '최근골든' && f !== '최근데드');   // 크로스는 추세 줄에
       const rc = r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : '';
       const whys = keys.map(k => `<div class="an-whyrow"><span class="an-whyh ${k}">${anE(AN_REVIEW.find(x => x[0] === k)[1])}</span>`
         + rv[k].why.map(w => `<span class="an-why ${k}">${anE(w)}</span>`).join('') + `</div>`).join('');
       const side = top ? AN_REV_SIDE[top] : 'none';
       const lv = side === 'buy' || side === 'sell' ? r.sig[side] : null;
+      let limHtml = '', limBadge = '';
+      if(AN_BUY_KEYS.some(k => rv[k])){
+        const L = anBuyLimit(r, ctx);
+        if(L){
+          limHtml = `<div class="an-limit">매수 한도 · 상한 ${L.pct.toFixed(1)}% = ${anWon(L.cap)} · 보유 ${anWon(L.have)} · <b>${L.left > 0 ? '남은 ' + anWon(L.left) : '한도 도달'}</b>
+            <small>(전체 금융자산 ${anWon(ctx.total)} × min(10%, 150 ÷ ${L.n}종목) · 1회 금액은 직접)</small></div>`;
+          limBadge = `<span class="an-lb${L.left > 0 ? '' : ' full'}">${L.left > 0 ? '남은 ' + anWon(L.left) : '한도 도달'}</span>`;
+        }
+      }
       listHtml += `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${keys.join(' ') || 'none'}">
-        <summary><b>${anE(r.name)}</b> ${gchips}<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span></summary>
-        <div class="an-sbody">${whys}${anMetricsHtml(r, side, lv, others)}<div class="an-chwrap" data-an-chart="${i}"></div>
+        <summary><b>${anE(r.name)}</b> ${gchips}${limBadge}<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span></summary>
+        <div class="an-sbody">${limHtml}${whys}${anMetricsHtml(r, side, lv, others)}<div class="an-chwrap" data-an-chart="${i}"></div>
           <details class="an-sub" data-an-key="x:${anE(r.code)}"><summary>세부 보기 <small>${anE(r.code)}</small></summary><pre>${anE(anDetailText(r))}</pre></details></div></details>`;
     }catch(e){ listHtml += `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
   });
@@ -7307,27 +7390,29 @@ function anRenderResult(res){
     });
   }catch(e){ screenHtml = `<div class="an-none">스크리닝 실패: ${anE(e.message)}</div>`; }
 
-  // 실패·참고
   const notes = [];
   if(res.unresolved && res.unresolved.length) notes.push('제외된 종목 : ' + res.unresolved.join(', '));
   if(res.failed && res.failed.length) notes.push('조회 실패 : ' + res.failed.join(', '));
   if(res.stale && res.stale.length) notes.push('이전 시세로 분석 : ' + res.stale.join(', '));
+  if(res.todayPatched && res.todayPatched.length) notes.push('오늘 종가를 실시간 시세로 붙임 : ' + res.todayPatched.join(', '));
+  if(res.todayMissing && res.todayMissing.length) notes.push('오늘 종가 못 받음(어제 시세) : ' + res.todayMissing.join(', '));
   if(res.snap && res.snap.err && res.snap.err.length) notes.push('시장 지표 실패 : ' + res.snap.err.join(', '));
 
   return `
-    <div class="an-head"><b>${title}</b><span>분석 ${stamp} · 종목 ${results.length}개</span></div>
+    <div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}</span></div>
+    ${crashHtml}
     <div class="an-gauges">${anGauge(res.msig, 'risk', '시장 과열 지표')}${anGauge(res.msig, 'bottom', '시장 바닥 지표')}</div>
-    <div class="an-idxch an-sec">${chartIdx.map(k => anIndexChart(idx[k])).join('')}</div>
+    <div class="an-idxacc an-sec">${idxHtml}</div>
     ${oldNote}
     <div class="an-ftabs an-sec" id="anFtabs">${tabs}</div>
     <div class="an-list">${listHtml || '<div class="an-none">분석된 종목이 없습니다</div>'}</div>
-    <div class="an-legend">매수검토 = 매수 신호(싼 조건 2개 이상 + 반등 트리거) 또는 눌림진행(싸고 아직 빠지는 중이지만 장기 추세 상승). ● 1~3 = 근거 수(기본 + 싼 조건 3개 모두 · 장기 추세 상승 · 바닥근접).
-      매도검토 = 매도·비중축소에 상대강도↓(최근 60거래일 수익률이 지수보다 낮음)가 겹치거나, 익절검토에 거래량 폭증(최근 5일 중 20일 평균의 2.5배 이상)이 겹칠 때. ● 1~3 = 겹친 근거 수(기본 + 상대강도↓·거래량폭증 · 10주선 이탈 · 꼭지근접).
-      매수보류 = 과열·경고는 떴지만 정리 근거 없음 — 좋은 종목이라도 지금은 비쌈. 보유 유지, 새로 사거나 더 사지 않음.
-      홀딩 = 주·월 정배열 + 종가 10주선 위 + 경고 없음(순항 = 일봉도 정배열, 눌림 = 일봉만 역배열·팔 이유 아님). 상승중 = 오르는 추세에서 20일선까지 눌렸다 다시 오르는 자리(참고).
-      반등대기 = 싸고 하락은 멈췄지만 반등 신호 전. 하락중 = 싸지만 아직 떨어지는 중이고 장기 추세도 하락.
-      바닥근접 / 꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 가격이 저점 +30%(고점 -20%) 안일 때만 — 참고. 이격도 = 50일 이격도 현재값(과거 최소~최대).
-      목록 순서 = 매도검토 → 매수검토 → 매수보류 → 상승중 → 반등대기 → 하락중 → 홀딩 → 신호 없음(같은 칸이면 ● 많은 순).</div>
+    <div class="an-legend">매매 규칙(v1): 매수(바닥)·매수(눌림)·매수(추세)에 사고, 매도(전량) 또는 손절 -8%(종가 기준, 다음 날 회복 못 하면)에 전부 판다.
+      국장은 신호 당일 시간외 종가(15:40 전 주문), 미장은 다음 날 LOC(지정가 = 종가 +8%). 매수 한도 = 전체 금융자산 × min(10%, 150 ÷ 보유 종목 수) — 표시만, 넘겨서 살지는 직접 판단.
+      매도(전량) = 매도·비중축소에 상대강도↓(최근 60거래일 수익률이 지수보다 낮음)가 겹치거나, 익절검토에 거래량 폭증(최근 5일 중 20일 평균의 2.5배 이상)이 겹칠 때.
+      매수(바닥) = 근거 3개 이상(매수 신호/눌림진행 · 싼 조건 3개 모두 · 장기 추세 상승 · 바닥근접) — 1개월 반등이 강했지만 다시 밀릴 수 있음. 매수(눌림) = 그 외 매수 신호·눌림진행. 매수(추세) = 오르는 추세 속 20일선 눌림 뒤 반등.
+      보유 = 주·월 정배열 + 종가 10주선 위 + 경고 없음(순항 = 일봉도 정배열, 조정 = 일봉만 역배열·팔 이유 아님). 매수보류 = 과열 — 보유 유지, 새로 사거나 더 사지 않음.
+      반등대기 = 싸고 하락은 멈췄지만 반등 신호 전. 하락 = 싸지만 아직 떨어지는 중이고 장기 추세도 하락.
+      바닥근접 / 꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 가격이 저점 +30%(고점 -20%) 안일 때만 — 참고. 이격도 = 50일 이격도 현재값(과거 최소~최대).</div>
     <h2 class="an-h2">종목 스크리닝</h2>
     <div class="an-dgrid">${screenHtml}</div>
     ${notes.length ? `<pre class="an-warn">${anE(notes.join('\n'))}</pre>` : ''}`;
@@ -7424,10 +7509,10 @@ function anUpdateViewBtn(){
 function anButtonHtml(){
   return `<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
     <div id="analysisLabel" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></div>
+    <button id="analysisHistBtn" title="지난 신호와 그 뒤 결과" style="height:26px;padding:0 10px;font-size:12px;font-weight:700;border:1px solid #D4FF3D;border-radius:6px;background:transparent;color:#D4FF3D;cursor:pointer;">히스토리</button>
     <button id="analysisBtn" title="보유+관심 종목 분석" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
     </button>
-    <button id="analysisHistBtn" title="지난 신호와 그 뒤 결과" style="height:26px;padding:0 10px;font-size:12px;font-weight:700;border:1px solid #D4FF3D;border-radius:6px;background:transparent;color:#D4FF3D;cursor:pointer;">히스토리</button>
   </div>`;
 }
 
@@ -7517,9 +7602,9 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-ht th { color:var(--text-dim); font-weight:500; } .an-ht .c { text-align:left; } .an-ht .g { border-left:1px solid var(--border); }
 .an-ht .ok { color:var(--an-ok); font-weight:700; } .an-ht .bad { color:var(--an-up); } .an-ht .mut { color:var(--text-dim); }
 .an-htag { font-size:11px; padding:0 7px; border-radius:6px; border:1px solid var(--border); font-weight:700; }
-.an-htag.g0, .an-htag.g5 { color:var(--an-up); border-color:var(--an-up); } .an-htag.g1 { color:var(--an-dn); border-color:var(--an-dn); }
-.an-htag.g2 { color:var(--an-amber); border-color:var(--an-amber); } .an-htag.g3, .an-htag.g4 { color:var(--an-green); border-color:var(--an-green); }
-.an-htag.g6, .an-htag.g7 { color:var(--text-dim); }
+.an-htag.g0 { color:#0284c7; border-color:#0284c7; } .an-htag.g1, .an-htag.g2, .an-htag.g3 { color:var(--an-up); border-color:var(--an-up); }
+.an-htag.g4, .an-htag.g5 { color:var(--an-green); border-color:var(--an-green); } .an-htag.g6 { color:var(--an-amber); border-color:var(--an-amber); }
+.an-htag.g7 { color:#8b7fd6; border-color:#a99ff0; } .an-htag.g8 { color:#4aa8d8; border-color:#8fd0ef; }
 .an-hflt { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; } .an-hflt button { font:inherit; font-size:11.5px; padding:2px 10px; border-radius:99px;
   border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; } .an-hflt button.on { background:#D4FF3D; color:#111; border-color:#D4FF3D; }
 .an-hbtns { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:12px; font-size:11px; color:var(--text-dim); }
@@ -7536,7 +7621,22 @@ details.an-gauge ul { padding-bottom:10px; }
 .an-ftabs { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
 .an-ftab { font:inherit; font-size:11.5px; padding:2px 9px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
 .an-ftab b { font-weight:700; margin-left:2px; } .an-ftab.on { background:#D4FF3D; color:#111111; border-color:#D4FF3D; }
-.an-ftab.t-buy b, .an-ftab.t-up b { color:var(--an-up); } .an-ftab.t-sell b { color:var(--an-dn); } .an-ftab.t-caution b { color:var(--an-amber); } .an-ftab.t-hold b { color:var(--an-green); }
+/* 탭 색: 매도 짙은 하늘 / 매수 분홍 / 보유 연두 / 매수보류 호박 / 반등대기 연보라 / 하락 연하늘 / 0개 = 점선·흐림 */
+.an-ftab.has.t-sell { color:#0284c7; border-color:#0284c7; } .an-ftab.has.t-buyb, .an-ftab.has.t-buy, .an-ftab.has.t-up { color:var(--an-up); border-color:var(--an-up); }
+.an-ftab.has.t-hold { color:var(--an-green); border-color:var(--an-green); } .an-ftab.has.t-caution { color:var(--an-amber); border-color:var(--an-amber); }
+.an-ftab.has.t-wait { color:#8b7fd6; border-color:#a99ff0; } .an-ftab.has.t-waitdn { color:#4aa8d8; border-color:#8fd0ef; }
+.an-ftab.zero { border-style:dashed; opacity:.55; }
+.an-chip.wait { color:#8b7fd6; border-color:#a99ff0; } .an-chip.down { color:#4aa8d8; border-color:#8fd0ef; } .an-chip.sell { color:#0284c7; border-color:#0284c7; }
+.an-whyh.buyb { color:var(--an-up); } .an-whyh.wait { color:#8b7fd6 !important; } .an-whyh.waitdn { color:#4aa8d8 !important; } .an-whyh.sell { color:#0284c7 !important; }
+.an-crash { background:rgba(2,132,199,.12); border:2px solid #0284c7; color:#0284c7; border-radius:10px; padding:9px 12px; font-weight:800; font-size:13px; margin:8px 0; }
+.an-crash small { display:block; font-weight:500; color:var(--text-dim); margin-top:2px; font-size:11px; }
+.an-idxacc { display:grid; gap:4px; } .an-idx { background:var(--surface); border:1px solid var(--border); border-radius:8px; }
+.an-idx > summary { cursor:pointer; padding:7px 11px; display:flex; align-items:baseline; gap:8px; font-size:13px; list-style:none; } .an-idx > summary::-webkit-details-marker { display:none; }
+.an-idx > summary::before { content:'▸'; color:var(--text-dim); } .an-idx[open] > summary::before { content:'▾'; }
+.an-idx > summary small { color:var(--text-dim); margin-left:auto; } .an-idx > summary b.up, .an-idx .an-ig.up { color:var(--an-up); } .an-idx > summary b.dn, .an-idx .an-ig.dn { color:var(--an-dn); }
+.an-idx .an-box { border:none; margin:0; }
+.an-limit { font-size:12px; margin:2px 0 8px; } .an-limit small { color:var(--text-dim); display:block; font-size:10.5px; }
+.an-lb { font-size:11px; color:var(--text-dim); border:1px solid var(--border); border-radius:6px; padding:0 6px; } .an-lb.full { color:var(--an-amber); border-color:var(--an-amber); }
 .an-ftab.on b { color:#111111; }
 .an-list { margin-top:6px; display:grid; gap:3px; } .an-list .an-det { margin-bottom:0; }
 .an-stock, .an-stock[open] { background:var(--surface) !important; border-left-width:1px !important; }
