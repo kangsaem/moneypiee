@@ -85,7 +85,9 @@
     font-weight:600;
     position:relative;
     top:1px;
+    line-height:20px;      /* 영문만 있는 탭(V1)도 한글 탭과 같은 높이 */
   }
+  .tab[data-tab="__analysis__"]{min-width:66px;box-sizing:border-box;text-align:center;}   /* V1: 두 글자 한글 탭과 같은 폭 */
   .tab.active{background:var(--surface2);border-color:var(--accent-dim);}
   .tab.total{color:var(--accent);}
   .tab-add{
