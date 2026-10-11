@@ -8120,6 +8120,9 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 .an-hbpop > div { width:120px; height:120px; border-radius:14px; background:#EDEDED; color:#333333; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
 /* 신호 없는 종목은 이름을 회색으로(신호 있는 종목은 그대로) */
 .an-stock[data-f="none"] > summary b { color:#9A9BA1; }
+/* 종목 칸 안 글자는 굵기 변화 없이 모두 500(칸 이름 칩·근거·한도·지표·차트 범례 포함) */
+.an-stock, .an-stock * { font-weight:500 !important; }
+.an-stock .an-sub pre { font-weight:400 !important; color:#C9C9C9 !important; }   /* 세부 보기 글: 한 단계 가늘고 밝은 회색(빽빽한 글이라 무거워 보임) */
 /* 지표 칸 글자 굵기 모두 500 (일·주·월 정/역·강조 칸 포함) */
 .an-mt, .an-mt.arr, .an-mt.role, .an-mt.an-bt, .an-mt.an-tp { font-weight:500 !important; }
 /* 2026-10-11 20:20 화면 정리 */
