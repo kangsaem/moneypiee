@@ -7017,6 +7017,15 @@ const AN_HIST_STOP = 8;
 // 적중·빗나감·손절 배지: 색 원 안에 ✓/✕ (기기 글꼴과 상관없이 같은 모양)
 const AN_HB = { ok: '<i class="an-hb ok" title="성공" data-hb="성공">✓</i>', bad: '<i class="an-hb bad" title="실패" data-hb="실패">✕</i>',
                 stop: '<i class="an-hb stop" title="손절" data-hb="손절">✕</i>', wait: '<i class="an-hg" title="진행중" data-hb="진행중">⏳</i>' };
+// 아이콘 뜻 팝업: 확인 버튼 없이, 아무 데나 누르면 닫힘. 알림창 색 그대로, 둥근 정사각형
+function anHbPop(txt){
+  const m = document.createElement('div');
+  m.className = 'an-hbpop';
+  m.innerHTML = `<div>${anE(txt)}</div>`;
+  const close = () => { m.remove(); document.removeEventListener('click', close, true); };
+  document.body.appendChild(m);
+  setTimeout(() => document.addEventListener('click', close, true), 0);
+}
 const anHistState = { per: '3m', side: '', status: '', more: 20 };
 
 function anHistTrack(recs, bars){
@@ -7117,7 +7126,7 @@ async function anHistRender(){
     const op = t.filter(isOpen).length;
     const av = avg(d.map(x => x.ret));
     // 칸 맞춤(매수·매도 줄 숫자가 위아래로 정렬): 이름 │ ✓ │ ✕ (손절) │ ⏳ │ 평균
-    return `<div class="an-hsum"><b>${side === 'buy' ? '매수' : '매도'} 신호</b><b class="n">${t.length}번</b><i class="sep">│</i><span>${AN_HB.ok}${h.length}</span><i class="sep">│</i><span>${AN_HB.bad}${d.length - h.length}${side === 'buy' ? `<span class="an-hstop">${AN_HB.stop}${st.length}</span>` : ''}</span><i class="sep">│</i><span>${AN_HB.wait}${op}</span>${side === 'buy' ? `<i class="sep">│</i><span>평균 <b class="${U(av)}">${av != null ? P(av) : '-'}</b></span>` : ''}</div>`;
+    return `<div class="an-hsum"><b>${side === 'buy' ? '매수' : '매도'} 신호</b><b class="n">${t.length}번</b><i class="sep">│</i><span>${AN_HB.ok}${h.length}</span><i class="sep">│</i><span>${AN_HB.bad}${d.length - h.length - st.length}${side === 'buy' ? `<span class="an-hstop">${AN_HB.stop}${st.length}</span>` : ''}</span><i class="sep">│</i><span>${AN_HB.wait}${op}</span>${side === 'buy' ? `<i class="sep">│</i><span>평균 <b class="${U(av)}">${av != null ? P(av) : '-'}</b></span>` : ''}</div>`;
   };
   const judge = t => isOpen(t) ? `<span class="an-hj op">${AN_HB.wait}진행중</span>`
     : t.why === 'gone' ? '<span class="an-hj mut">목록에서 빠짐</span>'
@@ -7152,7 +7161,7 @@ function anHistBind(root){
   });
   const more = root.querySelector('#anHmore');
   if(more) more.addEventListener('click', () => { anHistState.more += 20; anFillRoot(); });
-  root.addEventListener('click', e => { const i = e.target.closest('[data-hb]'); if(i) showNoticeModal(i.dataset.hb); });   // 아이콘 누르면 뜻(성공·실패·손절·진행중)
+  root.addEventListener('click', e => { const i = e.target.closest('[data-hb]'); if(i) anHbPop(i.dataset.hb); });   // 아이콘 누르면 뜻(성공·실패·손절·진행중)
 }
 
 // ------------------------------------------------------------------ 실행
@@ -7597,7 +7606,7 @@ function anLogicBody(){
       <h4>신호</h4><p>${AN_SIG_DEF.map(anE).join(' / ')}</p>`;
 }
 function anRulesHtml(){
-  return `<details class="an-rules" data-an-key="rules"><summary>Logic V1 <small>(2026.10.11)</small></summary>
+  return `<details class="an-rules" data-an-key="rules"><summary>Logic V1 <small>2026.10.11</small></summary>
     <div class="an-rbody">${anLogicBody()}</div></details>`;
 }
 // 그래프 기간·선 켜고 끄기 (box = 아코디언 또는 안내창, isOpen = 지금 보이는지)
@@ -7623,7 +7632,7 @@ function anLogicPopup(){
   m.id = 'anLogicModal';
   m.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:center;justify-content:center;padding:16px;';
   m.innerHTML = `<div class="an-lpop">
-      <h3>Logic V1</h3><div class="an-lsub">2026.10.11 · LAB 신호의 매매 규칙과 백테스트</div><hr>
+      <h3>Logic V1 <small>2026.10.11</small></h3><hr>
       <div class="an-rbody">${anLogicBody()}</div>
       <label class="an-lchk"><input type="checkbox" id="anLogicHide"> 다시 보지 않기</label>
       <div class="an-lbtn"><button class="btn btn-primary" id="anLogicOk">✓</button></div></div>`;
@@ -8091,7 +8100,7 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 details.an-gauge > summary { padding:6px 10px !important; font-weight:500 !important; font-size:12.5px; }
 .an-ht2 td b:not([class]) { font-weight:500; font-size:12px; }
 .an-lpop { position:relative; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:20px; width:560px; max-width:100%; max-height:84vh; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.45); }
-.an-lpop h3 { margin:0 0 4px; font-size:17px; font-weight:700; } .an-lpop .an-lsub { font-size:12px; color:var(--text-dim); margin-bottom:12px; }
+.an-lpop h3 { margin:0 0 12px; font-size:17px; font-weight:700; } .an-lpop h3 small { font-size:12px; font-weight:400; color:var(--text-dim); } .an-lpop .an-lsub { font-size:12px; color:var(--text-dim); margin-bottom:12px; }
 .an-lpop hr { border:none; border-top:1px solid var(--border); margin:0 0 12px; } .an-lpop .an-rbody { padding:0; font-size:12px; }
 .an-lchk { display:flex; align-items:center; gap:6px; margin-top:18px; font-size:13px; color:var(--text-dim); cursor:pointer; }
 .an-lbtn { display:flex; justify-content:flex-end; margin-top:12px; } .an-lbtn .btn { font-size:18px; line-height:1; padding:6px 16px; }
@@ -8102,6 +8111,9 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 /* 히스토리 종목 목록: 바깥 회색 테두리 없음, 줄 사이 = 분석 종목 탭 사이와 같은 어두운 줄 */
 .an-hwrap { border:none !important; background:transparent !important; } .an-ht2 tr { background:var(--surface); }
 .an-ht2 th, .an-ht2 td { border-bottom:1px solid var(--bg) !important; }
+/* 성공·실패·손절·진행중 팝업 */
+.an-hbpop { position:fixed; inset:0; z-index:2500; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); }
+.an-hbpop > div { width:120px; height:120px; border-radius:14px; background:#EDEDED; color:#333333; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
 /* 신호 없는 종목은 이름을 회색으로(신호 있는 종목은 그대로) */
 .an-stock[data-f="none"] > summary b { color:#9A9BA1; }
 /* 지표 칸 글자 굵기 모두 500 (일·주·월 정/역·강조 칸 포함) */
