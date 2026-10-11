@@ -6793,16 +6793,15 @@ function anMarketSignals(snap, results){
     ['미국 10년물 금리 10일간 0.3%p 이상 상승', y10 && y10.chg10 != null ? anS(y10.chg10, 2) + '%p' : '-',
       y10 && y10.chg10 != null ? y10.chg10 >= 0.3 : null],
     ['내 종목 70% 이상이 일봉 역배열', bear != null ? pc(bear) : '-', bear != null ? bear >= 0.7 : null],
-    [`신용잔고/예탁금 비율 5년 중 높은 ${100 - AN.CREDIT_TOP}%`,
-      snap.credit ? `${snap.credit.ratio.toFixed(1)}%` + (snap.credit.max != null ? ` (5년 최대 ${snap.credit.max.toFixed(1)}%)` : '') : '-',
+    [`빚투 비율 5년 중 상위 ${100 - AN.CREDIT_TOP}%` + (snap.credit ? '\n기준 ' + (snap.credit.thr != null ? `${snap.credit.thr.toFixed(1)}% · ` : '') + (snap.credit.max != null ? `최고 ${snap.credit.max.toFixed(1)}%` : '') : ''),
+      snap.credit ? `${snap.credit.ratio.toFixed(1)}%` : '-',
       snap.credit ? snap.credit.pct >= AN.CREDIT_TOP : null]
   ];
   const bottom = [
-    ['코스피 50일 이격도 90 이하 또는 과거 최소권', ks ? anF(ks.disp, 1) : '-',
-      ks ? (ks.disp <= 90 || ks.disp <= ks.disp_min * AN.NEAR_MIN) : null],
+    ['코스피 50일 이격도 90 이하', ks ? anF(ks.disp, 1) : '-', ks ? ks.disp <= 90 : null],
     ['코스피 RSI 35 이하', ks ? anF(ks.rsi, 0) : '-', ks ? ks.rsi <= 35 : null],
-    ['코스피 52주 고점 대비 -20% 이하 + 최근 20거래일 신저점 없음',
-      ks ? `${anF(ks.from_high, 1)}% · 저점 ${ks.days_since_low}일 전` : '-',
+    ['코스피 52주 고점 대비 -20% 이하이면서\n최근 20거래일 신저점 없음' + (ks ? ` (저점 ${ks.days_since_low}일 전)` : ''),
+      ks ? `${anF(ks.from_high, 1)}%` : '-',
       ks ? (ks.from_high <= -20 && ks.days_since_low >= 20) : null],
     ['VIX 30 이상', vix ? anF(vix.last, 1) : '-', vix ? vix.last >= 30 : null],
     ['내 종목 30% 이상이 RSI 35 이하', weak != null ? pc(weak) : '-', weak != null ? weak >= 0.3 : null]
@@ -7532,7 +7531,7 @@ function anRenderResult(res){
   return `
     <div class="an-ftabs an-top" id="anFtabs">${tabs}<button type="button" class="an-closeall" id="anCloseAll">모두 닫기</button><span id="anBarSlot" class="an-barslot"></span></div>
     ${anHeadLine(res)}
-    <div class="an-gauges">${anGauge(res.msig, 'risk', '시장 과열 지표')}${anGauge(res.msig, 'bottom', '시장 바닥 지표')}</div>
+    <div class="an-gauges">${anGauge(res.msig, 'risk', '시장 위험 지표')}${anGauge(res.msig, 'bottom', '시장 바닥 지표')}</div>
     <div class="an-idxacc an-sec">${idxHtml}</div>
     ${oldNote}
     <div class="an-list">${listHtml || '<div class="an-none">분석된 종목이 없습니다</div>'}</div>
@@ -7926,7 +7925,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-bar i { display:block; height:100%; background:var(--text); }
 .an-gauge.risk .an-bar i { background:var(--an-up); } .an-gauge.bottom .an-bar i { background:var(--an-ok); }
 .an-gauge ul { list-style:none; margin:0; padding:0; font-size:12px; }
-.an-gauge li { display:flex; gap:8px; align-items:center; padding:2px 0; } .an-gauge li .an-gt { flex:1; }
+.an-gauge li { display:flex; gap:8px; align-items:center; padding:2px 0; } .an-gauge li .an-gt { flex:1; white-space:pre-line; }
 .an-gauge li.off, .an-gauge li.na { color:var(--text-dim); } .an-gauge li.on { font-weight:700; }
 .an-dot { width:9px; height:9px; border-radius:50%; background:var(--border); flex:none; }
 .an-gauge.risk li.on .an-dot { background:var(--an-up); } .an-gauge.bottom li.on .an-dot { background:var(--an-ok); }
