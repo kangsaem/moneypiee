@@ -53,7 +53,7 @@
     font-weight:500;
   }
   .num{font-family:'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-weight:500;}
-  .wrap{max-width:960px;margin:0 auto;padding:76px 20px 32px;}
+  .wrap{max-width:960px;margin:0 auto;padding:76px 10px 32px;}   /* 2026-10-11: 가장자리 여백 반(20→10) */
   #adfit-bottom{
     position:fixed;top:0;left:0;right:0;z-index:999;
     background:var(--bg);border-bottom:1px solid var(--border);
@@ -110,7 +110,7 @@
     top:1px;
     padding-bottom:11px;
   }
-  .panel{background:var(--surface2);border:1px solid var(--accent-dim);border-radius:0 8px 8px 8px;padding:24px;margin-bottom:16px;}
+  .panel{background:var(--surface2);border:1px solid var(--accent-dim);border-radius:0 8px 8px 8px;padding:12px;margin-bottom:16px;}   /* 탭 안 여백 반(24→12) */
   .account-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
   .account-header h2{font-size:18px;margin:0;font-weight:700;}
   form.add-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
@@ -7638,7 +7638,11 @@ function anLogicPopup(){
   m.querySelector('#anLogicOk').addEventListener('click', close);
   m.addEventListener('click', e => { if(e.target === m) close(); });
 }
-document.addEventListener('click', e => { if(e.target.closest('[data-tab="__analysis__"]')) setTimeout(anLogicPopup, 80); }, true);
+document.addEventListener('click', e => {
+  if(!e.target.closest('[data-tab="__analysis__"]')) return;
+  if(state.activeId !== '__analysis__') anState.view = 'report';      // 다른 탭에서 LAB으로 들어오면 항상 분석 화면(히스토리에 있었어도)
+  setTimeout(anLogicPopup, 80);
+}, true);
 function anBtDraw(wrap){
   if(!wrap) return;
   const P = AN_BT_GRAPH.p[anBtState.p], names = AN_BT_GRAPH.names;
@@ -7803,6 +7807,11 @@ function anGhPaint(){
 function anFillRoot(){
   const root = document.getElementById('analysisRoot');
   if(!root) return;
+  // 분석 ↔ 히스토리 전환 때 화면이 위로 당겨지지 않게: 탭 줄이 화면에서 같은 높이에 있도록 다시 맞춤
+  const oldTabs = root.querySelector('#anFtabs, #anHflt');
+  const anchorTop = oldTabs ? oldTabs.getBoundingClientRect().top : null;
+  const keepPos = () => { const t = root.querySelector('#anFtabs, #anHflt'); if(anchorTop != null && t) window.scrollBy(0, t.getBoundingClientRect().top - anchorTop); };
+  root.style.minHeight = '100vh';             // 내용이 짧아도 같은 위치를 유지할 수 있게
   // 버튼 줄(히스토리·돋보기): 다시 그리기 전에 원래 자리로 돌려놓고, 결과 화면이면 분류 탭 줄 오른쪽으로 옮김(이벤트는 그대로 유지)
   const bar = document.getElementById('analysisBar'), home = document.getElementById('anBarHome');
   if(bar && home && bar.parentNode !== home) home.appendChild(bar);
@@ -7810,7 +7819,7 @@ function anFillRoot(){
   anUpdateViewBtn();
   if(home) home.style.display = '';
   if(anState.view === 'history'){            // 히스토리 보기: 저장된 신호 기록
-    anHistRender().then(h => { if(anState.view !== 'history') return; root.innerHTML = h; anHistBind(root); placeBar(); })
+    anHistRender().then(h => { if(anState.view !== 'history') return; root.innerHTML = h; anHistBind(root); placeBar(); keepPos(); })
       .catch(e => { root.innerHTML = `<div class="an-empty">기록을 표시하지 못했습니다: ${anE(e.message)}</div>`; });
     return;
   }
@@ -7829,6 +7838,7 @@ function anFillRoot(){
   anBindRoot(root);
   placeBar();
   anGhPaint();
+  keepPos();
 }
 
 function anUpdateProgress(){
@@ -7882,7 +7892,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
   --an-tp:#9CAAD4; --an-warn:#F0DA8C; --an-warnbg:rgba(240,218,140,0.12); --an-ok:#4FD1C0; --an-okbg:rgba(79,209,192,0.12);
   --c5:#F472B6; --c20:#F87171; --cw5:#A3E635; --cw10:#22C55E; --cm5:#60A5FA; --cm10:#818CF8; --bignum:1.1rem;
   margin-top:28px; padding-top:18px; border-top:1px solid var(--border); text-align:left; font-size:13px; line-height:1.5; }
-.an.an-tab { margin-top:12px; padding-top:0; border-top:0; }
+.an.an-tab { margin-top:6px; padding-top:0; border-top:0; }
 .an-empty { color:var(--text-dim); font-size:13px; text-align:center; padding:24px 0; }
 .an-none { color:var(--text-dim); font-size:12px; padding:6px 0; }
 .an-head { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; margin-bottom:10px; }
@@ -8085,6 +8095,10 @@ details.an-gauge > summary { padding:6px 10px !important; font-weight:500 !impor
 .an-lpop hr { border:none; border-top:1px solid var(--border); margin:0 0 12px; } .an-lpop .an-rbody { padding:0; font-size:12px; }
 .an-lchk { display:flex; align-items:center; gap:6px; margin-top:18px; font-size:13px; color:var(--text-dim); cursor:pointer; }
 .an-lbtn { display:flex; justify-content:flex-end; margin-top:12px; } .an-lbtn .btn { font-size:18px; line-height:1; padding:6px 16px; }
+/* 지표·지수 아코디언 제목 앞줄 맞춤: 화살표 칸 폭·간격을 같게 */
+details.an-gauge > summary, .an-idx > summary { display:flex !important; align-items:center; gap:0 !important; }
+details.an-gauge > summary::before, .an-idx > summary::before { display:inline-block; width:12px; margin:0 6px 0 0 !important; flex-shrink:0; }
+.an-idx > summary b, .an-idx > summary .an-ig { margin-left:8px; }
 /* 2026-10-11 20:20 화면 정리 */
 .an-stock > summary b { font-weight:500; }
 .an-rules { background:var(--surface) !important; } .an-rules + .an-warn { background:#3a3b40 !important; } .an-rfirst { margin-top:2px !important; }
