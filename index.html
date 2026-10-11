@@ -7026,7 +7026,7 @@ function anHbPop(txt){
   document.body.appendChild(m);
   setTimeout(() => document.addEventListener('click', close, true), 0);
 }
-const anHistState = { per: '3m', side: '', status: '', more: 20 };
+const anHistState = { per: '', side: '', status: '', more: 20 };
 
 function anHistTrack(recs, bars){
   // 종목별 기록일 → 신호(buy/sell/none)
@@ -7528,7 +7528,7 @@ function anRenderResult(res){
   if(res.snap && res.snap.err && res.snap.err.length) notes.push('시장 지표 실패 : ' + res.snap.err.join(', '));
 
   return `
-    <div class="an-ftabs an-top" id="anFtabs">${tabs}<span id="anBarSlot" class="an-barslot"></span></div>
+    <div class="an-ftabs an-top" id="anFtabs">${tabs}<button type="button" class="an-closeall" id="anCloseAll">모두 닫기</button><span id="anBarSlot" class="an-barslot"></span></div>
     ${anHeadLine(res)}
     <div class="an-gauges">${anGauge(res.msig, 'risk', '시장 과열 지표')}${anGauge(res.msig, 'bottom', '시장 바닥 지표')}</div>
     <div class="an-idxacc an-sec">${idxHtml}</div>
@@ -7682,6 +7682,8 @@ function anBtBind(root){
 
 function anBindRoot(root){
   anBtBind(root);
+  const ca = root.querySelector('#anCloseAll');                 // 열린 아코디언(종목·지수·지표·Logic V1) 한 번에 닫기
+  if(ca) ca.addEventListener('click', () => { root.querySelectorAll('details[open]').forEach(d => { d.open = false; }); anState.openKeys.clear(); });
   const ft = root.querySelector('#anFtabs');
   const applyF = f => {
     anState.filter = f;
@@ -7881,15 +7883,14 @@ function anUpdateViewBtn(){
   const hb = document.getElementById('analysisHistBtn');
   if(!hb) return;
   const on = anState.view === 'history';
-  hb.textContent = on ? '← 분석' : '히스토리';
-  hb.style.background = on ? '#D4FF3D' : 'transparent';
-  hb.style.color = on ? '#111111' : '#D4FF3D';
+  hb.textContent = on ? '오늘신호' : '신호추적';            // 반전 없이 둘 다 연두 테두리·글자
+  hb.title = on ? '오늘 뜬 신호로' : '지난 신호를 끝날 때까지 따라간 결과';
 }
 
 function anButtonHtml(){
   return `<div id="analysisBar" style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">
     <div id="analysisLabel" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></div>
-    <button id="analysisHistBtn" title="지난 신호와 그 뒤 결과" style="height:26px;padding:0 10px;font-size:12px;font-weight:700;border:1px solid #D4FF3D;border-radius:6px;background:transparent;color:#D4FF3D;cursor:pointer;">히스토리</button>
+    <button id="analysisHistBtn" title="지난 신호를 끝날 때까지 따라간 결과" style="height:26px;padding:0 10px;font-size:12px;font-weight:700;border:1px solid #D4FF3D;border-radius:6px;background:transparent;color:#D4FF3D;cursor:pointer;">신호추적</button>
     <button id="analysisBtn" title="보유+관심 종목 분석" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
     </button>
@@ -8031,7 +8032,7 @@ details.an-gauge > summary span { flex:1; } details.an-gauge .an-bar, details.an
 details.an-gauge ul { padding-bottom:10px; }
 .an-gauge.risk.lv1 .an-gh b { color:var(--an-warn); } .an-gauge.risk.lv2 .an-gh b { color:var(--an-up); } .an-gauge.bottom.lv1 .an-gh b, .an-gauge.bottom.lv2 .an-gh b { color:var(--an-ok); }
 .an-ftabs { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; align-items:center; } .an-ftabs.an-top { margin:0 0 8px; }
-.an-barslot { margin-left:auto; } .an-barslot #analysisBar { gap:5px; }
+.an-barslot { margin-left:auto; } .an-barslot #analysisBar { gap:5px !important; }   /* 신호추적·오늘신호와 돋보기 간격 = 두 화면 같게 */
 .an-ftab { font:inherit; font-size:11.5px; height:26px; box-sizing:border-box; display:inline-flex; align-items:center; gap:3px; padding:0 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
 .an-ftab b { font-weight:700; margin-left:2px; } .an-ftab.on { background:var(--text); color:var(--bg, #111111); border-color:var(--text); }
 /* 탭 색: 매도 짙은 하늘 / 매수 분홍 / 보유 연두 / 매수보류 호박 / 반등대기 연보라 / 하락 연하늘 / 0개 = 점선·흐림 */
@@ -8093,7 +8094,7 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 .an-det.an-dwarn, .an-det.an-dhold2, .an-det.an-dhold1 { border-left-width:4px; } .an-det.an-dwarn { border-left-color:var(--an-amber); background:var(--an-amberbg); }
 .an-det.an-dhold2 { border-left-color:var(--an-green); background:var(--an-green2bg); } .an-det.an-dhold1 { border-left-color:var(--an-green); background:var(--an-green1bg); }
 /* 2026-10-11 20:50: 히스토리·분석 버튼 같은 폭, 아이콘 기울임 없음, 손절 칸, 글자·줄 높이(B안), Logic V1 안내창 */
-#analysisHistBtn { width:62px; padding:0 !important; font-size:12px !important; text-align:center; white-space:nowrap; }
+#analysisHistBtn { width:64px !important; padding:0 !important; font-size:12px !important; text-align:center; white-space:nowrap; flex-shrink:0; }   /* 신호추적·오늘신호 같은 폭 */
 .an-hb, .an-hg { font-style:normal !important; } .an-hstop { margin-left:6px; display:inline-flex; align-items:center; }
 .an-stock > summary { padding:4px 10px !important; } .an-stock > summary > b { font-size:12.5px; }
 .an-idx > summary { padding:4px 10px !important; } .an-idx > summary .an-in { font-size:12.5px; }
@@ -8111,8 +8112,11 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 /* 히스토리 종목 목록: 바깥 회색 테두리 없음, 줄 사이 = 분석 종목 탭 사이와 같은 어두운 줄 */
 .an-hwrap { border:none !important; background:transparent !important; } .an-ht2 tr { background:var(--surface); }
 .an-ht2 th, .an-ht2 td { border-bottom:1px solid var(--bg) !important; }
+/* 모두 닫기: 분류 탭과 같은 크기, 회색 테두리 */
+.an-closeall { font:inherit; font-size:11px; height:26px; box-sizing:border-box; padding:0 7px; flex-shrink:0; border-radius:6px; border:1px solid #9A9BA1; background:transparent; color:#9A9BA1; cursor:pointer; white-space:nowrap; }
+#anFtabs { gap:4px !important; flex-wrap:nowrap !important; } #anFtabs .an-ftab { padding:0 8px; flex-shrink:0; } @media (max-width:385px){ #anFtabs .an-ftab, .an-closeall { padding:0 5px !important; } #anFtabs { gap:3px !important; } } #anFtabs .an-barslot { flex-shrink:0; }
 /* 성공·실패·손절·진행중 팝업 */
-.an-hbpop { position:fixed; inset:0; z-index:2500; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); }
+.an-hbpop { position:fixed; inset:0; z-index:2500; display:flex; align-items:center; justify-content:center; background:transparent; }   /* 뒤 화면을 어둡게 하지 않음 */
 .an-hbpop > div { width:120px; height:120px; border-radius:14px; background:#EDEDED; color:#333333; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
 /* 신호 없는 종목은 이름을 회색으로(신호 있는 종목은 그대로) */
 .an-stock[data-f="none"] > summary b { color:#9A9BA1; }
@@ -8121,7 +8125,7 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 /* 2026-10-11 20:20 화면 정리 */
 .an-stock > summary b { font-weight:500; }
 .an-rules { background:var(--surface) !important; } .an-rules + .an-warn { background:#3a3b40 !important; } .an-rfirst { margin-top:2px !important; }
-.an-htabs .an-ftab { width:42px; justify-content:center; padding:0 !important; font-size:11px !important; letter-spacing:-0.5px; white-space:nowrap; } .an-htabs #analysisHistBtn { padding:0 6px !important; white-space:nowrap; }
+.an-htabs .an-ftab { width:42px; justify-content:center; padding:0 !important; font-size:11px !important; letter-spacing:-0.5px; white-space:nowrap; }
 .an-ftab.has.t-wh { color:#C9C9C9; border-color:#C9C9C9; } .an-ftab.on.t-wh { background:#C9C9C9; color:var(--bg); border-color:#C9C9C9; }
 .an-ftab.has.t-tl { color:#2BC4B0; border-color:#2BC4B0; } .an-ftab.on.t-tl { background:#2BC4B0; color:var(--bg); border-color:#2BC4B0; }
 .an-hsum { display:grid; grid-template-columns:47px 28px 7px 32px 7px 66px 7px 34px 7px 1fr; align-items:center; column-gap:2px; white-space:nowrap; font-size:11.5px !important; padding:6px 7px !important; }
@@ -8135,7 +8139,7 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 .an-rules { border:none !important; border-radius:0 !important; margin-top:12px !important; }
 .an-warn { border-radius:0 !important; } .an-rules + .an-warn { margin-top:0 !important; border-top:1px solid var(--bg); }
 /* 히스토리: 탭 간격 좁게(묶음 사이만 띄움), 요약 줄 모서리 없이 붙임, 표 모서리 없음 */
-.an-htabs { gap:2px !important; flex-wrap:nowrap !important; } .an-htabs .an-hsep { margin:0 2px; }  .an-htabs #analysisBar { gap:3px !important; } .an-htabs .an-barslot { flex-shrink:0; }
+.an-htabs { gap:2px !important; flex-wrap:nowrap !important; } .an-htabs .an-hsep { margin:0 2px; } .an-htabs .an-barslot { flex-shrink:0; }
 .an-hsum { border-radius:0 !important; margin:0 !important; border-bottom:1px solid var(--bg); } .an-hsum + .an-hwrap { margin-top:10px; }
 .an-hwrap { border-radius:0 !important; }
 .an-hb { width:18px !important; height:18px !important; font-size:11px !important; vertical-align:middle !important; margin-top:-3px; }
