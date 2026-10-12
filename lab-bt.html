@@ -75,10 +75,20 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
     <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
     <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
     <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명 또는 코드" autocomplete="off"></span>
   </div>
   <div class="ctl">
     <button class="go" id="run" disabled>실행</button>
-    <button class="rnd" id="rand" title="5년 전 목록에서 국내 5 + 해외 5를 무작위로 채움">종목랜덤</button>
+    <button class="rnd" id="rand" title="5년 전 목록에서 국내 10 + 해외 10을 무작위로 채움">종목랜덤</button>
     <i class="gap"></i>
     <span class="clb">1회 매수</span>
     <span data-g="pct"></span>
@@ -93,7 +103,7 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
   <div class="note">
     · 매수 0.05%, 매도 0.25%(수수료·거래세 대략치)를 반영. 배당·배당세·해외 주식 양도세·환율은 반영 제외<br><br>
     <b>랜덤</b><br>
-    · 5년 전 연초 목록에서 국내 5 + 해외 5를 무작위로 채움<br>
+    · 5년 전 연초 목록에서 국내 10 + 해외 10을 무작위로 채움<br>
     · 국내 = 5년 전 코스피 시가총액 상위 300 / 해외 = 5년 전 나스닥100 (Actions 무작위 시험과 같음)<br>
     · 랜덤 칸 종목이 시세가 없거나 5년 치가 안 되면 같은 시장의 다음 후보로 바꿈<br><br>
     <b>V1 묶음 계좌</b><br>
@@ -115,7 +125,7 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
 const BT = {
   per: [['252', '1년'], ['756', '3년'], ['1260', '5년']],
   pct: [['33', '33%'], ['50', '50%'], ['100', '100%']],
-  MAX: 10, PAR: 4,            // 종목 최대 · 시세 받기와 신호 계산을 동시에 몇 개씩(휴대폰 부담)
+  MAX: 20, PAR: 4,            // 종목 최대 · 시세 받기와 신호 계산을 동시에 몇 개씩(휴대폰 부담)
   SIG_DAYS: 1260,
   BUY_COST: 0.0005, SELL_COST: 0.0025, STOP: 0.92
 };
@@ -387,7 +397,8 @@ function btRandomFill(){
   const kr = btShuffle(sn.kr.map(([code, name]) => ({ code, name, kr: true })));
   const us = btShuffle(sn.us.filter(t => !US_DUP.has(t) && !US_DEAD.has(t)).map(t => ({ code: usSym(t), name: usSym(t), kr: false })));
   btState.queue = { kr, us, snap: sn.d };
-  document.querySelectorAll('.code').forEach((inp, i) => btFillInp(inp, (i < 5 ? kr : us).shift()));
+  const cs = [...document.querySelectorAll('.code')], half = cs.length / 2;
+  cs.forEach((inp, i) => btFillInp(inp, (i < half ? kr : us).shift()));      // 국내 절반 + 해외 절반
   msg('');
 }
 
