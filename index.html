@@ -7555,6 +7555,8 @@ const AN_RULES = [
   '보유·반등대기·하락 = 가지고 있으면 그대로, 없으면 사지 않음',
   '체결 = 국장은 신호 당일 시간외 종가(15:40 전 주문), 미장은 다음 날 LOC(지정가 = 종가 +8%)',
   '미장은 다음 날 신호가 깨져도 산다',
+  '국장 매수를 시간외 종가에 놓친 다음 날 장중 = 매수·바닥, 매수·눌림은 빠져도 월 정(5개월선 > 10개월선)이거나 종가가 10개월선 위면 산다 · 매수·추세는 종가 리포트를 보고 판단 · 어느 신호든 오르면 종가 리포트까지 기다림',
+  '매도·전량을 놓친 다음 날 장중 = 오르면 판다 · 내리면 종가 리포트를 보고 판단',
   "매수 한도 = 전체 금융자산 × min(10%, 150 ÷ 보유 종목 수) · 안 가진 종목이면 종목 수 +1 · 섹터 '지수' 제외 · 표시만",
   '1회 매수 금액과 2회·3회 분할은 직접 판단'
 ];
@@ -7861,7 +7863,9 @@ function anUpdateProgress(){
     btn.style.opacity = anState.running ? '0.5' : '1';
     btn.style.cursor = anState.running ? 'default' : 'pointer';
   }
-  if(lab) lab.textContent = anState.running ? `분석 중 ${anState.done}/${anState.total}` : '';
+  if(lab) lab.textContent = '';                                   // 왼쪽 로딩 문구 없음
+  const hb = document.getElementById('analysisHistBtn');
+  if(hb) hb.classList.toggle('an-blink', !!anState.running);   // 분석 중에는 신호추적 버튼만 깜빡임
 }
 
 // 분석 탭 패널이 그려질 때마다 호출
@@ -7885,8 +7889,8 @@ function anUpdateViewBtn(){
   const hb = document.getElementById('analysisHistBtn');
   if(!hb) return;
   const on = anState.view === 'history';
-  hb.textContent = on ? '오늘신호' : '신호추적';            // 반전 없이 둘 다 연두 테두리·글자
-  hb.title = on ? '오늘 뜬 신호로' : '지난 신호를 끝날 때까지 따라간 결과';
+  hb.textContent = on ? '최근종가' : '신호추적';            // 반전 없이 둘 다 연두 테두리·글자
+  hb.title = on ? '최근 종가 기준 신호로' : '지난 신호를 끝날 때까지 따라간 결과';
 }
 
 function anButtonHtml(){
@@ -8034,7 +8038,7 @@ details.an-gauge > summary span { flex:1; } details.an-gauge .an-bar, details.an
 details.an-gauge ul { padding-bottom:10px; }
 .an-gauge.risk.lv1 .an-gh b { color:var(--an-warn); } .an-gauge.risk.lv2 .an-gh b { color:var(--an-up); } .an-gauge.bottom.lv1 .an-gh b, .an-gauge.bottom.lv2 .an-gh b { color:var(--an-ok); }
 .an-ftabs { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; align-items:center; } .an-ftabs.an-top { margin:0 0 8px; }
-.an-barslot { margin-left:auto; } .an-barslot #analysisBar { gap:5px !important; }   /* 신호추적·오늘신호와 돋보기 간격 = 두 화면 같게 */
+.an-barslot { margin-left:auto; } .an-barslot #analysisBar { gap:5px !important; }   /* 신호추적·최근종가와 돋보기 간격 = 두 화면 같게 */
 .an-ftab { font:inherit; font-size:11.5px; height:26px; box-sizing:border-box; display:inline-flex; align-items:center; gap:3px; padding:0 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
 .an-ftab b { font-weight:700; margin-left:2px; } .an-ftab.on { background:var(--text); color:var(--bg, #111111); border-color:var(--text); }
 /* 탭 색: 매도 짙은 하늘 / 매수 분홍 / 보유 연두 / 매수보류 호박 / 반등대기 연보라 / 하락 연하늘 / 0개 = 점선·흐림 */
@@ -8096,7 +8100,9 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 .an-det.an-dwarn, .an-det.an-dhold2, .an-det.an-dhold1 { border-left-width:4px; } .an-det.an-dwarn { border-left-color:var(--an-amber); background:var(--an-amberbg); }
 .an-det.an-dhold2 { border-left-color:var(--an-green); background:var(--an-green2bg); } .an-det.an-dhold1 { border-left-color:var(--an-green); background:var(--an-green1bg); }
 /* 2026-10-11 20:50: 히스토리·분석 버튼 같은 폭, 아이콘 기울임 없음, 손절 칸, 글자·줄 높이(B안), Logic V1 안내창 */
-#analysisHistBtn { width:64px !important; padding:0 !important; font-size:12px !important; text-align:center; white-space:nowrap; flex-shrink:0; }   /* 신호추적·오늘신호 같은 폭 */
+@keyframes anBlink { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+#analysisHistBtn.an-blink { animation: anBlink 1s ease-in-out infinite; }
+#analysisHistBtn { width:64px !important; padding:0 !important; font-size:12px !important; text-align:center; white-space:nowrap; flex-shrink:0; }   /* 신호추적·최근종가 같은 폭 */
 .an-hb, .an-hg { font-style:normal !important; } .an-hstop { margin-left:6px; display:inline-flex; align-items:center; }
 .an-stock > summary { padding:4px 10px !important; } .an-stock > summary > b { font-size:12.5px; }
 .an-idx > summary { padding:4px 10px !important; } .an-idx > summary .an-in { font-size:12.5px; }
