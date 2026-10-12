@@ -53,17 +53,36 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
 </head>
 <body>
 <div class="wrap">
-  <h1>V1 종목 백테스트 <small>종목 5개까지 한 계좌(현금 100×종목 수) · V1 매매 vs 그냥 보유 vs 적립식 · 코스피·나스닥과 비교</small></h1>
+  <h1>V1 종목 백테스트 <small>종목 20개까지 한 계좌(현금 100×종목 수) · V1 매매 vs 그냥 보유 vs 적립식 · 코스피·나스닥과 비교</small></h1>
 
   <div class="row"><span class="lb">종목</span>
-    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 1" autocomplete="off"></span>
-    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 2" autocomplete="off"></span>
-    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 3" autocomplete="off"></span>
-    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 4" autocomplete="off"></span>
-    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 5" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 1" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 2" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 3" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 4" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 5" autocomplete="off"></span>
+    <span id="more" style="display:none">
+    <span class="acw"><input type="text" class="code" placeholder="종목 6" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 7" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 8" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 9" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 10" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 11" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 12" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 13" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 14" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 15" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 16" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 17" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 18" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 19" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목 20" autocomplete="off"></span>
+    </span>
+    <button class="tab" id="moreBtn">＋15개 더</button>
     <button class="go" id="run" disabled>실행</button>
-    <button class="tab" id="rand" title="코스피 시총 상위 100 + 나스닥100 중 5개를 무작위로 채움(실행은 실행 버튼)">랜덤</button>
+    <button class="tab" id="rand" title="코스피 시총 상위 100 + 나스닥100 중 고른 개수만큼 무작위로 채움(실행은 실행 버튼)">랜덤</button>
   </div>
+  <div class="row"><span class="lb">랜덤 개수</span><span data-g="rn"></span></div>
   <div class="row"><span class="lb">기간</span><span data-g="per"></span></div>
   <div class="row"><span class="lb">1회 매수</span><span data-g="pct"></span></div>
   <div class="msg" id="msg"></div>
@@ -71,8 +90,8 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
   <div id="out"></div>
 
   <div class="note">
-    <b>랜덤</b> · 코스피 시가총액 상위 100(우선주 제외)과 나스닥100, 합쳐 200종목 중 5개를 국내·해외 구분 없이 무작위로 채움(2026-10-08 기준 목록 — 지금 대형주라 과거 기간엔 결과가 좋게 나오기 쉬움). 실행은 실행 버튼.<br>
-    <b>계산 방법</b> · 고른 종목을 한 계좌로 운용. 현금 100×종목 수(5종목 = 500)에서 시작, <b>추가 입금 없음</b>(실전 규칙과 같음 → 넣은 돈은 끝까지 그대로).
+    <b>랜덤</b> · 코스피 시가총액 상위 100(우선주 제외)과 나스닥100, 합쳐 200종목 중 고른 개수(5·10·20)만큼 국내·해외 구분 없이 무작위로 채움(2026-10-08 기준 목록 — 지금 대형주라 과거 기간엔 결과가 좋게 나오기 쉬움). 실행은 실행 버튼.<br>
+    <b>계산 방법</b> · 고른 종목을 한 계좌로 운용. 현금 100×종목 수(5종목 = 500, 20종목 = 2000)에서 시작, <b>추가 입금 없음</b>(실전 규칙과 같음 → 넣은 돈은 끝까지 그대로).
     종목당 상한 = 그날 계좌 평가액 ÷ 종목 수, 신호당 매수 = 상한 × 1회 매수 비율(33% = 3번, 50% = 2번, 100% = 1번에 나눠 삼).
     이미 가진 종목은 상한까지만 더 사고, 상한 여유가 신호당 매수의 1/4 미만이면 건너뜀. 현금이 살 금액의 절반 미만이면 건너뛰고, 그 이상이면 있는 만큼 산다(머니파이 V1 실전 계좌와 같은 규칙).<br>
     매수 신호(매수·바닥·눌림·추세)가 새로 켜지면 사고, 매도·전량 신호가 새로 켜지거나 손절(종가가 평균 매수가 -8% 이하 이틀 연속, 산 날 제외)이면 그 종목 전량 판다.
@@ -88,12 +107,14 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
 const BT = {
   per: [['252', '1년'], ['756', '3년'], ['1260', '5년']],
   pct: [['33', '33% · 3번'], ['50', '50% · 2번'], ['100', '100% · 1번']],
+  rn: [['5', '5개'], ['10', '10개'], ['20', '20개']],
+  MAX: 20, PAR: 4,            // 종목 최대 · 시세 받기와 신호 계산을 동시에 몇 개씩(휴대폰 부담)
   SIG_DAYS: 1260,
   BUY_COST: 0.0005, SELL_COST: 0.0025, STOP: 0.92
 };
-const btSel = { per: '1260', pct: '50' };
+const btSel = { per: '1260', pct: '50', rn: '5' };
 try{ const sv = JSON.parse(localStorage.getItem('mp-labbt') || '{}');
-     ['per', 'pct'].forEach(g => { if(BT[g].some(([v]) => v === sv[g])) btSel[g] = sv[g]; }); }catch(e){}
+     ['per', 'pct', 'rn'].forEach(g => { if(BT[g].some(([v]) => v === sv[g])) btSel[g] = sv[g]; }); }catch(e){}
 
 // ---------------------------------------------------------------- 계산 (lab_bt.py simulate 와 같음)
 function btIrr(flows){
@@ -336,13 +357,20 @@ const RAND_POOL = {"date":"2026-10-08","kr":[["005930","삼성전자"],["000660"
 function btRandomFill(){
   const all = RAND_POOL.kr.map(([code, name]) => ({ code, name, kr: true })).concat(RAND_POOL.us.map(t => ({ code: t, name: t, kr: false })));
   for(let i = all.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+  const N = +btSel.rn;
+  if(N > 5) btShowMore(true);
   document.querySelectorAll('.code').forEach((inp, i) => {
-    const x = all[i];
-    inp.value = x.name;
-    inp._sel = x.kr ? { code: x.code, name: x.name, region: 'domestic' } : null;     // 해외는 입력한 기호 그대로 야후 시세
+    const x = i < N ? all[i] : null;
+    inp.value = x ? x.name : '';
+    inp._rand = !!x;                                                                   // 랜덤으로 채운 칸(손으로 고치면 해제) — 누적 기록에 표시
+    inp._sel = x && x.kr ? { code: x.code, name: x.name, region: 'domestic' } : null;  // 해외는 입력한 기호 그대로 야후 시세
     const l = inp.parentNode.querySelector('.acl'); if(l){ l.style.display = 'none'; l.innerHTML = ''; }
   });
   msg('');
+}
+function btShowMore(on){
+  $('more').style.display = on ? '' : 'none';
+  $('moreBtn').textContent = on ? '접기' : '＋15개 더';
 }
 
 function btSpecOf(raw){
@@ -378,7 +406,7 @@ function btBindSearch(inp){
   let timer = null, token = 0;
   const close = () => { holder.style.display = 'none'; holder.innerHTML = ''; };
   inp.addEventListener('input', () => {
-    inp._sel = null;
+    inp._sel = null; inp._rand = false;
     clearTimeout(timer);
     const q = inp.value.trim();
     if(!q || (!/[가-힣]/.test(q) && q.length < 2)){ close(); return; }      // 한글은 바로, 그 외는 2글자부터(머니파이와 같음)
@@ -402,31 +430,45 @@ function btBindSearch(inp){
   document.addEventListener('click', e => { if(!inp.parentNode.contains(e.target)) close(); });
 }
 
+// 동시에 k개씩 실행(종목 20개를 한꺼번에 돌리면 휴대폰이 버거움). 실패한 종목은 null
+async function btPool(items, k, fn){
+  const out = new Array(items.length).fill(null);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(k, items.length) }, async () => {
+    while(next < items.length){ const i = next++; try{ out[i] = await fn(items[i], i); }catch(e){ out[i] = null; } }
+  }));
+  return out;
+}
 async function btRun(){
   const E = window.__eng;
-  let specs;
-  try{ specs = (await Promise.all([...document.querySelectorAll('.code')].map(btSpecOfInput))).filter(Boolean).slice(0, 5); }
-  catch(e){ msg(e.message, true); return; }
-  if(!specs.length){ msg('종목 코드를 하나 이상 입력하세요.', true); return; }
+  const inps = [...document.querySelectorAll('.code')].filter(i => i.value.trim()).slice(0, BT.MAX);
+  if(!inps.length){ msg('종목 코드를 하나 이상 입력하세요.', true); return; }
+  const isRand = inps.every(i => i._rand);
   $('run').disabled = true;
   try{
-    msg('시세 받는 중…');
+    msg('지수 시세 받는 중…');
     const ix = IDX_SPEC();
-    const [kospi, spx, ndx, ...bars] = await Promise.all([E.anGetBars(ix.kospi), E.anGetBars(ix.spx), E.anGetBars(ix.ndx), ...specs.map(s => E.anGetBars(s.spec))]);
-    const prog = {};
-    const names = specs.map(s => s.name);
-    const show = () => msg('신호 계산 중 · ' + names.map(nm => `${nm} ${Math.round((prog[nm] || 0) * 100)}%`).join(' · '));
+    const [kospi, spx, ndx] = await Promise.all([E.anGetBars(ix.kospi), E.anGetBars(ix.spx), E.anGetBars(ix.ndx)]);
+    const specs = await btPool(inps, BT.PAR, inp => btSpecOfInput(inp));
+    const prog = {}, failed = [];
+    inps.forEach((inp, i) => { if(!specs[i]) failed.push(inp.value.trim()); });
+    const ok = specs.map((s, i) => [s, i]).filter(([s2]) => s2);
+    const show = () => msg(`신호 계산 중 (동시에 ${BT.PAR}개) · ` + ok.map(([s2]) => `${s2.name} ${Math.round((prog[s2.name] || 0) * 100)}%`).join(' · '));
     show();
-    const jobs = specs.map((s, i) => btCachedSignals(s.spec.key, bars[i], s.kr ? kospi : spx, s.name, p => { prog[s.name] = p; show(); }));
-    const sig = await Promise.all(jobs);
-    btState.stocks = specs.map((s, i) => ({ name: s.name, kr: s.kr, sig: sig[i] }));
+    const res = await btPool(ok, BT.PAR, async ([s2]) => {
+      const bars = await E.anGetBars(s2.spec);
+      return await btCachedSignals(s2.spec.key, bars, s2.kr ? kospi : spx, s2.name, p => { prog[s2.name] = p; show(); });
+    });
+    const stocks = [];
+    ok.forEach(([s2], k) => { if(res[k] && res[k].dates && res[k].dates.length) stocks.push({ name: s2.name, kr: s2.kr, sig: res[k] }); else failed.push(s2.name); });
+    if(!stocks.length) throw new Error('시세를 받은 종목이 없음' + (failed.length ? ' (' + failed.join(', ') + ')' : ''));
+    btState.stocks = stocks;
+    btState.failed = failed;
     btState.idx = { k: { dates: kospi.dates, close: kospi.close }, n: { dates: ndx.dates, close: ndx.close } };   // 지수는 보유·적립 비교만(신호 계산 없음)
-    // 지수 장기 평균(최근 20년 연평균 수익률) — 가로선용. 21년치를 따로 받아 저장(가격 지수, 배당 제외)
-    const long = await Promise.all([
-      E.anGetBars({ key: 'idx21:kospi', market: 'KR', fetchers: [() => E.anFetchYahoo('^KS11', 21), () => E.anFetchNaver('KOSPI', 21)] }).catch(() => null),
-      E.anGetBars({ key: 'idx21:ndx', market: 'US', fetchers: [() => E.anFetchYahoo('^IXIC', 21)] }).catch(() => null)]);
-    btState.cagr20 = { k: btCagr(long[0], 20), n: btCagr(long[1], 20) };
+    btState.cagr10 = { k: btCagr(kospi, 10), n: btCagr(ndx, 10) };      // 가로선: 최근 10년 연평균(이미 받은 12년치 시세로, 가격 지수·배당 제외)
     msg('');
+    btRender();
+    await btLogAdd(isRand);
     btRender();
   }catch(e){
     msg('실패: ' + (e && e.message ? e.message : e), true);
@@ -495,12 +537,15 @@ function btAlign(S, dates){
 // 종합(2026-10-12 묶음 계좌): 고른 종목을 현금 100×n 한 계좌로 V1 운용, 입금 없음. 주 비교 = 같은 날 같은 돈을 코스피·나스닥에 한 번에
 function btCombined(){
   const per = +btSel.per, times = Math.round(100 / +btSel.pct);
-  const st = btState.stocks, nA = st.length;
+  const short = btState.stocks.filter(x => x.sig.dates.length < per - 25);       // 고른 기간보다 시세가 짧은 종목(최근 상장 등)은 뺌 — 기간 전체가 짧아지지 않게
+  const st = btState.stocks.filter(x => !short.includes(x)), nA = st.length;
+  btState.used = { names: st.map(x => x.name), short: short.map(x => x.name) };
+  if(!nA) return `<div class="msg err">고른 기간(${per}거래일)만큼 시세가 있는 종목이 없음: ${short.map(x => escapeHtml(x.name)).join(', ')}</div>`;
   const startDate = st.map(x => x.sig.dates[Math.max(0, x.sig.dates.length - per)]).reduce((a, b) => (a > b ? a : b));   // 모든 종목 시세가 있는 날부터
   const dates = [...new Set([].concat(...st.map(x => x.sig.dates.filter(d => d >= startDate))))].sort();
   const al = st.map(x => btAlign(x.sig, dates));
   const v = btBundle(dates, al.map((A, a) => ({ close: A.close, buy: A.buy, sell: A.sell, sameDay: st[a].kr })), times);
-  btState.last = { v, dates };
+  btState.last = { v, dates, series: null, startDate: dates[0], endDate: dates[dates.length - 1] };
   const total = nA, series = [];
   series.push({ k: 'v', nm: 'V1 묶음', col: COMB_COL[0], dates, path: v.eqs.map(e => (e / (100 * nA) - 1) * 100),
                 inv: v.invested, end: v.end, roc: v.roc, irr: v.irr, mdd: v.mdd });
@@ -523,10 +568,11 @@ function btCombined(){
     const dk = btAvgRuns(DCA_DAYS.map(n => btDcaMulti(ds, [close], total, n)));
     series.push({ k: a + 'd', nm: `${nm} 적립`, col, dash: true, thin: true, dates: ds, path: dk.whole.map(w => (w / (100 * nA) - 1) * 100), inv: 100 * nA, end: dk.end, roc: dk.roc, irr: dk.irr, rg: dk.rg });
   });
-  // 가로선: V1 묶음 기간 끝 수익률 · 코스피·나스닥 최근 20년 연평균을 이 기간 길이만큼 쌓은 값
-  const c20 = btState.cagr20 || {};
+  // 가로선: V1 묶음 기간 끝 수익률 · 코스피·나스닥 최근 10년 연평균을 이 기간 길이만큼 쌓은 값
+  const c10 = btState.cagr10 || {};
   const avgLine = (c, nm, col) => c ? { nm: `${nm} ${Math.round(c.yrs)}년 평균(연 ${c.pct.toFixed(1)}%)`, v: (Math.pow(1 + c.pct / 100, yrs) - 1) * 100, col } : null;
-  const hl = [{ nm: 'V1 묶음', v: v.roc, col: '#E8ECF3', main: true }, avgLine(c20.k, '코스피', 'var(--dn)'), avgLine(c20.n, '나스닥', 'var(--amber)')].filter(Boolean);
+  btState.last.series = series;
+  const hl = [{ nm: 'V1 묶음', v: v.roc, col: '#E8ECF3', main: true }, avgLine(c10.k, '코스피', 'var(--dn)'), avgLine(c10.n, '나스닥', 'var(--amber)')].filter(Boolean);
   const H3 = btState.hide3;
   if(!btState.init3){ series.forEach(s => { if(s.k !== 'v') H3.add(s.k); }); btState.init3 = true; }   // 처음엔 V1 묶음만 켬
   const P = x => x == null ? '-' : `<span class="${x > 0 ? 'up' : x < 0 ? 'dn' : ''}">${x >= 0 ? '+' : ''}${x.toFixed(1)}%</span>`;
@@ -548,7 +594,7 @@ function btCombined(){
         ${series.map(s => `<tr><td class="l">${sw(s)}${escapeHtml(s.nm)}</td><td>${N(s.inv)}</td><td>${s.rg ? NR(s.rg.end) : N(s.end)}</td><td>${s.rg ? PR(s.rg.roc) : P(s.roc)}</td><td>${s.rg ? PR(s.rg.irr) : P(s.irr)}</td><td>${s.rg ? PR(s.rg.mdd) : P(s.mdd)}</td></tr>`).join('')}</table></div>
       <div class="note" style="margin-top:4px">V1 묶음 = 매매 ${v.n_trades}번 · 승률 ${v.win == null ? '-' : v.win.toFixed(0) + '%'} · 손절 ${v.n_stop}번 · 평균 현금 ${v.cash.toFixed(0)}% · 건너뛴 매수: 상한 ${v.skipCap}번 · 현금 부족 ${v.skipCash}번.
         보유·지수 보유 = 같은 날 ${100 * nA}을 한 번에 · 적립 = ${100 * nA}을 매달 나눠(아직 안 넣은 돈은 현금으로 포함해 ${100 * nA} 기준 · 그래프는 여섯 경우 평균, 표는 범위 · 연 환산은 넣은 시점 기준이라 참고만).
-        가로선 = V1 묶음 기간 끝 수익률 · 코스피·나스닥 최근 20년 연평균을 이 기간(${yrs.toFixed(1)}년)만큼 쌓은 값(가격 지수, 배당 제외).</div>
+        가로선 = V1 묶음 기간 끝 수익률 · 코스피·나스닥 최근 10년 연평균을 이 기간(${yrs.toFixed(1)}년)만큼 쌓은 값(가격 지수, 배당 제외 — 최근 10년이라 시험 기간과 겹침).${(btState.failed || []).length || btState.used.short.length ? `<br>빠진 종목: ${[...(btState.failed || []).map(n => escapeHtml(n) + '(시세 실패)'), ...btState.used.short.map(n => escapeHtml(n) + '(기간 부족)')].join(', ')}` : ''}</div>
     </div>
     <div class="card tbl"><table><tr><th class="l">종목별</th><th>끝난 매매</th><th>승률</th><th>판 이유 신호/손절</th><th>지금</th></tr>${perStock}</table></div>
     <details class="card"><summary>매매 목록 (${v.trades.length})</summary>
@@ -588,8 +634,70 @@ function btChart3(series, hl){
   return o.join('');
 }
 
+// ---------------------------------------------------------------- 누적 기록(2026-10-12): 실행할 때마다 한 줄, 이 기기 브라우저에 저장 + CSV 내보내기
+const LOG_KEY = 'btlog:v1';
+btState.log = [];
+async function btLogLoad(){ try{ const x = await window.__eng.anDB.get(LOG_KEY); btState.log = Array.isArray(x) ? x : []; }catch(e){ btState.log = []; } }
+async function btLogSave(){ try{ await window.__eng.anDB.set(LOG_KEY, btState.log); }catch(e){} }
+async function btLogAdd(isRand){
+  const L = btState.last; if(!L || !L.series) return;
+  const S = k => L.series.find(x => x.k === k) || {};
+  const r1 = x => x == null ? null : Math.round(x * 10) / 10;
+  const v = S('v'), h = S('h'), d = S('d'), kh = S('kh'), kd = S('kd'), nh = S('nh'), nd = S('nd');
+  const nw = new Date(), z = x => String(x).padStart(2, '0');
+  btState.log.push({ t: `${nw.getFullYear()}-${z(nw.getMonth() + 1)}-${z(nw.getDate())} ${z(nw.getHours())}:${z(nw.getMinutes())}`, per: btSel.per, pct: btSel.pct, rand: !!isRand,
+    start: L.startDate, end: L.endDate, n: btState.used.names.length, names: btState.used.names,
+    out: [...(btState.failed || []), ...btState.used.short],
+    v1: r1(v.roc), v1m: r1(v.mdd), hold: r1(h.roc), holdm: r1(h.mdd),
+    dca: r1(d.roc), dcaLo: r1(d.rg && d.rg.roc[0]), dcaHi: r1(d.rg && d.rg.roc[1]), dcam: r1(d.rg && (d.rg.mdd[0] + d.rg.mdd[1]) / 2),
+    kh: r1(kh.roc), khm: r1(kh.mdd), kd: r1(kd.roc), nh: r1(nh.roc), nhm: r1(nh.mdd), nd: r1(nd.roc) });
+  await btLogSave();
+}
+const btWin = r => r.dcaHi == null ? '-' : r.v1 > r.dcaHi ? 'V1' : r.v1 < r.dcaLo ? '적립' : '비슷';
+function btMed(xs){ const a = xs.slice().sort((x, y) => x - y), n = a.length; return n ? (n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2) : null; }
+function btAvg(xs){ return xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null; }
+function btLogCard(){
+  const L = btState.log;
+  if(!L.length) return '';
+  const P = x => x == null ? '-' : `<span class="${x > 0 ? 'up' : x < 0 ? 'dn' : ''}">${x >= 0 ? '+' : ''}${x.toFixed(1)}%</span>`;
+  const M = x => x == null ? '-' : x.toFixed(1) + '%';
+  const perNm = v => (BT.per.find(([k]) => k === v) || [, v])[1];
+  const groups = new Map();
+  L.forEach(r => { const g = `${perNm(r.per)} · ${r.pct}%${r.rand ? ' · 랜덤' : ''}`; if(!groups.has(g)) groups.set(g, []); groups.get(g).push(r); });
+  const sum = [...groups].map(([g, rs]) => {
+    const w = rs.filter(r => btWin(r) === 'V1').length, l = rs.filter(r => btWin(r) === '적립').length;
+    const df = rs.filter(r => r.dca != null).map(r => r.v1 - r.dca);
+    const dk = rs.filter(r => r.kh != null).map(r => r.v1 - r.kh), dn = rs.filter(r => r.nh != null).map(r => r.v1 - r.nh);
+    return `<tr><td class="l">${g}</td><td>${rs.length}</td><td>${w} : ${l}</td><td>${P(btAvg(df))}</td><td>${P(btMed(df))}</td><td>${P(btAvg(dk))}</td><td>${P(btAvg(dn))}</td>
+      <td>${M(btAvg(rs.map(r => r.v1m)))}</td><td>${M(btAvg(rs.filter(r => r.dcam != null).map(r => r.dcam)))}</td></tr>`;
+  }).join('');
+  const rows = L.slice().reverse().slice(0, 50).map(r => `<tr><td class="l">${r.t}</td><td class="l">${perNm(r.per)} · ${r.pct}%</td><td class="l">${r.start}~</td><td>${r.n}${r.rand ? ' 랜덤' : ''}</td>
+    <td>${P(r.v1)}</td><td>${r.dcaLo == null ? '-' : `${r.dcaLo.toFixed(0)}~${r.dcaHi.toFixed(0)}%`}</td><td class="l">${btWin(r)}</td><td>${P(r.kh)}</td><td>${P(r.nh)}</td><td>${M(r.v1m)}</td></tr>`).join('');
+  return `<h2 class="sh">누적 기록 <small>${L.length}번 실행 · 이 기기 브라우저에 저장</small></h2>
+    <div class="card">
+      <div class="tbl"><table><tr><th class="l">기간 · 1회 매수</th><th>실행</th><th>V1 : 적립</th><th>적립 대비 평균</th><th>중앙값</th><th>코스피 보유 대비</th><th>나스닥 보유 대비</th><th>최대 하락 V1</th><th>적립</th></tr>${sum}</table></div>
+      <div class="note" style="margin-top:4px">V1 : 적립 = V1이 적립 여섯 경우보다 모두 높으면 V1, 모두 낮으면 적립(그 사이는 비슷). 대비 = V1 − 상대(넣은 돈 대비 %p). 같은 기간·설정끼리 묶음.
+        랜덤 = 랜덤 버튼으로 채운 그대로 실행한 것(지금 대형주 목록이라 과거 기간엔 결과가 좋게 나오기 쉬움).</div>
+      <div class="row" style="margin-top:6px"><button class="tab" id="logCsv">CSV 내보내기</button><button class="tab" id="logClr">기록 지우기</button></div>
+      <details><summary>최근 실행 ${Math.min(L.length, 50)}개</summary><div class="tbl"><table><tr><th class="l">시각</th><th class="l">설정</th><th class="l">시작</th><th>종목</th><th>V1</th><th>적립</th><th class="l">판정</th><th>코스피 보유</th><th>나스닥 보유</th><th>최대 하락 V1</th></tr>${rows}</table></div></details>
+    </div>`;
+}
+function btLogCsv(){
+  const head = ['시각', '기간(거래일)', '1회매수%', '랜덤', '시작', '끝', '종목수', 'V1', 'V1최대하락', '보유', '보유최대하락', '적립평균', '적립최저', '적립최고', '적립최대하락',
+                '코스피보유', '코스피최대하락', '코스피적립', '나스닥보유', '나스닥최대하락', '나스닥적립', '판정', '종목', '빠진종목'];
+  const q = x => { const t = x == null ? '' : String(x); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const lines = [head.join(',')].concat(btState.log.map(r => [r.t, r.per, r.pct, r.rand ? 'Y' : '', r.start, r.end, r.n, r.v1, r.v1m, r.hold, r.holdm, r.dca, r.dcaLo, r.dcaHi, r.dcam,
+                r.kh, r.khm, r.kd, r.nh, r.nhm, r.nd, btWin(r), r.names.join(' / '), (r.out || []).join(' / ')].map(q).join(',')));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));   // BOM: 엑셀에서 한글 안 깨지게
+  a.download = `v1-bt-log-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
 function btRender(){
-  $('out').innerHTML = btState.stocks.length ? btCombined() : '';
+  $('out').innerHTML = (btState.stocks.length ? btCombined() : '') + btLogCard();
+  const c = $('logCsv'); if(c) c.onclick = btLogCsv;
+  const x = $('logClr'); if(x) x.onclick = async () => { if(!confirm('누적 기록을 모두 지울까요? (먼저 CSV로 내보내 두는 것을 권장)')) return; btState.log = []; await btLogSave(); btRender(); };
   $('out').querySelectorAll('.lg3').forEach(el => el.onclick = e => {
     const b = e.target.closest('button'); if(!b) return;
     const k = b.dataset.k3, H3 = btState.hide3;
@@ -618,9 +726,12 @@ function btAxes(o, W, H, pl, pr, pt, pb, t0, t1, lo, hi, x, y, unit){
     await btLoadEngine();
     msg('');
     $('run').disabled = false;
+    await btLogLoad();
+    btRender();
   }catch(e){ msg('준비 실패: ' + (e && e.message ? e.message : e), true); }
   $('run').onclick = btRun;
   $('rand').onclick = btRandomFill;
+  $('moreBtn').onclick = () => btShowMore($('more').style.display === 'none');
   document.querySelectorAll('.code').forEach(i => { btBindSearch(i); i.onkeydown = e => { if(e.key === 'Enter') btRun(); }; });
 })();
 
