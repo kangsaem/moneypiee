@@ -7435,7 +7435,7 @@ const AN_LINES = [['5일', 'ma5'], ['20일', 'ma20'], ['5주', 'w5'], ['10주', 
 
 function anLegend(ch){
   const sw = k => `<i class="an-sw an-sw-${k}"></i>`;
-  const p = [`<span class="an-lgi">${sw('close')}${anE(ch.lastLabel || '최근 종가')}</span>`];
+  const p = [`<span class="an-lgi">${sw('close')}${anE(ch.lastLabel || '종가')}</span>`];
   for(let i = 0; i < AN_LINES.length; i += 2){
     const [la, a] = AN_LINES[i], [lb, b] = AN_LINES[i+1];
     if(!ch[a] && !ch[b]) continue;                      // 긴 기간(3·5년)은 일봉 이평 없음
