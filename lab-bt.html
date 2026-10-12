@@ -15,7 +15,7 @@ h1 small { color:var(--dim); font-weight:400; font-size:12px; margin-left:6px; }
 .row { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin:6px 0; }
 .row .lb { color:var(--dim); font-size:12px; width:74px; flex-shrink:0; }
 select, input[type=text] { font:inherit; height:28px; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:0 8px; }
-select { max-width:220px; } input[type=text] { width:110px; }
+select { max-width:220px; } input[type=text] { width:118px; }
 .tab { font:inherit; font-size:12px; height:26px; padding:0 10px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--dim); cursor:pointer; }
 .tab.on { background:var(--surface2); color:var(--text); border-color:#C9C9C9; }
 .go { font:inherit; font-size:12px; font-weight:700; height:28px; padding:0 14px; border-radius:6px; border:1px solid var(--lime); background:transparent; color:var(--lime); cursor:pointer; }
@@ -41,15 +41,19 @@ th { color:var(--dim); font-weight:500; } td.l, th.l { text-align:left; }
 details { margin-top:8px; } summary { cursor:pointer; color:var(--dim); font-size:12px; }
 .note { color:var(--dim); font-size:11.5px; margin-top:10px; line-height:1.6; }
 .note b { color:var(--text); font-weight:500; }
+h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:var(--dim); font-weight:400; font-size:11.5px; margin-left:4px; }
+.sub { color:var(--dim); font-size:11.5px; margin-bottom:6px; }
+.lg2 { display:flex; flex-wrap:wrap; gap:4px 10px; font-size:11px; color:var(--dim); margin-top:4px; } .lg2 i { display:inline-block; width:14px; vertical-align:middle; margin-right:4px; } .lg2 i.ar { height:8px; opacity:.45; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>V1 종목 백테스트 <small>종목 하나 · 그냥 보유 vs V1 매매 · 코스피·나스닥과 비교</small></h1>
+  <h1>V1 종목 백테스트 <small>종목 3개까지 · 그냥 보유 vs V1 매매 vs 적립식 · 코스피·나스닥과 비교</small></h1>
 
   <div class="row"><span class="lb">종목</span>
-    <select id="pick"><option value="">불러오는 중…</option></select>
-    <input type="text" id="code" placeholder="코드 직접 입력" autocomplete="off">
+    <input type="text" class="code" placeholder="코드 1 (예: 005930)" autocomplete="off">
+    <input type="text" class="code" placeholder="코드 2" autocomplete="off">
+    <input type="text" class="code" placeholder="코드 3" autocomplete="off">
     <button class="go" id="run" disabled>실행</button>
   </div>
   <div class="row"><span class="lb">기간</span><span data-g="per"></span></div>
@@ -64,6 +68,7 @@ details { margin-top:8px; } summary { cursor:pointer; color:var(--dim); font-siz
     (그해 기준금액 = 그해 첫 거래일 전날 계좌 평가액, 연중 고정). 현금이 모자라면 연 추가금 상한(그해 기준금액의 %) 안에서 넣고, 그래도 모자라면 있는 만큼만 산다.
     매도·전량 신호가 새로 켜지거나 손절(평균 매수가 -8% 이하 종가가 이틀 연속)이면 전량 판다.
     국내 종목·코스피는 신호 당일 종가, 해외 종목·나스닥은 다음 날 종가에 체결. 비용 매수 0.05% · 매도 0.25%, 쉬는 현금 이자 없음.<br>
+    <b>그냥 보유</b>는 시작일에 전부 사서 끝까지 들고 감(손절 없음). <b>적립식</b>은 V1·0%가 실제로 넣은 돈 전체를 매달 같은 금액으로 나눠, 매달 1·5·10·15·20번째 거래일 종가에 산 다섯 경우(영역 = 그 범위).<br>
     <b>그래프·총수익</b>은 추가금 효과를 뺀 시간가중 수익률. <b>넣은 돈 대비</b>·<b>연 환산(IRR)</b>은 실제로 넣은 돈 기준.<br>
     <b>지수에 V1 적용</b>은 지수를 사고판다고 가정(실제로는 지수 ETF). 코스피는 상대강도 비교 대상이 자기 자신(0)이라
     '과열 + 상대강도↓' 매도가 나오지 않음 → 주로 손절로만 판다. 나스닥은 S&P500 대비 상대강도를 씀.<br>
@@ -96,11 +101,11 @@ function btIrr(flows){
 }
 function btDays(a, b){ return (Date.UTC(+b.slice(0,4), +b.slice(5,7)-1, +b.slice(8,10)) - Date.UTC(+a.slice(0,4), +a.slice(5,7)-1, +a.slice(8,10))) / 864e5; }
 function btSimulate(dates, close, buyOn, sellOn, o){
-  const start = o.start || 0, buyPct = o.buyPct, cap = o.cap, sameDay = o.sameDay;
+  const start = o.start || 0, buyPct = o.buyPct, cap = o.cap, sameDay = o.sameDay, useStop = o.stop !== false;   // 그냥 보유 선은 stop:false(손절 없음)
   const n = dates.length;
   let cash = 1.0, sh = 0, entry = 0, costSum = 0, warn = false, lastBuy = -1;
   let units = 1.0, injYear = 0, year = dates[0].slice(0, 4), yearBase = 1.0;
-  const deposits = [], trades = [], nav = [], cashRatio = [];
+  const deposits = [], trades = [], nav = [], cashRatio = [], eqs = [], invc = [];
   let skips = 0, openTr = null;
   const buy = (i, amt) => {
     const p = close[i];
@@ -138,7 +143,7 @@ function btSimulate(dates, close, buyOn, sellOn, o){
     if(dates[i].slice(0, 4) !== year){ year = dates[i].slice(0, 4); yearBase = cash + sh * close[i - 1]; injYear = 0; }
     if(!sameDay && pending) execute(i, pending);
     pending = null;
-    if(sh > 0 && lastBuy !== i){
+    if(useStop && sh > 0 && lastBuy !== i){
       if(p <= entry * BT.STOP){ if(warn) sell(i, '손절'); else warn = true; }
       else warn = false;
     }
@@ -151,6 +156,7 @@ function btSimulate(dates, close, buyOn, sellOn, o){
     const eq = cash + sh * p;
     nav.push(eq / units);
     cashRatio.push(eq > 0 ? cash / eq : 1);
+    eqs.push(eq * 100); invc.push((1 + deposits.reduce((s2, d2) => s2 + d2[1], 0)) * 100);   // 평가액·누적 넣은 돈(원금 100 기준)
   }
   const end = cash + sh * close[n - 1];
   if(openTr) trades.push({ in: openTr.in, out: null, days: n - 1 - openTr.inI, buys: openTr.buys, ret: (sh * close[n - 1] * (1 - BT.SELL_COST) / costSum - 1) * 100, why: '보유 중' });
@@ -160,7 +166,7 @@ function btSimulate(dates, close, buyOn, sellOn, o){
   let peak = -Infinity, mdd = 0;
   nav.forEach(v => { peak = Math.max(peak, v); mdd = Math.min(mdd, v / peak - 1); });
   const done = trades.filter(x => x.out != null);
-  return { nav, trades, deposits, twr: (nav[n - 1] - 1) * 100, invested: invested * 100, end: end * 100, roc: (end / invested - 1) * 100,
+  return { nav, trades, deposits, eqs, invc, twr: (nav[n - 1] - 1) * 100, invested: invested * 100, end: end * 100, roc: (end / invested - 1) * 100,
            irr: btIrr(flows), mdd: mdd * 100, n_trades: done.length, win: done.length ? done.filter(x => x.ret > 0).length / done.length * 100 : null,
            cash: cashRatio.reduce((s, v) => s + v, 0) / n * 100, skips };
 }
@@ -229,6 +235,7 @@ async function btCachedSignals(key, bars, bench, label, onProg){
 // ---------------------------------------------------------------- 화면
 const $ = id => document.getElementById(id);
 const msg = (t, err) => { const m = $('msg'); m.textContent = t || ''; m.className = 'msg' + (err ? ' err' : ''); };
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function btTabs(){
   document.querySelectorAll('[data-g]').forEach(el => {
     const g = el.dataset.g;
@@ -238,35 +245,17 @@ function btTabs(){
       btSel[g] = b.dataset.v;
       try{ localStorage.setItem('mp-labbt', JSON.stringify(btSel)); }catch(err){}
       btTabs();
-      if(btState.sig) btRender();
+      if(btState.stocks.length) btRender();     // 신호는 저장돼 있어 계좌만 다시 계산(바로 끝남)
     };
   });
 }
-async function btList(){
-  const E = window.__eng, sel = $('pick');
-  let items = [];
-  try{
-    const res = await E.anDB.get('lastResult');
-    items = ((res && res.results) || []).filter(r => r.key).map(r => ({ key: r.key, name: r.hname || r.name, code: r.code, market: r.market }));
-  }catch(e){}
-  items.sort((a, b) => a.name.localeCompare(b.name));
-  sel.innerHTML = items.length ? '<option value="">V1 탭에서 분석한 종목</option>' + items.map((x, i) => `<option value="${i}">${escapeHtml(x.name)}</option>`).join('')
-                               : '<option value="">(V1 탭에서 먼저 분석하면 목록이 생김)</option>';
-  btState.items = items;
-}
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
-const btState = { items: [], sig: null, name: '', hide: new Set(['k50', 'k0', 'n50', 'n0']) };
+const btState = { stocks: [], idx: null, hide: new Set(['k50', 'k0', 'n50', 'n0']), tsel: {} };
 
-function btSpec(){
-  const E = window.__eng, code = $('code').value.trim().toUpperCase();
-  if(code){
-    const kr = E.anIsKrCode(code.replace(/\.(KS|KQ)$/, ''));
-    return { spec: kr ? E.anKrSpec(code.replace(/\.(KS|KQ)$/, '')) : E.anUsSpec(code), name: code, kr };
-  }
-  const it = btState.items[+$('pick').value];
-  if(!it) return null;
-  const kr = it.key.startsWith('kr:');
-  return { spec: kr ? E.anKrSpec(it.code) : E.anUsSpec(it.key.slice(3)), name: it.name, kr };
+function btSpecOf(raw){
+  const E = window.__eng, code = raw.trim().toUpperCase().replace(/\.(KS|KQ)$/, '');
+  if(!code) return null;
+  const kr = E.anIsKrCode(code);
+  return { spec: kr ? E.anKrSpec(code) : E.anUsSpec(raw.trim().toUpperCase()), name: code, kr };
 }
 const IDX_SPEC = () => {
   const E = window.__eng;
@@ -278,23 +267,24 @@ const IDX_SPEC = () => {
 };
 
 async function btRun(){
-  const E = window.__eng, s = btSpec();
-  if(!s){ msg('종목을 고르거나 코드를 입력하세요.', true); return; }
+  const E = window.__eng;
+  const specs = [...document.querySelectorAll('.code')].map(i => btSpecOf(i.value)).filter(Boolean).slice(0, 3);
+  if(!specs.length){ msg('종목 코드를 하나 이상 입력하세요.', true); return; }
   $('run').disabled = true;
   try{
     msg('시세 받는 중…');
     const ix = IDX_SPEC();
-    const [bars, kospi, spx, ndx] = await Promise.all([E.anGetBars(s.spec), E.anGetBars(ix.kospi), E.anGetBars(ix.spx), E.anGetBars(ix.ndx)]);
-    const prog = { s: 0, k: 0, n: 0 };
-    const show = () => msg(`신호 계산 중 · ${s.name} ${Math.round(prog.s * 100)}% · 코스피 ${Math.round(prog.k * 100)}% · 나스닥 ${Math.round(prog.n * 100)}%`);
+    const [kospi, spx, ndx, ...bars] = await Promise.all([E.anGetBars(ix.kospi), E.anGetBars(ix.spx), E.anGetBars(ix.ndx), ...specs.map(s => E.anGetBars(s.spec))]);
+    const prog = {};
+    const names = specs.map(s => s.name).concat(['코스피', '나스닥']);
+    const show = () => msg('신호 계산 중 · ' + names.map(nm => `${nm} ${Math.round((prog[nm] || 0) * 100)}%`).join(' · '));
     show();
-    const [ss, ks, ns] = await Promise.all([
-      btCachedSignals(s.spec.key, bars, s.kr ? kospi : spx, s.name, p => { prog.s = p; show(); }),
-      btCachedSignals('idx:kospi', kospi, kospi, '코스피', p => { prog.k = p; show(); }),
-      btCachedSignals('idx:ndx', ndx, spx, '나스닥', p => { prog.n = p; show(); })
-    ]);
-    btState.sig = { s: ss, k: ks, n: ns, kr: s.kr };
-    btState.name = s.name;
+    const jobs = specs.map((s, i) => btCachedSignals(s.spec.key, bars[i], s.kr ? kospi : spx, s.name, p => { prog[s.name] = p; show(); }));
+    jobs.push(btCachedSignals('idx:kospi', kospi, kospi, '코스피', p => { prog['코스피'] = p; show(); }));
+    jobs.push(btCachedSignals('idx:ndx', ndx, spx, '나스닥', p => { prog['나스닥'] = p; show(); }));
+    const sig = await Promise.all(jobs);
+    btState.stocks = specs.map((s, i) => ({ name: s.name, kr: s.kr, sig: sig[i] }));
+    btState.idx = { k: sig[specs.length], n: sig[specs.length + 1] };
     msg('');
     btRender();
   }catch(e){
@@ -310,75 +300,160 @@ const LINES = [
   ['k100', '코스피 보유', 'k', 1, false, 'var(--dn)', 'thin'], ['k50', '코스피 V1·50%', 'k', 0.5, true, 'var(--dn)', ''], ['k0', '코스피 V1·0%', 'k', 0, true, 'var(--dn)', 'dash'],
   ['n100', '나스닥 보유', 'n', 1, false, 'var(--amber)', 'thin'], ['n50', '나스닥 V1·50%', 'n', 0.5, true, 'var(--amber)', ''], ['n0', '나스닥 V1·0%', 'n', 0, true, 'var(--amber)', 'dash']
 ];
-function btRender(){
-  const G = btState.sig, per = +btSel.per, pct = +btSel.pct, cap = btSel.cap === 'inf' ? null : +btSel.cap;
-  const sd = G.s.dates, startDate = sd[Math.max(0, sd.length - per)];
-  const res = {};
-  LINES.forEach(([k, nm, a, st, v1]) => {
-    const S = G[a], i0 = S.dates.findIndex(d => d >= startDate);
-    if(i0 < 0) return;
-    const dates = S.dates.slice(i0), close = S.close.slice(i0);
-    const off = dates.map(() => false);
-    const sameDay = a === 's' ? G.kr : a === 'k';
-    res[k] = Object.assign(btSimulate(dates, close, v1 ? S.buy.slice(i0) : off, v1 ? S.sell.slice(i0) : off,
-                                      { start: st, buyPct: pct, cap, sameDay }), { dates, nm });
+const DCA_DAYS = [1, 5, 10, 15, 20];          // 매달 몇 번째 거래일에 살지(그달 거래일이 모자라면 마지막 거래일)
+
+// 적립식: V1·0%가 쓴 돈(원금+추가금) 전체를 매달 같은 금액으로 나눠, 매달 n번째 거래일 종가에 산다
+function btDca(dates, close, total, nth){
+  const months = new Map();
+  dates.forEach((d, i) => { const k = d.slice(0, 7); if(!months.has(k)) months.set(k, []); months.get(k).push(i); });
+  const buyIdx = new Set([...months.values()].map(a => a[Math.min(nth, a.length) - 1]));
+  const amt = total / buyIdx.size;
+  let sh = 0, inv = 0;
+  const eqs = [], invc = [], flows = [];
+  const t = i => btDays(dates[0], dates[i]) / 365.25;
+  dates.forEach((d, i) => {
+    if(buyIdx.has(i)){ sh += amt * (1 - BT.BUY_COST) / close[i]; inv += amt; flows.push([t(i), -amt]); }
+    eqs.push(sh * close[i] * 100); invc.push(inv * 100);
   });
-  btState.res = res;
+  const end = sh * close[close.length - 1];
+  flows.push([t(dates.length - 1), end]);
+  return { eqs, invc, end: end * 100, invested: total * 100, roc: (end / total - 1) * 100, irr: btIrr(flows) };
+}
+
+function btSim(S, i0, st, v1, sameDay, pct, cap){
+  const dates = S.dates.slice(i0), close = S.close.slice(i0), off = dates.map(() => false);
+  return Object.assign(btSimulate(dates, close, v1 ? S.buy.slice(i0) : off, v1 ? S.sell.slice(i0) : off,
+                                  { start: st, buyPct: pct, cap, sameDay, stop: v1 }), { dates });
+}
+
+function btRender(){
+  const per = +btSel.per, pct = +btSel.pct, cap = btSel.cap === 'inf' ? null : +btSel.cap;
   const P = v => v == null ? '-' : `<span class="${v > 0 ? 'up' : v < 0 ? 'dn' : ''}">${v >= 0 ? '+' : ''}${v.toFixed(1)}%</span>`;
   const N = v => v == null ? '-' : v.toFixed(0);
-  const rows = LINES.filter(([k]) => res[k]).map(([k, nm, a, st, v1, col, sty]) => {
-    const r = res[k];
-    return `<tr><td class="l"><i style="display:inline-block;width:12px;border-top:2px ${sty === 'dash' ? 'dashed' : 'solid'} ${col};${sty === 'thin' ? 'border-top-width:1px;' : ''}vertical-align:middle;margin-right:5px"></i>${nm}</td>
-      <td>${P(r.twr)}</td><td>${P(r.mdd)}</td><td>${N(r.invested)}</td><td>${N(r.end)}</td><td>${P(r.roc)}</td><td>${P(r.irr)}</td>
-      <td>${v1 ? r.n_trades : '-'}</td><td>${v1 && r.win != null ? r.win.toFixed(0) + '%' : '-'}</td><td>${v1 ? r.cash.toFixed(0) + '%' : '-'}</td></tr>`;
-  }).join('');
-  const tsel = btState.tsel && res[btState.tsel] ? btState.tsel : 's0';
-  const tr = (res[tsel] || { trades: [] }).trades.slice().reverse().map(x => `<tr><td class="l">${x.in}</td><td class="l">${x.out || '-'}</td><td>${x.days}</td><td>${x.buys}</td><td>${P(x.ret)}</td><td class="l">${x.why}</td></tr>`).join('');
-  $('out').innerHTML = `<div class="card">
-      <div class="lg">${LINES.filter(([k]) => res[k]).map(([k, nm, , , , col, sty]) => `<button data-k="${k}" class="${btState.hide.has(k) ? '' : 'on'}"><i class="${sty}" style="border-top-color:${col}"></i>${nm}</button>`).join('')}</div>
-      ${btChart(res)}
-    </div>
-    <div class="card tbl"><table><tr><th class="l">${escapeHtml(btState.name)} · ${startDate}~</th><th>총수익</th><th>최대 하락</th><th>넣은 돈</th><th>최종</th><th>넣은 돈 대비</th><th>연 환산</th><th>매매</th><th>승률</th><th>현금</th></tr>${rows}</table>
-      <div class="note" style="margin-top:6px">원금 100 기준. 그냥 보유는 시작일에 전부 사고 추가금 없음. 1회 매수 ${pct}% · 연 추가금 ${cap == null ? '무제한' : cap === 0 ? '금지' : cap + '%'}.</div></div>
-    <details class="card"><summary>매매 목록 · <select id="tsel">${LINES.filter(([k, , , , v1]) => v1 && res[k]).map(([k, nm]) => `<option value="${k}"${k === tsel ? ' selected' : ''}>${nm}</option>`).join('')}</select></summary>
-      <div class="tbl"><table><tr><th class="l">산 날</th><th class="l">판 날</th><th>보유일</th><th>매수 횟수</th><th>수익</th><th class="l">이유</th></tr>${tr || '<tr><td class="l" colspan="6">매매 없음</td></tr>'}</table></div></details>`;
-  $('out').querySelector('.lg').onclick = e => {
+  const R = (a, b2) => a == null ? '-' : (Math.abs(a - b2) < 0.05 ? P(a) : `${P(a)}~${P(b2)}`);
+  let html = '';
+  btState.stocks.forEach((st, si) => {
+    const G = { s: st.sig, k: btState.idx.k, n: btState.idx.n };
+    const sd = G.s.dates, startDate = sd[Math.max(0, sd.length - per)];
+    const res = {};
+    LINES.forEach(([k, nm, a, s0, v1]) => {
+      const S = G[a], i0 = S.dates.findIndex(d => d >= startDate);
+      if(i0 < 0) return;
+      res[k] = Object.assign(btSim(S, i0, s0, v1, a === 's' ? st.kr : a === 'k', pct, cap), { nm });
+    });
+    st.res = res;
+    // 적립식 3종(종목·코스피·나스닥) × 매수일 5가지 → 영역(가장 낮은~가장 높은)
+    const total = res.s0 ? res.s0.invested / 100 : 1;
+    const dca = {};
+    [['s', '종목'], ['k', '코스피'], ['n', '나스닥']].forEach(([a, nm]) => {
+      const S = G[a], i0 = S.dates.findIndex(d => d >= startDate);
+      if(i0 < 0) return;
+      const dates = S.dates.slice(i0), close = S.close.slice(i0);
+      dca[a] = { nm, dates, runs: DCA_DAYS.map(n => btDca(dates, close, total, n)) };
+    });
+    st.dca = dca;
+    const rows = LINES.filter(([k]) => res[k]).map(([k, nm, a, s0, v1, col, sty]) => {
+      const r = res[k];
+      return `<tr><td class="l"><i style="display:inline-block;width:12px;border-top:2px ${sty === 'dash' ? 'dashed' : 'solid'} ${col};${sty === 'thin' ? 'border-top-width:1px;' : ''}vertical-align:middle;margin-right:5px"></i>${nm}</td>
+        <td>${P(r.twr)}</td><td>${P(r.mdd)}</td><td>${N(r.invested)}</td><td>${N(r.end)}</td><td>${P(r.roc)}</td><td>${P(r.irr)}</td>
+        <td>${v1 ? r.n_trades : '-'}</td><td>${v1 && r.win != null ? r.win.toFixed(0) + '%' : '-'}</td><td>${v1 ? r.cash.toFixed(0) + '%' : '-'}</td></tr>`;
+    }).join('');
+    const dcaRows = Object.entries(dca).map(([a, D]) => {
+      const pick = f => D.runs.map(f), mn = xs => Math.min(...xs.filter(x => x != null)), mx = xs => Math.max(...xs.filter(x => x != null));
+      const ends = pick(r => r.end), rocs = pick(r => r.roc), irrs = pick(r => r.irr);
+      return `<tr><td class="l"><i style="display:inline-block;width:12px;height:8px;background:${a === 's' ? 'var(--up)' : a === 'k' ? 'var(--dn)' : 'var(--amber)'};opacity:.45;vertical-align:middle;margin-right:5px"></i>${D.nm} 적립식</td>
+        <td>${N(total * 100)}</td><td>${N(mn(ends))}~${N(mx(ends))}</td><td>${R(mn(rocs), mx(rocs))}</td><td>${R(mn(irrs), mx(irrs))}</td></tr>`;
+    }).join('');
+    const tsel = btState.tsel[si] && res[btState.tsel[si]] ? btState.tsel[si] : 's0';
+    const tr = (res[tsel] || { trades: [] }).trades.slice().reverse().map(x => `<tr><td class="l">${x.in}</td><td class="l">${x.out || '-'}</td><td>${x.days}</td><td>${x.buys}</td><td>${P(x.ret)}</td><td class="l">${x.why}</td></tr>`).join('');
+    const v0 = res.s0;
+    html += `<h2 class="sh">${escapeHtml(st.name)} <small>${startDate}~ · 1회 매수 ${pct}% · 연 추가금 ${cap == null ? '무제한' : cap === 0 ? '금지' : cap + '%'}</small></h2>
+      <div class="card">
+        <div class="lg">${LINES.filter(([k]) => res[k]).map(([k, nm, , , , col, sty]) => `<button data-k="${k}" class="${btState.hide.has(k) ? '' : 'on'}"><i class="${sty}" style="border-top-color:${col}"></i>${nm}</button>`).join('')}</div>
+        ${btChart(res)}
+      </div>
+      <div class="card tbl"><table><tr><th class="l">수익률(시간가중)</th><th>총수익</th><th>최대 하락</th><th>넣은 돈</th><th>최종</th><th>넣은 돈 대비</th><th>연 환산</th><th>매매</th><th>승률</th><th>현금</th></tr>${rows}</table></div>
+      <div class="card">
+        <div class="sub">같은 돈을 적립식으로 · V1·0%가 넣은 돈 ${N(total * 100)}을 매달 같은 금액으로 나눠 매달 1·5·10·15·20번째 거래일에 샀을 때(영역 = 다섯 경우의 범위)</div>
+        ${btChart2(v0, dca)}
+        <div class="tbl"><table><tr><th class="l">평가액(원금 100 기준)</th><th>넣은 돈</th><th>최종</th><th>넣은 돈 대비</th><th>연 환산</th></tr>
+          <tr><td class="l"><i style="display:inline-block;width:12px;border-top:2px solid var(--up);vertical-align:middle;margin-right:5px"></i>종목 V1·0%</td><td>${N(v0 && v0.invested)}</td><td>${N(v0 && v0.end)}</td><td>${P(v0 && v0.roc)}</td><td>${P(v0 && v0.irr)}</td></tr>${dcaRows}</table></div>
+      </div>
+      <details class="card" data-si="${si}"><summary>매매 목록 · <select class="tsel">${LINES.filter(([k, , , , v1]) => v1 && res[k]).map(([k, nm]) => `<option value="${k}"${k === tsel ? ' selected' : ''}>${nm}</option>`).join('')}</select></summary>
+        <div class="tbl"><table><tr><th class="l">산 날</th><th class="l">판 날</th><th>보유일</th><th>매수 횟수</th><th>수익</th><th class="l">이유</th></tr>${tr || '<tr><td class="l" colspan="6">매매 없음</td></tr>'}</table></div></details>`;
+  });
+  $('out').innerHTML = html;
+  $('out').querySelectorAll('.lg').forEach(el => el.onclick = e => {
     const b = e.target.closest('button'); if(!b) return;
     const k = b.dataset.k;
     if(btState.hide.has(k)) btState.hide.delete(k); else btState.hide.add(k);
     btRender();
-  };
-  const ts = $('tsel');
-  if(ts){ ts.onclick = e => e.stopPropagation(); ts.onchange = () => { btState.tsel = ts.value; btRender(); $('out').querySelector('details').open = true; }; }
+  });
+  $('out').querySelectorAll('details[data-si]').forEach(det => {
+    const ts = det.querySelector('.tsel'), si = +det.dataset.si;
+    ts.onclick = e => e.stopPropagation();
+    ts.onchange = () => { btState.tsel[si] = ts.value; btRender(); $('out').querySelector(`details[data-si="${si}"]`).open = true; };
+  });
 }
-function btChart(res){
-  const W = 660, H = 250, pl = 34, pr = 6, pt = 8, pb = 18;
-  const ms = d => Date.UTC(+d.slice(0,4), +d.slice(5,7)-1, +d.slice(8,10));
-  const shown = LINES.filter(([k]) => res[k] && !btState.hide.has(k));
-  if(!shown.length) return '<div class="msg">선을 하나 이상 켜세요.</div>';
-  let t0 = Infinity, t1 = -Infinity, lo = Infinity, hi = -Infinity;
-  shown.forEach(([k]) => { const r = res[k]; t0 = Math.min(t0, ms(r.dates[0])); t1 = Math.max(t1, ms(r.dates[r.dates.length - 1]));
-    r.nav.forEach(v => { lo = Math.min(lo, (v - 1) * 100); hi = Math.max(hi, (v - 1) * 100); }); });
-  lo = Math.min(lo, 0); hi = Math.max(hi, 0);
-  const mg = (hi - lo) * 0.05 || 1; lo -= mg; hi += mg;
-  const x = t => pl + (W - pl - pr) * (t - t0) / Math.max(t1 - t0, 1), y = v => pt + (H - pt - pb) * (1 - (v - lo) / (hi - lo));
-  const o = [`<svg class="ch" viewBox="0 0 ${W} ${H}">`];
-  const step = [10, 20, 25, 50, 100, 200, 500, 1000].find(s => (hi - lo) / s <= 6) || 2000;
+
+const btMs = d => Date.UTC(+d.slice(0,4), +d.slice(5,7)-1, +d.slice(8,10));
+function btAxes(o, W, H, pl, pr, pt, pb, t0, t1, lo, hi, x, y, unit){
+  const step = [5, 10, 20, 25, 50, 100, 200, 500, 1000, 2000].find(s => (hi - lo) / s <= 6) || 5000;
   for(let v = Math.ceil(lo / step) * step; v <= hi; v += step){
-    o.push(`<line class="${v === 0 ? 'zero' : 'grid'}" x1="${pl}" x2="${W - pr}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`);
-    o.push(`<text x="${pl - 4}" y="${(y(v) + 3).toFixed(1)}" text-anchor="end">${v}%</text>`);
+    o.push(`<line class="${unit === '%' && v === 0 ? 'zero' : 'grid'}" x1="${pl}" x2="${W - pr}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}"/>`);
+    o.push(`<text x="${pl - 4}" y="${(y(v) + 3).toFixed(1)}" text-anchor="end">${v}${unit}</text>`);
   }
   for(let yr = new Date(t0).getUTCFullYear() + 1; Date.UTC(yr, 0, 1) <= t1; yr++){
     const xv = x(Date.UTC(yr, 0, 1));
     o.push(`<line class="grid" x1="${xv.toFixed(1)}" x2="${xv.toFixed(1)}" y1="${pt}" y2="${H - pb}"/><text x="${(xv + 2).toFixed(1)}" y="${H - 5}">'${String(yr).slice(2)}</text>`);
   }
+}
+function btChart(res){
+  const W = 660, H = 250, pl = 34, pr = 6, pt = 8, pb = 18;
+  const shown = LINES.filter(([k]) => res[k] && !btState.hide.has(k));
+  if(!shown.length) return '<div class="msg">선을 하나 이상 켜세요.</div>';
+  let t0 = Infinity, t1 = -Infinity, lo = Infinity, hi = -Infinity;
+  shown.forEach(([k]) => { const r = res[k]; t0 = Math.min(t0, btMs(r.dates[0])); t1 = Math.max(t1, btMs(r.dates[r.dates.length - 1]));
+    r.nav.forEach(v => { lo = Math.min(lo, (v - 1) * 100); hi = Math.max(hi, (v - 1) * 100); }); });
+  lo = Math.min(lo, 0); hi = Math.max(hi, 0);
+  const mg = (hi - lo) * 0.05 || 1; lo -= mg; hi += mg;
+  const x = t => pl + (W - pl - pr) * (t - t0) / Math.max(t1 - t0, 1), y = v => pt + (H - pt - pb) * (1 - (v - lo) / (hi - lo));
+  const o = [`<svg class="ch" viewBox="0 0 ${W} ${H}">`];
+  btAxes(o, W, H, pl, pr, pt, pb, t0, t1, lo, hi, x, y, '%');
   shown.forEach(([k, , , , , col, sty]) => {
     const r = res[k];
-    const d = r.nav.map((v, i) => `${i ? 'L' : 'M'}${x(ms(r.dates[i])).toFixed(1)},${y((v - 1) * 100).toFixed(1)}`).join('');
+    const d = r.nav.map((v, i) => `${i ? 'L' : 'M'}${x(btMs(r.dates[i])).toFixed(1)},${y((v - 1) * 100).toFixed(1)}`).join('');
     o.push(`<path d="${d}" style="stroke:${col};stroke-width:${sty === 'thin' ? 1 : 1.6}px${sty === 'dash' ? ';stroke-dasharray:4 3' : ''}"/>`);
   });
   o.push('</svg>');
   return o.join('');
+}
+// 평가액 비교: V1·0% 평가액(선) · V1이 넣은 돈 누적(회색 점선) · 적립식 3종(영역: 매수일 다섯 경우의 최저~최고)
+function btChart2(v0, dca){
+  if(!v0) return '';
+  const W = 660, H = 230, pl = 34, pr = 6, pt = 8, pb = 18;
+  const ms = v0.dates.map(btMs);
+  let t0 = ms[0], t1 = ms[ms.length - 1], lo = 0, hi = Math.max(...v0.eqs, ...v0.invc);
+  Object.values(dca).forEach(D => D.runs.forEach(r => { hi = Math.max(hi, ...r.eqs); }));
+  hi *= 1.05;
+  const x = t => pl + (W - pl - pr) * (t - t0) / Math.max(t1 - t0, 1), y = v => pt + (H - pt - pb) * (1 - (v - lo) / (hi - lo));
+  const o = [`<svg class="ch" viewBox="0 0 ${W} ${H}">`];
+  btAxes(o, W, H, pl, pr, pt, pb, t0, t1, lo, hi, x, y, '');
+  [['n', 'var(--amber)'], ['k', 'var(--dn)'], ['s', 'var(--up)']].forEach(([a, col]) => {
+    const D = dca[a]; if(!D) return;
+    const n = D.dates.length, top = [], bot = [];
+    for(let i = 0; i < n; i++){
+      const vs = D.runs.map(r => r.eqs[i]);
+      top.push(`${x(btMs(D.dates[i])).toFixed(1)},${y(Math.max(...vs)).toFixed(1)}`);
+      bot.push(`${x(btMs(D.dates[i])).toFixed(1)},${y(Math.min(...vs)).toFixed(1)}`);
+    }
+    o.push(`<path d="M${top.join('L')}L${bot.reverse().join('L')}Z" style="fill:${col};fill-opacity:.28;stroke:none"/>`);
+  });
+  o.push(`<path d="${v0.invc.map((v, i) => `${i ? 'L' : 'M'}${x(ms[i]).toFixed(1)},${y(v).toFixed(1)}`).join('')}" style="stroke:#9A9BA1;stroke-width:1px;stroke-dasharray:3 3"/>`);
+  o.push(`<path d="${v0.eqs.map((v, i) => `${i ? 'L' : 'M'}${x(ms[i]).toFixed(1)},${y(v).toFixed(1)}`).join('')}" style="stroke:var(--up);stroke-width:1.8px"/>`);
+  o.push('</svg>');
+  return o.join('') + `<div class="lg2"><span><i style="border-top:2px solid var(--up)"></i>종목 V1·0% 평가액</span><span><i style="border-top:1px dashed #9A9BA1"></i>V1이 넣은 돈</span>
+    <span><i class="ar" style="background:var(--up)"></i>종목 적립식</span><span><i class="ar" style="background:var(--dn)"></i>코스피 적립식</span><span><i class="ar" style="background:var(--amber)"></i>나스닥 적립식</span></div>`;
 }
 
 (async () => {
@@ -386,13 +461,13 @@ function btChart(res){
   try{
     msg('머니파이 계산 코드 불러오는 중…');
     await btLoadEngine();
-    await btList();
     msg('');
     $('run').disabled = false;
   }catch(e){ msg('준비 실패: ' + (e && e.message ? e.message : e), true); }
   $('run').onclick = btRun;
-  $('code').onkeydown = e => { if(e.key === 'Enter') btRun(); };
+  document.querySelectorAll('.code').forEach(i => { i.onkeydown = e => { if(e.key === 'Enter') btRun(); }; });
 })();
+
 </script>
 </body>
 </html>
