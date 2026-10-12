@@ -6796,11 +6796,19 @@ function anIndexStateChip(v){
   return st ? `<span class="an-ist ${st.cls}" title="${anE(st.why)}">${anE(st.name)}</span>` : '';
 }
 
+// 지수 차트 = 기본 차트 + 200일선(전체 기록으로 계산해 차트 구간만 자름, 2026-10-13)
+function anIndexChartData(dates, s){
+  const ch = anChartData(dates, s, null), st = Math.max(0, dates.length - ch.close.length);
+  ch.ma200 = anRoll(s, 200).slice(st).map(v => anOk(v) ? v : null);
+  if(!ch.ma200.some(v => v != null)) ch.ma200 = null;
+  return ch;
+}
+
 function anIndexInfo(name, b){
   const s = b.close, n = s.length;
   const dd = anDisp(b.dates, s);
   return { name, close: s[n-1], chg: (s[n-1] / s[n-2] - 1) * 100, date: b.dates[n-1], state: anIndexState(b.dates, s),
-           chart: anChartData(b.dates, s, null), rsi: anRsi(s)[n-1],
+           chart: anIndexChartData(b.dates, s), rsi: anRsi(s)[n-1],
            disp: dd ? { cur: dd.cur, max: dd.max, min: dd.min, up: dd.up, down: dd.down } : null,
            from_high: (s[n-1] / Math.max(...s.slice(-250)) - 1) * 100 };
 }
@@ -7409,6 +7417,7 @@ function anLegend(ch){
     if(!ch[a] && !ch[b]) continue;                      // 긴 기간(3·5년)은 일봉 이평 없음
     p.push(`<span class="an-lgi">${sw(a)}${la} ${sw(b)}${lb}</span>`);
   }
+  if(ch.ma200) p.push(`<span class="an-lgi">${sw('ma200')}200일</span>`);
   if(ch.proj && Object.values(ch.proj).some(v => v)) p.push('<span class="an-lgn">점선 = 가격 유지 가정</span>');
   return `<div class="an-lg">${p.join('')}</div>`;
 }
@@ -7417,7 +7426,7 @@ function anLegend(ch){
 function anSvgChart(ch){
   try{
     if(!ch || !ch.close || ch.close.length < 5) return '';
-    const keys = AN_LINES.map(x => x[1]), close = ch.close, n = close.length;
+    const keys = AN_LINES.map(x => x[1]).concat(ch.ma200 ? ['ma200'] : []), close = ch.close, n = close.length;   // 200일선은 지수 차트만
     const proj = ch.proj || {}, fdates = ch.fdates || [];
     const F = Object.values(proj).some(v => v) ? fdates.length : 0, N = n + F;
     const W = 660, PH = 170, RH = ch.rsi ? 54 : 0, gap = RH ? 10 : 0, pl = 4, pt = 4, pb = 16;
@@ -8259,6 +8268,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-chart line { vector-effect:non-scaling-stroke; stroke-width:1px; }
 .an-ch-bg { fill:none; stroke:var(--border); } .an-ch-grid { stroke:var(--text-dim); stroke-dasharray:3 3; opacity:.5; }
 .an-ch-ma5 { stroke:var(--c5); } .an-ch-ma20 { stroke:var(--c20); } .an-ch-w5 { stroke:var(--cw5); } .an-ch-w10 { stroke:var(--cw10); }
+.an-ch-ma200 { stroke:#FF0000; } .an-sw-ma200 { background:#FF0000; }
 .an-ch-m5 { stroke:var(--cm5); } .an-ch-m10 { stroke:var(--cm10); } .an-ch-rsi { stroke:var(--text); }
 .an-lastdot { position:absolute; width:9px; height:9px; border-radius:50%; background:#FFFFFF; border:2px solid #1E1F22; box-shadow:0 0 0 1px rgba(255,255,255,0.35); transform:translate(-50%,-50%); box-sizing:border-box; pointer-events:none; } .an-chart path.an-ch-f { stroke-dasharray:3 3; } .an-ch-fc { fill:var(--text); opacity:.04; }
 .an-ch-vl { stroke:var(--text); opacity:.1; } .an-ch-mo { fill:var(--text-dim); font-size:9px; }
