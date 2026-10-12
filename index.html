@@ -6322,8 +6322,13 @@ function anBarMaProj(dates, c, n, rule, fut, todayVal){
   return anInterp(s);
 }
 
-function anChartData(dates, c, rs){
-  const st = Math.max(0, dates.length - AN.CHART_DAYS);
+// 차트 기간 탭(종목 세부 차트): [키, 이름, 거래일]. 6개월 = 분석 때 만든 r.chart, 나머지는 시세 캐시로 펼칠 때 계산
+const AN_CHART_PER = [['3m', '3개월', 63], ['6m', '6개월', 132], ['1y', '1년', 252], ['3y', '3년', 756], ['5y', '5년', 1260]];
+const AN_LONG_DAYS = 300;          // 이보다 긴 기간은 일봉 이평(5·20일)을 그리지 않고 세로선을 연 단위로
+
+function anChartData(dates, c, rs, days){
+  days = days || AN.CHART_DAYS;
+  const st = Math.max(0, dates.length - days), long = days > AN_LONG_DAYS;
   const cut = a => a.slice(st).map(v => anOk(v) ? v : null);
   const fut = anFuture(dates[dates.length-1]);
   const specs = [['w5', 5, 'W'], ['w10', 10, 'W'], ['m5', 5, 'M'], ['m10', 10, 'M']];
@@ -6335,7 +6340,7 @@ function anChartData(dates, c, rs){
   return {
     dates: dates.slice(st).map(anShort), close: c.slice(st), fdates: fut.map(anShort), proj,
     w5: cut(bm.w5), w10: cut(bm.w10), m5: cut(bm.m5), m10: cut(bm.m10),
-    ma5: cut(anRoll(c, 5)), ma20: cut(anRoll(c, 20)), rsi: rs ? cut(rs) : null
+    ma5: long ? null : cut(anRoll(c, 5)), ma20: long ? null : cut(anRoll(c, 20)), rsi: rs ? cut(rs) : null, days
   };
 }
 
@@ -7175,7 +7180,7 @@ function anHistBind(root){
 }
 
 // ------------------------------------------------------------------ 실행
-const anState = { running: false, done: 0, total: 0, result: null, loaded: false, html: null, openKeys: new Set(), view: 'report', filter: '' };
+const anState = { running: false, done: 0, total: 0, result: null, loaded: false, html: null, openKeys: new Set(), view: 'report', filter: '', chartPer: '6m' };
 
 function anTick(){
   anState.done++;
@@ -7269,6 +7274,7 @@ function anLegend(ch){
   const p = [`<span class="an-lgi">${sw('close')}오늘 종가</span>`];
   for(let i = 0; i < AN_LINES.length; i += 2){
     const [la, a] = AN_LINES[i], [lb, b] = AN_LINES[i+1];
+    if(!ch[a] && !ch[b]) continue;                      // 긴 기간(3·5년)은 일봉 이평 없음
     p.push(`<span class="an-lgi">${sw(a)}${la} ${sw(b)}${lb}</span>`);
   }
   if(ch.proj && Object.values(ch.proj).some(v => v)) p.push('<span class="an-lgn">점선 = 가격 유지 가정</span>');
@@ -7297,11 +7303,13 @@ function anSvgChart(ch){
     o.push(`<rect class="an-ch-bg" x="0" y="${pt}" width="${xr}" height="${PH}"/>`);
     if(F) o.push(`<rect class="an-ch-fc" x="${x(n-1).toFixed(1)}" y="${pt}" width="${(xr - x(n-1)).toFixed(1)}" height="${PH}"/>`);
     const alld = ch.dates.concat(fdates.slice(0, F));
+    const yearly = n > AN_LONG_DAYS;                    // 3·5년은 연 경계(\'24), 그 외는 월 경계(숫자)
     for(let i = 1; i < N; i++){
-      if(alld[i].slice(3, 5) !== alld[i-1].slice(3, 5)){
+      const a = yearly ? alld[i].slice(0, 2) : alld[i].slice(3, 5), b = yearly ? alld[i-1].slice(0, 2) : alld[i-1].slice(3, 5);
+      if(a !== b){
         const xv = x(i);
         o.push(`<line class="an-ch-vl" x1="${xv.toFixed(1)}" x2="${xv.toFixed(1)}" y1="${pt}" y2="${pt + PH}"/>`);
-        o.push(`<text class="an-ch-mo" x="${(xv + 2).toFixed(1)}" y="${pt + PH - 3}">${parseInt(alld[i].slice(3, 5), 10)}</text>`);
+        o.push(`<text class="an-ch-mo" x="${(xv + 2).toFixed(1)}" y="${pt + PH - 3}">${yearly ? "'" + a : parseInt(a, 10)}</text>`);
       }
     }
     keys.slice().reverse().forEach(k => {
@@ -7698,8 +7706,42 @@ function anBtBind(root){
   draw();
 }
 
+// 종목 세부 차트 + 기간 탭. 고른 기간은 모든 종목에 같이 적용(anState.chartPer)
+const anChartCache = new Map();
+async function anChartFor(r, per){
+  const p = AN_CHART_PER.find(x => x[0] === per);
+  if(!p || per === '6m' || !r.key) return r.chart;
+  const ck = r.key + '|' + per + '|' + r.last;
+  if(anChartCache.has(ck)) return anChartCache.get(ck);
+  const b = await anDB.get('bars3:' + r.key);
+  if(!b || !b.dates || b.dates.length < 30) return r.chart;
+  let dates = b.dates, close = b.close;
+  const k = dates.indexOf(r.last);
+  if(k >= 0){ dates = dates.slice(0, k + 1); close = close.slice(0, k + 1); }      // 분석한 날까지(이후 캐시가 갱신돼도 같은 그림)
+  else if(r.last > dates[dates.length - 1]){ dates = dates.concat([r.last]); close = close.concat([r.close]); }   // 오늘 종가를 실시간으로 붙인 경우
+  const ch = anChartData(dates, close, anRsi(close), p[2]);
+  anChartCache.set(ck, ch);
+  return ch;
+}
+function anChartTabs(per){
+  return `<div class="an-cper">${AN_CHART_PER.map(([k, nm]) => `<button type="button" data-cper="${k}"${k === per ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>`;
+}
+async function anDrawChartSlot(slot){
+  const r = anState.result && anState.result.results[parseInt(slot.dataset.anChart, 10)];
+  if(!r) return;
+  const per = anState.chartPer || '6m';
+  let ch = r.chart;
+  try{ ch = await anChartFor(r, per); }catch(e){}
+  slot.innerHTML = anChartTabs(per) + anSvgChart(ch);
+}
+
 function anBindRoot(root){
   anBtBind(root);
+  if(!root.dataset.cperBound) root.dataset.cperBound = '1', root.addEventListener('click', e => {                         // 차트 기간 탭: 펼쳐서 그려진 차트를 모두 그 기간으로
+    const b = e.target.closest('.an-cper button'); if(!b) return;
+    anState.chartPer = b.dataset.cper;
+    root.querySelectorAll('[data-an-chart][data-drawn]').forEach(sl => anDrawChartSlot(sl));
+  });
   const ca = root.querySelector('#anCloseAll');                 // 열린 아코디언(종목·지수·지표·Logic V1) 한 번에 닫기
   if(ca) ca.addEventListener('click', () => { root.querySelectorAll('details[open]').forEach(d => { d.open = false; }); anState.openKeys.clear(); });
   const ft = root.querySelector('#anFtabs');
@@ -7721,9 +7763,8 @@ function anBindRoot(root){
         anState.openKeys.add(key);
         const slot = det.querySelector('[data-an-chart]');
         if(slot && !slot.dataset.drawn && anState.result){       // 세부 차트는 펼칠 때만 그림
-          const r = anState.result.results[parseInt(slot.dataset.anChart, 10)];
-          if(r) slot.innerHTML = anSvgChart(r.chart);
           slot.dataset.drawn = '1';
+          anDrawChartSlot(slot);
         }
       } else anState.openKeys.delete(key);
     });
@@ -7990,6 +8031,8 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-det pre, .an-warn { white-space:pre-wrap; word-break:break-all; font-size:11.5px; line-height:1.55; margin:0; padding:2px 11px 11px; font-family:inherit; font-weight:500; color:var(--text); }
 .an-warn { background:var(--an-warnbg); border-radius:8px; padding:10px 12px; margin-top:14px; }
 .an-chwrap { padding:0 10px 6px; }
+.an-cper { display:flex; gap:3px; margin:2px 0 4px; } .an-cper button { font:inherit; font-size:11px; height:22px; padding:0 8px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-dim); cursor:pointer; }
+.an-cper button.on { background:var(--surface); color:var(--text); border-color:#C9C9C9; }
 .an-code { color:var(--text-dim); font-size:11px; }
 .an-rsi { font-size:11px; padding:1px 6px; border-radius:6px; background:var(--border); }
 .an-rsi.hot { background:var(--an-upbg); color:var(--an-up); } .an-rsi.cold { background:var(--an-dnbg); color:var(--an-dn); }
