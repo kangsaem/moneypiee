@@ -337,6 +337,11 @@ async function btRun(){
     const sig = await Promise.all(jobs);
     btState.stocks = specs.map((s, i) => ({ name: s.name, kr: s.kr, sig: sig[i] }));
     btState.idx = { k: sig[specs.length], n: sig[specs.length + 1] };
+    // 지수 장기 평균(최근 20년 연평균 수익률) — 가로선용. 21년치를 따로 받아 저장(가격 지수, 배당 제외)
+    const long = await Promise.all([
+      E.anGetBars({ key: 'idx21:kospi', market: 'KR', fetchers: [() => E.anFetchYahoo('^KS11', 21), () => E.anFetchNaver('KOSPI', 21)] }).catch(() => null),
+      E.anGetBars({ key: 'idx21:ndx', market: 'US', fetchers: [() => E.anFetchYahoo('^IXIC', 21)] }).catch(() => null)]);
+    btState.cagr20 = { k: btCagr(long[0], 20), n: btCagr(long[1], 20) };
     msg('');
     btRender();
   }catch(e){
@@ -358,6 +363,14 @@ const DCA_DAYS = [1, 5, 10, 15, 20];          // 매달 몇 번째 거래일에 
 // 코스피·나스닥 적립 = 종목 3개 V1이 넣은 돈 합계를 같은 방식으로. 보유 = 시작일에 그 합계를 한 번에.
 // 가로선 = 기간 끝 수익률: 종목 V1 평균, 코스피 보유, 나스닥 보유
 const COMB_COL = ['#E87BA4', '#B79CFF', '#7FD8BE'];
+// 최근 years년 연평균 수익률(%) — 받은 기록이 짧으면 있는 만큼으로(그 기간을 함께 돌려줌)
+function btCagr(b, years){
+  if(!b || !b.dates || b.dates.length < 300) return null;
+  const n = b.dates.length, last = b.dates[n - 1], from = String(+last.slice(0, 4) - years) + last.slice(4);
+  let i = b.dates.findIndex(d => d >= from); if(i < 0) i = 0;
+  const yrs = btDays(b.dates[i], last) / 365.25;
+  return yrs > 1 ? { pct: (Math.pow(b.close[n - 1] / b.close[i], 1 / yrs) - 1) * 100, yrs } : null;
+}
 function btPctPath(eqs, invc){ return eqs.map((v, i) => invc[i] > 0 ? (v / invc[i] - 1) * 100 : null); }
 function btAvgRuns(runs){                       // 적립 다섯 경우의 날짜별 평균 경로·끝 값
   const n = runs[0].eqs.length, eqs = [], invc = [];
@@ -392,14 +405,18 @@ function btCombined(){
     const h = btSimulate(dates, close, dates.map(() => false), dates.map(() => false), { start: 1, buyPct: pct, cap, sameDay: true, stop: false });
     const path = close.map(c => (c * (1 - BT.BUY_COST) / close[0] - 1) * 100);
     idxLines[a] = path[path.length - 1];
-    series.push({ k: a + 'h', nm: `${nm} 보유`, col, dash: false, thin: true, dates, path, inv: total * 100, end: total * 100 * (1 + path[path.length - 1] / 100),
+    series.push({ k: a + 'h', nm: nm, col, dash: false, thin: true, dates, path, inv: total * 100, end: total * 100 * (1 + path[path.length - 1] / 100),
                   roc: path[path.length - 1], irr: h.irr });
     const dc = btAvgRuns(DCA_DAYS.map(n => btDca(dates, close, total, n)));
     series.push({ k: a + 'd', nm: `${nm} 적립`, col, dash: true, thin: true, dates, path: btPctPath(dc.eqs, dc.invc), inv: total * 100, end: dc.end, roc: dc.roc, irr: dc.irr });
   });
   const v1s = series.filter(s => s.k[0] === 'v');
+  // 가로선: 종목 V1 평균(기간 끝) · 코스피·나스닥 '최근 20년 연평균 수익률'을 이 기간 길이로 쌓은 값(평소라면 이 기간에 이만큼)
+  const spanY = btDays(startDate, btState.stocks[0].sig.dates[btState.stocks[0].sig.dates.length - 1]) / 365.25;
+  const c20 = btState.cagr20 || {};
+  const avgLine = (c, nm, col) => c ? [`${nm} ${Math.round(c.yrs)}년 평균(연 ${c.pct.toFixed(1)}%)`, (Math.pow(1 + c.pct / 100, spanY) - 1) * 100, col] : [null, null];
   const hl = [['종목 V1 평균', v1s.reduce((s, x) => s + x.roc, 0) / Math.max(v1s.length, 1), '#E8ECF3'],
-              ['코스피 보유', idxLines.k, 'var(--dn)'], ['나스닥 보유', idxLines.n, 'var(--amber)']].filter(x => x[1] != null);
+              avgLine(c20.k, '코스피', 'var(--dn)'), avgLine(c20.n, '나스닥', 'var(--amber)')].filter(x => x[1] != null);
   const H3 = btState.hide3;
   const P = v => v == null ? '-' : `<span class="${v > 0 ? 'up' : v < 0 ? 'dn' : ''}">${v >= 0 ? '+' : ''}${v.toFixed(1)}%</span>`;
   const N = v => v == null ? '-' : v.toFixed(0);
@@ -407,12 +424,13 @@ function btCombined(){
   return `<h2 class="sh">종합 <small>${startDate}~ · 1회 매수 ${pct}% · 연 추가금 ${cap == null ? '무제한' : cap === 0 ? '금지' : cap + '%'} · 넣은 돈 대비 수익률</small></h2>
     <div class="card">
       <div class="lg lg3">${series.map(s => `<button data-k3="${s.k}" class="${H3.has(s.k) ? '' : 'on'}">${sw(s)}${escapeHtml(s.nm)}</button>`).join('')}
-        ${hl.map(([nm, v, col], i) => `<button data-k3="h${i}" class="${H3.has('h' + i) ? '' : 'on'}"><i style="display:inline-block;width:14px;vertical-align:middle;margin-right:4px;border-top:1px dotted ${col}"></i>${nm} 끝</button>`).join('')}</div>
+        ${hl.map(([nm, v, col], i) => `<button data-k3="h${i}" class="${H3.has('h' + i) ? '' : 'on'}"><i style="display:inline-block;width:14px;vertical-align:middle;margin-right:4px;border-top:1px dotted ${col}"></i>${nm}</button>`).join('')}</div>
       ${btChart3(series.filter(s => !H3.has(s.k)), hl.filter((x, i) => !H3.has('h' + i)))}
       <div class="tbl"><table><tr><th class="l">넣은 돈 대비 · 원금 기준</th><th>넣은 돈</th><th>최종</th><th>넣은 돈 대비</th><th>연 환산</th></tr>
         ${series.map(s => `<tr><td class="l">${sw(s)}${escapeHtml(s.nm)}</td><td>${N(s.inv)}</td><td>${N(s.end)}</td><td>${P(s.roc)}</td><td>${P(s.irr)}</td></tr>`).join('')}</table>
       <div class="note" style="margin-top:4px">종목 V1 = 종목마다 원금 100(현금)에서 시작 · 종목 적립 = 그 종목 V1이 넣은 돈을 매달 나눠 산 것(매달 1·5·10·15·20번째 거래일 다섯 경우 평균)
-        · 코스피·나스닥 적립·보유 = 세 종목 V1이 넣은 돈 합계(${N(total * 100)})로. 그래프 = 그날까지 넣은 돈 대비 수익률. 점선 가로선 = 기간 끝 수익률.</div></div>
+        · 코스피·나스닥(보유)·적립 = 세 종목 V1이 넣은 돈 합계(${N(total * 100)})로. 그래프 = 그날까지 넣은 돈 대비 수익률.
+        가로선 = 종목 V1 평균의 기간 끝 수익률 · 코스피·나스닥 최근 20년 연평균 수익률을 이 기간(${spanY.toFixed(1)}년)만큼 쌓은 값(가격 지수, 배당 제외).</div></div>
     </div>`;
 }
 function btChart3(series, hl){
@@ -522,7 +540,7 @@ function btRender(){
       <details class="card" data-si="${si}"><summary>매매 목록 · <select class="tsel">${LINES.filter(([k, , , , v1]) => v1 && res[k]).map(([k, nm]) => `<option value="${k}"${k === tsel ? ' selected' : ''}>${nm}</option>`).join('')}</select></summary>
         <div class="tbl"><table><tr><th class="l">산 날</th><th class="l">판 날</th><th>보유일</th><th>매수 횟수</th><th>수익</th><th class="l">이유</th></tr>${tr || '<tr><td class="l" colspan="6">매매 없음</td></tr>'}</table></div></details>`;
   });
-  $('out').innerHTML = (btState.stocks.length ? btCombined() : '') + html;
+  $('out').innerHTML = btState.stocks.length ? btCombined() : '';      // 종합 그래프 하나만(2026-10-12, 종목별 카드는 표시 안 함)
   $('out').querySelectorAll('.lg3').forEach(el => el.onclick = e => {
     const b = e.target.closest('button'); if(!b) return;
     const k = b.dataset.k3, H3 = btState.hide3;
