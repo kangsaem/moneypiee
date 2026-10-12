@@ -8123,7 +8123,7 @@ function anUpdateProgress(){
 // 분석 탭 패널이 그려질 때마다 호출
 function anMount(){
   const btn = document.getElementById('analysisBtn');
-  if(btn) btn.addEventListener('click', () => { anState.view = 'report'; runAnalysis(); });
+  if(btn) btn.addEventListener('click', () => { anState.view = 'report'; runAnalysis(); loadMarketData(true).catch(() => {}); });   // 돋보기 = 분석 + 맨 위 지수·경제지표 탭도 새로
   const hb = document.getElementById('analysisHistBtn');
   if(hb) hb.addEventListener('click', () => { anState.view = anState.view === 'history' ? 'report' : 'history'; anFillRoot(); });
   anUpdateProgress();
