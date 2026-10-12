@@ -6836,6 +6836,11 @@ async function anMarketSnapshot(isUS){
       const b = await anGetBars({ key: 'idx:' + key, market: mk, fetchers });
       snap.idx[key] = anIndexInfo(nm, b);
       if(key === 'kospi') snap.ks = anKs(b);
+      // 화면 숫자는 현재가(국내 = 네이버 실시간, 해외 = 야후). 상태 칩·차트·이격도·RSI는 마감 종가 기준 그대로
+      try{
+        if(nv){ const q = await fetchNaverIndex(nv); if(q && q.price > 0) snap.idx[key].live = { price: q.price, chg: anOk(q.changePct) ? q.changePct : null }; }
+        else { const q = await fetchYahooHoldingPrice(yh); if(q && q.price > 0) snap.idx[key].live = { price: q.price, chg: q.previousClose ? (q.price / q.previousClose - 1) * 100 : null }; }
+      }catch(e){}
     }catch(e){ snap.err.push(`${nm} (${e.message})`); }
   });
   [['vix', '^VIX', 'VIX'], ['y10', '^TNX', '미국채 10년']].forEach(([key, sym, nm]) => {
@@ -7605,9 +7610,10 @@ function anRenderResult(res){
   const idxHtml = [['kospi', 'KR'], ['kosdaq', 'KR'], ['spx', 'US'], ['ndx', 'US']].map(([k, mk]) => {
     const v = idx[k];
     if(!v) return '';
-    const ud = v.chg > 0 ? 'up' : v.chg < 0 ? 'dn' : '';
+    const px = v.live ? v.live.price : v.close, chg = v.live && anOk(v.live.chg) ? v.live.chg : v.chg;   // 현재가(받았으면), 없으면 마지막 종가
+    const ud = chg > 0 ? 'up' : chg < 0 ? 'dn' : '';
     return `<details class="an-idx" data-an-key="i:${k}"${anState.openKeys.has('i:' + k) ? ' open' : ''}><summary><span class="an-in">${anE(v.name)}</span>
-      <b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span>${anIndexStateChip(v)}
+      <b class="${ud}">${px.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(chg, 2)}%</span>${anIndexStateChip(v)}
       ${anOk(v.from_high) ? `<small>고점 ${anF(v.from_high, 1)}%</small>` : ''}</summary>${anIndexChart(v, true)}</details>`;
   }).join('');
 
