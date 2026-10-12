@@ -7601,11 +7601,12 @@ function anRenderResult(res){
   // 지수 4개 아코디언: 07:00~17:00 = 코스피만 펼침, 그 외 = 나스닥만 펼침
   const nowK = new Date(Date.now() + 9 * 3600e3), hm = nowK.getUTCHours() * 100 + nowK.getUTCMinutes();
   const krOpen = hm >= 700 && hm < 1700;
+  if(!anState.idxInit){ anState.idxInit = true; anState.openKeys.add('i:' + (krOpen ? 'kospi' : 'ndx')); }   // 처음 한 번만 기본 펼침, 그 뒤엔 사용자가 열고 닫은 그대로(돋보기 다시 눌러도 유지)
   const idxHtml = [['kospi', 'KR'], ['kosdaq', 'KR'], ['spx', 'US'], ['ndx', 'US']].map(([k, mk]) => {
     const v = idx[k];
     if(!v) return '';
     const ud = v.chg > 0 ? 'up' : v.chg < 0 ? 'dn' : '';
-    return `<details class="an-idx"${k === (krOpen ? 'kospi' : 'ndx') ? ' open' : ''}><summary><span class="an-in">${anE(v.name)}</span>
+    return `<details class="an-idx" data-an-key="i:${k}"${anState.openKeys.has('i:' + k) ? ' open' : ''}><summary><span class="an-in">${anE(v.name)}</span>
       <b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span>${anIndexStateChip(v)}
       ${anOk(v.from_high) ? `<small>고점 ${anF(v.from_high, 1)}%</small>` : ''}</summary>${anIndexChart(v, true)}</details>`;
   }).join('');
