@@ -74,7 +74,7 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
     매수 신호(매수·바닥·눌림·추세)가 새로 켜지면 사고, 매도·전량 신호가 새로 켜지거나 손절(종가가 평균 매수가 -8% 이하 이틀 연속, 산 날 제외)이면 그 종목 전량 판다.
     국내 종목은 신호 당일 종가, 해외 종목은 다음 거래일 종가에 체결. 비용 매수 0.05% · 매도 0.25%, 쉬는 현금 이자 없음.<br>
     <b>코스피·나스닥 보유</b>(주 비교) = 같은 날 같은 돈을 지수에 한 번에. <b>그냥 보유</b> = 같은 날 종목마다 같은 금액을 사서 끝까지(손절 없음).
-    <b>적립</b>(참고) = 같은 돈을 매달 같은 금액으로 나눠 매달 1·5·10·15·20·25번째 거래일 종가에 산 여섯 경우(그래프는 평균, 표는 범위). 적립 그래프는 그날까지 넣은 돈 대비.<br>
+    <b>적립</b>(참고) = 같은 돈을 매달 같은 금액으로 나눠 매달 1·5·10·15·20·25번째 거래일 종가에 산 여섯 경우(그래프는 평균, 표는 범위). 아직 안 넣은 돈은 현금으로 들고 있는 것으로 봐서, 그래프도 V1처럼 처음부터 전체 금액 기준.<br>
     신호는 매일 그날까지의 시세로 다시 계산(미래 정보 없음). 처음 실행은 종목마다 1~2분 걸리고, 계산한 신호는 이 기기에 저장돼 다음부터 빠르다.
   </div>
 </div>
@@ -428,17 +428,17 @@ function btCagr(b, years){
   const yrs = btDays(b.dates[i], last) / 365.25;
   return yrs > 1 ? { pct: (Math.pow(b.close[n - 1] / b.close[i], 1 / yrs) - 1) * 100, yrs } : null;
 }
-function btPctPath(eqs, invc){ return eqs.map((v, i) => invc[i] > 0 ? (v / invc[i] - 1) * 100 : null); }
 function btAvgRuns(runs){                       // 적립 여섯 경우의 날짜별 평균 경로·끝 값
-  const n = runs[0].eqs.length, eqs = [], invc = [];
-  for(let i = 0; i < n; i++){ eqs.push(runs.reduce((s, r) => s + r.eqs[i], 0) / runs.length); invc.push(runs.reduce((s, r) => s + r.invc[i], 0) / runs.length); }
+  const n = runs[0].eqs.length, eqs = [], invc = [], whole = [];
+  const mean = (k, i) => runs.reduce((s, r) => s + r[k][i], 0) / runs.length;
+  for(let i = 0; i < n; i++){ eqs.push(mean('eqs', i)); invc.push(mean('invc', i)); whole.push(runs[0].whole ? mean('whole', i) : null); }
   const avg = k => { const xs = runs.map(r => r[k]).filter(x => x != null); return xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null; };
   const rg = k => { const xs = runs.map(r => r[k]).filter(x => x != null); return xs.length ? [Math.min(...xs), Math.max(...xs)] : null; };
-  return { eqs, invc, end: avg('end'), roc: avg('roc'), irr: avg('irr'), rg: { end: rg('end'), roc: rg('roc'), irr: rg('irr'), mdd: rg('mdd') } };
+  return { eqs, invc, whole, end: avg('end'), roc: avg('roc'), irr: avg('irr'), rg: { end: rg('end'), roc: rg('roc'), irr: rg('irr'), mdd: rg('mdd') } };
 }
 function btMdd(eqs){ let peak = -Infinity, m = 0; eqs.forEach(v => { if(v > 0){ peak = Math.max(peak, v); m = Math.min(m, v / peak - 1); } }); return m * 100; }
 // 적립(여러 종목): 넣을 돈 total을 매달 같은 금액으로 나눠 매달 n번째 거래일 종가에 그날 가격 있는 종목 전부 균등. 팔지 않음
-// pxs = 종목별 가격(쉬는 날은 마지막 가격) · 평가액 = 산 주식 + 아직 안 넣은 돈(최대 하락용) · 그래프는 그날까지 넣은 돈 대비
+// pxs = 종목별 가격(쉬는 날은 마지막 가격) · whole = 산 주식 + 아직 안 넣은 돈(현금) → 그래프·최대 하락 모두 처음 넣을 돈 전체(100×n) 기준
 function btDcaMulti(dates, pxs, total, nth){
   const months = new Map();
   dates.forEach((d, i) => { const k = d.slice(0, 7); if(!months.has(k)) months.set(k, []); months.get(k).push(i); });
@@ -459,7 +459,7 @@ function btDcaMulti(dates, pxs, total, nth){
   });
   const end = eqs[eqs.length - 1] / 100;
   flows.push([t(dates.length - 1), end]);
-  return { eqs, invc, end: end * 100, roc: (end / total - 1) * 100, irr: btIrr(flows), mdd: btMdd(whole) };
+  return { eqs, invc, whole, end: end * 100, roc: (end / total - 1) * 100, irr: btIrr(flows), mdd: btMdd(whole) };
 }
 // 종목 기록 → 합집합 날짜에 맞춘 배열(쉬는 날 null, ffill = 쉬는 날은 직전 가격, 시작일 전 가격도 씀)
 function btAlign(S, dates){
@@ -494,7 +494,7 @@ function btCombined(){
   series.push({ k: 'h', nm: `${nA === 1 ? '종목' : nA + '종목'} 보유`, col: '#E8ECF3', thin: true, dates, path: hold.map(x => (x - 1) * 100),
                 inv: 100 * nA, end: hold[hold.length - 1] * 100 * nA, roc: (hold[hold.length - 1] - 1) * 100, irr: cg(hold[hold.length - 1]), mdd: btMdd(hold) });
   const dc = btAvgRuns(DCA_DAYS.map(n => btDcaMulti(dates, al.map(A => A.ff), total, n)));
-  series.push({ k: 'd', nm: `${nA === 1 ? '종목' : nA + '종목'} 적립`, col: COMB_COL[0], dash: true, dates, path: btPctPath(dc.eqs, dc.invc),
+  series.push({ k: 'd', nm: `${nA === 1 ? '종목' : nA + '종목'} 적립`, col: COMB_COL[0], dash: true, dates, path: dc.whole.map(w => (w / (100 * nA) - 1) * 100),
                 inv: 100 * nA, end: dc.end, roc: dc.roc, irr: dc.irr, rg: dc.rg });
   [['k', '코스피', 'var(--dn)'], ['n', '나스닥', 'var(--amber)']].forEach(([a, nm, col]) => {
     const S = btState.idx[a], i0 = S.dates.findIndex(d => d >= startDate);
@@ -504,7 +504,7 @@ function btCombined(){
     series.push({ k: a + 'h', nm: `${nm} 보유`, col, dates: ds, path: g.map(x => (x - 1) * 100), inv: 100 * nA, end: g[g.length - 1] * 100 * nA,
                   roc: (g[g.length - 1] - 1) * 100, irr: cg(g[g.length - 1]), mdd: btMdd(g) });
     const dk = btAvgRuns(DCA_DAYS.map(n => btDcaMulti(ds, [close], total, n)));
-    series.push({ k: a + 'd', nm: `${nm} 적립`, col, dash: true, thin: true, dates: ds, path: btPctPath(dk.eqs, dk.invc), inv: 100 * nA, end: dk.end, roc: dk.roc, irr: dk.irr, rg: dk.rg });
+    series.push({ k: a + 'd', nm: `${nm} 적립`, col, dash: true, thin: true, dates: ds, path: dk.whole.map(w => (w / (100 * nA) - 1) * 100), inv: 100 * nA, end: dk.end, roc: dk.roc, irr: dk.irr, rg: dk.rg });
   });
   // 가로선: V1 묶음 기간 끝 수익률 · 코스피·나스닥 최근 20년 연평균을 이 기간 길이만큼 쌓은 값
   const c20 = btState.cagr20 || {};
@@ -530,7 +530,7 @@ function btCombined(){
       <div class="tbl"><table><tr><th class="l">넣은 돈 대비</th><th>넣은 돈</th><th>최종</th><th>넣은 돈 대비</th><th>연 환산</th><th>최대 하락</th></tr>
         ${series.map(s => `<tr><td class="l">${sw(s)}${escapeHtml(s.nm)}</td><td>${N(s.inv)}</td><td>${s.rg ? NR(s.rg.end) : N(s.end)}</td><td>${s.rg ? PR(s.rg.roc) : P(s.roc)}</td><td>${s.rg ? PR(s.rg.irr) : P(s.irr)}</td><td>${s.rg ? PR(s.rg.mdd) : P(s.mdd)}</td></tr>`).join('')}</table></div>
       <div class="note" style="margin-top:4px">V1 묶음 = 매매 ${v.n_trades}번 · 승률 ${v.win == null ? '-' : v.win.toFixed(0) + '%'} · 손절 ${v.n_stop}번 · 평균 현금 ${v.cash.toFixed(0)}% · 건너뛴 매수: 상한 ${v.skipCap}번 · 현금 부족 ${v.skipCash}번.
-        보유·지수 보유 = 같은 날 ${100 * nA}을 한 번에 · 적립 = ${100 * nA}을 매달 나눠(그래프는 여섯 경우 평균, 표는 범위, 연 환산은 넣은 시점 기준이라 참고만).
+        보유·지수 보유 = 같은 날 ${100 * nA}을 한 번에 · 적립 = ${100 * nA}을 매달 나눠(아직 안 넣은 돈은 현금으로 포함해 ${100 * nA} 기준 · 그래프는 여섯 경우 평균, 표는 범위 · 연 환산은 넣은 시점 기준이라 참고만).
         가로선 = V1 묶음 기간 끝 수익률 · 코스피·나스닥 최근 20년 연평균을 이 기간(${yrs.toFixed(1)}년)만큼 쌓은 값(가격 지수, 배당 제외).</div>
     </div>
     <div class="card tbl"><table><tr><th class="l">종목별</th><th>끝난 매매</th><th>승률</th><th>판 이유 신호/손절</th><th>지금</th></tr>${perStock}</table></div>
