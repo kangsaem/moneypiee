@@ -8088,9 +8088,9 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sw-w5 { background:var(--cw5); } .an-sw-w10 { background:var(--cw10); } .an-sw-m5 { background:var(--cm5); } .an-sw-m10 { background:var(--cm10); }
 .an-svgbox { position:relative; }
 .an-sigdot { position:absolute; width:9px; height:9px; border-radius:50%; transform:translate(-50%,-50%); box-sizing:border-box; border:1.5px solid #1E1F22; cursor:pointer; z-index:1; }
-.an-sigdot.buy { background:#FF4D5E; } .an-sigdot.sell { background:#3D8BFF; }
+.an-sigdot.buy { background:var(--an-up, #E87BA4); } .an-sigdot.sell { background:var(--an-dn, #5FB8E0); }
 .an-sigdot::after { content:''; position:absolute; inset:-8px; border-radius:50%; }   /* 손가락으로 누르기 쉽게 */
-.an-chart line.an-ch-sv { stroke-dasharray:2 3; opacity:.75; } .an-chart line.an-ch-sv.buy { stroke:#FF4D5E; } .an-chart line.an-ch-sv.sell { stroke:#3D8BFF; }
+.an-chart line.an-ch-sv { stroke-dasharray:2 3; opacity:.75; } .an-chart line.an-ch-sv.buy { stroke:var(--an-up, #E87BA4); } .an-chart line.an-ch-sv.sell { stroke:var(--an-dn, #5FB8E0); }
 .an-chart line.an-ch-sh { stroke:#9A9BA1; stroke-dasharray:3 3; }
 .an-lastlbl { position:absolute; transform:translateY(-100%); font-size:11px; font-weight:700; line-height:1; white-space:nowrap; color:var(--text); text-shadow:0 0 3px var(--surface2),0 0 3px var(--surface2),0 0 2px var(--surface2); pointer-events:none; }
 .an-chart { width:100%; height:auto; display:block; }
