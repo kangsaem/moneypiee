@@ -41,6 +41,10 @@ th { color:var(--dim); font-weight:500; } td.l, th.l { text-align:left; }
 details { margin-top:8px; } summary { cursor:pointer; color:var(--dim); font-size:12px; }
 .note { color:var(--dim); font-size:11.5px; margin-top:10px; line-height:1.6; }
 .note b { color:var(--text); font-weight:500; }
+.acw { position:relative; display:inline-block; }
+.acl { position:absolute; left:0; top:100%; z-index:20; min-width:220px; max-width:300px; background:#EDEDED; color:#333; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,.4); overflow:hidden; margin-top:2px; }
+.acl div { padding:8px 10px; font-size:13px; cursor:pointer; border-bottom:1px solid #C9C9C9; display:flex; justify-content:space-between; gap:8px; }
+.acl div:hover { background:#E0E0E0; } .acl small { font-size:10px; color:#888; white-space:nowrap; }
 h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:var(--dim); font-weight:400; font-size:11.5px; margin-left:4px; }
 .sub { color:var(--dim); font-size:11.5px; margin-bottom:6px; }
 .lg2 { display:flex; flex-wrap:wrap; gap:4px 10px; font-size:11px; color:var(--dim); margin-top:4px; } .lg2 i { display:inline-block; width:14px; vertical-align:middle; margin-right:4px; } .lg2 i.ar { height:8px; opacity:.45; }
@@ -51,9 +55,9 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
   <h1>V1 종목 백테스트 <small>종목 3개까지 · 그냥 보유 vs V1 매매 vs 적립식 · 코스피·나스닥과 비교</small></h1>
 
   <div class="row"><span class="lb">종목</span>
-    <input type="text" class="code" placeholder="코드 1 (예: 005930)" autocomplete="off">
-    <input type="text" class="code" placeholder="코드 2" autocomplete="off">
-    <input type="text" class="code" placeholder="코드 3" autocomplete="off">
+    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 1" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 2" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 3" autocomplete="off"></span>
     <button class="go" id="run" disabled>실행</button>
   </div>
   <div class="row"><span class="lb">기간</span><span data-g="per"></span></div>
@@ -177,10 +181,13 @@ async function btLoadEngine(){
   const txt = await (await fetch('index.html', { cache: 'no-store' })).text();
   const cut = (a, b) => { const i = txt.indexOf(a), j = txt.indexOf(b, i); if(i < 0 || j < 0) throw new Error('머니파이 코드에서 ' + a + ' 를 찾지 못함'); return txt.slice(i, j); };
   const net = cut('function fetchWithTimeout(', '// 이전 이름으로 부르던 곳들과의 호환');
+  // 종목 검색(머니파이 종목 추가 화면과 같은 네이버 자동완성) + 해외 종목 야후 심볼 찾기
+  const srch = 'const fetchYahooProxied = fetchViaProxy;\n' + cut('async function fetchYahooHoldingPrice(', '// price/previousClose로')
+    + cut('const NATION_YAHOO_SUFFIX', 'let fxRateCache') + cut('function regionFromTypeName(', 'async function fetchStockNameByCode(');
   ENG.code = cut('const AN = {', 'const anState = {');
   const s = document.createElement('script');
   s.textContent = 'function escapeHTML(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }\n' + net + '\n' + ENG.code +
-    '\nwindow.__eng = { anGetBars, anKrSpec, anUsSpec, anFetchNaver, anFetchYahoo, anIsKrCode, anDB, AN };';
+    '\n' + srch + '\nwindow.__eng = { anGetBars, anKrSpec, anUsSpec, anFetchNaver, anFetchYahoo, anIsKrCode, anDB, AN, searchNaverAutocomplete, resolveYahooPrice };';
   document.head.appendChild(s);
   if(!window.__eng) throw new Error('머니파이 계산 코드를 불러오지 못함');
   ENG.ready = true;
@@ -266,9 +273,53 @@ const IDX_SPEC = () => {
   };
 };
 
+// 입력칸 → 시세 조회 방법. 검색 목록에서 고른 종목이면 그 코드(해외는 야후 심볼을 찾아서), 아니면 입력한 코드 그대로
+async function btSpecOfInput(inp){
+  const E = window.__eng, it = inp._sel;
+  if(it && inp.value === it.name){
+    if(it.region !== 'overseas') return { spec: E.anKrSpec(it.code), name: it.name, kr: true };
+    const r = await E.resolveYahooPrice(it.code, 'overseas', it.query, it.nationName).catch(() => null);
+    if(!r || !r.symbol) throw new Error(it.name + ' 해외 시세 심볼을 찾지 못함');
+    return { spec: E.anUsSpec(r.symbol), name: it.name, kr: false };
+  }
+  return btSpecOf(inp.value);
+}
+function btBindSearch(inp){
+  const E = () => window.__eng, holder = document.createElement('div');
+  holder.className = 'acl'; holder.style.display = 'none';
+  inp.parentNode.appendChild(holder);
+  let timer = null, token = 0;
+  const close = () => { holder.style.display = 'none'; holder.innerHTML = ''; };
+  inp.addEventListener('input', () => {
+    inp._sel = null;
+    clearTimeout(timer);
+    const q = inp.value.trim();
+    if(!q || (!/[가-힣]/.test(q) && q.length < 2)){ close(); return; }      // 한글은 바로, 그 외는 2글자부터(머니파이와 같음)
+    const my = ++token;
+    timer = setTimeout(async () => {
+      let items = [];
+      try{ items = await E().searchNaverAutocomplete(q); }catch(e){}
+      if(my !== token) return;
+      items = items.filter(x => x.code).slice(0, 8);
+      if(!items.length){ close(); return; }
+      holder.innerHTML = items.map((x, i) => `<div data-i="${i}"><span>${escapeHtml(x.name)}</span><small>${x.region === 'overseas' ? escapeHtml(x.nationName || '해외') : escapeHtml(x.code)}${x.isEtf ? ' · ETF' : ''}</small></div>`).join('');
+      holder.style.display = '';
+      holder.onclick = e => {
+        const d = e.target.closest('[data-i]'); if(!d) return;
+        const x = items[+d.dataset.i];
+        inp.value = x.name; inp._sel = Object.assign({ query: q }, x);
+        close();
+      };
+    }, 300);
+  });
+  document.addEventListener('click', e => { if(!inp.parentNode.contains(e.target)) close(); });
+}
+
 async function btRun(){
   const E = window.__eng;
-  const specs = [...document.querySelectorAll('.code')].map(i => btSpecOf(i.value)).filter(Boolean).slice(0, 3);
+  let specs;
+  try{ specs = (await Promise.all([...document.querySelectorAll('.code')].map(btSpecOfInput))).filter(Boolean).slice(0, 3); }
+  catch(e){ msg(e.message, true); return; }
   if(!specs.length){ msg('종목 코드를 하나 이상 입력하세요.', true); return; }
   $('run').disabled = true;
   try{
@@ -465,7 +516,7 @@ function btChart2(v0, dca){
     $('run').disabled = false;
   }catch(e){ msg('준비 실패: ' + (e && e.message ? e.message : e), true); }
   $('run').onclick = btRun;
-  document.querySelectorAll('.code').forEach(i => { i.onkeydown = e => { if(e.key === 'Enter') btRun(); }; });
+  document.querySelectorAll('.code').forEach(i => { btBindSearch(i); i.onkeydown = e => { if(e.key === 'Enter') btRun(); }; });
 })();
 
 </script>
