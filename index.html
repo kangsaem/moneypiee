@@ -7033,9 +7033,9 @@ const AN_HIST_STOP = 8;
 const AN_HB = { ok: '<i class="an-hb ok" title="성공" data-hb="성공">✓</i>', bad: '<i class="an-hb bad" title="실패" data-hb="실패">✕</i>',
                 stop: '<i class="an-hb stop" title="손절" data-hb="손절">✕</i>', wait: '<i class="an-hg" title="진행중" data-hb="진행중">⏳</i>' };
 // 아이콘 뜻 팝업: 확인 버튼 없이, 아무 데나 누르면 닫힘. 알림창 색 그대로, 둥근 정사각형
-function anHbPop(txt){
+function anHbPop(txt, wide){
   const m = document.createElement('div');
-  m.className = 'an-hbpop';
+  m.className = 'an-hbpop' + (wide ? ' wide' : '');
   m.innerHTML = `<div>${anE(txt)}</div>`;
   const close = () => { m.remove(); document.removeEventListener('click', close, true); };
   document.body.appendChild(m);
@@ -7316,6 +7316,15 @@ function anSvgChart(ch){
       o.push(`<path class="an-ch-${k}" d="${anPath(ch[k] || [], x, y)}"/>`);
       if(F && proj[k]) o.push(`<path class="an-ch-${k} an-ch-f" d="${anPath(proj[k], i => x(n - 1 + i), y)}"/>`);
     });
+    // 신호추적 기록의 매수·매도 신호: 신호일 세로 점선(날짜 축까지) + 그 가격에서 오른쪽 21거래일 회색 점선, 원은 HTML(크기 고정·누르면 팝업)
+    let marks = '';
+    (ch.marks || []).forEach(mk => {
+      if(mk.i == null || mk.i < 0 || mk.i >= n || !anOk(mk.price)) return;
+      const xv = x(mk.i), yv = y(mk.price), xe = x(Math.min(mk.i + 21, n - 1));
+      o.push(`<line class="an-ch-sv ${mk.side}" x1="${xv.toFixed(1)}" x2="${xv.toFixed(1)}" y1="${pt}" y2="${H - pb + 4}"/>`);
+      if(xe > xv) o.push(`<line class="an-ch-sh" x1="${xv.toFixed(1)}" x2="${xe.toFixed(1)}" y1="${yv.toFixed(1)}" y2="${yv.toFixed(1)}"/>`);
+      marks += `<span class="an-sigdot ${mk.side}" style="left:${(xv / W * 100).toFixed(2)}%;top:${(yv / H * 100).toFixed(2)}%" title="${anE(mk.tip)}" data-sig="${anE(mk.tip)}"></span>`;
+    });
     const ly = y(close[n-1]);
     const lastTxt = anPrice(close[n-1]);
     // 점 바로 오른쪽. 좁은 화면에서 오른쪽 끝을 넘으면 넘는 만큼만 안쪽으로 당김
@@ -7338,7 +7347,7 @@ function anSvgChart(ch){
       if(last != null) o.push(`<text class="an-ch-last an-ch-in" x="${tx}" y="${(y2(last) + 3).toFixed(1)}" text-anchor="end">RSI ${last.toFixed(0)}</text>`);
     }
     o.push('</svg>');
-    return anLegend(ch) + '<div class="an-svgbox">' + o.join('') + lbl + '</div>';
+    return anLegend(ch) + '<div class="an-svgbox">' + o.join('') + marks + lbl + '</div>';
   }catch(e){
     return `<div class="an-none">차트를 그리지 못했습니다 (${anE(e.message)})</div>`;
   }
@@ -7726,18 +7735,50 @@ async function anChartFor(r, per){
 function anChartTabs(per){
   return `<div class="an-cper">${AN_CHART_PER.map(([k, nm]) => `<button type="button" data-cper="${k}"${k === per ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>`;
 }
+// 이 종목의 신호추적(실전 기록) → 차트 위 표시. 기록이 없는 기간엔 아무것도 없음(백테스트 재계산 신호는 쓰지 않음)
+let anTrackCache = null;                      // { at: 분석 시각, by: Map(code → 추적 목록) }
+async function anTracksFor(r){
+  const at = anState.result && anState.result.at;
+  if(!anTrackCache || anTrackCache.at !== at){
+    const all = (await anDB.get('hist')) || {};
+    const recs = Object.values(all).sort((a, b) => (a.time < b.time ? -1 : 1));
+    anTrackCache = { at, recs, by: new Map() };
+  }
+  if(!anTrackCache.by.has(r.code)){
+    const bars = {};
+    if(r.key) bars[r.key] = await anDB.get('bars3:' + r.key);
+    const recs = anTrackCache.recs.map(rec => Object.assign({}, rec, { items: (rec.items || []).filter(it => it.code === r.code) }));
+    anTrackCache.by.set(r.code, anHistTrack(recs, bars).filter(t => t.code === r.code));
+  }
+  return anTrackCache.by.get(r.code);
+}
+function anSigMarks(ch, tracks){
+  const pos = new Map(ch.dates.map((d, i) => [d, i]));
+  const RES = { stop: '손절', open: '진행중', wait: '진행중', gone: '목록에서 빠짐' };
+  return (tracks || []).map(t => {
+    const i = pos.get(anShort(t.sigDate));
+    if(i == null) return null;
+    const res = t.done ? (t.why === 'stop' ? '손절' : t.hit ? '성공' : '실패') : (RES[t.why] || '');
+    const ret = t.ret != null ? ` ${t.ret >= 0 ? '+' : ''}${t.ret.toFixed(1)}%` : '';
+    return { i, side: t.side, price: ch.close[i],
+             tip: `${t.g || (t.side === 'buy' ? '매수' : '매도·전량')}\n${anShort(t.sigDate)}\n${anPrice(ch.close[i])}\n${res}${ret}` };
+  }).filter(Boolean);
+}
 async function anDrawChartSlot(slot){
   const r = anState.result && anState.result.results[parseInt(slot.dataset.anChart, 10)];
   if(!r) return;
   const per = anState.chartPer || '6m';
   let ch = r.chart;
   try{ ch = await anChartFor(r, per); }catch(e){}
+  try{ ch = Object.assign({}, ch, { marks: anSigMarks(ch, await anTracksFor(r)) }); }catch(e){}
   slot.innerHTML = anChartTabs(per) + anSvgChart(ch);
 }
 
 function anBindRoot(root){
   anBtBind(root);
   if(!root.dataset.cperBound) root.dataset.cperBound = '1', root.addEventListener('click', e => {                         // 차트 기간 탭: 펼쳐서 그려진 차트를 모두 그 기간으로
+    const sg = e.target.closest('[data-sig]');
+    if(sg){ anHbPop(sg.dataset.sig, true); return; }          // 신호 원: 날짜·가격·결과 팝업
     const b = e.target.closest('.an-cper button'); if(!b) return;
     anState.chartPer = b.dataset.cper;
     root.querySelectorAll('[data-an-chart][data-drawn]').forEach(sl => anDrawChartSlot(sl));
@@ -8046,6 +8087,11 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sw-close { background:var(--text); border-radius:50%; } .an-sw-ma5 { background:var(--c5); } .an-sw-ma20 { background:var(--c20); }
 .an-sw-w5 { background:var(--cw5); } .an-sw-w10 { background:var(--cw10); } .an-sw-m5 { background:var(--cm5); } .an-sw-m10 { background:var(--cm10); }
 .an-svgbox { position:relative; }
+.an-sigdot { position:absolute; width:9px; height:9px; border-radius:50%; transform:translate(-50%,-50%); box-sizing:border-box; border:1.5px solid #1E1F22; cursor:pointer; z-index:1; }
+.an-sigdot.buy { background:#FF4D5E; } .an-sigdot.sell { background:#3D8BFF; }
+.an-sigdot::after { content:''; position:absolute; inset:-8px; border-radius:50%; }   /* 손가락으로 누르기 쉽게 */
+.an-chart line.an-ch-sv { stroke-dasharray:2 3; opacity:.75; } .an-chart line.an-ch-sv.buy { stroke:#FF4D5E; } .an-chart line.an-ch-sv.sell { stroke:#3D8BFF; }
+.an-chart line.an-ch-sh { stroke:#9A9BA1; stroke-dasharray:3 3; }
 .an-lastlbl { position:absolute; transform:translateY(-100%); font-size:11px; font-weight:700; line-height:1; white-space:nowrap; color:var(--text); text-shadow:0 0 3px var(--surface2),0 0 3px var(--surface2),0 0 2px var(--surface2); pointer-events:none; }
 .an-chart { width:100%; height:auto; display:block; }
 .an-chart path { fill:none; stroke-linejoin:round; stroke-linecap:round; stroke-width:1px; vector-effect:non-scaling-stroke; }
@@ -8184,6 +8230,7 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 #anFtabs { gap:4px !important; flex-wrap:nowrap !important; } #anFtabs .an-ftab { padding:0 8px; flex-shrink:0; } @media (max-width:385px){ #anFtabs .an-ftab, .an-closeall { padding:0 5px !important; } #anFtabs { gap:3px !important; } } #anFtabs .an-barslot { flex-shrink:0; }
 /* 성공·실패·손절·진행중 팝업 */
 .an-hbpop { position:fixed; inset:0; z-index:2500; display:flex; align-items:center; justify-content:center; background:transparent; }   /* 뒤 화면을 어둡게 하지 않음 */
+.an-hbpop.wide > div { width:auto; min-width:120px; height:auto; min-height:120px; padding:14px 18px; box-sizing:border-box; white-space:pre-line; text-align:center; font-size:15px; line-height:1.45; }
 .an-hbpop > div { width:120px; height:120px; border-radius:14px; background:#EDEDED; color:#333333; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
 /* 신호 없는 종목은 이름을 회색으로(신호 있는 종목은 그대로) */
 .an-stock[data-f="none"] > summary b { color:#9A9BA1; }
