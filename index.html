@@ -6823,6 +6823,7 @@ function anIndexStateChip(v){
 function anIndexChartData(dates, s){
   const ch = anChartData(dates, s, null), st = Math.max(0, dates.length - ch.close.length);
   ch.ma200 = anRoll(s, 200).slice(st).map(v => anOk(v) ? v : null);
+  ch.lastLabel = '종가';                                // 지수 차트 범례(장중 실시간이면 아래에서 '현재가')
   if(!ch.ma200.some(v => v != null)) ch.ma200 = null;
   return ch;
 }
@@ -7356,7 +7357,7 @@ async function runAnalysis(){
   if(!anState.result) anFillRoot();
   try{
     const kst = new Date(Date.now() + 9 * 3600e3), hm = kst.getUTCHours() * 100 + kst.getUTCMinutes();
-    const isUS = hm >= 500 && hm < 1530;          // 05:00~15:29 = 미장 마감 리포트
+    const ny = anNyNow().hm, isUS = hm < 1530 && (ny >= 1600 || ny < 930);   // 미장 마감(뉴욕 16:00, 서머타임 반영) 뒤 ~ 국장 15:29 = 미장 마감 리포트
     const found = [], failed = [], unresolved = [], stale = [], todayPatched = [], todayMissing = [];
     const marketP = anMarketSnapshot(isUS).finally(anTick);
     // 상대강도 비교 지수: 국내·아시아 = 코스피, 그 외 = S&P500 (캐시 공유, 실패하면 상대강도 없이 진행)
