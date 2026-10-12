@@ -7111,6 +7111,27 @@ function anHbPop(txt, wide){
 }
 const anHistState = { per: '', side: '', status: '', more: 20 };
 
+// 감시 기간: 2번 이상 연속 기록에 없으면 '목록에서 빠짐'. { code: [[시작, 끝|null], ...] } 시작 = 빠지기 전 마지막 봉 날짜, 끝 = 돌아온 첫 봉 날짜
+// (history.gaps 와 같음). 그 사이가 '안 본 기간' — 추적은 빠지기 전 마지막 날로 끝내고, 차트엔 회색
+const AN_GAP_MIN = 2;
+function anHistGaps(recs){
+  const last = new Map(), miss = new Map(), out = {};
+  recs.slice().sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0)).forEach(rec => {
+    const here = new Map((rec.items || []).map(it => [it.code, it.asof]));
+    last.forEach((_, c) => { if(!here.has(c)) miss.set(c, (miss.get(c) || 0) + 1); });
+    here.forEach((asof, c) => {
+      if((miss.get(c) || 0) >= AN_GAP_MIN) (out[c] = out[c] || []).push([last.get(c), asof]);
+      miss.set(c, 0); last.set(c, asof);
+    });
+  });
+  miss.forEach((n, c) => { if(n >= AN_GAP_MIN) (out[c] = out[c] || []).push([last.get(c), null]); });
+  return out;
+}
+function anInGap(gl, d){
+  for(const [st, en] of gl || []) if(d > st && (en == null || d < en)) return st;
+  return null;
+}
+
 function anHistTrack(recs, bars){
   // 종목별 기록일 → 신호(buy/sell/none)
   const per = new Map();
@@ -7123,8 +7144,7 @@ function anHistTrack(recs, bars){
     if(it.asof > x.last) x.last = it.asof;
     per.set(it.code, x);
   }));
-  const latest = recs.length ? recs[recs.length - 1] : null;
-  const inLatest = new Set(latest ? (latest.items || []).map(it => it.code) : []);
+  const gp = anHistGaps(recs);
   const out = [];
   per.forEach(x => {
     // 시세: 저장된 일봉, 없으면 기록일 종가만으로
@@ -7133,7 +7153,7 @@ function anHistTrack(recs, bars){
     const sigDates = [...x.sig.keys()].sort();
     if(b && b.dates && b.dates.length){ dates = b.dates; close = b.close; }
     else { dates = sigDates; close = sigDates.map(d => x.sig.get(d).close); }
-    const gone = !inLatest.has(x.code);
+    const gone = (gp[x.code] || []).some(g => g[1] == null);          // 지금 목록에서 빠져 있음
     const endDate = gone ? x.last : dates[dates.length - 1];
     const kr = anIsKrCode(x.code);
     const ex = i => kr ? i : i + 1;                       // 체결 위치
@@ -7146,6 +7166,15 @@ function anHistTrack(recs, bars){
     if(!first) return;
     for(let i = 0; i < dates.length && dates[i] <= endDate; i++){
       if(dates[i] < first) continue;
+      if(anInGap(gp[x.code], dates[i])){                    // 안 본 기간: 추적 중이면 빠지기 전 마지막 날로 끝냄(목록에서 빠짐)
+        if(tr){
+          const li = Math.max(i - 1, 0);
+          tr.end = null; tr.endI = li; tr.why = 'gone'; tr.lastDate = dates[li];
+          tr.ret = tr.px != null && li >= tr.entI ? (close[li] / tr.px - 1) * 100 : null;
+          out.push(tr); tr = null;
+        }
+        continue;
+      }
       const s = x.sig.get(dates[i]);
       if(tr && tr.px == null && i === tr.entI) tr.px = close[i];
       if(tr && tr.px != null && i > tr.entI){
@@ -7388,6 +7417,11 @@ function anSvgChart(ch){
     keys.slice().reverse().forEach(k => {
       o.push(`<path class="an-ch-${k}" d="${anPath(ch[k] || [], x, y)}"/>`);
       if(F && proj[k]) o.push(`<path class="an-ch-${k} an-ch-f" d="${anPath(proj[k], i => x(n - 1 + i), y)}"/>`);
+    });
+    // 안 본 기간(목록에서 빠졌던 구간): 회색 사각형(가격·RSI 영역 모두)
+    (ch.gaps || []).forEach(([a, b]) => {
+      const x0 = Math.max(pl, x(a - 0.5)), x1 = Math.min(xr, x(b + 0.5));
+      if(x1 > x0) o.push(`<rect class="an-ch-gap" x="${x0.toFixed(1)}" y="${pt}" width="${(x1 - x0).toFixed(1)}" height="${H - pb - pt}"/>`);
     });
     // 신호추적 기록의 매수·매도 신호: 신호일 세로 점선(날짜 축까지) + 그 가격에서 오른쪽 21거래일 회색 점선, 원은 HTML(크기 고정·누르면 팝업)
     let marks = '';
@@ -7819,7 +7853,7 @@ async function anTracksFor(r){
   if(!anTrackCache || anTrackCache.at !== at){
     const all = (await anDB.get('hist')) || {};
     const recs = Object.values(all).sort((a, b) => (a.time < b.time ? -1 : 1));
-    anTrackCache = { at, recs, by: new Map() };
+    anTrackCache = { at, recs, by: new Map(), gaps: anHistGaps(recs) };
   }
   if(!anTrackCache.by.has(r.code)){
     const bars = {};
@@ -7828,6 +7862,19 @@ async function anTracksFor(r){
     anTrackCache.by.set(r.code, anHistTrack(recs, bars).filter(t => t.code === r.code));
   }
   return anTrackCache.by.get(r.code);
+}
+// 안 본 기간(목록에서 빠졌던 구간) → 차트 안 [시작 위치, 끝 위치] 목록
+function anChartGaps(ch, gl){
+  if(!gl || !gl.length) return [];
+  const out = [];
+  let st = null;
+  ch.dates.forEach((sd, i) => {
+    const d = '20' + sd.replace(/\./g, '-');                     // yy.mm.dd → yyyy-mm-dd
+    if(anInGap(gl, d)){ if(st == null) st = i; }
+    else if(st != null){ out.push([st, i - 1]); st = null; }
+  });
+  if(st != null) out.push([st, ch.dates.length - 1]);
+  return out;
 }
 function anSigMarks(ch, tracks){
   const pos = new Map(ch.dates.map((d, i) => [d, i]));
@@ -7847,7 +7894,7 @@ async function anDrawChartSlot(slot){
   const per = anState.chartPer || '6m';
   let ch = r.chart;
   try{ ch = await anChartFor(r, per); }catch(e){}
-  try{ ch = Object.assign({}, ch, { marks: anSigMarks(ch, await anTracksFor(r)) }); }catch(e){}
+  try{ ch = Object.assign({}, ch, { marks: anSigMarks(ch, await anTracksFor(r)), gaps: anChartGaps(ch, anTrackCache && anTrackCache.gaps && anTrackCache.gaps[r.code]) }); }catch(e){}
   slot.innerHTML = anChartTabs(per) + anSvgChart(ch);
 }
 
@@ -8172,6 +8219,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sigdot.buy { background:var(--an-up, #E87BA4); } .an-sigdot.sell { background:var(--an-dn, #5FB8E0); }
 .an-sigdot::after { content:''; position:absolute; inset:-8px; border-radius:50%; }   /* 손가락으로 누르기 쉽게 */
 .an-chart line.an-ch-sv { stroke-dasharray:2 3; opacity:.75; } .an-chart line.an-ch-sv.buy { stroke:var(--an-up, #E87BA4); } .an-chart line.an-ch-sv.sell { stroke:var(--an-dn, #5FB8E0); }
+.an-chart rect.an-ch-gap { fill:#9A9BA1; opacity:.16; }
 .an-chart line.an-ch-sh { stroke:#9A9BA1; stroke-dasharray:3 3; }
 .an-lastlbl { position:absolute; transform:translateY(-100%); font-size:11px; font-weight:700; line-height:1; white-space:nowrap; color:var(--text); text-shadow:0 0 3px var(--surface2),0 0 3px var(--surface2),0 0 2px var(--surface2); pointer-events:none; }
 .an-chart { width:100%; height:auto; display:block; }
