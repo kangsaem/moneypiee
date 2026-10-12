@@ -6577,6 +6577,36 @@ function anRelStrength(bars, bench, n){
 const AN_REVIEW = [['sell', '매도·전량', 'sell'], ['buyb', '매수·바닥', 'buy'], ['buy', '매수·눌림', 'buy'], ['up', '매수·추세', 'buy'],
                    ['hold', '보유', 'hold'], ['caution', '매수보류', 'warn'], ['wait', '반등대기', 'wait'], ['waitdn', '하락', 'down']];
 const AN_BUY_KEYS = ['buyb', 'buy', 'up'];      // 앞일수록 우선(싼 자리 먼저)
+// ---- 놓친 신호의 다음 날 장중 규칙 (Logic V1 규칙과 같음) ----
+// 매수·바닥/눌림: 내렸어도 월 정이거나 현재가가 10개월선 위면 매수 가능, 아니면 종가 대기 / 매수·추세: 종가 대기
+// 어느 매수든 오르면 종가 대기 / 매도·전량: 오르면 매도, 내리면 종가 대기. 국내 종목만(미장은 다음 날 LOC)
+const AN_LIVE_SIG = { sell: '매도·전량', buyb: '매수·바닥', buy: '매수·눌림', up: '매수·추세' };
+function anKstNow(){ const k = new Date(Date.now() + 9 * 3600e3); return { k, hm: k.getUTCHours() * 100 + k.getUTCMinutes(), dow: k.getUTCDay(),
+  date: `${k.getUTCFullYear()}-${anPad(k.getUTCMonth()+1)}-${anPad(k.getUTCDate())}` }; }
+function anKrIntraday(){ const t = anKstNow(); return t.dow >= 1 && t.dow <= 5 && t.hm >= 900 && t.hm < 1530; }
+function anLiveInfo(bars, px){
+  const t = anKstNow(), n = bars.close.length, base = bars.close[n - 1];
+  if(bars.dates[n - 1] >= t.date) return null;                         // 오늘 봉이 이미 있으면(장 마감 뒤) 해당 없음
+  const mo = anMakeBars(bars.dates.concat([t.date]), bars.close.concat([px]), 'M');   // 현재가를 이번 달 마지막 값으로
+  const mc = anCross(mo.dates, mo.vals), last10 = mo.vals.slice(-10);
+  return { px, base, chg: (px / base - 1) * 100, mUp: !!(mc.ok && mc.above), m10: last10.length === 10 ? last10.reduce((a, b) => a + b, 0) / 10 : null,
+           date: t.date, at: Date.now() };
+}
+// 표시용 판정: 오늘 장중에 받은 현재가가 있을 때만 { key, cls(buy|sell|wait), txt, line }
+function anLiveVerdict(r, keys){
+  const L = r.live;
+  if(!L || L.date !== anKstNow().date || !anKrIntraday()) return null;
+  const key = keys.includes('sell') ? 'sell' : ['buyb', 'buy', 'up'].find(k => keys.includes(k));
+  if(!key) return null;
+  const up = L.px > L.base, aboveM10 = L.m10 != null && L.px > L.m10;
+  let cls = 'wait', txt = '종가 대기';
+  if(key === 'sell'){ if(up){ cls = 'sell'; txt = '매도'; } }
+  else if((key === 'buyb' || key === 'buy') && !up && (L.mUp || aboveM10)){ cls = 'buy'; txt = '매수 가능'; }
+  const ck = v => v ? '✓' : '✕';
+  const cond = key === 'buyb' || key === 'buy' ? ` · 월 정 ${ck(L.mUp)} · 10개월선 위 ${ck(aboveM10)}` : '';
+  return { key, cls, txt, line: `장중 ${anPrice(L.px)} (${anS(L.chg, 1)}%)${cond} → ${txt}` };
+}
+
 const AN_CATEGORY = { sell: 'sell', buyb: 'buy', buy: 'buy', up: 'buy', hold: 'watch', caution: 'watch', wait: 'watch', waitdn: 'watch' };
 // 화면에 보여줄 칸(market_report.display_keys): 매도·매수가 있으면 관찰 칸 숨김, 매수끼리는 하나, 보유+반등대기면 반등대기만
 function anDisplayKeys(rv){
@@ -7232,6 +7262,11 @@ async function runAnalysis(){
           r.hname = h.name;
           try{ r.rs60 = anRelStrength(bars, (await benchP)[spec.market]); }catch(e){ r.rs60 = null; }
           r.review = anReview(r);
+          // 국장 장중(09:00~15:30): 매수·매도 칸이 뜬 국내 종목은 현재가도 받아 '놓친 다음 날 장중' 규칙을 판정(anLiveVerdict)
+          if(spec.market === 'KR' && anKrIntraday() && anDisplayKeys(r.review).some(k => k in AN_LIVE_SIG)){
+            const q = await fetchNaverStockPrice(spec.code).catch(() => null);
+            if(q && q.price > 0) r.live = anLiveInfo(bars, q.price);
+          }
           found.push([i, r]);
         }catch(e){
           failed.push(`${h.name}${h.symbol ? ' (' + h.symbol + ')' : ''}: ${e && e.message ? e.message : e}`);
@@ -7538,9 +7573,12 @@ function anRenderResult(res){
           limHtml = `<div class="an-limit">매수한도 ${L.pct.toFixed(1)}% / 현재 ${(L.have / ctx.total * 100).toFixed(1)}% / <b>잔여 ${Math.round(L.left).toLocaleString()}원</b></div>`;
         }
       }
+      const lv2 = anLiveVerdict(r, keys);
+      const liveChip = lv2 ? `<span class="an-live ${lv2.cls}" title="${anE(lv2.line)}">${anS(r.live.chg, 1)}% ${lv2.txt}</span>` : '';
+      const liveLine = lv2 ? `<div class="an-liveline">${anE(lv2.line)}</div>` : '';
       listHtml += `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${[...new Set(keys.map(k => AN_CATEGORY[k]))].join(' ') || 'none'}">
-        <summary><b>${anE(r.name)}</b> ${gchips}<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span></summary>
-        <div class="an-sbody">${limHtml}${whys}${anMetricsHtml(r, side, lv, others, top && ['sell', 'buy'].includes(AN_CATEGORY[top]))}<div class="an-chwrap" data-an-chart="${i}"></div>
+        <summary><b>${anE(r.name)}</b> ${gchips}${liveChip}<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span></summary>
+        <div class="an-sbody">${liveLine}${limHtml}${whys}${anMetricsHtml(r, side, lv, others, top && ['sell', 'buy'].includes(AN_CATEGORY[top]))}<div class="an-chwrap" data-an-chart="${i}"></div>
           <details class="an-sub" data-an-key="x:${anE(r.code)}"><summary>세부 보기 <small>${anE(r.code)}</small></summary><pre>${anE(anDetailText(r))}</pre></details></div></details>`;
     }catch(e){ listHtml += `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
   });
@@ -8087,6 +8125,8 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sw-close { background:var(--text); border-radius:50%; } .an-sw-ma5 { background:var(--c5); } .an-sw-ma20 { background:var(--c20); }
 .an-sw-w5 { background:var(--cw5); } .an-sw-w10 { background:var(--cw10); } .an-sw-m5 { background:var(--cm5); } .an-sw-m10 { background:var(--cm10); }
 .an-svgbox { position:relative; }
+.an-live { font-size:11.5px; font-weight:500; margin-left:6px; white-space:nowrap; color:#9A9BA1; } .an-live.buy { color:var(--an-up); } .an-live.sell { color:var(--an-dn); }
+.an-liveline { font-size:12px; font-weight:500; margin:2px 0 6px; color:#C9C9C9; }
 .an-sigdot { position:absolute; width:9px; height:9px; border-radius:50%; transform:translate(-50%,-50%); box-sizing:border-box; border:1.5px solid #1E1F22; cursor:pointer; z-index:1; }
 .an-sigdot.buy { background:var(--an-up, #E87BA4); } .an-sigdot.sell { background:var(--an-dn, #5FB8E0); }
 .an-sigdot::after { content:''; position:absolute; inset:-8px; border-radius:50%; }   /* 손가락으로 누르기 쉽게 */
