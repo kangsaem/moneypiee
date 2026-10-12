@@ -6580,13 +6580,36 @@ const AN_BUY_KEYS = ['buyb', 'buy', 'up'];      // 앞일수록 우선(싼 자�
 // ---- 놓친 신호의 다음 날 장중 규칙 (Logic V1 규칙과 같음) ----
 // 매수·바닥/눌림: 내렸어도 월 정이거나 현재가가 10개월선 위면 매수 가능, 아니면 종가 대기
 // 매수·추세: 내렸어도 추세 5가지가 유지되면 매수 가능, 하나라도 깨지면 종가 대기(깨진 항목은 적지 않음)
-// 어느 매수든 오르면 종가 대기 / 매도·전량: 오르면 매도, 내리면 종가 대기. 국내 종목만(미장은 다음 날 LOC)
+// 어느 매수든 오르면 종가 대기 / 매도·전량: 오르면 매도, 내리면 종가 대기
+// 국내 = 국장 09:00~15:30 KST, 미국 = 뉴욕 09:30~16:00(현지 시각 기준이라 서머타임 자동 반영: 한국 22:30~05:00 / 겨울 23:30~06:00, 2026-10-13)
 const AN_LIVE_SIG = { sell: '매도·전량', buyb: '매수·바닥', buy: '매수·눌림', up: '매수·추세' };
 function anKstNow(){ const k = new Date(Date.now() + 9 * 3600e3); return { k, hm: k.getUTCHours() * 100 + k.getUTCMinutes(), dow: k.getUTCDay(),
   date: `${k.getUTCFullYear()}-${anPad(k.getUTCMonth()+1)}-${anPad(k.getUTCDate())}` }; }
 function anKrIntraday(){ const t = anKstNow(); return t.dow >= 1 && t.dow <= 5 && t.hm >= 900 && t.hm < 1530; }
-function anLiveInfo(bars, px, wantTrend){
-  const t = anKstNow(), n = bars.close.length, base = bars.close[n - 1];
+// 뉴욕 현지 시각(브라우저 시간대 자료로 서머타임 반영) → { hm, dow, date }
+function anNyNow(){
+  const o = {};
+  new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23', weekday: 'short' }).formatToParts(new Date()).forEach(p => o[p.type] = p.value);
+  return { hm: parseInt(o.hour, 10) * 100 + parseInt(o.minute, 10), dow: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(o.weekday),
+           date: `${o.year}-${o.month}-${o.day}` };
+}
+function anUsIntraday(){ const t = anNyNow(); return t.dow >= 1 && t.dow <= 5 && t.hm >= 930 && t.hm < 1600; }
+// 시장별 장중 여부·오늘 날짜(그 시장 현지 날짜)
+function anLiveNow(market){
+  if(market === 'US') return { open: anUsIntraday(), date: anNyNow().date };
+  return { open: anKrIntraday(), date: anKstNow().date };
+}
+// 미국 종목 현재가: 마지막 체결 시각이 뉴욕 오늘이어야 씀(휴장일엔 전날 값이라 판정 안 함)
+async function anFetchUsLive(sym){
+  const res = await fetchYahooProxied(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=1d&interval=1d&_=${Date.now()}`);
+  const j = await res.json(), m = j && j.chart && j.chart.result && j.chart.result[0] && j.chart.result[0].meta;
+  if(!m || !(m.regularMarketPrice > 0) || !m.regularMarketTime) return null;
+  const d = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(m.regularMarketTime * 1000));
+  return d === anNyNow().date ? { price: m.regularMarketPrice } : null;
+}
+function anLiveInfo(bars, px, wantTrend, market){
+  const t = anLiveNow(market), n = bars.close.length, base = bars.close[n - 1];
   if(bars.dates[n - 1] >= t.date) return null;                         // 오늘 봉이 이미 있으면(장 마감 뒤) 해당 없음
   const mo = anMakeBars(bars.dates.concat([t.date]), bars.close.concat([px]), 'M');   // 현재가를 이번 달 마지막 값으로
   const mc = anCross(mo.dates, mo.vals), last10 = mo.vals.slice(-10);
@@ -6608,8 +6631,8 @@ function anLiveTrend(bars, px, date){
 }
 // 표시용 판정: 오늘 장중에 받은 현재가가 있을 때만 { key, cls(buy|sell|wait), txt, line }
 function anLiveVerdict(r, keys){
-  const L = r.live;
-  if(!L || L.date !== anKstNow().date || !anKrIntraday()) return null;
+  const L = r.live, now = anLiveNow(r.market);
+  if(!L || L.date !== now.date || !now.open) return null;
   const key = keys.includes('sell') ? 'sell' : ['buyb', 'buy', 'up'].find(k => keys.includes(k));
   if(!key) return null;
   const up = L.px > L.base, aboveM10 = L.m10 != null && L.px > L.m10;
@@ -7367,10 +7390,10 @@ async function runAnalysis(){
           r.hname = h.name;
           try{ r.rs60 = anRelStrength(bars, (await benchP)[spec.market]); }catch(e){ r.rs60 = null; }
           r.review = anReview(r);
-          // 국장 장중(09:00~15:30): 매수·매도 칸이 뜬 국내 종목은 현재가도 받아 '놓친 다음 날 장중' 규칙을 판정(anLiveVerdict)
-          if(spec.market === 'KR' && anKrIntraday() && anDisplayKeys(r.review).some(k => k in AN_LIVE_SIG)){
-            const q = await fetchNaverStockPrice(spec.code).catch(() => null);
-            if(q && q.price > 0) r.live = anLiveInfo(bars, q.price, anDisplayKeys(r.review).includes('up'));
+          // 장중(국장 09:00~15:30 KST · 미장 09:30~16:00 뉴욕): 매수·매도 칸이 뜬 종목은 현재가도 받아 '놓친 다음 날 장중' 규칙을 판정(anLiveVerdict)
+          if((spec.market === 'KR' || (spec.market === 'US' && !spec.code.includes('.'))) && anLiveNow(spec.market).open && anDisplayKeys(r.review).some(k => k in AN_LIVE_SIG)){
+            const q = spec.market === 'KR' ? await fetchNaverStockPrice(spec.code).catch(() => null) : await anFetchUsLive(spec.code).catch(() => null);
+            if(q && q.price > 0) r.live = anLiveInfo(bars, q.price, anDisplayKeys(r.review).includes('up'), spec.market);
           }
           found.push([i, r]);
         }catch(e){
