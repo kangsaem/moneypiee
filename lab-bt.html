@@ -53,13 +53,16 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
 </head>
 <body>
 <div class="wrap">
-  <h1>V1 종목 백테스트 <small>종목 3개까지 한 계좌(현금 100×종목 수) · V1 매매 vs 그냥 보유 vs 적립식 · 코스피·나스닥과 비교</small></h1>
+  <h1>V1 종목 백테스트 <small>종목 5개까지 한 계좌(현금 100×종목 수) · V1 매매 vs 그냥 보유 vs 적립식 · 코스피·나스닥과 비교</small></h1>
 
   <div class="row"><span class="lb">종목</span>
     <span class="acw"><input type="text" class="code" placeholder="종목명·코드 1" autocomplete="off"></span>
     <span class="acw"><input type="text" class="code" placeholder="종목명·코드 2" autocomplete="off"></span>
     <span class="acw"><input type="text" class="code" placeholder="종목명·코드 3" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 4" autocomplete="off"></span>
+    <span class="acw"><input type="text" class="code" placeholder="종목명·코드 5" autocomplete="off"></span>
     <button class="go" id="run" disabled>실행</button>
+    <button class="tab" id="rand" title="코스피 시총 상위 100 + 나스닥100 중 5개를 무작위로 채움(실행은 실행 버튼)">랜덤</button>
   </div>
   <div class="row"><span class="lb">기간</span><span data-g="per"></span></div>
   <div class="row"><span class="lb">1회 매수</span><span data-g="pct"></span></div>
@@ -68,7 +71,8 @@ h2.sh { font-size:14px; font-weight:600; margin:18px 0 0; } h2.sh small { color:
   <div id="out"></div>
 
   <div class="note">
-    <b>계산 방법</b> · 고른 종목을 한 계좌로 운용. 현금 100×종목 수(3종목 = 300)에서 시작, <b>추가 입금 없음</b>(실전 규칙과 같음 → 넣은 돈은 끝까지 그대로).
+    <b>랜덤</b> · 코스피 시가총액 상위 100(우선주 제외)과 나스닥100, 합쳐 200종목 중 5개를 국내·해외 구분 없이 무작위로 채움(2026-10-08 기준 목록 — 지금 대형주라 과거 기간엔 결과가 좋게 나오기 쉬움). 실행은 실행 버튼.<br>
+    <b>계산 방법</b> · 고른 종목을 한 계좌로 운용. 현금 100×종목 수(5종목 = 500)에서 시작, <b>추가 입금 없음</b>(실전 규칙과 같음 → 넣은 돈은 끝까지 그대로).
     종목당 상한 = 그날 계좌 평가액 ÷ 종목 수, 신호당 매수 = 상한 × 1회 매수 비율(33% = 3번, 50% = 2번, 100% = 1번에 나눠 삼).
     이미 가진 종목은 상한까지만 더 사고, 상한 여유가 신호당 매수의 1/4 미만이면 건너뜀. 현금이 살 금액의 절반 미만이면 건너뛰고, 그 이상이면 있는 만큼 산다(머니파이 V1 실전 계좌와 같은 규칙).<br>
     매수 신호(매수·바닥·눌림·추세)가 새로 켜지면 사고, 매도·전량 신호가 새로 켜지거나 손절(종가가 평균 매수가 -8% 이하 이틀 연속, 산 날 제외)이면 그 종목 전량 판다.
@@ -327,6 +331,19 @@ function btTabs(){
   });
 }
 const btState = { stocks: [], idx: null, hide3: new Set() };
+// 랜덤 후보(2026-10-12): 코스피 시가총액 상위 100(우선주 제외) + 나스닥100 — 2026-10-08 기준 목록(지금 살아남은 대형주라 과거 기간엔 생존 편향)
+const RAND_POOL = {"date":"2026-10-08","kr":[["005930","삼성전자"],["000660","SK하이닉스"],["402340","SK스퀘어"],["009150","삼성전기"],["373220","LG에너지솔루션"],["005380","현대차"],["105560","KB금융"],["207940","삼성바이오로직스"],["032830","삼성생명"],["028260","삼성물산"],["034020","두산에너빌리티"],["055550","신한지주"],["012450","한화에어로스페이스"],["006400","삼성SDI"],["068270","셀트리온"],["000270","기아"],["329180","HD현대중공업"],["034730","SK"],["086790","하나금융지주"],["066570","LG전자"],["012330","현대모비스"],["010120","LS ELECTRIC"],["035420","NAVER"],["000810","삼성화재"],["096770","SK이노베이션"],["042700","한미반도체"],["005490","POSCO홀딩스"],["316140","우리금융지주"],["298040","효성중공업"],["042660","한화오션"],["267260","HD현대일렉트릭"],["000150","두산"],["010130","고려아연"],["138040","메리츠금융지주"],["009540","HD한국조선해양"],["051910","LG화학"],["011200","HMM"],["010950","S-Oil"],["015760","한국전력"],["033780","KT&G"],["017670","SK텔레콤"],["003670","포스코퓨처엠"],["010140","삼성중공업"],["003550","LG"],["006800","미래에셋증권"],["024110","기업은행"],["018260","삼성에스디에스"],["272210","한화시스템"],["035720","카카오"],["267250","HD현대"],["278470","에이피알"],["086280","현대글로비스"],["079550","LIG디펜스앤에어로스페이스"],["011070","LG이노텍"],["030200","KT"],["005830","DB손해보험"],["000720","현대건설"],["047810","한국항공우주"],["064350","현대로템"],["003490","대한항공"],["047050","포스코인터내셔널"],["307950","현대오토에버"],["443060","HD현대마린솔루션"],["078930","GS"],["028050","삼성E&A"],["071050","한국금융지주"],["323410","카카오뱅크"],["007660","이수페타시스"],["005940","NH투자증권"],["003230","삼양식품"],["000500","가온전선"],["180640","한진칼"],["259960","크래프톤"],["0126Z0","삼성에피스홀딩스"],["006260","LS"],["009830","한화솔루션"],["090430","아모레퍼시픽"],["353200","대덕전자"],["161390","한국타이어앤테크놀로지"],["016360","삼성증권"],["021240","코웨이"],["352820","하이브"],["047040","대우건설"],["062040","산일전기"],["064400","LG씨엔에스"],["039490","키움증권"],["128940","한미약품"],["032640","LG유플러스"],["000990","DB하이텍"],["000880","한화"],["326030","SK바이오팜"],["001440","대한전선"],["000100","유한양행"],["011790","SKC"],["377300","카카오페이"],["175330","JB금융지주"],["241560","두산밥캣"],["267270","HD건설기계"],["036570","NC"],["029780","삼성카드"]],"us":["AAPL","ABNB","ADBE","ADI","ADP","ADSK","AEP","ALAB","ALNY","AMAT","AMD","AMGN","AMZN","APP","ARM","ASML","AVGO","AXON","BKNG","BKR","CCEP","CDNS","CEG","CMCSA","COST","CPRT","CRWD","CRWV","CSCO","CSX","CTAS","DASH","DDOG","DXCM","EXC","FANG","FAST","FER","FTNT","GEHC","GILD","GOOGL","HON","HONA","IDXX","INTC","INTU","ISRG","KDP","KLAC","LIN","LITE","LRCX","MAR","MCHP","MDLZ","MELI","META","MNST","MPWR","MRVL","MSFT","MSTR","MU","NBIS","NFLX","NVDA","NXPI","ODFL","ORLY","PANW","PAYX","PCAR","PDD","PEP","PLTR","PYPL","QCOM","REGN","RKLB","ROP","ROST","SBUX","SHOP","SNDK","SNPS","SPCX","STX","TER","TMUS","TRI","TSLA","TTWO","TXN","VRTX","WBD","WDAY","WDC","WMT","XEL"]};
+function btRandomFill(){
+  const all = RAND_POOL.kr.map(([code, name]) => ({ code, name, kr: true })).concat(RAND_POOL.us.map(t => ({ code: t, name: t, kr: false })));
+  for(let i = all.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+  document.querySelectorAll('.code').forEach((inp, i) => {
+    const x = all[i];
+    inp.value = x.name;
+    inp._sel = x.kr ? { code: x.code, name: x.name, region: 'domestic' } : null;     // 해외는 입력한 기호 그대로 야후 시세
+    const l = inp.parentNode.querySelector('.acl'); if(l){ l.style.display = 'none'; l.innerHTML = ''; }
+  });
+  msg('');
+}
 
 function btSpecOf(raw){
   const E = window.__eng, code = raw.trim().toUpperCase().replace(/\.(KS|KQ)$/, '');
@@ -388,7 +405,7 @@ function btBindSearch(inp){
 async function btRun(){
   const E = window.__eng;
   let specs;
-  try{ specs = (await Promise.all([...document.querySelectorAll('.code')].map(btSpecOfInput))).filter(Boolean).slice(0, 3); }
+  try{ specs = (await Promise.all([...document.querySelectorAll('.code')].map(btSpecOfInput))).filter(Boolean).slice(0, 5); }
   catch(e){ msg(e.message, true); return; }
   if(!specs.length){ msg('종목 코드를 하나 이상 입력하세요.', true); return; }
   $('run').disabled = true;
@@ -603,6 +620,7 @@ function btAxes(o, W, H, pl, pr, pt, pb, t0, t1, lo, hi, x, y, unit){
     $('run').disabled = false;
   }catch(e){ msg('준비 실패: ' + (e && e.message ? e.message : e), true); }
   $('run').onclick = btRun;
+  $('rand').onclick = btRandomFill;
   document.querySelectorAll('.code').forEach(i => { btBindSearch(i); i.onkeydown = e => { if(e.key === 'Enter') btRun(); }; });
 })();
 
