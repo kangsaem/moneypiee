@@ -6834,7 +6834,6 @@ function anIndexChartData(dates, s){
 
 // 지수 현금 비중 안내(2026-10-13 지수 200일선 시험, moneypier index_cmp.py IC_SET=cut): 조건이 맞으면 '현금 n% 추천' + 근거. 표시만
 const AN_IDX_CASH = {
-  kosdaq: { pct: 50, how: 'c5', alertOnly: true, why: '경보: 코스닥 약세 · 코스닥 종목을 들고 있다면 점검 · 근거: 코스닥 1996~ 5년 구간 291개, 이 조건에 현금 50%면 하위 10% −43%→−18% · 코스닥 지수는 30년간 −36%라 지수 자체 보유는 비추천' },
   kospi: { pct: 30, how: 'd10', injwhy: '코스피 1995~ 305구간: 평균 +60% vs 보유 +44% · 최악 −42%→−29% · 투입 36번 중 23번 손실', why: '근거: 코스피 1995~ 5년 구간 305개 · 그냥 보유 대비 평균 수익 같음(+45% vs +44%) · 최악 −42%→−18% · 손실로 끝난 5년 41→33번' },
   spx:   { pct: 50, how: 'd10', injwhy: 'S&P500 1988~ 394구간: 평균 +61% vs 보유 +58% · 손실로 끝난 5년 81→55번 · 투입 23번 중 12번 손실', why: '근거: S&P500 1988~ 5년 구간 394개 · 평균 +54% vs 보유 +58% · 최악 −39%→−13% · 손실로 끝난 5년 81→28번' },
   ndx:   { pct: 50, how: 'c10', injwhy: '나스닥100 1988~ 394구간: 평균 +178% vs 보유 +123% · 대신 최악 −64%→−73% · 투입 46번 중 29번 손실', why: '근거: 나스닥100 1988~ 5년 구간 394개 · 평균 +121% vs 보유 +123% · 최악 −64%→−39% · 손실로 끝난 5년 49→28번' }
@@ -7854,9 +7853,9 @@ const AN_SIG_DEF = [
   '하락 = 싼 조건 2개 이상 + 아직 하락 중 + 장기 추세도 하락',
   '바닥근접·꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 저점 +30%(고점 -20%) 안일 때 · 참고',
   '굵은 테두리 칸 = 이 매수·경보 판정에 쓰인 지표',
-  '지수 현금 n% 추천(지수 차트 칩) = 코스피 200일선 아래 + 1년 고점 대비 -10% 이하 → 30% · 코스닥 200일선 아래 5거래일 연속 → 50%(경보만) · S&P500 200일선 아래 + 1년 고점 대비 -10% 이하 → 50% · 나스닥 200일선 아래 10거래일 연속 → 50% · 그 시기에 이만큼 현금이 준비돼 있으면 좋다는 뜻',
-  '현금 투입(지수 차트 칩) = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복 = 현금화한 몫을 다시 넣을 시기 · 5거래일 동안 표시 · 코스닥은 없음',
-  '추가 매수(지수 차트 칩) = 직전 고점 대비 -15% 이상 빠졌다 200일선 위로 회복 = 투자금만큼(+100%) 추가를 고려할 시기 · 다시 200일선이 깨지면 추가분 회수 · 코스닥은 없음'
+  '지수 현금 n% 추천(지수 차트 칩) = 코스피 200일선 아래 + 1년 고점 대비 -10% 이하 → 30% · S&P500 200일선 아래 + 1년 고점 대비 -10% 이하 → 50% · 나스닥 200일선 아래 10거래일 연속 → 50% · 그 시기에 이만큼 현금이 준비돼 있으면 좋다는 뜻',
+  '현금 투입(지수 차트 칩) = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복 = 현금화한 몫을 다시 넣을 시기 · 5거래일 동안 표시',
+  '추가 매수(지수 차트 칩) = 직전 고점 대비 -15% 이상 빠졌다 200일선 위로 회복 = 투자금만큼(+100%) 추가를 고려할 시기 · 다시 200일선이 깨지면 추가분 회수'
 ];
 const AN_BT_NOTES = [
   '이 그래프는 지금 종목으로 과거를 본 것 = 실제보다 좋게 나올 수 있음',
@@ -8366,7 +8365,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sw-w5 { background:var(--cw5); } .an-sw-w10 { background:var(--cw10); } .an-sw-m5 { background:var(--cm5); } .an-sw-m10 { background:var(--cm10); }
 .an-svgbox { position:relative; }
 .an-ist { font-size:11px; font-weight:500; line-height:1; padding:3px 6px; border-radius:6px; border:1px solid currentColor; margin-left:6px; white-space:nowrap; }
-.an-istf { border:none; color:#1E1F22 !important; font-weight:600; } .an-istf.cash { background:#F2A65A; } .an-istf.back { background:#FF4D5E; } .an-istf.inj { background:#FF4D5E; color:#FFFFFF !important; font-weight:700; } .an-cashln.inj { color:#FF8A95; } .an-cashln.inj b { color:#FF4D5E; }
+.an-istf { border:none; color:#1E1F22 !important; font-weight:600; } .an-istf.cash { background:#F2A65A; } .an-istf.back, .an-istf.inj { background:#F2A65A; }   /* 지수 칩은 모두 주황(2026-10-13) */
 .an-ist.up { color:var(--an-up); } .an-ist.dn { color:var(--an-dn); } .an-ist.n { color:#9A9BA1; }
 .an-live { font-size:11.5px; font-weight:500; margin-left:6px; white-space:nowrap; color:#9A9BA1; } .an-live.buy { color:var(--an-up); } .an-live.sell { color:var(--an-dn); }
 .an-liveline { font-size:12px; font-weight:500; margin:2px 0 6px; color:#C9C9C9; }
