@@ -125,7 +125,7 @@ body{margin:0}
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>200일선 이탈일</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>40일 유지 첫 돌파</th><th>실패</th>
+        <th>200일선 이탈일</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
       </tr></thead>
       <tbody>
         <tr id="lvRow">
@@ -144,11 +144,11 @@ body{margin:0}
   </details>
 
   <details class="sec acc key" data-band="5" open>
-    <summary><span class="st">전날 200일선 위 → 당일 -5% 이상 하락하며 이탈한 사례</span><span class="meta">4건 · 전날 위치 +1.8~5.7% · 40일 유지 회복까지 중간값 149거래일</span></summary>
+    <summary><span class="st">전날 200일선 위 → 당일 -5% 이상 하락하며 이탈한 사례</span><span class="meta">4건 · 전날 위치 +1.8~5.7% · 회복까지 중간값 149거래일</span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>40일 유지 첫 돌파</th><th>실패</th>
+        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
       </tr></thead>
       <tbody>
         <tr>
@@ -180,11 +180,11 @@ body{margin:0}
     </div>
   </details>
   <details class="sec acc" data-band="3">
-    <summary><span class="st">전날 200일선 위 → 당일 -3~-5% 하락하며 이탈한 사례</span><span class="meta">13건 · 전날 위치 +0.1~4.5% · 40일 유지 회복까지 중간값 116거래일</span></summary>
+    <summary><span class="st">전날 200일선 위 → 당일 -3~-5% 하락하며 이탈한 사례</span><span class="meta">13건 · 전날 위치 +0.1~4.5% · 회복까지 중간값 116거래일</span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>40일 유지 첫 돌파</th><th>실패</th>
+        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
       </tr></thead>
       <tbody>
         <tr class="fast">
@@ -270,11 +270,11 @@ body{margin:0}
     </div>
   </details>
   <details class="sec acc" data-band="2">
-    <summary><span class="st">전날 200일선 위 → 당일 -2~-3% 하락하며 이탈한 사례</span><span class="meta">12건 · 전날 위치 +0.1~1.8% · 40일 유지 회복까지 중간값 약 40거래일</span></summary>
+    <summary><span class="st">전날 200일선 위 → 당일 -2~-3% 하락하며 이탈한 사례</span><span class="meta">12건 · 전날 위치 +0.1~1.8% · 회복까지 중간값 약 40거래일</span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>40일 유지 첫 돌파</th><th>실패</th>
+        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
       </tr></thead>
       <tbody>
         <tr>
@@ -356,8 +356,7 @@ body{margin:0}
   <div class="note">
     <b>요약</b>
     <ul>
-      <li>40일 유지 돌파까지 걸린 기간(중간값): -5% 이상 149거래일 · -3~-5% 116거래일 · -2~-3% 약 40거래일. 낙폭이 클수록 회복이 오래 걸렸습니다.</li>
-      <li>이탈 후 5거래일 안에 40일 유지 회복(청록 줄)은 29건 중 6건입니다.</li>
+      <li>회복 = 200일선 위 40거래일 유지</li>
       <li>추가 하락이 컸던 경우: 2000-03-09 -44.5% (IT버블), 2002-07-24 -28.6%, 2011-08-04 -18.1%, 2008-01-11 -11.7%.</li>
       <li class="hl">-5% 이상 4건은 모두 이탈일 또는 다음 날이 저점이었습니다.</li>
       <li class="hl">-3~-5%: 저점까지 평균 22.2거래일 (최대·최소 제외 2.5거래일, 중간값 1거래일)</li>
@@ -571,7 +570,7 @@ document.getElementById('reloadPricesBtn').addEventListener('click', async (ev) 
 });
 
 // 모바일 카드용 라벨: 각 칸에 표 머리글 이름을 붙인다(긴 이름은 줄임)
-const SHORT = { '40일 유지 첫 돌파': '40일 유지', '60주선 도달': '60주선', '이후 추가 하락': '추가 하락' };
+const SHORT = { '60주선 도달': '60주선', '이후 추가 하락': '추가 하락' };
 document.querySelectorAll('.tbl table').forEach(t => {
   const heads = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
   t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if(heads[i]) td.setAttribute('data-label', SHORT[heads[i]] || heads[i]); }));
