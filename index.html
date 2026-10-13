@@ -7781,10 +7781,7 @@ function anRenderResult(res){
 
   // 폭락장 배너는 뺌(2026-10-11) — 시장 바닥 지표를 보고 직접 판단
 
-  // 지수 4개 아코디언: 07:00~17:00 = 코스피만 펼침, 그 외 = 나스닥만 펼침
-  const nowK = new Date(Date.now() + 9 * 3600e3), hm = nowK.getUTCHours() * 100 + nowK.getUTCMinutes();
-  const krOpen = hm >= 700 && hm < 1700;
-  if(!anState.idxInit){ anState.idxInit = true; anState.openKeys.add('i:' + (krOpen ? 'kospi' : 'ndx')); }   // 처음 한 번만 기본 펼침, 그 뒤엔 사용자가 열고 닫은 그대로(돋보기 다시 눌러도 유지)
+  // 지수 4개 아코디언: 모두 닫힌 채로 시작(사용자 2026-10-13 20:57, 전엔 07~17시 코스피·그 외 나스닥 펼침). 그 뒤엔 사용자가 열고 닫은 그대로
   const idxHtml = [['kospi', 'KR'], ['kosdaq', 'KR'], ['spx', 'US'], ['ndx', 'US']].map(([k, mk]) => {
     const v = idx[k];
     if(!v) return '';
