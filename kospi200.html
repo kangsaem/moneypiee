@@ -545,7 +545,7 @@ function render(r, live){
   const statusTxt = { OPEN: '장중', CLOSE: '장 마감', PREOPEN: '장 시작 전' }[live.status] || live.status;
   const at = live.at ? live.at.slice(0, 16).replace('T', ' ') : '';
   $('lvTime').textContent = `${r.todayKey}${at ? ' · ' + at.slice(11) : ''}`;
-  const ep = r.ep, dayChg = ep ? ep.chg : r.chgPct;
+  const ep = r.ep && !r.ep.recovered ? r.ep : null, dayChg = ep ? ep.chg : r.chgPct;   // 회복된 국면은 아래 표(보관)에서만 — 맨 위 줄은 오늘 상태로
   $('lvDate').textContent = ep ? ep.date : r.todayKey;
   $('lvChg').innerHTML = `<span class="chipv ${cls(dayChg)}">${pct(dayChg)}</span>`; $('lvChg').className = '';
   const prevGap = ep ? ep.prevGap : (r.prevClose / r.maPrev - 1) * 100;
