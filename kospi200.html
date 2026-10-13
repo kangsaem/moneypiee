@@ -484,7 +484,9 @@ function compute(live, daily){
   const wv = [...wk.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1).map(e => e[1]);
   const w60 = wv.length >= 60 ? sum(wv.slice(-60)) / 60 : null;
   const chgPct = live.chgPct != null ? live.chgPct : (p / prevClose - 1) * 100;
-  const ep = trackEpisode([...keys, todayKey], [...closes, p], chgPct);
+  const lows = keys.map(k => daily.get(k).l > 0 ? daily.get(k).l : daily.get(k).c);
+  const todayLow = todayBar && todayBar.l > 0 ? Math.min(todayBar.l, p) : p;
+  const ep = trackEpisode([...keys, todayKey], [...closes, p], chgPct, [...lows, todayLow]);
   return { todayKey, prevKey: keys[n-1], p, chgPct, prevClose, maPrev, maToday, w60, ep };
 }
 
@@ -492,10 +494,17 @@ function compute(live, daily){
 // 추가 하락 = 이탈일 종가 → 처음 200일선 위로 올라가기 전까지 최저(현재가 포함). 상회일수 = 200일선 위 연속 거래일(현재가 포함),
 // 40일을 못 채우고 다시 아래로 가면 실패 +1, 다시 넘으면 1부터. 40일 채우면 회복(그 연속의 첫날). 회복 뒤 새 이탈이 나오면 새로 추적.
 const TRACK_FROM = '2026-10-13', HOLD_DAYS = 40;
-function trackEpisode(D, C, liveChg){
+function trackEpisode(D, C, liveChg, L){
   const N = C.length, ma = new Array(N).fill(null);
   let s = 0;
   for(let i = 0; i < N; i++){ s += C[i]; if(i >= 200) s -= C[i - 200]; if(i >= 199) ma[i] = s / 200; }
+  const wk = D.map(weekKey), lastOfWeek = new Map();
+  D.forEach((d, i) => lastOfWeek.set(wk[i], C[i]));
+  const weeks = [...lastOfWeek.keys()].sort();
+  const w60At = i => {                                   // i번째 날의 60주선(지난 59주 마지막 종가 + 그날 종가)
+    const k = weeks.indexOf(wk[i]); if(k < 59) return null;
+    let s = C[i]; for(let j = k - 59; j < k; j++) s += lastOfWeek.get(weeks[j]); return s / 60;
+  };
   let ep = null;
   for(let i = 1; i < N; i++){
     if(D[i] < TRACK_FROM || ma[i] == null || ma[i - 1] == null) continue;
@@ -504,9 +513,13 @@ function trackEpisode(D, C, liveChg){
       if(C[i - 1] > ma[i - 1] && C[i] < ma[i]){
         ep = { b: i, date: D[i], chg: i === N - 1 && liveChg != null ? liveChg : (C[i] / C[i - 1] - 1) * 100,
                prevGap: (C[i - 1] / ma[i - 1] - 1) * 100, min: C[i], minAt: i, crossed: false, run: 0, fail: 0, recovered: null };
+        const w = w60At(i);                                // 60주선: 이탈일에 이미 아래 / 일봉 저가가 처음 닿은 날
+        ep.w60b = w ? (C[i] / w - 1) * 100 : null;
+        ep.w60 = w == null ? null : C[i] <= w ? { already: true } : (L && L[i] <= w ? { days: 0, date: D[i] } : null);
       }
       continue;
     }
+    if(!ep.w60 && L && !ep.recovered){ const w = w60At(i); if(w != null && L[i] <= w) ep.w60 = { days: i - ep.b, date: D[i] }; }
     if(!ep.crossed){ if(above) ep.crossed = true; else if(C[i] < ep.min){ ep.min = C[i]; ep.minAt = i; } }
     if(above){ ep.run++; if(ep.run === 1) ep.runFrom = D[i]; if(ep.run >= HOLD_DAYS) ep.recovered = ep.runFrom; }
     else { if(ep.run > 0) ep.fail++; ep.run = 0; }
@@ -538,7 +551,9 @@ function render(r, live){
   const g200 = (r.p / r.maToday - 1) * 100;
   $('lvL1').textContent = `코스피 ${fmt(r.p)}`;
   $('lvL2').innerHTML = `200일선 ${g200 < 0 ? '아래' : '위'} <span class="${cls(g200)}">${pct(g200)}</span>`;
-  if(r.w60 != null){
+  if(ep && ep.w60 && ep.w60.days != null){
+    $('lvW60').innerHTML = `${ep.w60.days}거래일<span class="d">이탈일 ${ep.w60b != null ? pct(ep.w60b).replace(/(\.\d)\d%$/, '$1%') + ' 위' : ''}</span>`; $('lvW60').className = '';
+  }else if(r.w60 != null){
     const g60 = (r.p / r.w60 - 1) * 100;
     if(g60 <= 0){ $('lvW60').innerHTML = `이미 아래<span class="d">60주선 ${pct(g60)}</span>`; $('lvW60').className = 'dim'; }
     else { const need = (r.w60 / r.p - 1) * 100; $('lvW60').innerHTML = `<span class="chipv dn">${pct(need)}</span><span class="d">더 빠지면 도달</span>`; $('lvW60').className = ''; }
