@@ -6828,6 +6828,28 @@ function anIndexChartData(dates, s){
   return ch;
 }
 
+// 지수 현금 비중 안내(2026-10-13 지수 200일선 시험, moneypier index_cmp.py IC_SET=cut): 조건이 맞으면 '현금 n% 추천' + 근거. 표시만
+const AN_IDX_CASH = {
+  kospi: { pct: 30, how: 'd10', why: '근거: 코스피 1995~ 5년 구간 305개 · 그냥 보유 대비 평균 수익 같음(+45% vs +44%) · 최악 −42%→−18% · 손실로 끝난 5년 41→33번' },
+  spx:   { pct: 50, how: 'd10', why: '근거: S&P500 1988~ 5년 구간 394개 · 평균 +54% vs 보유 +58% · 최악 −39%→−13% · 손실로 끝난 5년 81→28번' },
+  ndx:   { pct: 50, how: 'c10', why: '근거: 나스닥100 1988~ 5년 구간 394개 · 평균 +121% vs 보유 +123% · 최악 −64%→−39% · 손실로 끝난 5년 49→28번' }
+};
+function anIndexCash(key, b){
+  const R = AN_IDX_CASH[key], s = b && b.close;
+  if(!R || !s || s.length < 260) return null;
+  const n = s.length, ma = s.slice(n - 200).reduce((a, x) => a + x, 0) / 200;
+  const hi = Math.max(...s.slice(Math.max(0, n - 252))), dd = (s[n - 1] / hi - 1) * 100, gap = (s[n - 1] / ma - 1) * 100;
+  let run = 0;
+  for(let i = n - 1; i >= 199 && run < 30; i--){
+    const m = s.slice(i - 199, i + 1).reduce((a, x) => a + x, 0) / 200;
+    if(s[i] < m) run++; else break;
+  }
+  const on = gap < 0 && (R.how === 'd10' ? dd <= -10 : run >= 10);
+  const cond = R.how === 'd10' ? '200일선 아래 + 1년 고점 대비 −10% 이하' : '200일선 아래 10거래일 연속';
+  const now = `200일선 ${gap >= 0 ? '+' : ''}${gap.toFixed(1)}% · 1년 고점 ${dd.toFixed(1)}%` + (gap < 0 ? ` · 아래 ${run >= 30 ? '30+' : run}일째` : '');
+  return { on, pct: R.pct, cond, now, why: R.why };
+}
+
 function anIndexInfo(name, b){
   const s = b.close, n = s.length;
   const dd = anDisp(b.dates, s);
@@ -6894,6 +6916,7 @@ async function anMarketSnapshot(isUS){
       }catch(e){}
       if(live) b = anPatchLive(b, live.price, mk);
       snap.idx[key] = anIndexInfo(nm, b);
+      try{ snap.idx[key].cash = anIndexCash(key, b); }catch(e){}
       if(live) snap.idx[key].live = live;
       if(b.live) snap.idx[key].chart.lastLabel = '현재가';
       if(key === 'kospi') snap.ks = anKs(b);
@@ -7602,10 +7625,13 @@ function anIndexChart(v, noHead){
   if(v.disp){ const t = anDispTag(v.disp, '이격도'); tags += `<span class="an-mt ${t.cls}">이격도 ${v.disp.cur.toFixed(1)} (${anN(v.disp.min)}/${anN(v.disp.max)})</span>`; }
   if(v.state) tags += `<span class="an-mt n">${anE(v.state.name)} · ${anE(v.state.why)}</span>`;
   if(anOk(v.rsi)) tags += `<span class="an-mt ${v.rsi >= 70 ? 'hot' : v.rsi <= 30 ? 'cold' : 'n'}">RSI ${v.rsi.toFixed(0)}</span>`;
+  const C = v.cash;
+  if(C) tags += C.on ? `<span class="an-mt an-cash on">현금 ${C.pct}% 추천</span>` : `<span class="an-mt n">현금화 조건 아님</span>`;
+  const cashLine = C ? `<div class="an-cashln">${C.on ? `<b>현금 ${C.pct}% 추천</b> · ` : ''}조건 = ${anE(C.cond)}, 200일선 위로 오면 다시 매수 · 지금 ${anE(C.now)}<br>${anE(C.why)} · 지수는 그냥 보유해도 무리 없음(평균 비슷) · 표시만</div>` : '';
   return `<div class="an-box">
     ${noHead ? '' : `<div class="an-ih"><span class="an-in">${anE(v.name)}</span><b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span><span class="an-ip">최근 ${AN.CHART_DAYS}거래일</span></div>`}
     <div class="an-mrow" style="margin-bottom:2px;">${tags}</div>
-    ${anSvgChart(v.chart)}
+    ${anSvgChart(v.chart)}${cashLine}
   </div>`;
 }
 
@@ -8252,6 +8278,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-idxch { display:grid; gap:8px; }
 .an-ih { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 8px; }
 .an-ih .an-in { font-size:12px; color:var(--text-dim); } .an-ih b { font-size:var(--bignum); }
+.an-cash.on { color:#F2A65A; border-color:#F2A65A; } .an-cashln { font-size:10.5px; line-height:1.5; color:var(--text-dim); margin-top:4px; } .an-cashln b { color:#F2A65A; font-weight:600; }
 .an-ih .an-ig { font-size:12px; } .an-ih .an-ip { margin-left:auto; font-size:10px; color:var(--text-dim); }
 .an-ih .up { color:var(--an-up); } .an-ih .dn { color:var(--an-dn); }
 .an-gauges { display:grid; gap:8px; }
