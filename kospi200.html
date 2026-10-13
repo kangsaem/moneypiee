@@ -35,6 +35,8 @@ h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
 @media (prefers-reduced-motion:reduce){.acc summary::after{transition:none}}
 .acc.key .st,.acc.key .meta{color:var(--up)}
 .acc .meta.up{color:var(--up)}
+.issue.hit{color:var(--up);font-weight:500}
+.hitrow td{background:var(--upbg)}
 h1{font-size:17px;font-weight:600;margin:0;text-wrap:balance}
 .cond{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:12px;font-weight:500;padding:3px 8px;border-radius:6px;background:var(--surface2);color:var(--sub)}
@@ -98,14 +100,24 @@ body{margin:0}
 
   <details class="sec acc live" id="live">
     <summary><span class="st">오늘 코스피 <span class="dim" id="lvTime">불러오는 중…</span></span><span class="meta" id="lvSum">현재가 기준으로 200일선·60주선 거리를 계산합니다</span></summary>
-    <div class="lv-body">
-      <div class="lv-grid">
-        <div><span class="k">현재가</span><span class="v" id="lvPrice">–</span><span class="s" id="lvChg"></span></div>
-        <div><span class="k">200일선</span><span class="v" id="lvMa">–</span><span class="s" id="lvMaGap"></span></div>
-        <div><span class="k">60주선</span><span class="v" id="lvW60">–</span><span class="s" id="lvW60Gap"></span></div>
-      </div>
-      <div class="lv-judge" id="lvJudge"></div>
-      <div class="s" id="lvPrev"></div>
+    <div class="tbl">
+      <table>
+      <thead><tr>
+        <th>날짜 · 상태</th><th>당일 등락률</th><th>전날 위치</th><th>현재가 · 200일선</th><th>60주선</th><th>첫 재돌파</th><th>40일 유지 첫 돌파</th><th>실패</th>
+      </tr></thead>
+      <tbody>
+        <tr id="lvRow">
+          <td><span class="date" id="lvDate">–</span><span class="issue" id="lvJudge">불러오는 중…</span></td>
+          <td id="lvChg">–</td>
+          <td id="lvPrevGap">–<span class="d"></span></td>
+          <td id="lvNow">–</td>
+          <td id="lvW60">–</td>
+          <td class="dim">–<span class="d">진행 중</span></td>
+          <td class="dim">–<span class="d">진행 중</span></td>
+          <td class="dim">–</td>
+        </tr>
+      </tbody>
+      </table>
     </div>
   </details>
 
@@ -456,14 +468,19 @@ function render(r, live){
   const statusTxt = { OPEN: '장중', CLOSE: '장 마감', PREOPEN: '장 시작 전' }[live.status] || live.status;
   const at = live.at ? live.at.slice(0, 16).replace('T', ' ') : '';
   $('lvTime').textContent = `${r.todayKey} · ${statusTxt}${at ? ' · ' + at.slice(11) + ' 기준' : ''}`;
-  $('lvPrice').textContent = fmt(r.p);
-  $('lvChg').textContent = pct(r.chgPct); $('lvChg').className = 's ' + cls(r.chgPct);
-  $('lvMa').textContent = fmt(r.maToday);
-  setGap($('lvMaGap'), r.p, r.maToday, '현재가 거리');
-  $('lvW60').textContent = fmt(r.w60);
-  setGap($('lvW60Gap'), r.p, r.w60, '현재가 거리');
+  $('lvDate').textContent = r.todayKey;
+  $('lvChg').textContent = pct(r.chgPct); $('lvChg').className = cls(r.chgPct);
   const prevGap = (r.prevClose / r.maPrev - 1) * 100;
-  $('lvPrev').textContent = `전 거래일(${r.prevKey}) 종가 ${fmt(r.prevClose)} · 그날 200일선 ${fmt(r.maPrev)} (${pct(prevGap)})`;
+  $('lvPrevGap').innerHTML = `${pct(prevGap).replace(/(\.\d)\d%$/, '$1%')}<span class="d">${r.prevKey.slice(5)} 종가 ${fmt(r.prevClose)}</span>`;
+  $('lvPrevGap').className = cls(prevGap);
+  const g200 = (r.p / r.maToday - 1) * 100;
+  $('lvNow').innerHTML = `${fmt(r.p)}<span class="d">200일선 ${fmt(r.maToday)} · ${pct(g200)}</span>`;
+  $('lvNow').className = '';
+  if(r.w60 != null){
+    const g60 = (r.p / r.w60 - 1) * 100;
+    $('lvW60').innerHTML = g60 <= 0 ? `이미 아래<span class="d">60주선 ${pct(g60)}</span>` : `미도달<span class="d">60주선 ${fmt(r.w60)} · ${pct(g60)} 위</span>`;
+    $('lvW60').className = 'dim';
+  }
 
   // 판정: 전날 200일선 위 → 오늘 200일선 아래?
   document.querySelectorAll('[data-band]').forEach(s => s.classList.remove('match'));
@@ -474,16 +491,16 @@ function render(r, live){
     if(r.chgPct <= -5) band = '5'; else if(r.chgPct <= -3) band = '3'; else if(r.chgPct <= -2) band = '2';
     txt = band ? `200일선 이탈 중${word} · ${pct(r.chgPct)} → 아래 "${band === '5' ? '-5% 이상' : band === '3' ? '-3~-5%' : '-2~-3%'}" 표에 해당`
                : `200일선 이탈 중${word} · ${pct(r.chgPct)} (-2% 미만이라 표 해당 없음)`;
-    j.className = 'lv-judge hit';
+    j.className = 'issue hit';
   }else if(wasAbove){
     txt = `200일선 위 유지 · 이탈까지 ${((r.maToday / r.p - 1) * 100).toFixed(2)}% 남음`;
-    j.className = 'lv-judge';
+    j.className = 'issue';
   }else{
     txt = '전 거래일에 이미 200일선 아래 (표의 조건과 다름)';
-    j.className = 'lv-judge';
+    j.className = 'issue';
   }
   j.textContent = txt;
-  const g200 = (r.p / r.maToday - 1) * 100;
+  $('lvRow').className = j.classList.contains('hit') ? 'hitrow' : '';
   $('lvSum').textContent = `${fmt(r.p)} (${pct(r.chgPct)}) · 200일선 ${pct(g200)} · ${txt.split(' · ')[0]}`;
   $('lvSum').className = 'meta' + (j.classList.contains('hit') ? ' up' : '');
   if(band){ const s = document.querySelector(`[data-band="${band}"]`); if(s){ s.classList.add('match'); if(s.tagName === 'DETAILS') s.open = true; } }
