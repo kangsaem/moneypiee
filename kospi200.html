@@ -119,10 +119,10 @@ body{margin:0}
           <td><span class="date" id="lvDate">–</span></td>
           <td id="lvChg">–</td>
           <td id="lvPrevGap">–</td>
-          <td class="dim">진행 중</td>
+          <td class="dim">–</td>
           <td id="lvW60">–</td>
-          <td class="dim">진행 중</td>
-          <td class="dim">진행 중</td>
+          <td class="dim">–</td>
+          <td class="dim">–</td>
           <td class="dim">–</td>
         </tr>
       </tbody>
@@ -486,8 +486,8 @@ function render(r, live){
   $('lvHead').innerHTML = `· 현재가 ${fmt(r.p)} · 200일선 <span class="${cls(g200)}">${pct(g200)}</span> ·`;
   if(r.w60 != null){
     const g60 = (r.p / r.w60 - 1) * 100;
-    $('lvW60').innerHTML = g60 <= 0 ? `이미 아래<span class="d">60주선 ${pct(g60)}</span>` : '진행 중';
-    $('lvW60').className = 'dim';
+    if(g60 <= 0){ $('lvW60').innerHTML = `이미 아래<span class="d">60주선 ${pct(g60)}</span>`; $('lvW60').className = 'dim'; }
+    else { const need = (r.w60 / r.p - 1) * 100; $('lvW60').innerHTML = `${pct(need)}<span class="d">더 빠지면 도달</span>`; $('lvW60').className = 'dn'; }
   }
 
   // 판정: 전날 200일선 위 → 오늘 200일선 아래?
