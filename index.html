@@ -7872,14 +7872,12 @@ const anBtState = { p: '1', off: new Set([1, 2, 3, 4]) };   // 처음: 1년 · V
 // 표시 문구(2026-10-11 정리): 항목 사이 ' / ', 항목 안 '·'. 옛 내부 이름(매수 신호·눌림진행·비중축소·익절검토 등)은 쓰지 않음
 // 2026-10-13 개편(사용자 결정): V1 = 알파를 만드는 로직이 아니라 검토·매수 시점·경보 도구. 매도·전량 → 경보, 매수 한도 = 종목당 5%
 // 2026-10-13 개편(사용자 문구): V1 = 알파를 만드는 로직이 아니라 검토·시점 참고·점검 도구. 매도·전량 → 경보, 매수 한도 = 종목당 5%
-const AN_POS = [
-  '알파는 종목 선정 · 시장 상승기 · 보유에서 정해짐',
+const AN_POS = [     // 2026-10-13 19:10 사용자 문구(위치·규칙 한 묶음, 글자 조금 크게 .an-rfirst)
+  '알파는 종목 선정 · 시장 상승 · 보유에서 정해짐',
   '이 로직만으로는 알파를 만들 수 없음',
-  'V1은 종목 검토, 시점 참고, 점검할 때를 알려 주는 도구'
-];
-const AN_RULES = [
-  '알파를 확신하는 종목만, 종목당 전체 금융자산의 5% 이하. 분할은 직접 판단',
-  '기본은 지수 ETF 투자 + 운용 원칙'
+  'V1은 매수 검토, 시점 참고, 점검할 때를 알려 주는 도구',
+  '알파는 확신하는 종목만 전체 금융자산의 5% 이하 매수',
+  '기본은 지수 ETF 투자'
 ];
 const AN_SIG_DEF = [
   '싼 조건 = RSI 30 이하(일·주·월 모두 역배열이면 더 낮게) · 50일 이격도가 과거 최저권 · 52주 고점 대비 -20% 이하',
@@ -7932,7 +7930,6 @@ function anLogicBody(){
   const per = [['1', '1년'], ['3', '3년'], ['5', '5년']];
   const lines = arr => arr.map(s => `<span class="an-li">${anE(s)}</span>`).join('');   // 항목마다 한 줄씩
   return `<p class="an-rfirst">${lines(AN_POS)}</p>
-      <p>${lines(AN_RULES)}</p>
       <h4>백테스트 <small>총수익 · 칩을 누르면 선 켜고 끄기</small></h4>
       <div class="an-btper">${per.map(([k, nm]) => `<button type="button" data-btp="${k}"${k === anBtState.p ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>
       <div class="an-btwrap"></div>
@@ -8573,7 +8570,7 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 .an-mt, .an-mt.arr, .an-mt.role, .an-mt.an-bt, .an-mt.an-tp { font-weight:500 !important; }
 /* 2026-10-11 20:20 화면 정리 */
 .an-stock > summary b { font-weight:500; }
-.an-rules { background:var(--surface) !important; } .an-rules + .an-warn { background:#3a3b40 !important; } .an-rfirst { margin-top:2px !important; }
+.an-rules { background:var(--surface) !important; } .an-rules + .an-warn { background:#3a3b40 !important; } .an-rfirst { margin-top:2px !important; font-size:12px; }   /* 첫 묶음(위치·규칙)만 조금 크게(사용자 2026-10-13) */
 .an-htabs .an-ftab { width:42px; justify-content:center; padding:0 !important; font-size:11px !important; letter-spacing:-0.5px; white-space:nowrap; }
 .an-ftab.has.t-wh { color:#C9C9C9; border-color:#C9C9C9; } .an-ftab.on.t-wh { background:#C9C9C9; color:var(--bg); border-color:#C9C9C9; }
 .an-ftab.has.t-tl { color:#2BC4B0; border-color:#2BC4B0; } .an-ftab.on.t-tl { background:#2BC4B0; color:var(--bg); border-color:#2BC4B0; }
