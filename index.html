@@ -8705,8 +8705,10 @@ function checkNoticeHtml(){
     document.documentElement.classList.remove('logic-only');
     try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
   }
-  // 첫 팝업 = Logic V1 안내창(2026-10-13, 전엔 notice.png → notice.html). '다시 보지 않기'면 건너뜀
+  // 첫 팝업 = Logic V1 안내창(2026-10-13, '다시 보지 않기'면 건너뜀) → notice.png → notice.html
   await new Promise(r => { if(!anLogicPopup({ onClose: r })) r(); });
+  await checkNoticePng();
+  await checkNoticeHtml();
 
   // ===== 종목추가 가이드 (in001 → in002 → in003) =====
   // FAQ 다음에 표시. 클릭/터치로 순서 전환. '다시 보지 않기' 체크 후 닫으면 그 다음부터 표시 안 함
