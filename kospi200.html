@@ -103,10 +103,12 @@ body{margin:0}
   .tbl table{min-width:0;table-layout:auto}
   .tbl table,.tbl tbody,.tbl tr,.tbl td{display:block;width:auto}
   .tbl thead{display:none}
-  .tbl tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;padding:12px 14px;border-bottom:1px solid var(--bg)}
+  .tbl tr{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px 10px;padding:12px 14px;border-bottom:1px solid var(--bg)}
   .tbl tr:last-child{border-bottom:0}
   .tbl td{padding:0;border:0;text-align:left;white-space:normal;background:none!important}
   .tbl td:first-child{grid-column:1/-1}
+  .tbl td:nth-child(n+2):nth-child(-n+4){grid-column:span 4}
+  .tbl td:nth-child(n+5){grid-column:span 3}
   .tbl td:not(:first-child)::before{content:attr(data-label);display:block;font-size:11px;font-weight:400;color:var(--text-dim);margin-bottom:1px}
   .tbl .issue{max-width:none}
   .tbl tr.fast{background:var(--okbg)}
