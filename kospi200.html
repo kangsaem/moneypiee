@@ -521,10 +521,10 @@ function trackEpisode(D, C, liveChg, L){
     }
     if(!ep.w60 && L && !ep.recovered){ const w = w60At(i); if(w != null && L[i] <= w) ep.w60 = { days: i - ep.b, date: D[i] }; }
     if(!ep.crossed){ if(above) ep.crossed = true; else if(C[i] < ep.min){ ep.min = C[i]; ep.minAt = i; } }
-    if(above){ ep.run++; if(ep.run === 1) ep.runFrom = D[i]; if(ep.run >= HOLD_DAYS) ep.recovered = ep.runFrom; }
+    if(above){ ep.run++; if(ep.run === 1){ ep.runFrom = D[i]; ep.runFromIdx = i; } if(ep.run >= HOLD_DAYS) ep.recovered = ep.runFrom; }
     else { if(ep.run > 0) ep.fail++; ep.run = 0; }
   }
-  if(ep){ ep.drop = (ep.min / C[ep.b] - 1) * 100; ep.dropDays = ep.minAt - ep.b; ep.nowAbove = C[N - 1] >= ma[N - 1]; }
+  if(ep){ ep.drop = (ep.min / C[ep.b] - 1) * 100; ep.dropDays = ep.minAt - ep.b; ep.nowAbove = C[N - 1] >= ma[N - 1]; if(ep.recovered) ep.recDays = ep.runFromIdx - ep.b; }
   return ep;
 }
 
@@ -590,6 +590,73 @@ function render(r, live){
   }
 }
 
+// ===== 회복된 국면 자동 보관(2026-10-13) =====
+// 맨 위 줄 국면이 회복(상회 40일)되면, 이 기기에 머니파이 GitHub 토큰(mp-gh-token, 종목 연동과 같은 것)이 있을 때만
+// moneypier/kospi200_cases.json에 한 줄 추가(같은 이탈일이 있으면 건너뜀). 표는 그대로 두고 파일의 줄을 해당 구간 표 끝에 붙여 보여 줌.
+// 이슈 이름은 비워 두고 나중에 파일에서 채움. 당일 등락률이 -2%보다 작으면(표 대상 아님) 저장하지 않음.
+const ARCH = { REPO: 'kangsaem/moneypier', PATH: 'kospi200_cases.json', KEY: 'mp-gh-token' };
+let archList = [];
+const ghTok = () => { try{ return localStorage.getItem(ARCH.KEY) || ''; }catch(e){ return ''; } };
+const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(String(s).replace(/\s/g, '')), c => c.charCodeAt(0)));
+const b64enc = s => { let x = ''; new TextEncoder().encode(s).forEach(c => { x += String.fromCharCode(c); }); return btoa(x); };
+async function archFetch(){
+  const tok = ghTok();
+  if(tok){
+    const r = await fetch(`https://api.github.com/repos/${ARCH.REPO}/contents/${ARCH.PATH}?t=${Date.now()}`,
+      { headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+    if(r.status === 404) return { list: [], sha: null };
+    if(!r.ok) throw new Error('GitHub ' + r.status);
+    const j = await r.json(); return { list: JSON.parse(b64dec(j.content)), sha: j.sha };
+  }
+  const r = await fetch(`https://raw.githubusercontent.com/${ARCH.REPO}/main/${ARCH.PATH}?t=${Date.now()}`, { cache: 'no-store' });
+  if(!r.ok) return { list: [], sha: null };
+  return { list: await r.json(), sha: null };
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const p1s = x => (x > 0 ? '+' : '') + x.toFixed(1) + '%';
+function archRow(c){
+  const drop = c.dropDays > 0 && c.drop < 0 ? `<td class="dn">${p1s(c.drop)}<span class="d">${c.dropDays === 1 ? '다음 날' : c.dropDays + '거래일 뒤'}</span></td>` : '<td class="dim">없음</td>';
+  const w = c.w60 && c.w60.days != null ? `<td>${c.w60.days}거래일<span class="d">이탈일 ${c.w60b != null ? p1s(c.w60b) + ' 위' : ''}</span></td>`
+          : c.w60 && c.w60.already ? `<td class="dim">이미 아래<span class="d">60주선 ${c.w60b != null ? p1s(c.w60b) : ''}</span></td>`
+          : `<td class="dim">미도달<span class="d">60주선 ${c.w60b != null ? p1s(c.w60b) + ' 위' : ''}</span></td>`;
+  const fast = c.recDays <= 5;
+  return `<tr class="${fast ? 'fast ' : ''}arch" data-arch="${esc(c.date)}">
+          <td><span class="date">${esc(c.date)}</span><span class="issue${c.issue ? '' : ' miss'}">${esc(c.issue || '이슈 확인 못 함')}</span></td>
+          <td class="dn">${(c.chg > 0 ? '+' : '') + c.chg.toFixed(2)}%</td><td class="${c.prevGap >= 0 ? 'up' : 'dn'}">${p1s(c.prevGap)}</td>${drop}${w}
+          <td>${esc(c.recovered)}${fast ? '<span class="badge">즉시</span>' : ''}<span class="d">${c.recDays}거래일 후</span></td><td>${c.fail}회</td>
+        </tr>`;
+}
+function archPaint(){
+  const tabs = [...document.querySelectorAll('.tbl table')];   // 0 = 맨 위 줄, 1 = -5% 이상, 2 = -3~-5%, 3 = -2~-3%
+  const have = new Set([...document.querySelectorAll('.tbl tbody .date')].map(e => e.textContent.trim()));
+  archList.forEach(c => {
+    if(have.has(c.date) || !(c.chg <= -2)) return;
+    const k = c.chg <= -5 ? 1 : c.chg <= -3 ? 2 : 3, tb = tabs[k] && tabs[k].querySelector('tbody');
+    if(!tb) return;
+    tb.insertAdjacentHTML('beforeend', archRow(c));
+    labelRows(tabs[k]);
+    const meta = tabs[k].closest('details')?.querySelector('.meta');
+    if(meta) meta.textContent = meta.textContent.replace(/^(\d+)건/, (_, n) => `${+n + 1}건`);
+    have.add(c.date);
+  });
+}
+async function archSave(ep){
+  if(!ep || !ep.recovered || !(ep.chg <= -2) || !ghTok()) return '';
+  const cur = await archFetch();
+  if(cur.list.some(c => c.date === ep.date)) return '';
+  const rec = { date: ep.date, issue: '', chg: +ep.chg.toFixed(2), prevGap: +ep.prevGap.toFixed(1), drop: +ep.drop.toFixed(1), dropDays: ep.dropDays,
+                w60: ep.w60 || null, w60b: ep.w60b != null ? +ep.w60b.toFixed(1) : null, recovered: ep.recovered, recDays: ep.recDays, fail: ep.fail,
+                savedAt: new Date().toISOString().slice(0, 10) };
+  const list = cur.list.concat(rec);
+  const body = { message: `코스피 200일선 붕괴 사례 보관: ${ep.date} (회복 ${ep.recovered}) [skip ci]`, content: b64enc(JSON.stringify(list, null, 1) + '\n') };
+  if(cur.sha) body.sha = cur.sha;
+  const r = await fetch(`https://api.github.com/repos/${ARCH.REPO}/contents/${ARCH.PATH}`,
+    { method: 'PUT', headers: { Authorization: 'Bearer ' + ghTok(), Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if(!r.ok) throw new Error(r.status === 401 || r.status === 403 ? '토큰 권한 부족' : 'GitHub ' + r.status);
+  archList = list; archPaint();
+  return '사례 저장됨';
+}
+
 async function loadAll(){
   const $ = id => document.getElementById(id);
   try{
@@ -597,7 +664,10 @@ async function loadAll(){
       fetchLive(),
       fetchDailyNaver().catch(() => fetchDailyYahoo())
     ]);
-    render(compute(live, daily), live);
+    const r = compute(live, daily);
+    render(r, live);
+    archSave(r.ep).then(msg => { if(msg) $('lvTime').textContent += ' · ' + msg; })
+                  .catch(e => { $('lvTime').textContent += ' · 사례 저장 실패(' + (e && e.message ? e.message : e) + ')'; });
     return true;
   }catch(e){
     $('lvTime').textContent = '불러오지 못함 · ' + (e && e.message ? e.message : '네트워크 오류');
@@ -638,10 +708,12 @@ document.getElementById('reloadPricesBtn').addEventListener('click', async (ev) 
 
 // 모바일 카드용 라벨: 각 칸에 표 머리글 이름을 붙인다(긴 이름은 줄임)
 const SHORT = { '60주선 도달': '60주선', '이후 추가 하락': '추가 하락' };
-document.querySelectorAll('.tbl table').forEach(t => {
+function labelRows(t){
   const heads = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
   t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if(heads[i]) td.setAttribute('data-label', SHORT[heads[i]] || heads[i]); }));
-});
+}
+document.querySelectorAll('.tbl table').forEach(labelRows);
+archFetch().then(x => { archList = x.list || []; archPaint(); }).catch(() => {});
 applyCooldown();
 loadAll();
 </script>
