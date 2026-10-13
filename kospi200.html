@@ -30,8 +30,7 @@ h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
 .acc summary:focus-visible{outline:1.5px solid var(--dn);outline-offset:-2px;border-radius:8px}
 .acc .st{font-size:14px;font-weight:600}
 .acc .tbl{border-radius:0 0 8px 8px;border-top:1px solid var(--border)}
-.acc+.acc{margin-top:8px}
-.acc.live{margin-top:4px}
+.acc,.acc+.acc{margin-top:0}
 @media (prefers-reduced-motion:reduce){.acc summary::after{transition:none}}
 .acc.key .st,.acc.key .meta{color:var(--up)}
 .acc .meta.up{color:var(--up)}
@@ -51,6 +50,11 @@ tr:last-child td{border-bottom:0}
 .date{font-weight:600}
 .issue{display:block;font-size:12px;font-weight:400;color:var(--text-dim);margin-top:2px;white-space:normal;max-width:240px}
 .up{color:var(--up)} .dn{color:var(--dn)} .dim{color:var(--text-dim);font-weight:400}
+table{table-layout:fixed}
+th:nth-child(1){width:22%} th:nth-child(2){width:10%} th:nth-child(3){width:9%} th:nth-child(4){width:12%}
+th:nth-child(5){width:14%} th:nth-child(6){width:10%} th:nth-child(7){width:15%} th:nth-child(8){width:8%}
+td{overflow-wrap:anywhere}
+.d.up{color:var(--up)} .d.dn{color:var(--dn)}
 .d{display:block;font-size:11.5px;font-weight:400;color:var(--text-dim)}
 .fast td{background:var(--okbg)}
 .grp td{background:var(--surface2);color:var(--text);font-weight:600;font-size:12.5px;padding:8px 12px;text-align:left}
@@ -80,7 +84,6 @@ body{margin:0}
 .live .s.up{color:var(--up)} .live .s.dn{color:var(--dn)}
 .lv-judge{font-size:13px;font-weight:600;color:var(--text)}
 .lv-judge.hit{color:var(--up)}
-.match{box-shadow:0 0 0 2px var(--amber)}
 </style>
 </head>
 <body>
@@ -98,7 +101,7 @@ body{margin:0}
     <span class="chip">종가 기준 (60주선 도달은 저가 기준)</span>
   </div>
 
-  <details class="sec acc live" id="live">
+  <details class="sec acc live" id="live" open>
     <summary><span class="st">오늘 코스피 <span class="dim" id="lvTime">불러오는 중…</span></span><span class="meta" id="lvSum">현재가 기준으로 200일선·60주선 거리를 계산합니다</span></summary>
     <div class="tbl">
       <table>
@@ -107,13 +110,13 @@ body{margin:0}
       </tr></thead>
       <tbody>
         <tr id="lvRow">
-          <td><span class="date" id="lvDate">–</span><span class="issue" id="lvJudge">불러오는 중…</span></td>
+          <td><span class="date" id="lvDate">–</span></td>
           <td id="lvChg">–</td>
-          <td id="lvPrevGap">–<span class="d"></span></td>
+          <td id="lvPrevGap">–</td>
           <td id="lvNow">–</td>
           <td id="lvW60">–</td>
-          <td class="dim">–<span class="d">진행 중</span></td>
-          <td class="dim">–<span class="d">진행 중</span></td>
+          <td class="dim">진행 중</td>
+          <td class="dim">진행 중</td>
           <td class="dim">–</td>
         </tr>
       </tbody>
@@ -471,10 +474,10 @@ function render(r, live){
   $('lvDate').textContent = r.todayKey;
   $('lvChg').textContent = pct(r.chgPct); $('lvChg').className = cls(r.chgPct);
   const prevGap = (r.prevClose / r.maPrev - 1) * 100;
-  $('lvPrevGap').innerHTML = `${pct(prevGap).replace(/(\.\d)\d%$/, '$1%')}<span class="d">${r.prevKey.slice(5)} 종가 ${fmt(r.prevClose)}</span>`;
+  $('lvPrevGap').textContent = pct(prevGap).replace(/(\.\d)\d%$/, '$1%');
   $('lvPrevGap').className = cls(prevGap);
   const g200 = (r.p / r.maToday - 1) * 100;
-  $('lvNow').innerHTML = `${fmt(r.p)}<span class="d">200일선 ${fmt(r.maToday)} · ${pct(g200)}</span>`;
+  $('lvNow').innerHTML = `${fmt(r.p)}<span class="d ${cls(g200)}">${pct(g200)}</span>`;
   $('lvNow').className = '';
   if(r.w60 != null){
     const g60 = (r.p / r.w60 - 1) * 100;
@@ -483,8 +486,7 @@ function render(r, live){
   }
 
   // 판정: 전날 200일선 위 → 오늘 200일선 아래?
-  document.querySelectorAll('[data-band]').forEach(s => s.classList.remove('match'));
-  const j = $('lvJudge'); let band = null, txt;
+  const j = { className: '', textContent: '', classList: { contains(){ return j.className.includes('hit'); } } }; let band = null, txt;
   const wasAbove = r.prevClose > r.maPrev, nowBelow = r.p < r.maToday;
   const word = '';
   if(wasAbove && nowBelow){
@@ -503,7 +505,6 @@ function render(r, live){
   $('lvRow').className = j.classList.contains('hit') ? 'hitrow' : '';
   $('lvSum').textContent = `${fmt(r.p)} (${pct(r.chgPct)}) · 200일선 ${pct(g200)} · ${txt.split(' · ')[0]}`;
   $('lvSum').className = 'meta' + (j.classList.contains('hit') ? ' up' : '');
-  if(band){ const s = document.querySelector(`[data-band="${band}"]`); if(s){ s.classList.add('match'); if(s.tagName === 'DETAILS') s.open = true; } }
 }
 
 async function loadAll(){
