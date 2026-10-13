@@ -6816,7 +6816,9 @@ function anIndexState(dates, s){
 }
 function anIndexStateChip(v){
   const st = v && v.state;
-  return st ? `<span class="an-ist ${st.cls}" title="${anE(st.why)}">${anE(st.name)}</span>` : '';
+  const C = v && v.cash;                                   // 지수 현금 안내 칩(채움·글자 반전): 상태 칩 오른쪽
+  const cash = C && C.on ? `<span class="an-ist an-istf cash" title="${anE(C.cond)}">현금 ${C.pct}%</span>` : C && C.back ? `<span class="an-ist an-istf back" title="200일선 회복">다시 매수</span>` : '';
+  return (st ? `<span class="an-ist ${st.cls}" title="${anE(st.why)}">${anE(st.name)}</span>` : '') + cash;
 }
 
 // 지수 차트 = 기본 차트 + 200일선(전체 기록으로 계산해 차트 구간만 자름, 2026-10-13)
@@ -7642,8 +7644,6 @@ function anIndexChart(v, noHead){
   if(v.state) tags += `<span class="an-mt n">${anE(v.state.name)} · ${anE(v.state.why)}</span>`;
   if(anOk(v.rsi)) tags += `<span class="an-mt ${v.rsi >= 70 ? 'hot' : v.rsi <= 30 ? 'cold' : 'n'}">RSI ${v.rsi.toFixed(0)}</span>`;
   const C = v.cash;
-  if(C && C.on) tags += `<span class="an-mt an-cash on">현금 ${C.pct}% 추천</span>`;
-  if(C && C.back) tags += `<span class="an-mt an-cash back">다시 매수</span>`;
   const cashLine = C && (C.on || C.back) ? `<div class="an-cashln">${C.on ? `<b>현금 ${C.pct}% 추천</b> = 이 정도 현금이 미리 준비돼 있으면 좋은 시기 · 조건 ${anE(C.cond)}` : `<b>다시 매수</b> = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복(5거래일 동안 표시)`} · 지금 ${anE(C.now)}<br>${anE(C.why)} · 지수는 그냥 보유해도 무리 없음(평균 비슷) · 표시만</div>` : '';
   return `<div class="an-box">
     ${noHead ? '' : `<div class="an-ih"><span class="an-in">${anE(v.name)}</span><b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span><span class="an-ip">최근 ${AN.CHART_DAYS}거래일</span></div>`}
@@ -8355,6 +8355,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sw-w5 { background:var(--cw5); } .an-sw-w10 { background:var(--cw10); } .an-sw-m5 { background:var(--cm5); } .an-sw-m10 { background:var(--cm10); }
 .an-svgbox { position:relative; }
 .an-ist { font-size:11px; font-weight:500; line-height:1; padding:3px 6px; border-radius:6px; border:1px solid currentColor; margin-left:6px; white-space:nowrap; }
+.an-istf { border:none; color:#1E1F22 !important; font-weight:600; } .an-istf.cash { background:#F2A65A; } .an-istf.back { background:#FF4D5E; }
 .an-ist.up { color:var(--an-up); } .an-ist.dn { color:var(--an-dn); } .an-ist.n { color:#9A9BA1; }
 .an-live { font-size:11.5px; font-weight:500; margin-left:6px; white-space:nowrap; color:#9A9BA1; } .an-live.buy { color:var(--an-up); } .an-live.sell { color:var(--an-dn); }
 .an-liveline { font-size:12px; font-weight:500; margin:2px 0 6px; color:#C9C9C9; }
