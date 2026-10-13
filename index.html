@@ -7697,8 +7697,7 @@ function anIndexChart(v, noHead){
   if(v.state) tags += `<span class="an-mt n">${anE(v.state.name)} · ${anE(v.state.why)}</span>`;
   if(anOk(v.rsi)) tags += `<span class="an-mt ${v.rsi >= 70 ? 'hot' : v.rsi <= 30 ? 'cold' : 'n'}">RSI ${v.rsi.toFixed(0)}</span>`;
   const C = v.cash;
-  const cashLine = !C ? '' : C.inj && !C.on ? `<div class="an-cashln inj"><b>추가 매수</b> = 투자금만큼(+100%) 추가를 고려할 시기 · 큰 결정 · 직전 고점 대비 -15% 이상 빠졌다 200일선 회복(5거래일 동안 표시)${C.back ? ' · 현금화한 몫 현금 투입 포함' : ''}<br>근거(현금화 없이 투입만): ${anE(C.injwhy)} · 이익은 소수의 큰 회복에서 났음 · 다시 200일선이 깨지면 추가분 회수 · 지금 ${anE(C.now)}</div>`
-    : (C.back && !C.on) ? `<div class="an-cashln"><b>현금 투입</b> = 현금화했던 몫을 다시 넣을 시기 · 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복(5거래일 동안 표시) · 지금 ${anE(C.now)}<br>${anE(C.why)} · 지수는 그냥 보유해도 무리 없음</div>` : '';   // '현금 n%' 설명 줄은 뺌(사용자 2026-10-13 19:20, 칩만)
+  const cashLine = '';   // 지수 칩 설명 줄(현금 n%·현금 투입·추가 매수) 모두 뺌(사용자 2026-10-13 19:20·19:23, 칩·마우스 올림 글만)
   return `<div class="an-box">
     ${noHead ? '' : `<div class="an-ih"><span class="an-in">${anE(v.name)}</span><b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span><span class="an-ip">최근 ${AN.CHART_DAYS}거래일</span></div>`}
     <div class="an-mrow" style="margin-bottom:2px;">${tags}</div>
