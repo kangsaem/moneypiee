@@ -6991,6 +6991,17 @@ async function anFetchYahoo(sym, years){
     map.set(key, [cl, hi, lw, vo]);
     lastTs = t; lastKey = key;
   });
+  // 야후가 마지막 날 일봉 종가를 비워 줄 때가 있음(2026-10-13 ELMT 10-12: 일봉 종가 null, meta엔 종가 있음) → meta 정규장 가격으로 채움
+  const mt = r.meta || {}, tsAll = r.timestamp, tLast = tsAll[tsAll.length - 1];
+  if(tLast != null && mt.regularMarketPrice > 0 && mt.regularMarketTime){
+    const kLast = anFmtMs((tLast + off) * 1000);
+    if(!map.has(kLast) && anFmtMs((mt.regularMarketTime + off) * 1000) === kLast){
+      const px = mt.regularMarketPrice;
+      map.set(kLast, [px, mt.regularMarketDayHigh > 0 ? mt.regularMarketDayHigh : px, mt.regularMarketDayLow > 0 ? mt.regularMarketDayLow : px,
+                      mt.regularMarketVolume > 0 ? mt.regularMarketVolume : null]);
+      lastTs = tLast; lastKey = kLast;
+    }
+  }
   // 장중에 받으면 마지막 봉이 미완성이므로 뺀다(마감된 봉까지만 계산)
   const tp = r.meta && r.meta.currentTradingPeriod && r.meta.currentTradingPeriod.regular;
   const nowSec = Date.now() / 1000;
