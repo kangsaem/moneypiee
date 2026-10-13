@@ -36,6 +36,14 @@ h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
 .acc.live>summary .dim,.acc.live>summary #reloadPricesLabel{color:#4A4B50!important}
 .acc.live>summary .up{color:#C2185B} .acc.live>summary .dn{color:#1565C0}
 .acc.live>summary::after{border-color:#4A4B50}
+.acc.live,.acc.live .tbl{background:#C9C9C9}
+.acc.live .tbl{border-top:1px solid #AFAFB3}
+.acc.live th{color:#4A4B50;border-bottom-color:#AFAFB3}
+.acc.live td{color:#1E1F22;border-bottom-color:#AFAFB3}
+.acc.live td.dim,.acc.live .d{color:#4A4B50}
+.acc.live td.up,.acc.live .d.up{color:#C2185B} .acc.live td.dn,.acc.live .d.dn{color:#1565C0}
+.acc.live .hitrow td{background:none}
+@media (max-width:600px){.acc.live .tbl td:not(:first-child)::before{color:#4A4B50}.acc.live .tbl tr.hitrow{background:none}}
 #lvTime{font-size:12px;font-weight:400}
 .lv-btns{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .acc .st{font-size:14px;font-weight:600}
