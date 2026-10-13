@@ -31,10 +31,10 @@ h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
 .acc .st{font-size:14px;font-weight:600}
 .acc .tbl{border-radius:0 0 8px 8px;border-top:1px solid var(--border)}
 .acc+.acc{margin-top:8px}
+.acc.live{margin-top:4px}
 @media (prefers-reduced-motion:reduce){.acc summary::after{transition:none}}
-.sec.key h2{color:var(--up);font-size:16px}
-.sec.key .tbl{box-shadow:inset 0 0 0 1.5px var(--up)}
-.sec.key .meta{color:var(--up)}
+.acc.key .st,.acc.key .meta{color:var(--up)}
+.acc .meta.up{color:var(--up)}
 h1{font-size:17px;font-weight:600;margin:0;text-wrap:balance}
 .cond{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-size:12px;font-weight:500;padding:3px 8px;border-radius:6px;background:var(--surface2);color:var(--sub)}
@@ -69,16 +69,16 @@ body{margin:0}
 .head h1{flex:1;min-width:0}
 @keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .reload-spin{animation:reloadSpin .6s linear}
-.lv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:2px}
-@media (max-width:560px){.lv-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lv-body{border-top:1px solid var(--border);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.lv-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .lv-grid>div{display:flex;flex-direction:column;gap:1px;min-width:0}
 .lv-grid .k{font-size:11.5px;color:var(--text-dim)}
 .lv-grid .v{font-size:16px;color:var(--text);font-variant-numeric:tabular-nums}
-.now .s{font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums}
-.now .s.up{color:var(--up)} .now .s.dn{color:var(--dn)}
+.live .s{font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.live .s.up{color:var(--up)} .live .s.dn{color:var(--dn)}
 .lv-judge{font-size:13px;font-weight:600;color:var(--text)}
 .lv-judge.hit{color:var(--up)}
-.match{box-shadow:0 0 0 2px var(--amber);border-radius:8px}
+.match{box-shadow:0 0 0 2px var(--amber)}
 </style>
 </head>
 <body>
@@ -96,21 +96,21 @@ body{margin:0}
     <span class="chip">종가 기준 (60주선 도달은 저가 기준)</span>
   </div>
 
-  <div class="note now" id="live">
-    <b>오늘 코스피 <span class="dim" id="lvTime">불러오는 중…</span></b>
-    <div class="lv-grid">
-      <div><span class="k">현재가</span><span class="v" id="lvPrice">–</span><span class="s" id="lvChg"></span></div>
-      <div><span class="k">시가</span><span class="v" id="lvOpen">–</span><span class="s" id="lvOpenGap"></span></div>
-      <div><span class="k">200일선</span><span class="v" id="lvMa">–</span><span class="s" id="lvMaGap"></span></div>
-      <div><span class="k">60주선</span><span class="v" id="lvW60">–</span><span class="s" id="lvW60Gap"></span></div>
+  <details class="sec acc live" id="live">
+    <summary><span class="st">오늘 코스피 <span class="dim" id="lvTime">불러오는 중…</span></span><span class="meta" id="lvSum">현재가 기준으로 200일선·60주선 거리를 계산합니다</span></summary>
+    <div class="lv-body">
+      <div class="lv-grid">
+        <div><span class="k">현재가</span><span class="v" id="lvPrice">–</span><span class="s" id="lvChg"></span></div>
+        <div><span class="k">200일선</span><span class="v" id="lvMa">–</span><span class="s" id="lvMaGap"></span></div>
+        <div><span class="k">60주선</span><span class="v" id="lvW60">–</span><span class="s" id="lvW60Gap"></span></div>
+      </div>
+      <div class="lv-judge" id="lvJudge"></div>
+      <div class="s" id="lvPrev"></div>
     </div>
-    <div class="lv-judge" id="lvJudge"></div>
-    <div class="s" id="lvPrev"></div>
-  </div>
+  </details>
 
-  <section class="sec key" data-band="5">
-    <h2>1996.1~2026.9 전날 200일선 위 → 당일 -5% 이상 하락하며 이탈한 사례</h2>
-    <div class="meta">4건 · 전날 위치 +1.8~5.7% · 40일 유지 회복까지 중간값 149거래일</div>
+  <details class="sec acc key" data-band="5">
+    <summary><span class="st">1996.1~2026.9 전날 200일선 위 → 당일 -5% 이상 하락하며 이탈한 사례</span><span class="meta">4건 · 전날 위치 +1.8~5.7% · 40일 유지 회복까지 중간값 149거래일</span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
@@ -144,7 +144,7 @@ body{margin:0}
       </tbody>
       </table>
     </div>
-  </section>
+  </details>
   <details class="sec acc" data-band="3">
     <summary><span class="st">1996.1~2026.9 전날 200일선 위 → 당일 -3~-5% 하락하며 이탈한 사례</span><span class="meta">13건 · 전날 위치 +0.1~4.5% · 40일 유지 회복까지 중간값 116거래일</span></summary>
     <div class="tbl">
@@ -335,7 +335,7 @@ body{margin:0}
     <b>한계</b>
     <ul>
       <li>표: 데이터 1995-05-02~2026-09-17 (KRX 원천). 200일선은 1996-01-05부터 계산됩니다. 1995년 이전은 확인하지 못했습니다.</li>
-      <li>오늘 칸: 네이버 실시간 지수·일봉(머니파이와 같은 경로). 200일선·60주선은 오늘 현재가를 넣어 계산하며, 장중 값은 종가로 확정됩니다.</li>
+      <li>오늘 칸: 네이버 실시간 지수·일봉(머니파이와 같은 경로). 200일선·60주선은 리로드할 때마다 그 시점 현재가를 넣어 다시 계산합니다.</li>
       <li>그룹별 사례가 4~13건이라 패턴으로 일반화하기는 어렵습니다.</li>
       <li>이슈는 기억과 기사 검색으로 정리했습니다. 8건은 확인하지 못해 비워 두었습니다.</li>
       <li>"전날 위치"는 범위를 제한하지 않았습니다. 그룹별 범위는 결과로 나온 값입니다. 0~-2% 이탈 92건은 제외했습니다.</li>
@@ -382,7 +382,7 @@ async function fetchLive(){
   const row = (await res.json()).datas?.[0];
   if(!row) throw new Error('실시간 지수 데이터 없음');
   return {
-    price: num(row.closePrice), chgPct: num(row.fluctuationsRatio), open: num(row.openPrice),
+    price: num(row.closePrice), chgPct: num(row.fluctuationsRatio),
     status: row.marketStatus || '', at: row.localTradedAt || ''
   };
 }
@@ -438,9 +438,8 @@ function compute(live, daily){
   wk.set(weekKey(todayKey), p);
   const wv = [...wk.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1).map(e => e[1]);
   const w60 = wv.length >= 60 ? sum(wv.slice(-60)) / 60 : null;
-  const open = live.open != null ? live.open : (todayBar ? todayBar.o : null);
   const chgPct = live.chgPct != null ? live.chgPct : (p / prevClose - 1) * 100;
-  return { todayKey, prevKey: keys[n-1], p, open, chgPct, prevClose, maPrev, maToday, w60 };
+  return { todayKey, prevKey: keys[n-1], p, chgPct, prevClose, maPrev, maToday, w60 };
 }
 
 const fmt = x => x == null ? '–' : x.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -459,8 +458,6 @@ function render(r, live){
   $('lvTime').textContent = `${r.todayKey} · ${statusTxt}${at ? ' · ' + at.slice(11) + ' 기준' : ''}`;
   $('lvPrice').textContent = fmt(r.p);
   $('lvChg').textContent = pct(r.chgPct); $('lvChg').className = 's ' + cls(r.chgPct);
-  $('lvOpen').textContent = fmt(r.open);
-  setGap($('lvOpenGap'), r.open, r.maToday, '200일선 대비');
   $('lvMa').textContent = fmt(r.maToday);
   setGap($('lvMaGap'), r.p, r.maToday, '현재가 거리');
   $('lvW60').textContent = fmt(r.w60);
@@ -472,7 +469,7 @@ function render(r, live){
   document.querySelectorAll('[data-band]').forEach(s => s.classList.remove('match'));
   const j = $('lvJudge'); let band = null, txt;
   const wasAbove = r.prevClose > r.maPrev, nowBelow = r.p < r.maToday;
-  const word = live.status === 'CLOSE' ? '' : ' (장중, 종가로 확정)';
+  const word = '';
   if(wasAbove && nowBelow){
     if(r.chgPct <= -5) band = '5'; else if(r.chgPct <= -3) band = '3'; else if(r.chgPct <= -2) band = '2';
     txt = band ? `200일선 이탈 중${word} · ${pct(r.chgPct)} → 아래 "${band === '5' ? '-5% 이상' : band === '3' ? '-3~-5%' : '-2~-3%'}" 표에 해당`
@@ -486,6 +483,9 @@ function render(r, live){
     j.className = 'lv-judge';
   }
   j.textContent = txt;
+  const g200 = (r.p / r.maToday - 1) * 100;
+  $('lvSum').textContent = `${fmt(r.p)} (${pct(r.chgPct)}) · 200일선 ${pct(g200)} · ${txt.split(' · ')[0]}`;
+  $('lvSum').className = 'meta' + (j.classList.contains('hit') ? ' up' : '');
   if(band){ const s = document.querySelector(`[data-band="${band}"]`); if(s){ s.classList.add('match'); if(s.tagName === 'DETAILS') s.open = true; } }
 }
 
