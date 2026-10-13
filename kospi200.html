@@ -102,18 +102,18 @@ body{margin:0}
   </div>
 
   <details class="sec acc live" id="live" open>
-    <summary><span class="st">오늘 코스피 <span class="dim" id="lvTime">불러오는 중…</span></span><span class="meta" id="lvSum">현재가 기준으로 200일선·60주선 거리를 계산합니다</span></summary>
+    <summary><span class="st">오늘 코스피 <span id="lvHead"></span> <span class="dim" id="lvTime">불러오는 중…</span></span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>날짜 · 상태</th><th>당일 등락률</th><th>전날 위치</th><th>현재가 · 200일선</th><th>60주선</th><th>첫 재돌파</th><th>40일 유지 첫 돌파</th><th>실패</th>
+        <th>날짜</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>첫 재돌파</th><th>40일 유지 첫 돌파</th><th>실패</th>
       </tr></thead>
       <tbody>
         <tr id="lvRow">
           <td><span class="date" id="lvDate">–</span></td>
           <td id="lvChg">–</td>
           <td id="lvPrevGap">–</td>
-          <td id="lvNow">–</td>
+          <td class="dim">진행 중</td>
           <td id="lvW60">–</td>
           <td class="dim">진행 중</td>
           <td class="dim">진행 중</td>
@@ -477,11 +477,10 @@ function render(r, live){
   $('lvPrevGap').textContent = pct(prevGap).replace(/(\.\d)\d%$/, '$1%');
   $('lvPrevGap').className = cls(prevGap);
   const g200 = (r.p / r.maToday - 1) * 100;
-  $('lvNow').innerHTML = `${fmt(r.p)}<span class="d ${cls(g200)}">${pct(g200)}</span>`;
-  $('lvNow').className = '';
+  $('lvHead').innerHTML = `· 현재가 ${fmt(r.p)} · 200일선 <span class="${cls(g200)}">${pct(g200)}</span> ·`;
   if(r.w60 != null){
     const g60 = (r.p / r.w60 - 1) * 100;
-    $('lvW60').innerHTML = g60 <= 0 ? `이미 아래<span class="d">60주선 ${pct(g60)}</span>` : `미도달<span class="d">60주선 ${fmt(r.w60)} · ${pct(g60)} 위</span>`;
+    $('lvW60').innerHTML = g60 <= 0 ? `이미 아래<span class="d">60주선 ${pct(g60)}</span>` : '진행 중';
     $('lvW60').className = 'dim';
   }
 
@@ -503,8 +502,6 @@ function render(r, live){
   }
   j.textContent = txt;
   $('lvRow').className = j.classList.contains('hit') ? 'hitrow' : '';
-  $('lvSum').textContent = `${fmt(r.p)} (${pct(r.chgPct)}) · 200일선 ${pct(g200)} · ${txt.split(' · ')[0]}`;
-  $('lvSum').className = 'meta' + (j.classList.contains('hit') ? ' up' : '');
 }
 
 async function loadAll(){
