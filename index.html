@@ -6818,8 +6818,8 @@ function anIndexStateChip(v){
   const st = v && v.state;
   const C = v && v.cash;                                   // 지수 현금 안내 칩(채움·글자 반전): 상태 칩 오른쪽
   const cash = C && C.on ? `<span class="an-ist an-istf cash" title="${anE(C.cond)}">현금 ${C.pct}%</span>`
-             : C && C.inj ? `<span class="an-ist an-istf inj" title="직전 고점 대비 -15% 이상 하락 뒤 200일선 회복">현금 투입</span>`
-             : C && C.back ? `<span class="an-ist an-istf back" title="200일선 회복">다시 매수</span>` : '';
+             : C && C.inj ? `<span class="an-ist an-istf inj" title="직전 고점 대비 -15% 이상 하락 뒤 200일선 회복">추가 매수</span>`
+             : C && C.back ? `<span class="an-ist an-istf back" title="200일선 회복">현금 투입</span>` : '';
   return (st ? `<span class="an-ist ${st.cls}" title="${anE(st.why)}">${anE(st.name)}</span>` : '') + cash;
 }
 
@@ -6834,7 +6834,7 @@ function anIndexChartData(dates, s){
 
 // 지수 현금 비중 안내(2026-10-13 지수 200일선 시험, moneypier index_cmp.py IC_SET=cut): 조건이 맞으면 '현금 n% 추천' + 근거. 표시만
 const AN_IDX_CASH = {
-  kosdaq: { pct: 50, how: 'c5', injwhy: '코스닥 1996~ 291구간: 평균 +27% vs 보유 +5% · 손실로 끝난 5년 115→80번 · 대신 최악 −84%→−94% · 투입 60번 중 45번 손실', why: '근거: 코스닥 1996~ 5년 구간 291개 · 평균 +9% vs 보유 +5% · 하위 10% −43%→−17% · 손실로 끝난 5년 115→93번 · 코스닥 지수는 30년간 −36%라 지수 자체 보유는 비추천' },
+  kosdaq: { pct: 50, how: 'c5', alertOnly: true, why: '경보: 코스닥 약세 · 코스닥 종목을 들고 있다면 점검 · 근거: 코스닥 1996~ 5년 구간 291개, 이 조건에 현금 50%면 하위 10% −43%→−18% · 코스닥 지수는 30년간 −36%라 지수 자체 보유는 비추천' },
   kospi: { pct: 30, how: 'd10', injwhy: '코스피 1995~ 305구간: 평균 +60% vs 보유 +44% · 최악 −42%→−29% · 투입 36번 중 23번 손실', why: '근거: 코스피 1995~ 5년 구간 305개 · 그냥 보유 대비 평균 수익 같음(+45% vs +44%) · 최악 −42%→−18% · 손실로 끝난 5년 41→33번' },
   spx:   { pct: 50, how: 'd10', injwhy: 'S&P500 1988~ 394구간: 평균 +61% vs 보유 +58% · 손실로 끝난 5년 81→55번 · 투입 23번 중 12번 손실', why: '근거: S&P500 1988~ 5년 구간 394개 · 평균 +54% vs 보유 +58% · 최악 −39%→−13% · 손실로 끝난 5년 81→28번' },
   ndx:   { pct: 50, how: 'c10', injwhy: '나스닥100 1988~ 394구간: 평균 +178% vs 보유 +123% · 대신 최악 −64%→−73% · 투입 46번 중 29번 손실', why: '근거: 나스닥100 1988~ 5년 구간 394개 · 평균 +121% vs 보유 +123% · 최악 −64%→−39% · 손실로 끝난 5년 49→28번' }
@@ -6873,7 +6873,8 @@ function anIndexCash(key, b){
   }
   const cond = R.how === 'd10' ? '200일선 아래 + 1년 고점 대비 −10% 이하' : `200일선 아래 ${R.how.slice(1)}거래일 연속`;
   const now = `200일선 ${gap >= 0 ? '+' : ''}${gap.toFixed(1)}% · 1년 고점 ${dd[L - 1].toFixed(1)}%` + (run ? ` · 아래 ${run}일째` : '');
-  return { on, back, inj, pct: R.pct, cond, now, why: R.why, injwhy: R.injwhy || '' };
+  if(R.alertOnly){ back = false; inj = false; }            // 코스닥 = 경보만(지수 보유 비추천 · 매수 칩 없음, 2026-10-13)
+  return { on, back, inj, alert: !!R.alertOnly, pct: R.pct, cond, now, why: R.why, injwhy: R.injwhy || '' };
 }
 
 function anIndexInfo(name, b){
@@ -7652,8 +7653,8 @@ function anIndexChart(v, noHead){
   if(v.state) tags += `<span class="an-mt n">${anE(v.state.name)} · ${anE(v.state.why)}</span>`;
   if(anOk(v.rsi)) tags += `<span class="an-mt ${v.rsi >= 70 ? 'hot' : v.rsi <= 30 ? 'cold' : 'n'}">RSI ${v.rsi.toFixed(0)}</span>`;
   const C = v.cash;
-  const cashLine = !C ? '' : C.inj && !C.on ? `<div class="an-cashln inj"><b>현금 투입</b> = 투자금만큼(+100%) 추가를 고려할 시기 · 큰 결정 · 직전 고점 대비 -15% 이상 빠졌다 200일선 회복(5거래일 동안 표시)${C.back ? ' · 현금화 몫 다시 매수 포함' : ''}<br>근거(현금화 없이 투입만): ${anE(C.injwhy)} · 이익은 소수의 큰 회복에서 났음 · 다시 200일선이 깨지면 추가분 회수 · 지금 ${anE(C.now)} · 참고만</div>`
-    : (C.on || C.back) ? `<div class="an-cashln">${C.on ? `<b>현금 ${C.pct}% 추천</b> = 이 정도 현금이 미리 준비돼 있으면 좋은 시기 · 조건 ${anE(C.cond)}` : `<b>다시 매수</b> = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복(5거래일 동안 표시)`} · 지금 ${anE(C.now)}<br>${anE(C.why)} · 지수는 그냥 보유해도 무리 없음(평균 비슷) · 참고만</div>` : '';
+  const cashLine = !C ? '' : C.inj && !C.on ? `<div class="an-cashln inj"><b>추가 매수</b> = 투자금만큼(+100%) 추가를 고려할 시기 · 큰 결정 · 직전 고점 대비 -15% 이상 빠졌다 200일선 회복(5거래일 동안 표시)${C.back ? ' · 현금화한 몫 현금 투입 포함' : ''}<br>근거(현금화 없이 투입만): ${anE(C.injwhy)} · 이익은 소수의 큰 회복에서 났음 · 다시 200일선이 깨지면 추가분 회수 · 지금 ${anE(C.now)} · 참고만</div>`
+    : (C.on || C.back) ? `<div class="an-cashln">${C.on ? `<b>현금 ${C.pct}% 추천</b> = 이 정도 현금이 미리 준비돼 있으면 좋은 시기 · 조건 ${anE(C.cond)}` : `<b>현금 투입</b> = 현금화했던 몫을 다시 넣을 시기 · 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복(5거래일 동안 표시)`} · 지금 ${anE(C.now)}<br>${anE(C.why)} · ${C.alert ? '코스닥 = 경보만, 매수 칩 없음' : '지수는 그냥 보유해도 무리 없음(평균 비슷)'} · 참고만</div>` : '';
   return `<div class="an-box">
     ${noHead ? '' : `<div class="an-ih"><span class="an-in">${anE(v.name)}</span><b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span><span class="an-ip">최근 ${AN.CHART_DAYS}거래일</span></div>`}
     <div class="an-mrow" style="margin-bottom:2px;">${tags}</div>
@@ -7853,8 +7854,9 @@ const AN_SIG_DEF = [
   '하락 = 싼 조건 2개 이상 + 아직 하락 중 + 장기 추세도 하락',
   '바닥근접·꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 저점 +30%(고점 -20%) 안일 때 · 참고',
   '굵은 테두리 칸 = 이 매수·경보 판정에 쓰인 지표',
-  '지수 현금 n% 추천(지수 차트 칩) = 코스피 200일선 아래 + 1년 고점 대비 -10% 이하 → 30% · 코스닥 200일선 아래 5거래일 연속 → 50% · S&P500 200일선 아래 + 1년 고점 대비 -10% 이하 → 50% · 나스닥 200일선 아래 10거래일 연속 → 50% · 그 시기에 이만큼 현금이 준비돼 있으면 좋다는 뜻',
-  '다시 매수(지수 차트 칩) = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복 · 5거래일 동안 표시'
+  '지수 현금 n% 추천(지수 차트 칩) = 코스피 200일선 아래 + 1년 고점 대비 -10% 이하 → 30% · 코스닥 200일선 아래 5거래일 연속 → 50%(경보만) · S&P500 200일선 아래 + 1년 고점 대비 -10% 이하 → 50% · 나스닥 200일선 아래 10거래일 연속 → 50% · 그 시기에 이만큼 현금이 준비돼 있으면 좋다는 뜻',
+  '현금 투입(지수 차트 칩) = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복 = 현금화한 몫을 다시 넣을 시기 · 5거래일 동안 표시 · 코스닥은 없음',
+  '추가 매수(지수 차트 칩) = 직전 고점 대비 -15% 이상 빠졌다 200일선 위로 회복 = 투자금만큼(+100%) 추가를 고려할 시기 · 다시 200일선이 깨지면 추가분 회수 · 코스닥은 없음'
 ];
 const AN_BT_NOTES = [
   '이 그래프는 지금 종목으로 과거를 본 것 = 실제보다 좋게 나올 수 있음',
