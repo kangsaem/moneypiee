@@ -42,7 +42,9 @@ h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
 .acc .tbl{border-radius:0 0 8px 8px;border-top:1px solid var(--border)}
 .acc,.acc+.acc{margin-top:0}
 @media (prefers-reduced-motion:reduce){.acc summary::after{transition:none}}
-.acc.key .st,.acc.key .meta{color:var(--up)}
+.acc.key .st{color:var(--up)}
+.chipv{display:inline-block;padding:2px 8px;border-radius:4px;color:#fff;font-weight:600}
+.chipv.dn{background:#2B78B5} .chipv.up{background:#C2185B}
 .acc .meta.up{color:var(--up)}
 .issue.hit{color:var(--up);font-weight:500}
 .hitrow td{background:var(--upbg)}
@@ -486,7 +488,7 @@ function render(r, live){
   const at = live.at ? live.at.slice(0, 16).replace('T', ' ') : '';
   $('lvTime').textContent = `${r.todayKey}${at ? ' · ' + at.slice(11) : ''}`;
   $('lvDate').textContent = r.todayKey;
-  $('lvChg').textContent = pct(r.chgPct); $('lvChg').className = cls(r.chgPct);
+  $('lvChg').innerHTML = `<span class="chipv ${cls(r.chgPct)}">${pct(r.chgPct)}</span>`; $('lvChg').className = '';
   const prevGap = (r.prevClose / r.maPrev - 1) * 100;
   $('lvPrevGap').textContent = pct(prevGap).replace(/(\.\d)\d%$/, '$1%');
   $('lvPrevGap').className = cls(prevGap);
@@ -496,7 +498,7 @@ function render(r, live){
   if(r.w60 != null){
     const g60 = (r.p / r.w60 - 1) * 100;
     if(g60 <= 0){ $('lvW60').innerHTML = `이미 아래<span class="d">60주선 ${pct(g60)}</span>`; $('lvW60').className = 'dim'; }
-    else { const need = (r.w60 / r.p - 1) * 100; $('lvW60').innerHTML = `${pct(need)}<span class="d">더 빠지면 도달</span>`; $('lvW60').className = 'dn'; }
+    else { const need = (r.w60 / r.p - 1) * 100; $('lvW60').innerHTML = `<span class="chipv dn">${pct(need)}</span><span class="d">더 빠지면 도달</span>`; $('lvW60').className = ''; }
   }
 
   // 판정: 전날 200일선 위 → 오늘 200일선 아래?
