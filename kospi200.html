@@ -120,10 +120,12 @@ body{margin:0}
   .tbl tr.fast{background:rgba(79,209,192,.07)}
   .tbl tr.hitrow{background:var(--upbg)}
 }
+html.embed .back{display:none;}
 .back{display:inline-block;margin:2px 0 10px;font-size:13px;color:var(--text-dim);text-decoration:none;}
 </style>
 </head>
 <body>
+<script>if(/[?&]embed=1/.test(location.search)) document.documentElement.classList.add("embed");</script>
 
 <div class="wrap">
   <a class="back" href="/" onclick="try{if(document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1){history.back();return false;}}catch(e){}">← 머니파이</a>
