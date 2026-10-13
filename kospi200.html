@@ -86,6 +86,22 @@ body{margin:0}
 .live .s.up{color:var(--up)} .live .s.dn{color:var(--dn)}
 .lv-judge{font-size:13px;font-weight:600;color:var(--text)}
 .lv-judge.hit{color:var(--up)}
+
+/* 모바일(600px 이하): 표 → 카드. 한 사례 = 카드 한 장, 라벨·값 2열 */
+@media (max-width:600px){
+  .tbl{overflow-x:visible}
+  .tbl table{min-width:0;table-layout:auto}
+  .tbl table,.tbl tbody,.tbl tr,.tbl td{display:block;width:auto}
+  .tbl thead{display:none}
+  .tbl tr{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;padding:12px 14px;border-bottom:1px solid var(--bg)}
+  .tbl tr:last-child{border-bottom:0}
+  .tbl td{padding:0;border:0;text-align:left;white-space:normal;background:none!important}
+  .tbl td:first-child{grid-column:1/-1}
+  .tbl td:not(:first-child)::before{content:attr(data-label);display:block;font-size:11px;font-weight:400;color:var(--text-dim);margin-bottom:1px}
+  .tbl .issue{max-width:none}
+  .tbl tr.fast{background:var(--okbg)}
+  .tbl tr.hitrow{background:var(--upbg)}
+}
 </style>
 </head>
 <body>
@@ -538,6 +554,12 @@ document.getElementById('reloadPricesBtn').addEventListener('click', async (ev) 
   lastAt = Date.now(); try{ localStorage.setItem(LS_KEY, String(lastAt)); }catch(e){}
   applyCooldown();
   await loadAll();
+});
+
+// 모바일 카드용 라벨: 각 칸에 표 머리글 이름을 붙인다
+document.querySelectorAll('.tbl table').forEach(t => {
+  const heads = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
+  t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if(heads[i]) td.setAttribute('data-label', heads[i]); }));
 });
 applyCooldown();
 loadAll();
