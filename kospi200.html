@@ -28,6 +28,8 @@ h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
 .acc summary::after{content:"";position:absolute;right:16px;top:50%;width:7px;height:7px;border-right:1.5px solid var(--text-dim);border-bottom:1.5px solid var(--text-dim);transform:translateY(-70%) rotate(45deg);transition:transform .15s}
 .acc[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
 .acc summary:focus-visible{outline:1.5px solid var(--dn);outline-offset:-2px;border-radius:8px}
+.lv-st{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.lv-btns{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .acc .st{font-size:14px;font-weight:600}
 .acc .tbl{border-radius:0 0 8px 8px;border-top:1px solid var(--border)}
 .acc,.acc+.acc{margin-top:0}
@@ -89,20 +91,8 @@ body{margin:0}
 <body>
 
 <div class="wrap">
-  <div class="head">
-    <h1>코스피 200일선 하락 이탈 사례 (1996.1~2026.9)</h1>
-    <div id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></div>
-    <button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button>
-  </div>
-  <div class="cond">
-    <span class="chip">전날 종가 200일선 위</span>
-    <span class="chip dn">당일 200일선 아래 마감</span>
-    <span class="chip ok">회복 = 재돌파 후 40거래일 유지</span>
-    <span class="chip">종가 기준 (60주선 도달은 저가 기준)</span>
-  </div>
-
   <details class="sec acc live" id="live" open>
-    <summary><span class="st">오늘 코스피 <span id="lvHead"></span> <span class="dim" id="lvTime">불러오는 중…</span></span></summary>
+    <summary><span class="st lv-st"><span>오늘 코스피 <span id="lvHead"></span> <span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
@@ -540,7 +530,8 @@ function applyCooldown(){
   }
   tick(); cdTimer = setInterval(tick, 1000);
 }
-document.getElementById('reloadPricesBtn').addEventListener('click', async () => {
+document.getElementById('reloadPricesBtn').addEventListener('click', async (ev) => {
+  ev.preventDefault(); ev.stopPropagation();
   const btn = document.getElementById('reloadPricesBtn');
   if(btn.disabled) return;
   btn.classList.remove('reload-spin'); void btn.offsetWidth; btn.classList.add('reload-spin');
