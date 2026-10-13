@@ -6817,7 +6817,9 @@ function anIndexState(dates, s){
 function anIndexStateChip(v){
   const st = v && v.state;
   const C = v && v.cash;                                   // 지수 현금 안내 칩(채움·글자 반전): 상태 칩 오른쪽
-  const cash = C && C.on ? `<span class="an-ist an-istf cash" title="${anE(C.cond)}">현금 ${C.pct}%</span>` : C && C.back ? `<span class="an-ist an-istf back" title="200일선 회복">다시 매수</span>` : '';
+  const cash = C && C.on ? `<span class="an-ist an-istf cash" title="${anE(C.cond)}">현금 ${C.pct}%</span>`
+             : C && C.inj ? `<span class="an-ist an-istf inj" title="직전 고점 대비 -15% 이상 하락 뒤 200일선 회복">현금 투입</span>`
+             : C && C.back ? `<span class="an-ist an-istf back" title="200일선 회복">다시 매수</span>` : '';
   return (st ? `<span class="an-ist ${st.cls}" title="${anE(st.why)}">${anE(st.name)}</span>` : '') + cash;
 }
 
@@ -6832,10 +6834,10 @@ function anIndexChartData(dates, s){
 
 // 지수 현금 비중 안내(2026-10-13 지수 200일선 시험, moneypier index_cmp.py IC_SET=cut): 조건이 맞으면 '현금 n% 추천' + 근거. 표시만
 const AN_IDX_CASH = {
-  kosdaq: { pct: 50, how: 'c5', why: '근거: 코스닥 1996~ 5년 구간 291개 · 평균 +9% vs 보유 +5% · 하위 10% −43%→−17% · 손실로 끝난 5년 115→93번 · 코스닥 지수는 30년간 −36%라 지수 자체 보유는 비추천' },
-  kospi: { pct: 30, how: 'd10', why: '근거: 코스피 1995~ 5년 구간 305개 · 그냥 보유 대비 평균 수익 같음(+45% vs +44%) · 최악 −42%→−18% · 손실로 끝난 5년 41→33번' },
-  spx:   { pct: 50, how: 'd10', why: '근거: S&P500 1988~ 5년 구간 394개 · 평균 +54% vs 보유 +58% · 최악 −39%→−13% · 손실로 끝난 5년 81→28번' },
-  ndx:   { pct: 50, how: 'c10', why: '근거: 나스닥100 1988~ 5년 구간 394개 · 평균 +121% vs 보유 +123% · 최악 −64%→−39% · 손실로 끝난 5년 49→28번' }
+  kosdaq: { pct: 50, how: 'c5', injwhy: '코스닥 1996~ 291구간: 평균 +27% vs 보유 +5% · 손실로 끝난 5년 115→80번 · 대신 최악 −84%→−94% · 투입 60번 중 45번 손실', why: '근거: 코스닥 1996~ 5년 구간 291개 · 평균 +9% vs 보유 +5% · 하위 10% −43%→−17% · 손실로 끝난 5년 115→93번 · 코스닥 지수는 30년간 −36%라 지수 자체 보유는 비추천' },
+  kospi: { pct: 30, how: 'd10', injwhy: '코스피 1995~ 305구간: 평균 +60% vs 보유 +44% · 최악 −42%→−29% · 투입 36번 중 23번 손실', why: '근거: 코스피 1995~ 5년 구간 305개 · 그냥 보유 대비 평균 수익 같음(+45% vs +44%) · 최악 −42%→−18% · 손실로 끝난 5년 41→33번' },
+  spx:   { pct: 50, how: 'd10', injwhy: 'S&P500 1988~ 394구간: 평균 +61% vs 보유 +58% · 손실로 끝난 5년 81→55번 · 투입 23번 중 12번 손실', why: '근거: S&P500 1988~ 5년 구간 394개 · 평균 +54% vs 보유 +58% · 최악 −39%→−13% · 손실로 끝난 5년 81→28번' },
+  ndx:   { pct: 50, how: 'c10', injwhy: '나스닥100 1988~ 394구간: 평균 +178% vs 보유 +123% · 대신 최악 −64%→−73% · 투입 46번 중 29번 손실', why: '근거: 나스닥100 1988~ 5년 구간 394개 · 평균 +121% vs 보유 +123% · 최악 −64%→−39% · 손실로 끝난 5년 49→28번' }
 };
 function anIndexCash(key, b){
   const R = AN_IDX_CASH[key], s = b && b.close;
@@ -6863,9 +6865,15 @@ function anIndexCash(key, b){
   const on = below[L - 1] && met(L - 1);
   let back = false;                                        // 다시 매수: 최근 5거래일 안에 200일선 위로 올라왔고, 직전 '아래' 구간에서 현금화 조건이 걸렸던 경우
   if(!below[L - 1]) for(let i = L - 1; i >= Math.max(1, L - 5); i--) if(!below[i] && below[i - 1]){ back = met(i - 1); break; }
+  let inj = false;                                         // 현금 투입: 최근 5거래일 안 회복 + 직전 '아래' 구간이 직전 고점 대비 -15% 이상 빠졌던 경우(시험 C2)
+  if(!below[L - 1]) for(let i = L - 1; i >= Math.max(1, L - 5); i--) if(!below[i] && below[i - 1]){
+    let a = i - 1; while(a > 0 && below[a - 1]) a--;
+    const A = st + a, pk = Math.max(...s.slice(Math.max(0, A - 252), A + 1)), low = Math.min(...s.slice(A, st + i));
+    inj = low / pk - 1 <= -0.15; break;
+  }
   const cond = R.how === 'd10' ? '200일선 아래 + 1년 고점 대비 −10% 이하' : `200일선 아래 ${R.how.slice(1)}거래일 연속`;
   const now = `200일선 ${gap >= 0 ? '+' : ''}${gap.toFixed(1)}% · 1년 고점 ${dd[L - 1].toFixed(1)}%` + (run ? ` · 아래 ${run}일째` : '');
-  return { on, back, pct: R.pct, cond, now, why: R.why };
+  return { on, back, inj, pct: R.pct, cond, now, why: R.why, injwhy: R.injwhy || '' };
 }
 
 function anIndexInfo(name, b){
@@ -7644,7 +7652,8 @@ function anIndexChart(v, noHead){
   if(v.state) tags += `<span class="an-mt n">${anE(v.state.name)} · ${anE(v.state.why)}</span>`;
   if(anOk(v.rsi)) tags += `<span class="an-mt ${v.rsi >= 70 ? 'hot' : v.rsi <= 30 ? 'cold' : 'n'}">RSI ${v.rsi.toFixed(0)}</span>`;
   const C = v.cash;
-  const cashLine = C && (C.on || C.back) ? `<div class="an-cashln">${C.on ? `<b>현금 ${C.pct}% 추천</b> = 이 정도 현금이 미리 준비돼 있으면 좋은 시기 · 조건 ${anE(C.cond)}` : `<b>다시 매수</b> = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복(5거래일 동안 표시)`} · 지금 ${anE(C.now)}<br>${anE(C.why)} · 지수는 그냥 보유해도 무리 없음(평균 비슷) · 표시만</div>` : '';
+  const cashLine = !C ? '' : C.inj && !C.on ? `<div class="an-cashln inj"><b>현금 투입</b> = 투자금만큼(+100%) 추가를 고려할 시기 · 큰 결정 · 직전 고점 대비 -15% 이상 빠졌다 200일선 회복(5거래일 동안 표시)${C.back ? ' · 현금화 몫 다시 매수 포함' : ''}<br>근거(현금화 없이 투입만): ${anE(C.injwhy)} · 이익은 소수의 큰 회복에서 났음 · 다시 200일선이 깨지면 추가분 회수 · 지금 ${anE(C.now)} · 참고만</div>`
+    : (C.on || C.back) ? `<div class="an-cashln">${C.on ? `<b>현금 ${C.pct}% 추천</b> = 이 정도 현금이 미리 준비돼 있으면 좋은 시기 · 조건 ${anE(C.cond)}` : `<b>다시 매수</b> = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복(5거래일 동안 표시)`} · 지금 ${anE(C.now)}<br>${anE(C.why)} · 지수는 그냥 보유해도 무리 없음(평균 비슷) · 참고만</div>` : '';
   return `<div class="an-box">
     ${noHead ? '' : `<div class="an-ih"><span class="an-in">${anE(v.name)}</span><b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span><span class="an-ip">최근 ${AN.CHART_DAYS}거래일</span></div>`}
     <div class="an-mrow" style="margin-bottom:2px;">${tags}</div>
@@ -8355,7 +8364,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sw-w5 { background:var(--cw5); } .an-sw-w10 { background:var(--cw10); } .an-sw-m5 { background:var(--cm5); } .an-sw-m10 { background:var(--cm10); }
 .an-svgbox { position:relative; }
 .an-ist { font-size:11px; font-weight:500; line-height:1; padding:3px 6px; border-radius:6px; border:1px solid currentColor; margin-left:6px; white-space:nowrap; }
-.an-istf { border:none; color:#1E1F22 !important; font-weight:600; } .an-istf.cash { background:#F2A65A; } .an-istf.back { background:#FF4D5E; }
+.an-istf { border:none; color:#1E1F22 !important; font-weight:600; } .an-istf.cash { background:#F2A65A; } .an-istf.back { background:#FF4D5E; } .an-istf.inj { background:#FF4D5E; color:#FFFFFF !important; box-shadow:0 0 0 2px #1E1F22, 0 0 0 3.5px #FF4D5E; font-weight:700; } .an-cashln.inj { color:#FF8A95; } .an-cashln.inj b { color:#FF4D5E; }
 .an-ist.up { color:var(--an-up); } .an-ist.dn { color:var(--an-dn); } .an-ist.n { color:#9A9BA1; }
 .an-live { font-size:11.5px; font-weight:500; margin-left:6px; white-space:nowrap; color:#9A9BA1; } .an-live.buy { color:var(--an-up); } .an-live.sell { color:var(--an-dn); }
 .an-liveline { font-size:12px; font-weight:500; margin:2px 0 6px; color:#C9C9C9; }
