@@ -30,6 +30,12 @@ h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
 .acc summary:focus-visible{outline:1.5px solid var(--dn);outline-offset:-2px;border-radius:8px}
 .lv-st{display:flex;align-items:center;gap:8px;justify-content:space-between}
 .lv-lines{display:flex;flex-direction:column;gap:1px}
+#lvL1{font-size:19px;font-weight:700;letter-spacing:-.01em}
+.acc.live>summary{background:#C9C9C9;color:#1E1F22;border-radius:8px 8px 0 0}
+.acc.live:not([open])>summary{border-radius:8px}
+.acc.live>summary .dim,.acc.live>summary #reloadPricesLabel{color:#4A4B50!important}
+.acc.live>summary .up{color:#C2185B} .acc.live>summary .dn{color:#1565C0}
+.acc.live>summary::after{border-color:#4A4B50}
 #lvTime{font-size:12px;font-weight:400}
 .lv-btns{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .acc .st{font-size:14px;font-weight:600}
@@ -59,7 +65,7 @@ th:nth-child(1){width:22%} th:nth-child(2){width:10%} th:nth-child(3){width:9%} 
 th:nth-child(5){width:14%} th:nth-child(6){width:10%} th:nth-child(7){width:15%} th:nth-child(8){width:8%}
 td{overflow-wrap:anywhere}
 .d.up{color:var(--up)} .d.dn{color:var(--dn)}
-.d{display:block;font-size:11.5px;font-weight:400;color:var(--text-dim)}
+.d{white-space:normal;display:block;font-size:11.5px;font-weight:400;color:var(--text-dim)}
 .fast td{background:var(--okbg)}
 .grp td{background:var(--surface2);color:var(--text);font-weight:600;font-size:12.5px;padding:8px 12px;text-align:left}
 .grp td span{color:var(--text-dim);font-weight:400;margin-left:8px}
@@ -114,7 +120,7 @@ body{margin:0}
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>날짜</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>첫 재돌파</th><th>40일 유지 첫 돌파</th><th>실패</th>
+        <th>200일선 이탈일</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>첫 재돌파</th><th>40일 유지 첫 돌파</th><th>실패</th>
       </tr></thead>
       <tbody>
         <tr id="lvRow">
@@ -132,7 +138,7 @@ body{margin:0}
     </div>
   </details>
 
-  <details class="sec acc key" data-band="5">
+  <details class="sec acc key" data-band="5" open>
     <summary><span class="st">1996.1~2026.9 전날 200일선 위 → 당일 -5% 이상 하락하며 이탈한 사례</span><span class="meta">4건 · 전날 위치 +1.8~5.7% · 40일 유지 회복까지 중간값 149거래일</span></summary>
     <div class="tbl">
       <table>
