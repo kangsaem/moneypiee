@@ -120,11 +120,13 @@ body{margin:0}
   .tbl tr.fast{background:rgba(79,209,192,.07)}
   .tbl tr.hitrow{background:var(--upbg)}
 }
+.back{display:inline-block;margin:2px 0 10px;font-size:13px;color:var(--text-dim);text-decoration:none;}
 </style>
 </head>
 <body>
 
 <div class="wrap">
+  <a class="back" href="/" onclick="try{if(document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1){history.back();return false;}}catch(e){}">← 머니파이</a>
   <details class="sec acc live" id="live" open>
     <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1">코스피 –</span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
     <div class="tbl">
