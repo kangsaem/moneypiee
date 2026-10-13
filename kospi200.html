@@ -29,6 +29,8 @@ h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
 .acc[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
 .acc summary:focus-visible{outline:1.5px solid var(--dn);outline-offset:-2px;border-radius:8px}
 .lv-st{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.lv-lines{display:flex;flex-direction:column;gap:1px}
+#lvTime{font-size:12px;font-weight:400}
 .lv-btns{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .acc .st{font-size:14px;font-weight:600}
 .acc .tbl{border-radius:0 0 8px 8px;border-top:1px solid var(--border)}
@@ -108,7 +110,7 @@ body{margin:0}
 
 <div class="wrap">
   <details class="sec acc live" id="live" open>
-    <summary><span class="st lv-st"><span>오늘 코스피 <span id="lvHead"></span> <span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
+    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1">코스피 –</span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
@@ -476,14 +478,15 @@ function render(r, live){
   const $ = id => document.getElementById(id);
   const statusTxt = { OPEN: '장중', CLOSE: '장 마감', PREOPEN: '장 시작 전' }[live.status] || live.status;
   const at = live.at ? live.at.slice(0, 16).replace('T', ' ') : '';
-  $('lvTime').textContent = `${r.todayKey} · ${statusTxt}${at ? ' · ' + at.slice(11) + ' 기준' : ''}`;
+  $('lvTime').textContent = `${r.todayKey}${at ? ' · ' + at.slice(11) : ''}`;
   $('lvDate').textContent = r.todayKey;
   $('lvChg').textContent = pct(r.chgPct); $('lvChg').className = cls(r.chgPct);
   const prevGap = (r.prevClose / r.maPrev - 1) * 100;
   $('lvPrevGap').textContent = pct(prevGap).replace(/(\.\d)\d%$/, '$1%');
   $('lvPrevGap').className = cls(prevGap);
   const g200 = (r.p / r.maToday - 1) * 100;
-  $('lvHead').innerHTML = `· 현재가 ${fmt(r.p)} · 200일선 <span class="${cls(g200)}">${pct(g200)}</span> ·`;
+  $('lvL1').textContent = `코스피 ${fmt(r.p)}`;
+  $('lvL2').innerHTML = `200일선 ${g200 < 0 ? '아래' : '위'} <span class="${cls(g200)}">${pct(g200)}</span>`;
   if(r.w60 != null){
     const g60 = (r.p / r.w60 - 1) * 100;
     if(g60 <= 0){ $('lvW60').innerHTML = `이미 아래<span class="d">60주선 ${pct(g60)}</span>`; $('lvW60').className = 'dim'; }
