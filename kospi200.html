@@ -108,7 +108,10 @@ body{margin:0}
   .tbl td{padding:0;border:0;text-align:left;white-space:normal;background:none!important}
   .tbl td:first-child{grid-column:1/-1}
   .tbl td:nth-child(n+2):nth-child(-n+4){grid-column:span 4}
-  .tbl td:nth-child(n+5){grid-column:span 3}
+  .tbl td:nth-child(5),.tbl td:nth-child(6){grid-column:span 3}
+  .tbl td:nth-child(7){grid-column:span 4}
+  .tbl td:nth-child(8){grid-column:span 2}
+  .tbl td{overflow-wrap:normal;word-break:keep-all}
   .tbl td:not(:first-child)::before{content:attr(data-label);display:block;font-size:11px;font-weight:400;color:var(--text-dim);margin-bottom:1px}
   .tbl .issue{max-width:none}
   .tbl tr.fast{background:var(--okbg)}
@@ -569,10 +572,11 @@ document.getElementById('reloadPricesBtn').addEventListener('click', async (ev) 
   await loadAll();
 });
 
-// 모바일 카드용 라벨: 각 칸에 표 머리글 이름을 붙인다
+// 모바일 카드용 라벨: 각 칸에 표 머리글 이름을 붙인다(긴 이름은 줄임)
+const SHORT = { '40일 유지 첫 돌파': '40일 유지', '60주선 도달': '60주선', '이후 추가 하락': '추가 하락' };
 document.querySelectorAll('.tbl table').forEach(t => {
   const heads = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
-  t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if(heads[i]) td.setAttribute('data-label', heads[i]); }));
+  t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if(heads[i]) td.setAttribute('data-label', SHORT[heads[i]] || heads[i]); }));
 });
 applyCooldown();
 loadAll();
