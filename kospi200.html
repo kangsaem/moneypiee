@@ -71,6 +71,7 @@ td{overflow-wrap:anywhere}
 .grp td{background:var(--surface2);color:var(--text);font-weight:600;font-size:12.5px;padding:8px 12px;text-align:left}
 .grp td span{color:var(--text-dim);font-weight:400;margin-left:8px}
 .issue.miss{color:var(--border)}
+.fast td{background:rgba(79,209,192,.07)}
 .badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;background:var(--ok);color:var(--bg);font-weight:600;margin-left:4px}
 .note{background:var(--surface);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--sub)}
 .note b{color:var(--text);font-weight:600}
@@ -111,6 +112,7 @@ body{margin:0}
   .tbl td{overflow-wrap:normal;word-break:keep-all}
   .tbl td:not(:first-child)::before{content:attr(data-label);display:block;font-size:11px;font-weight:400;color:var(--text-dim);margin-bottom:1px}
   .tbl .issue{max-width:none}
+  .tbl tr.fast{background:rgba(79,209,192,.07)}
   .tbl tr.hitrow{background:var(--upbg)}
 }
 </style>
