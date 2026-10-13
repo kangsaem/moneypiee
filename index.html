@@ -7066,15 +7066,16 @@ function anLastClose(market){
 }
 
 // 캐시가 마지막 장 마감 이후 것이면 그대로, 아니면 새로 받음. 새로 못 받으면 예전 캐시라도 사용
+const AN_BARS_V = 2;    // 2 = 야후 마지막 날 빈 종가를 meta 가격으로 채움(2026-10-13)
 async function anGetBars(spec){
   const ck = 'bars3:' + spec.key;   // bars3 = bars2 + 저가·거래량(v1: 52주 저점·거래량 폭증). 예전 캐시는 버리고 새로 받음
   const cached = await anDB.get(ck);
-  if(cached && cached.fetchedAt >= anLastClose(spec.market)) return cached;
+  if(cached && cached.v === AN_BARS_V && cached.fetchedAt >= anLastClose(spec.market)) return cached;   // v: 받는 방식이 바뀌면 한 번 새로 받음
   let lastErr = null;
   for(const f of spec.fetchers){
     try{
       const b = await f();
-      const rec = { dates: b.dates, close: b.close, high: b.high, low: b.low, vol: b.vol, fetchedAt: Date.now() };
+      const rec = { dates: b.dates, close: b.close, high: b.high, low: b.low, vol: b.vol, fetchedAt: Date.now(), v: AN_BARS_V };
       await anDB.set(ck, rec);
       return rec;
     }catch(e){ lastErr = e; }
