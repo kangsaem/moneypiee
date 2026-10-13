@@ -75,7 +75,7 @@ td{overflow-wrap:anywhere}
 .grp td{background:var(--surface2);color:var(--text);font-weight:600;font-size:12.5px;padding:8px 12px;text-align:left}
 .grp td span{color:var(--text-dim);font-weight:400;margin-left:8px}
 .issue.miss{color:var(--border)}
-.issue.big,td.big{color:#F2A65A}   /* 추가 하락이 가장 컸던 사례(2000-03-09 IT버블 붕괴) */
+.issue.big{color:#F2A65A;font-weight:600} .chipv.big{background:#F2A65A;color:#1E1F22}   /* 추가 하락이 가장 컸던 사례(2000-03-09 IT버블 붕괴): 이슈 주황 글자, 추가 하락 값은 주황 반전 */
 .fast td{background:rgba(79,209,192,.07)}
 .badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;background:var(--ok);color:var(--bg);font-weight:600;margin-left:4px}
 .note{background:var(--surface);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--sub)}
@@ -217,7 +217,7 @@ html.embed .back{display:none;}
         </tr>
         <tr>
           <td><span class="date">2000-03-09</span><span class="issue big">IT버블 붕괴</span></td>
-          <td class="dn">-3.42%</td><td class="up">+0.2%</td><td class="dn big">-44.5%<span class="d">261거래일 뒤</span></td><td>4거래일<span class="d">이탈일 +6.2% 위</span></td>
+          <td class="dn">-3.42%</td><td class="up">+0.2%</td><td><span class="chipv big">-44.5%</span><span class="d">261거래일 뒤</span></td><td>4거래일<span class="d">이탈일 +6.2% 위</span></td>
           
           <td>2001-11-05<span class="d">403거래일 후</span></td><td>3회</td>
         </tr>
