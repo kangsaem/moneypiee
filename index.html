@@ -6830,7 +6830,7 @@ function anIndexChartData(dates, s){
 
 // 지수 현금 비중 안내(2026-10-13 지수 200일선 시험, moneypier index_cmp.py IC_SET=cut): 조건이 맞으면 '현금 n% 추천' + 근거. 표시만
 const AN_IDX_CASH = {
-  kosdaq: { pct: 30, how: 'd10', why: '코스닥은 아직 시험 전 = 코스피 기준을 임시로 씀' },
+  kosdaq: { pct: 50, how: 'c5', why: '근거: 코스닥 1996~ 5년 구간 291개 · 평균 +9% vs 보유 +5% · 하위 10% −43%→−17% · 손실로 끝난 5년 115→93번 · 코스닥 지수는 30년간 −36%라 지수 자체 보유는 비추천' },
   kospi: { pct: 30, how: 'd10', why: '근거: 코스피 1995~ 5년 구간 305개 · 그냥 보유 대비 평균 수익 같음(+45% vs +44%) · 최악 −42%→−18% · 손실로 끝난 5년 41→33번' },
   spx:   { pct: 50, how: 'd10', why: '근거: S&P500 1988~ 5년 구간 394개 · 평균 +54% vs 보유 +58% · 최악 −39%→−13% · 손실로 끝난 5년 81→28번' },
   ndx:   { pct: 50, how: 'c10', why: '근거: 나스닥100 1988~ 5년 구간 394개 · 평균 +121% vs 보유 +123% · 최악 −64%→−39% · 손실로 끝난 5년 49→28번' }
@@ -6852,7 +6852,7 @@ function anIndexCash(key, b){
     for(let i = 0; i <= k; i++){
       run = below[i] ? run + 1 : 0;
       if(!below[i]) hit = false;
-      else if(R.how === 'd10' ? dd[i] <= -10 : run >= 10) hit = true;
+      else if(R.how === 'd10' ? dd[i] <= -10 : run >= +R.how.slice(1)) hit = true;
     }
     return hit;
   };
@@ -6861,7 +6861,7 @@ function anIndexCash(key, b){
   const on = below[L - 1] && met(L - 1);
   let back = false;                                        // 다시 매수: 최근 5거래일 안에 200일선 위로 올라왔고, 직전 '아래' 구간에서 현금화 조건이 걸렸던 경우
   if(!below[L - 1]) for(let i = L - 1; i >= Math.max(1, L - 5); i--) if(!below[i] && below[i - 1]){ back = met(i - 1); break; }
-  const cond = R.how === 'd10' ? '200일선 아래 + 1년 고점 대비 −10% 이하' : '200일선 아래 10거래일 연속';
+  const cond = R.how === 'd10' ? '200일선 아래 + 1년 고점 대비 −10% 이하' : `200일선 아래 ${R.how.slice(1)}거래일 연속`;
   const now = `200일선 ${gap >= 0 ? '+' : ''}${gap.toFixed(1)}% · 1년 고점 ${dd[L - 1].toFixed(1)}%` + (run ? ` · 아래 ${run}일째` : '');
   return { on, back, pct: R.pct, cond, now, why: R.why };
 }
