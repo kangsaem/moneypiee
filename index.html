@@ -6916,6 +6916,7 @@ function anIdx200Warn(b){
   for(let i = above.length - 1; i >= 0 && above[i]; i--) run++;
   if(!above[above.length - 1]) return { lab: '200일선 이탈', short: '이탈', why: '코스피가 200일선 아래 · 누르면 과거 붕괴 사례' };
   if(run < 40) return { lab: `회복 확인 ${run}/40일`, short: `회복 ${run}/40`, why: '200일선 위로 올라왔지만 40거래일 유지 전 · 누르면 과거 붕괴 사례' };
+  if(run < 45) return { ok: true, lab: '200일선 회복', short: '회복', why: '200일선 위 40거래일 유지 = 회복(5거래일 동안 표시) · 누르면 과거 붕괴 사례' };
   return null;
 }
 
@@ -6986,7 +6987,7 @@ async function anMarketSnapshot(isUS){
       if(live) b = anPatchLive(b, live.price, mk);
       snap.idx[key] = anIndexInfo(nm, b);
       try{ snap.idx[key].cash = anIndexCash(key, b); }catch(e){}
-      if(key === 'kospi') try{ snap.idx[key].w200 = anIdx200Warn(b); }catch(e){}
+      if(key === 'kospi') try{ snap.idx[key].w200 = anIdx200Warn(b); snap.idx[key].chart.k200 = true; }catch(e){}
       if(live) snap.idx[key].live = live;
       if(b.live) snap.idx[key].chart.lastLabel = '현재가';
       if(key === 'kospi') snap.ks = anKs(b);
@@ -7558,7 +7559,7 @@ function anLegend(ch){
     if(!ch[a] && !ch[b]) continue;                      // 긴 기간(3·5년)은 일봉 이평 없음
     p.push(`<span class="an-lgi">${sw(a)}${la} ${sw(b)}${lb}</span>`);
   }
-  if(ch.ma200) p.push(`<span class="an-lgi">${sw('ma200')}200일</span>`);
+  if(ch.ma200) p.push(ch.k200 ? `<a class="an-lgi an-lgk" href="kospi200.html" title="코스피 200일선 붕괴 사례" onclick="return anK200Open(event)">${sw('ma200')}200일 ›</a>` : `<span class="an-lgi">${sw('ma200')}200일</span>`);
   if(ch.proj && Object.values(ch.proj).some(v => v)) p.push('<span class="an-lgn">점선 = 가격 유지 가정</span>');
   return `<div class="an-lg">${p.join('')}</div>`;
 }
@@ -7791,7 +7792,7 @@ function anRenderResult(res){
     const px = v.live ? v.live.price : v.close, chg = v.live && anOk(v.live.chg) ? v.live.chg : v.chg;   // 현재가(받았으면), 없으면 마지막 종가
     const ud = chg > 0 ? 'up' : chg < 0 ? 'dn' : '';
     return `<details class="an-idx" data-an-key="i:${k}"${anState.openKeys.has('i:' + k) ? ' open' : ''}><summary><span class="an-in">${anE(v.name)}</span>
-      <b class="${ud}">${px.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(chg, 2)}%</span>${anIndexStateChip(v)}${v.w200 ? `<a class="an-w200" href="kospi200.html" title="코스피 ${anE(v.w200.lab)} · 과거 붕괴 사례" aria-label="코스피 ${anE(v.w200.lab)} · 과거 붕괴 사례" onclick="event.stopPropagation(); return anK200Open(event)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6.2v3.6M8 11.4v.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span class="lf">${anE(v.w200.lab)}</span></a>` : ''}
+      <b class="${ud}">${px.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(chg, 2)}%</span>${anIndexStateChip(v)}${v.w200 ? `<a class="an-w200${v.w200.ok ? ' ok' : ''}" href="kospi200.html" title="코스피 ${anE(v.w200.lab)} · 과거 붕괴 사례" aria-label="코스피 ${anE(v.w200.lab)} · 과거 붕괴 사례" onclick="event.stopPropagation(); return anK200Open(event)">${v.w200.ok ? '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 8.3l2.1 2.1L11.2 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6.2v3.6M8 11.4v.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'}<span class="lf">${anE(v.w200.lab)}</span></a>` : ''}
       ${anOk(v.from_high) ? `<small>고점 ${anF(v.from_high, 1)}%</small>` : ''}</summary>${anIndexChart(v, true)}</details>`;
   }).join('');
 
@@ -8412,7 +8413,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-ist { font-size:11px; font-weight:500; line-height:1; padding:3px 6px; border-radius:6px; border:1px solid currentColor; margin-left:6px; white-space:nowrap; }
 .an-istf { border:none; color:#1E1F22 !important; font-weight:600; } .an-istf.cash { background:#F2A65A; } .an-istf.back, .an-istf.inj { background:#F2A65A; }   /* 지수 칩은 모두 주황(2026-10-13) */
 #anK200 { display:none; position:fixed; inset:0; z-index:9000; background:#1E1F22; flex-direction:column; } #anK200.on { display:flex; } #anK200 iframe { flex:1; width:100%; border:0; background:#1E1F22; } #anK200 .k2-bar { flex-shrink:0; padding:10px 16px 4px; padding-top:max(10px, env(safe-area-inset-top)); } #anK200 .k2-back { display:inline-flex; align-items:center; gap:7px; background:none; border:0; padding:4px 0; font-size:18px; color:#E8ECF3; cursor:pointer; font-family:inherit; } #anK200 .k2-back b { font-weight:700; } html.k2-lock, html.k2-lock body { overflow:hidden; }
-.an-w200 { display:inline-flex; align-items:center; justify-content:center; height:20px; gap:3px; margin:0 0 0 6px; font-size:12px; font-weight:600; white-space:nowrap; color:#F5B942; text-decoration:none; flex-shrink:0; vertical-align:middle; } .an-w200 svg { width:17px; height:17px; } @media (max-width:600px){ .an-w200 .lf { display:none; } }   /* 코스피 200일선 경고(아이콘만, 지수 이름 옆) → 붕괴 사례 */ .an-idx summary .an-in { white-space:nowrap; flex-shrink:0; } .an-barslot { display:inline-flex; align-items:center; }
+.an-w200 { display:inline-flex; align-items:center; justify-content:center; height:20px; gap:3px; margin:0 0 0 6px; font-size:12px; font-weight:600; white-space:nowrap; color:#F5B942; text-decoration:none; flex-shrink:0; vertical-align:middle; } .an-w200 svg { width:17px; height:17px; } .an-w200.ok { color:#E87BA4; } @media (max-width:600px){ .an-w200 .lf { display:none; } }   /* 코스피 200일선 경고(아이콘만, 지수 이름 옆) → 붕괴 사례 */ .an-idx summary .an-in { white-space:nowrap; flex-shrink:0; } .an-barslot { display:inline-flex; align-items:center; }
 .an-ist.up { color:var(--an-up); } .an-ist.dn { color:var(--an-dn); } .an-ist.n { color:#9A9BA1; }
 .an-live { font-size:11.5px; font-weight:500; margin-left:6px; white-space:nowrap; color:#9A9BA1; } .an-live.buy { color:var(--an-up); } .an-live.sell { color:var(--an-dn); }
 .an-liveline { font-size:12px; font-weight:500; margin:2px 0 6px; color:#C9C9C9; }
@@ -8428,7 +8429,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-chart line { vector-effect:non-scaling-stroke; stroke-width:1px; }
 .an-ch-bg { fill:none; stroke:var(--border); } .an-ch-grid { stroke:var(--text-dim); stroke-dasharray:3 3; opacity:.5; }
 .an-ch-ma5 { stroke:var(--c5); } .an-ch-ma20 { stroke:var(--c20); } .an-ch-w5 { stroke:var(--cw5); } .an-ch-w10 { stroke:var(--cw10); }
-.an-ch-ma200 { stroke:#FF0000; } .an-sw-ma200 { background:#FF0000; }
+.an-lgk { color:inherit; text-decoration:none; cursor:pointer; }   /* 코스피 차트 범례 '200일' → 붕괴 사례 */ .an-ch-ma200 { stroke:#FF0000; } .an-sw-ma200 { background:#FF0000; }
 .an-ch-m5 { stroke:var(--cm5); } .an-ch-m10 { stroke:var(--cm10); } .an-ch-rsi { stroke:var(--text); }
 .an-lastdot { position:absolute; width:9px; height:9px; border-radius:50%; background:#FFFFFF; border:2px solid #1E1F22; box-shadow:0 0 0 1px rgba(255,255,255,0.35); transform:translate(-50%,-50%); box-sizing:border-box; pointer-events:none; } .an-chart path.an-ch-f { stroke-dasharray:3 3; } .an-ch-fc { fill:var(--text); opacity:.04; }
 .an-ch-vl { stroke:var(--text); opacity:.1; } .an-ch-mo { fill:var(--text-dim); font-size:9px; }
