@@ -135,18 +135,17 @@ html.embed .back{display:none;}
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>200일선 이탈일</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
+        <th>200일선 이탈일</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>상회일수</th><th>실패</th>
       </tr></thead>
       <tbody>
         <tr id="lvRow">
           <td><span class="date" id="lvDate">–</span></td>
           <td id="lvChg">–</td>
           <td id="lvPrevGap">–</td>
-          <td class="dim">–</td>
+          <td id="lvDrop" class="dim">–</td>
           <td id="lvW60">–</td>
-          
-          <td class="dim">–</td>
-          <td class="dim">–</td>
+          <td id="lvUp" class="dim">–</td>
+          <td id="lvFail" class="dim">–</td>
         </tr>
       </tbody>
       </table>
@@ -485,7 +484,35 @@ function compute(live, daily){
   const wv = [...wk.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1).map(e => e[1]);
   const w60 = wv.length >= 60 ? sum(wv.slice(-60)) / 60 : null;
   const chgPct = live.chgPct != null ? live.chgPct : (p / prevClose - 1) * 100;
-  return { todayKey, prevKey: keys[n-1], p, chgPct, prevClose, maPrev, maToday, w60 };
+  const ep = trackEpisode([...keys, todayKey], [...closes, p], chgPct);
+  return { todayKey, prevKey: keys[n-1], p, chgPct, prevClose, maPrev, maToday, w60, ep };
+}
+
+// 맨 위 줄 추적(2026-10-13 사용자 정의): TRACK_FROM 이후 첫 200일선 이탈(전날 위 → 그날 아래)을 잡아 그날 기준으로 표시.
+// 추가 하락 = 이탈일 종가 → 처음 200일선 위로 올라가기 전까지 최저(현재가 포함). 상회일수 = 200일선 위 연속 거래일(현재가 포함),
+// 40일을 못 채우고 다시 아래로 가면 실패 +1, 다시 넘으면 1부터. 40일 채우면 회복(그 연속의 첫날). 회복 뒤 새 이탈이 나오면 새로 추적.
+const TRACK_FROM = '2026-10-13', HOLD_DAYS = 40;
+function trackEpisode(D, C, liveChg){
+  const N = C.length, ma = new Array(N).fill(null);
+  let s = 0;
+  for(let i = 0; i < N; i++){ s += C[i]; if(i >= 200) s -= C[i - 200]; if(i >= 199) ma[i] = s / 200; }
+  let ep = null;
+  for(let i = 1; i < N; i++){
+    if(D[i] < TRACK_FROM || ma[i] == null || ma[i - 1] == null) continue;
+    const above = C[i] >= ma[i];
+    if(!ep || ep.recovered){
+      if(C[i - 1] > ma[i - 1] && C[i] < ma[i]){
+        ep = { b: i, date: D[i], chg: i === N - 1 && liveChg != null ? liveChg : (C[i] / C[i - 1] - 1) * 100,
+               prevGap: (C[i - 1] / ma[i - 1] - 1) * 100, min: C[i], minAt: i, crossed: false, run: 0, fail: 0, recovered: null };
+      }
+      continue;
+    }
+    if(!ep.crossed){ if(above) ep.crossed = true; else if(C[i] < ep.min){ ep.min = C[i]; ep.minAt = i; } }
+    if(above){ ep.run++; if(ep.run === 1) ep.runFrom = D[i]; if(ep.run >= HOLD_DAYS) ep.recovered = ep.runFrom; }
+    else { if(ep.run > 0) ep.fail++; ep.run = 0; }
+  }
+  if(ep){ ep.drop = (ep.min / C[ep.b] - 1) * 100; ep.dropDays = ep.minAt - ep.b; ep.nowAbove = C[N - 1] >= ma[N - 1]; }
+  return ep;
 }
 
 const fmt = x => x == null ? '–' : x.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -502,9 +529,10 @@ function render(r, live){
   const statusTxt = { OPEN: '장중', CLOSE: '장 마감', PREOPEN: '장 시작 전' }[live.status] || live.status;
   const at = live.at ? live.at.slice(0, 16).replace('T', ' ') : '';
   $('lvTime').textContent = `${r.todayKey}${at ? ' · ' + at.slice(11) : ''}`;
-  $('lvDate').textContent = r.todayKey;
-  $('lvChg').innerHTML = `<span class="chipv ${cls(r.chgPct)}">${pct(r.chgPct)}</span>`; $('lvChg').className = '';
-  const prevGap = (r.prevClose / r.maPrev - 1) * 100;
+  const ep = r.ep, dayChg = ep ? ep.chg : r.chgPct;
+  $('lvDate').textContent = ep ? ep.date : r.todayKey;
+  $('lvChg').innerHTML = `<span class="chipv ${cls(dayChg)}">${pct(dayChg)}</span>`; $('lvChg').className = '';
+  const prevGap = ep ? ep.prevGap : (r.prevClose / r.maPrev - 1) * 100;
   $('lvPrevGap').textContent = pct(prevGap).replace(/(\.\d)\d%$/, '$1%');
   $('lvPrevGap').className = cls(prevGap);
   const g200 = (r.p / r.maToday - 1) * 100;
@@ -533,7 +561,18 @@ function render(r, live){
     j.className = 'issue';
   }
   j.textContent = txt;
-  $('lvRow').className = j.classList.contains('hit') ? 'hitrow' : '';
+  $('lvRow').className = (ep && !ep.recovered) || j.classList.contains('hit') ? 'hitrow' : '';
+  const p1 = x => (x > 0 ? '+' : '') + x.toFixed(1) + '%';
+  if(ep){
+    $('lvDrop').innerHTML = `${p1(ep.drop)}<span class="d">${ep.dropDays ? ep.dropDays + '거래일 뒤' : '이탈일이 최저'}</span>`;
+    $('lvDrop').className = ep.drop < 0 ? 'dn' : '';
+    $('lvUp').innerHTML = ep.recovered ? `회복<span class="d">${ep.recovered}</span>`
+                        : ep.nowAbove ? `${ep.run}/${HOLD_DAYS}일<span class="d">200일선 위 연속</span>` : `0일<span class="d">200일선 아래</span>`;
+    $('lvUp').className = ep.recovered || ep.nowAbove ? '' : 'dim';
+    $('lvFail').textContent = `${ep.fail}회`; $('lvFail').className = '';
+  }else{
+    ['lvDrop', 'lvUp', 'lvFail'].forEach(id => { $(id).textContent = '–'; $(id).className = 'dim'; });
+  }
 }
 
 async function loadAll(){
