@@ -82,6 +82,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .btn-memo{background:var(--accent);color:#111;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
   .btn-primary:hover{background:#fff;border-color:#fff;color:#111;}
   .tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:0;align-items:flex-end;}
+  .tab-br{flex-basis:100%;height:0;}
   .tab{
     padding:10px 18px 9px;
     background:var(--surface);
@@ -1413,7 +1414,7 @@ async function load(){
   if(state.accounts.length === 0){
     state.accounts = [{ id: uid(), name: '계좌 1', holdings: [] }];
   }
-  state.activeId = '__total__';
+  state.activeId = '__analysis__';      // 처음 열린 탭 = V1(2026-10-13, 전엔 전체)
   render();
 }
 
@@ -5006,6 +5007,7 @@ function renderTabs(){
   let html = state.accounts.map(a => `
     <div class="tab ${a.id===state.activeId?'active':''}" data-tab="${a.id}">${escapeHTML(a.name)}</div>
   `).join('');
+  html += `<div class="tab-br"></div>`;      // 계좌 탭 줄 / 나머지 탭 줄 나눔(2026-10-13)
   html += `<div class="tab total ${state.activeId==='__creditLines__'?'active':''}" data-tab="__creditLines__" style="color:#B85450;">마통</div>`;
   html += `<div class="tab total ${state.activeId==='__domestic__'?'active':''}" data-tab="__domestic__">국내</div>`;
   html += `<div class="tab total ${state.activeId==='__overseas__'?'active':''}" data-tab="__overseas__">해외</div>`;
@@ -7652,8 +7654,8 @@ function anIndexChart(v, noHead){
   if(v.state) tags += `<span class="an-mt n">${anE(v.state.name)} · ${anE(v.state.why)}</span>`;
   if(anOk(v.rsi)) tags += `<span class="an-mt ${v.rsi >= 70 ? 'hot' : v.rsi <= 30 ? 'cold' : 'n'}">RSI ${v.rsi.toFixed(0)}</span>`;
   const C = v.cash;
-  const cashLine = !C ? '' : C.inj && !C.on ? `<div class="an-cashln inj"><b>추가 매수</b> = 투자금만큼(+100%) 추가를 고려할 시기 · 큰 결정 · 직전 고점 대비 -15% 이상 빠졌다 200일선 회복(5거래일 동안 표시)${C.back ? ' · 현금화한 몫 현금 투입 포함' : ''}<br>근거(현금화 없이 투입만): ${anE(C.injwhy)} · 이익은 소수의 큰 회복에서 났음 · 다시 200일선이 깨지면 추가분 회수 · 지금 ${anE(C.now)} · 참고만</div>`
-    : (C.on || C.back) ? `<div class="an-cashln">${C.on ? `<b>현금 ${C.pct}% 추천</b> = 이 정도 현금이 미리 준비돼 있으면 좋은 시기 · 조건 ${anE(C.cond)}` : `<b>현금 투입</b> = 현금화했던 몫을 다시 넣을 시기 · 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복(5거래일 동안 표시)`} · 지금 ${anE(C.now)}<br>${anE(C.why)} · ${C.alert ? '코스닥 = 경보만, 매수 칩 없음' : '지수는 그냥 보유해도 무리 없음(평균 비슷)'} · 참고만</div>` : '';
+  const cashLine = !C ? '' : C.inj && !C.on ? `<div class="an-cashln inj"><b>추가 매수</b> = 투자금만큼(+100%) 추가를 고려할 시기 · 큰 결정 · 직전 고점 대비 -15% 이상 빠졌다 200일선 회복(5거래일 동안 표시)${C.back ? ' · 현금화한 몫 현금 투입 포함' : ''}<br>근거(현금화 없이 투입만): ${anE(C.injwhy)} · 이익은 소수의 큰 회복에서 났음 · 다시 200일선이 깨지면 추가분 회수 · 지금 ${anE(C.now)}</div>`
+    : (C.on || C.back) ? `<div class="an-cashln">${C.on ? `현금이 준비돼 있으면 좋은 시기 · 조건 ${anE(C.cond)}` : `<b>현금 투입</b> = 현금화했던 몫을 다시 넣을 시기 · 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복(5거래일 동안 표시)`} · 지금 ${anE(C.now)}<br>${anE(C.why)} · 지수는 그냥 보유해도 무리 없음</div>` : '';
   return `<div class="an-box">
     ${noHead ? '' : `<div class="an-ih"><span class="an-in">${anE(v.name)}</span><b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span><span class="an-ip">최근 ${AN.CHART_DAYS}거래일</span></div>`}
     <div class="an-mrow" style="margin-bottom:2px;">${tags}</div>
@@ -7920,13 +7922,13 @@ function anLogicPopup(opt){
   opt = opt || {};
   let hide = false;
   try{ hide = localStorage.getItem(AN_LOGIC_POP_KEY) === '1'; }catch(e){}
-  if(!opt.force && (hide || anLogicPopShown)) return;
+  if(!opt.force && (hide || anLogicPopShown)) return false;
   anLogicPopShown = true;
   const m = document.createElement('div');
   m.id = 'anLogicModal';
   m.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:center;justify-content:center;padding:16px;';
   m.innerHTML = `<div class="an-lpop">
-      <h3>Logic V1 <small>2026.10.11</small></h3><hr>
+      <h3>Logic V1 <small>2026.10.13</small></h3><hr>
       <div class="an-rbody">${anLogicBody()}</div>
       ${opt.force ? '' : '<label class="an-lchk"><input type="checkbox" id="anLogicHide"> 다시 보지 않기</label>'}
       <div class="an-lbtn"><button class="btn btn-primary" id="anLogicOk">✓</button></div></div>`;
@@ -7942,11 +7944,12 @@ function anLogicPopup(opt){
   };
   m.querySelector('#anLogicOk').addEventListener('click', close);
   m.addEventListener('click', e => { if(e.target === m) close(); });
+  return true;
 }
 document.addEventListener('click', e => {
   if(!e.target.closest('[data-tab="__analysis__"]')) return;
-  if(state.activeId !== '__analysis__') anState.view = 'report';      // 다른 탭에서 LAB으로 들어오면 항상 분석 화면(히스토리에 있었어도)
-  setTimeout(anLogicPopup, 80);
+  if(state.activeId !== '__analysis__') anState.view = 'report';      // 다른 탭에서 V1으로 들어오면 항상 분석 화면(히스토리에 있었어도)
+  // V1 탭 클릭 때 뜨던 Logic V1 안내창은 2026-10-13 사이트 첫 팝업으로 옮김
 }, true);
 function anBtDraw(wrap){
   if(!wrap) return;
@@ -8702,8 +8705,8 @@ function checkNoticeHtml(){
     document.documentElement.classList.remove('logic-only');
     try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
   }
-  await checkNoticePng();
-  await checkNoticeHtml();
+  // 첫 팝업 = Logic V1 안내창(2026-10-13, 전엔 notice.png → notice.html). '다시 보지 않기'면 건너뜀
+  await new Promise(r => { if(!anLogicPopup({ onClose: r })) r(); });
 
   // ===== 종목추가 가이드 (in001 → in002 → in003) =====
   // FAQ 다음에 표시. 클릭/터치로 순서 전환. '다시 보지 않기' 체크 후 닫으면 그 다음부터 표시 안 함
