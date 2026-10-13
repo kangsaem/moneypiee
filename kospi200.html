@@ -506,11 +506,14 @@ function trackEpisode(D, C, liveChg, L){
     let s = C[i]; for(let j = k - 59; j < k; j++) s += lastOfWeek.get(weeks[j]); return s / 60;
   };
   let ep = null;
+  const done = [];                                         // 회복이 끝난 지난 국면들(보관용)
+  const fin = e => { e.drop = (e.min / C[e.b] - 1) * 100; e.dropDays = e.minAt - e.b; if(e.recovered) e.recDays = e.runFromIdx - e.b; return e; };
   for(let i = 1; i < N; i++){
     if(D[i] < TRACK_FROM || ma[i] == null || ma[i - 1] == null) continue;
     const above = C[i] >= ma[i];
     if(!ep || ep.recovered){
       if(C[i - 1] > ma[i - 1] && C[i] < ma[i]){
+        if(ep) done.push(fin(ep));
         ep = { b: i, date: D[i], chg: i === N - 1 && liveChg != null ? liveChg : (C[i] / C[i - 1] - 1) * 100,
                prevGap: (C[i - 1] / ma[i - 1] - 1) * 100, min: C[i], minAt: i, crossed: false, run: 0, fail: 0, recovered: null };
         const w = w60At(i);                                // 60주선: 이탈일에 이미 아래 / 일봉 저가가 처음 닿은 날
@@ -524,7 +527,7 @@ function trackEpisode(D, C, liveChg, L){
     if(above){ ep.run++; if(ep.run === 1){ ep.runFrom = D[i]; ep.runFromIdx = i; } if(ep.run >= HOLD_DAYS) ep.recovered = ep.runFrom; }
     else { if(ep.run > 0) ep.fail++; ep.run = 0; }
   }
-  if(ep){ ep.drop = (ep.min / C[ep.b] - 1) * 100; ep.dropDays = ep.minAt - ep.b; ep.nowAbove = C[N - 1] >= ma[N - 1]; if(ep.recovered) ep.recDays = ep.runFromIdx - ep.b; }
+  if(ep){ fin(ep); ep.nowAbove = C[N - 1] >= ma[N - 1]; ep.done = done; }
   return ep;
 }
 
@@ -628,7 +631,7 @@ function archRow(c){
 }
 function archPaint(){
   const tabs = [...document.querySelectorAll('.tbl table')];   // 0 = 맨 위 줄, 1 = -5% 이상, 2 = -3~-5%, 3 = -2~-3%
-  const have = new Set([...document.querySelectorAll('.tbl tbody .date')].map(e => e.textContent.trim()));
+  const have = new Set(tabs.slice(1).flatMap(tb => [...tb.querySelectorAll('tbody .date')]).map(e => e.textContent.trim()));   // 맨 위 줄은 빼고
   archList.forEach(c => {
     if(have.has(c.date) || !(c.chg <= -2)) return;
     const k = c.chg <= -5 ? 1 : c.chg <= -3 ? 2 : 3, tb = tabs[k] && tabs[k].querySelector('tbody');
@@ -641,14 +644,16 @@ function archPaint(){
   });
 }
 async function archSave(ep){
-  if(!ep || !ep.recovered || !(ep.chg <= -2) || !ghTok()) return '';
+  const all = ep ? (ep.done || []).concat(ep) : [];
+  if(!ghTok() || !all.some(e => e.recovered && e.chg <= -2)) return '';
   const cur = await archFetch();
-  if(cur.list.some(c => c.date === ep.date)) return '';
-  const rec = { date: ep.date, issue: '', chg: +ep.chg.toFixed(2), prevGap: +ep.prevGap.toFixed(1), drop: +ep.drop.toFixed(1), dropDays: ep.dropDays,
-                w60: ep.w60 || null, w60b: ep.w60b != null ? +ep.w60b.toFixed(1) : null, recovered: ep.recovered, recDays: ep.recDays, fail: ep.fail,
-                savedAt: new Date().toISOString().slice(0, 10) };
-  const list = cur.list.concat(rec);
-  const body = { message: `코스피 200일선 붕괴 사례 보관: ${ep.date} (회복 ${ep.recovered}) [skip ci]`, content: b64enc(JSON.stringify(list, null, 1) + '\n') };
+  const todo = all.filter(e => e.recovered && e.chg <= -2 && !cur.list.some(c => c.date === e.date));
+  if(!todo.length) return '';
+  const recs = todo.map(e => ({ date: e.date, issue: '', chg: +e.chg.toFixed(2), prevGap: +e.prevGap.toFixed(1), drop: +e.drop.toFixed(1), dropDays: e.dropDays,
+                w60: e.w60 || null, w60b: e.w60b != null ? +e.w60b.toFixed(1) : null, recovered: e.recovered, recDays: e.recDays, fail: e.fail,
+                savedAt: new Date().toISOString().slice(0, 10) }));
+  const list = cur.list.concat(recs);
+  const body = { message: `코스피 200일선 붕괴 사례 보관: ${recs.map(c => c.date + ' (회복 ' + c.recovered + ')').join(', ')} [skip ci]`, content: b64enc(JSON.stringify(list, null, 1) + '\n') };
   if(cur.sha) body.sha = cur.sha;
   const r = await fetch(`https://api.github.com/repos/${ARCH.REPO}/contents/${ARCH.PATH}`,
     { method: 'PUT', headers: { Authorization: 'Bearer ' + ghTok(), Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
