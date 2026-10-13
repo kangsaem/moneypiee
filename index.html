@@ -7404,9 +7404,21 @@ async function runAnalysis(){
           try{ r.rs60 = anRelStrength(bars, (await benchP)[spec.market]); }catch(e){ r.rs60 = null; }
           r.review = anReview(r);
           // 장중(국장 09:00~15:30 KST · 미장 09:30~16:00 뉴욕): 매수·매도 칸이 뜬 종목은 현재가도 받아 '놓친 다음 날 장중' 규칙을 판정(anLiveVerdict)
-          if((spec.market === 'KR' || (spec.market === 'US' && !spec.code.includes('.'))) && anLiveNow(spec.market).open && anDisplayKeys(r.review).some(k => k in AN_LIVE_SIG)){
+          // 장중이면 모든 종목 현재가를 받아 차트에 붙임(표시만 — 신호는 확정 종가 기준 그대로, 2026-10-13)
+          const ln = (spec.market === 'KR' || (spec.market === 'US' && !spec.code.includes('.'))) ? anLiveNow(spec.market) : null;
+          if(ln && ln.open){
             const q = spec.market === 'KR' ? await fetchNaverStockPrice(spec.code).catch(() => null) : await anFetchUsLive(spec.code).catch(() => null);
-            if(q && q.price > 0) r.live = anLiveInfo(bars, q.price, anDisplayKeys(r.review).includes('up'), spec.market);
+            if(q && q.price > 0){
+              if(anDisplayKeys(r.review).some(k => k in AN_LIVE_SIG)) r.live = anLiveInfo(bars, q.price, anDisplayKeys(r.review).includes('up'), spec.market);
+              if(bars.dates[bars.dates.length - 1] < ln.date){
+                try{
+                  const d2 = bars.dates.concat([ln.date]), c2 = bars.close.concat([q.price]);
+                  r.chartLive = anChartData(d2, c2, anRsi(c2));
+                  r.chartLive.lastLabel = '현재가';
+                  r.livePx = { price: q.price, date: ln.date };
+                }catch(e){}
+              }
+            }
           }
           found.push([i, r]);
         }catch(e){
@@ -7907,8 +7919,8 @@ function anBtBind(root){
 const anChartCache = new Map();
 async function anChartFor(r, per){
   const p = AN_CHART_PER.find(x => x[0] === per);
-  if(!p || per === '6m' || !r.key) return r.chart;
-  const ck = r.key + '|' + per + '|' + r.last;
+  if(!p || per === '6m' || !r.key) return r.chartLive || r.chart;       // 장중에 받은 현재가가 있으면 그걸 붙인 차트
+  const ck = r.key + '|' + per + '|' + r.last + '|' + (r.livePx ? r.livePx.price : '');
   if(anChartCache.has(ck)) return anChartCache.get(ck);
   const b = await anDB.get('bars3:' + r.key);
   if(!b || !b.dates || b.dates.length < 30) return r.chart;
@@ -7916,7 +7928,9 @@ async function anChartFor(r, per){
   const k = dates.indexOf(r.last);
   if(k >= 0){ dates = dates.slice(0, k + 1); close = close.slice(0, k + 1); }      // 분석한 날까지(이후 캐시가 갱신돼도 같은 그림)
   else if(r.last > dates[dates.length - 1]){ dates = dates.concat([r.last]); close = close.concat([r.close]); }   // 오늘 종가를 실시간으로 붙인 경우
+  if(r.livePx && r.livePx.date > dates[dates.length - 1]){ dates = dates.concat([r.livePx.date]); close = close.concat([r.livePx.price]); }   // 장중 현재가
   const ch = anChartData(dates, close, anRsi(close), p[2]);
+  if(r.livePx && dates[dates.length - 1] === r.livePx.date) ch.lastLabel = '현재가';
   anChartCache.set(ck, ch);
   return ch;
 }
