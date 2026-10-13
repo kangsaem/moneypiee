@@ -6891,7 +6891,7 @@ function anK200Open(e){
       window.addEventListener('popstate', () => { if(document.getElementById('anK200')?.classList.contains('on')) anK200Close(); });
     }
     ov.querySelector('iframe')?.remove();                   // 열 때마다 새 iframe(주소를 바꾸면 방문 기록이 쌓여 뒤로 가기가 꼬임)
-    const fr = document.createElement('iframe'); fr.title = '코스피 200일선 붕괴 사례'; fr.src = 'kospi200.html?embed=1'; ov.appendChild(fr);
+    const fr = document.createElement('iframe'); fr.title = '코스피 200일선 붕괴 사례'; fr.src = 'kospi200.html?embed=1&v=' + Math.floor(Date.now() / 60000);   // 1분 단위 주소 → 브라우저에 남은 옛 페이지 대신 새로 받음 ov.appendChild(fr);
     ov.classList.add('on'); document.documentElement.classList.add('k2-lock');
     try{ history.pushState({ k200: 1 }, ''); }catch(_){}
     return false;
