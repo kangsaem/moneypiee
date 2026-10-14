@@ -6826,8 +6826,8 @@ function anIndexStateChip(v){
 }
 
 // 지수 차트 = 기본 차트 + 200일선(전체 기록으로 계산해 차트 구간만 자름, 2026-10-13)
-function anIndexChartData(dates, s){
-  const ch = anChartData(dates, s, null), st = Math.max(0, dates.length - ch.close.length);
+function anIndexChartData(dates, s, days){
+  const ch = anChartData(dates, s, null, days), st = Math.max(0, dates.length - ch.close.length);
   ch.ma200 = anRoll(s, 200).slice(st).map(v => anOk(v) ? v : null);
   ch.lastLabel = '종가';                                // 지수 차트 범례(장중 실시간이면 아래에서 '현재가')
   if(!ch.ma200.some(v => v != null)) ch.ma200 = null;
@@ -7445,7 +7445,7 @@ function anHistBind(root){
 }
 
 // ------------------------------------------------------------------ 실행
-const anState = { running: false, done: 0, total: 0, result: null, loaded: false, html: null, openKeys: new Set(), view: 'report', filter: '', chartPer: '6m' };
+const anState = { running: false, done: 0, total: 0, result: null, loaded: false, html: null, openKeys: new Set(), view: 'report', filter: '', chartPer: '6m', idxPer: {} };
 
 function anTick(){
   anState.done++;
@@ -7521,7 +7521,8 @@ async function runAnalysis(){
       }
     };
     await Promise.all(Array.from({ length: AN.CONCURRENCY }, worker));
-    const results = found.sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    const seenKey = new Set();                             // 이름이 달라도 같은 종목(시세 키)이면 하나만 — 계좌 종목이 앞이라 보유 쪽이 남음(2026-10-14)
+    const results = found.sort((a, b) => a[0] - b[0]).map(x => x[1]).filter(r => !r.key || (seenKey.has(r.key) ? false : (seenKey.add(r.key), true)));
     const snap = await marketP;
     const msig = anMarketSignals(snap, results);
     const result = { at: Date.now(), isUS, results, snap, msig, failed, unresolved, stale, todayPatched, todayMissing, krToday: anKrToday() };
@@ -7701,8 +7702,34 @@ function anIndexChart(v, noHead){
   return `<div class="an-box">
     ${noHead ? '' : `<div class="an-ih"><span class="an-in">${anE(v.name)}</span><b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span><span class="an-ip">최근 ${AN.CHART_DAYS}거래일</span></div>`}
     <div class="an-mrow" style="margin-bottom:2px;">${tags}</div>
-    ${anSvgChart(v.chart)}${cashLine}
+    ${v.key ? `<div class="an-ichwrap" data-an-ichart="${v.key}">${anChartTabs(anState.idxPer[v.key] || '6m')}${anSvgChart(v.chart)}</div>` : anSvgChart(v.chart)}${cashLine}
   </div>`;
+}
+// 지수 차트 기간(2026-10-14): 지수마다 따로(다른 지수·종목과 공유 안 함). 6개월 = 분석 때 만든 차트, 그 밖엔 저장된 12년 일봉에서 다시 그림
+const anIdxChartCache = new Map();
+async function anIndexChartFor(v, per){
+  const p = AN_CHART_PER.find(x => x[0] === per);
+  if(!p || per === '6m' || !v.key) return v.chart;
+  const ck = v.key + '|' + per + '|' + v.date + '|' + v.close;
+  if(anIdxChartCache.has(ck)) return anIdxChartCache.get(ck);
+  const b = await anDB.get('bars3:idx:' + v.key);
+  if(!b || !b.dates || b.dates.length < 30) return v.chart;
+  let dates = b.dates, close = b.close;
+  const k = dates.indexOf(v.date);
+  if(k >= 0){ dates = dates.slice(0, k + 1); close = close.slice(0, k + 1); close[k] = v.close; }   // 분석한 날까지(현재가를 붙였으면 그 값)
+  else if(v.date > dates[dates.length - 1]){ dates = dates.concat([v.date]); close = close.concat([v.close]); }
+  const ch = anIndexChartData(dates, close, p[2]);
+  ch.lastLabel = v.chart.lastLabel; if(v.chart.k200) ch.k200 = true;
+  anIdxChartCache.set(ck, ch);
+  return ch;
+}
+async function anDrawIdxChart(slot){
+  const idx = (anState.result && anState.result.snap && anState.result.snap.idx) || {}, v = idx[slot.dataset.anIchart];
+  if(!v) return;
+  const per = anState.idxPer[v.key] || '6m';
+  let ch = v.chart;
+  try{ ch = await anIndexChartFor(v, per); }catch(e){}
+  slot.innerHTML = anChartTabs(per) + anSvgChart(ch);
 }
 
 function anGauge(msig, key, title){
@@ -7753,6 +7780,16 @@ function anBuyLimit(r, ctx){
 function anWon(v){ return v >= 1e8 ? (v / 1e8).toFixed(2).replace(/\.?0+$/, '') + '억' : Math.round(v / 1e4).toLocaleString() + '만'; }
 
 // 분석 시각 · 종목 수 · 국장 오늘 종가 반영 여부 (분석·히스토리 화면 공통)
+// 계좌에 없는 종목(관심종목만) — 이름·코드로 판단, 화면 그릴 때마다(2026-10-14)
+function anHeldSets(){
+  const names = new Set(), codes = new Set();
+  (state.accounts || []).forEach(a => (a.holdings || []).forEach(h => {
+    if(isCashHolding(h) || !h.name) return;
+    names.add(h.name); if(h.symbol) codes.add(String(h.symbol)); if(h.yahooSymbol) codes.add(h.yahooSymbol);
+  }));
+  return { names, codes };
+}
+function anIsWatchOnly(r, H){ return !(H.names.has(r.hname || r.name) || H.codes.has(r.code)); }
 function anHeadLine(res){
   if(!res) return '';
   const results = res.results || [];
@@ -7785,6 +7822,7 @@ function anRenderResult(res){
   const idxHtml = [['kospi', 'KR'], ['kosdaq', 'KR'], ['spx', 'US'], ['ndx', 'US']].map(([k, mk]) => {
     const v = idx[k];
     if(!v) return '';
+    v.key = k;                                             // 지수 차트 기간 버튼이 씀
     const px = v.live ? v.live.price : v.close, chg = v.live && anOk(v.live.chg) ? v.live.chg : v.chg;   // 현재가(받았으면), 없으면 마지막 종가
     const ud = chg > 0 ? 'up' : chg < 0 ? 'dn' : '';
     return `<details class="an-idx" data-an-key="i:${k}"${anState.openKeys.has('i:' + k) ? ' open' : ''}><summary><span class="an-in">${anE(v.name)}</span>
@@ -7807,6 +7845,7 @@ function anRenderResult(res){
   const tabs = AN_TABS.map(([c, nm]) => `<button class="an-ftab t-${c}${cnt(c) ? ' has' : ' zero'}" data-f="${c}">${nm} <b>${cnt(c)}</b></button>`).join('');
 
   const CH = { buy: 'buy', sell: 'sell', wait: 'wait', down: 'down', warn: 'warn', hold2: 'hold2', hold1: 'hold1' };
+  const H = anHeldSets();
   let listHtml = '';
   rows.forEach(({ r, i, rv, keys, top }) => {
     try{
@@ -7832,7 +7871,7 @@ function anRenderResult(res){
       const liveChip = lv2 ? `<span class="an-live ${lv2.cls}" title="${anE(lv2.line)}">${anS(r.live.chg, 1)}% ${lv2.txt}</span>` : '';
       const liveLine = lv2 ? `<div class="an-liveline">${anE(lv2.line)}</div>` : '';
       listHtml += `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${[...new Set(keys.map(k => AN_CATEGORY[k]))].join(' ') || 'none'}">
-        <summary><b>${anE(r.name)}</b> ${gchips}${liveChip}<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span></summary>
+        <summary>${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b>${anE(r.name)}</b> ${gchips}${liveChip}<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span></summary>
         <div class="an-sbody">${liveLine}${limHtml}${whys}${anMetricsHtml(r, side, lv, others, top && ['sell', 'buy'].includes(AN_CATEGORY[top]))}<div class="an-chwrap" data-an-chart="${i}"></div>
           <details class="an-sub" data-an-key="x:${anE(r.code)}"><summary>세부 보기 <small>${anE(r.code)}</small></summary><pre>${anE(anDetailText(r))}</pre></details></div></details>`;
     }catch(e){ listHtml += `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
@@ -8095,9 +8134,12 @@ function anBindRoot(root){
     const sg = e.target.closest('[data-sig]');
     if(sg){ anHbPop(sg.dataset.sig, true); return; }          // 신호 원: 날짜·가격·결과 팝업
     const b = e.target.closest('.an-cper button'); if(!b) return;
+    const isl = b.closest('[data-an-ichart]');
+    if(isl){ anState.idxPer[isl.dataset.anIchart] = b.dataset.cper; anDrawIdxChart(isl); return; }   // 지수 차트: 그 지수만
     anState.chartPer = b.dataset.cper;
     root.querySelectorAll('[data-an-chart][data-drawn]').forEach(sl => anDrawChartSlot(sl));
   });
+  root.querySelectorAll('[data-an-ichart]').forEach(sl => { if((anState.idxPer[sl.dataset.anIchart] || '6m') !== '6m') anDrawIdxChart(sl); });   // 다시 그려도 고른 기간 유지
   const ca = root.querySelector('#anCloseAll');                 // 열린 아코디언(종목·지수·지표·Logic V1) 한 번에 닫기
   if(ca) ca.addEventListener('click', () => { root.querySelectorAll('details[open]').forEach(d => { d.open = false; }); anState.openKeys.clear(); });
   const ft = root.querySelector('#anFtabs');
@@ -8161,7 +8203,10 @@ function anGhCode(h){
   const kr = h.listingRegion ? h.listingRegion !== 'overseas' : anIsKrCode(sym);
   return kr && sym ? sym : (h.yahooSymbol || sym || '');
 }
-function anGhLocal(){ return anCollectTargets().map(h => ({ code: anGhCode(h), name: h.name })); }
+function anGhLocal(){
+  const seen = new Set();                                  // 같은 코드는 하나만(보유 쪽이 먼저, 2026-10-14)
+  return anCollectTargets().map(h => ({ code: anGhCode(h), name: h.name })).filter(x => !x.code || (seen.has(x.code) ? false : (seen.add(x.code), true)));
+}
 async function anGhFetch(tok){
   const r = await fetch(`https://api.github.com/repos/${AN_GH.REPO}/contents/${AN_GH.PATH}?t=${Date.now()}`,
     { headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' }, cache: 'no-store' });
@@ -8276,7 +8321,8 @@ function anUpdateProgress(){
   }
   if(lab) lab.textContent = '';                                   // 왼쪽 로딩 문구 없음
   const hb = document.getElementById('analysisHistBtn');
-  if(hb) hb.classList.toggle('an-blink', !!anState.running);   // 분석 중에는 신호추적 버튼만 깜빡임
+  if(hb) hb.classList.remove('an-blink');
+  document.querySelectorAll('#analysisBtn, #watchAnBtn').forEach(b => b.classList.toggle('an-blink', !!anState.running));   // 분석 중에는 돋보기 버튼만 깜빡임(2026-10-14)
 }
 
 // 분석 탭 패널이 그려질 때마다 호출
@@ -8531,7 +8577,9 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 .an-det.an-dhold2 { border-left-color:var(--an-green); background:var(--an-green2bg); } .an-det.an-dhold1 { border-left-color:var(--an-green); background:var(--an-green1bg); }
 /* 2026-10-11 20:50: 히스토리·분석 버튼 같은 폭, 아이콘 기울임 없음, 손절 칸, 글자·줄 높이(B안), Logic V1 안내창 */
 @keyframes anBlink { 0%,100% { opacity:1; } 50% { opacity:.25; } }
-#analysisHistBtn.an-blink { animation: anBlink 1s ease-in-out infinite; }
+#analysisBtn.an-blink, #watchAnBtn.an-blink { animation: anBlink 1s ease-in-out infinite; }
+.an-wdot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#F04452; margin-right:5px; flex-shrink:0; }
+@media (max-width:600px){ .an-tab .an-rsir { display:none; } }
 #analysisHistBtn { width:64px !important; padding:0 !important; font-size:12px !important; text-align:center; white-space:nowrap; flex-shrink:0; }   /* 신호추적·최근종가 같은 폭 */
 .an-hb, .an-hg { font-style:normal !important; } .an-hstop { margin-left:6px; display:inline-flex; align-items:center; }
 .an-stock > summary { padding:4px 10px !important; } .an-stock > summary > b { font-size:12.5px; }
