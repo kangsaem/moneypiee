@@ -973,3 +973,4 @@
 - 휴대폰(moneypiee): 네이버 일봉 오늘 봉은 평일 20:00 전 뺌, 야후 등 네이버가 아닌 출처의 오늘 봉도 뺌(rec.src), anKrToday 20:00, anLastClose 국장 20:05, anKrIntraday 09:00~20:00. 오늘 오후 올린 '정규장 종가로 오늘 봉 붙이기'(bb62652·dc10ec8) 되돌림(fetchNaverKrxClose·anKrFinalAt 삭제).
   알림 '네이버 오늘 종가(20:00 확정) 아직 없음 — 어제 기준…', 머리줄 '국장 오늘 종가(20:00) 반영'. Logic V1 문구는 안 바꿈(사용자 문구).
 - 5분 반복 실행: 사용자가 Cloudflare 시험 cron 삭제했지만 17:46까지 계속 옴(workflow_dispatch, kangsaem 토큰 = Worker). 반영 지연으로 보고, 내일도 오면 내일 처리.
+- 18:03 개장일 확인 필드 점검(moneypier naver_probe): 코스피 지수 실시간에 localTradedAt 있음('2026-10-14T16:15:00+09:00', marketStatus CLOSE) → 코드 그대로. 휴장일에 전 거래일 날짜가 나오는지는 다음 휴장일에 확인.
