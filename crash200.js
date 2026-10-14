@@ -271,7 +271,7 @@ function renderBands(){
     const rng = mn >= 0 || mx <= 0 ? `${sg(mn || mx)}${Math.abs(mn).toFixed(1)}~${Math.abs(mx).toFixed(1)}` : `${sg(mn)}${Math.abs(mn).toFixed(1)}~${sg(mx)}${mx.toFixed(1)}`;
     const meta = `${list.length}건 · 전날 200일선 대비 ${rng}<span class="pc">%</span> · 200일선 안정 중간값 ${median(st)}거래일`;
     html += `<details class="sec acc" data-band="${nm}">
-    <summary><span class="st">전날 200일선 위 → 당일 ${nm} 하락하며 이탈</span><span class="meta">${meta}</span></summary>
+    <summary><span class="st">${nm} 하락하며 200일선 이탈</span><span class="meta">${meta}</span></summary>
     <div class="cards">${list.map(card).join('')}</div>
   </details>`;
     first = false;
@@ -342,7 +342,7 @@ function gChartData(D, C, a, b, o){
                w5: cut(gWeekMa(D, C, 5)), w10: cut(gWeekMa(D, C, 10)), w60: cut(gWeekMa(D, C, 60)) };
   const from = o.brk != null ? Math.max(a, o.brk) : a;
   ch.ups = [];
-  for(let i = Math.max(from, 1); i <= b; i++) if(ma[i] != null && ma[i - 1] != null && C[i] > ma[i] && C[i - 1] <= ma[i - 1])
+  for(let i = Math.max(o.upsAll ? a : from, 1); i <= b; i++) if(ma[i] != null && ma[i - 1] != null && C[i] > ma[i] && C[i - 1] <= ma[i - 1])
     ch.ups.push({ i: i - a, stab: i === o.stab, lab: i === o.stab ? D[i].slice(2).replace(/-/g, '.') : null });
   let lo = from; for(let i = from; i <= b; i++) if(C[i] < C[lo]) lo = i;
   ch.low = o.brk != null ? lo - a : null;                     // 국면이 없으면(평소) 최저 ▲ 없음
@@ -402,7 +402,7 @@ function gSvg(ch){
 }
 // 진행 중 사례 기간 탭(V1과 같음). 3·5년은 머니파이 V1이 이 기기 IndexedDB에 저장한 12년 일봉(bars3:idx:<key>, 같은 사이트)을 앞에 붙임, 없으면 한 번 더 받음
 const G_PER = [['3m', '3개월', 63], ['6m', '6개월', 132], ['1y', '1년', 252], ['3y', '3년', 756], ['5y', '5년', 1260]];
-let gLivePer = '6m', gLongP = null;
+let gLivePer = null, gLongP = null;   // null = 기본(진행 중 국면 = 1년, 평소 = 5년), 고르면 그 기간
 function gIdbGet(key){
   return new Promise(res => {
     try{
@@ -444,7 +444,7 @@ const GP = new WeakMap();                                      // 그래프 칸 
 async function gParams(key){
   if(key === 'live'){
     const e = liveEp; if(!e) return null;
-    const per = G_PER.find(p => p[0] === gLivePer) || G_PER[1];
+    const per = G_PER.find(p => p[0] === (gLivePer || (e.idle ? '5y' : '1y'))) || G_PER[1];
     let D = e.D, C = e.C, off = 0;   // e.idle = 진행 중 국면 없음(평소 지수 그래프)
     if(per[2] + 330 > D.length){
       try{ const L = await gLongHistory(), pre = []; for(let i = 0; i < L.D.length && L.D[i] < D[0]; i++) pre.push(i);
@@ -452,7 +452,7 @@ async function gParams(key){
     }
     const b = C.length - 1, a = Math.max(0, b - per[2] + 1);
     const tabs = `<div class="an-cper">${G_PER.map(([k, nm]) => `<button type="button" data-gper="${k}"${k === per[0] ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>`;
-    return { D, C, a, b, o: e.idle ? {} : { brk: e.b + off, stab: e.recovered ? e.runFromIdx + off : null }, prefix: tabs };
+    return { D, C, a, b, o: e.idle ? { upsAll: true } : { brk: e.b + off, stab: e.recovered ? e.runFromIdx + off : null, upsAll: true }, prefix: tabs };   // 맨 위 그래프는 기간 안 모든 200일선 돌파 점선
   }
   const c = DATA.cases.find(x => x.date === key), g = c && c.g;
   if(!g) return null;
