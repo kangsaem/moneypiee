@@ -266,7 +266,7 @@ function renderBands(){
   if(CFG.autoNotes) renderNotes(cases);
 }
 // 그래프 표시 설명(요약 맨 위, 2026-10-14)
-const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">하늘색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 어둡게 덮인 영역 = 짧은 사례를 가운데 맞추려고 앞에 붙인 기간 · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라)';
+const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">하늘색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 어둡게 덮인 영역 = 핵심 구간(이탈 전날 ~ 하늘색 구간 끝)이 3달(63거래일) 미만인 사례를 가운데 맞추려고 좌우에 붙인 기간 · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라)';
 function renderNotes(cases){
   const li = [G_NOTE];
   li.push(`200일선 안정 = 200일선 위 ${HOLD_DAYS}거래일 유지(그 첫날까지 거래일 수, 아래 줄은 이탈 전날 지수 대비 안정 첫날 지수). 이후 바닥까지 = 이탈일 종가 → 안정 전까지 최저 종가`);
@@ -317,7 +317,8 @@ function gChartData(D, C, a, b, o){
   let lo = from; for(let i = from; i <= b; i++) if(C[i] < C[lo]) lo = i;
   ch.low = lo - a;
   ch.blue = o.stab != null && o.stab <= b ? [o.stab - a, Math.min(b, o.stab + HOLD_DAYS - 1) - a] : null;
-  ch.gray = o.gray ? [Math.max(o.gray[0], a) - a, Math.min(o.gray[1], b) - a] : null;
+  const gr = o.gray ? (Array.isArray(o.gray[0]) ? o.gray : [o.gray]) : [];            // 어둡게 덮을 구간들(좌·우)
+  ch.gray = gr.map(r => [Math.max(r[0], a) - a, Math.min(r[1], b) - a]).filter(r => r[1] >= r[0]);
   return ch;
 }
 function gPath(v, x, y){ let d = '', pen = false; v.forEach((u, i) => { if(u == null){ pen = false; return; } d += (pen ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(u).toFixed(1); pen = true; }); return d; }
@@ -340,7 +341,7 @@ function gSvg(ch){
   }
   keys.slice().reverse().forEach(k => { if(ch[k]) o.push(`<path class="an-ch-${k}" d="${gPath(ch[k], x, y)}"/>`); });
   o.push(`<path class="an-ch-close" d="${gPath(close, x, y)}"/>`);
-  if(ch.gray && ch.gray[1] >= ch.gray[0]) o.push(band(ch.gray, 'g-gray'));   // 앞에 붙인 기간 = 검은색(0.5)으로 선 위를 덮음
+  (ch.gray || []).forEach(r => o.push(band(r, 'g-gray')));   // 핵심 구간 밖(좌우 채운 기간) = 검은색(0.5)으로 선 위를 덮음
   let lab = null;
   ch.ups.forEach(u => {                                       // 200일선 상향 돌파: 하늘색 점선, 안정일 돌파만 빨간 점선
     const xv = x(u.i).toFixed(1);
@@ -456,10 +457,10 @@ function archGraphs(){
     const a = archList.find(x => x.date === el.dataset.arch); if(!a) return;
     const D = LAST.D, C = LAST.C, b = D.indexOf(a.date), u = a.recovered ? D.indexOf(a.recovered) : -1, r = a.idxRec ? D.indexOf(a.idxRec) : -1;
     if(b < 1 || u < 0) return;                                 // 실시간 2년 안에 없으면 그래프 없이
-    const R = Math.min(D.length - 1, Math.max(r >= 0 ? r : D.length - 1, u + HOLD_DAYS - 1));
-    let L = b - 1, gray = null;
-    const recN = r >= 0 ? r - b + 1 : null;
-    if(recN != null && recN < 21){ L = Math.max(0, (b - 1) + u - R); if(L < b - 1) gray = [L, b - 2]; }
+    let R = Math.min(D.length - 1, Math.max(r >= 0 ? r : D.length - 1, u + HOLD_DAYS - 1)), L = b - 1;
+    const gray = [], core = R - L + 1;
+    if(core < 63){ const pl = Math.floor((63 - core) / 2), L2 = Math.max(0, L - pl), R2 = Math.min(D.length - 1, R + (63 - core - pl));
+      if(L2 < L) gray.push([L2, L - 1]); if(R2 > R) gray.push([R + 1, R2]); L = L2; R = R2; }
     el.dataset.drawn = '1';
     el.innerHTML = gSvg(gChartData(D, C, L, R, { brk: b, stab: u, gray }));
   });
