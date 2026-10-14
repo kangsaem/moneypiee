@@ -835,17 +835,6 @@ async function fetchNaverStockPrice(naverCode){
   const changePct = parseFloat(String(row.fluctuationsRatio).replace(/,/g, ''));
   return { price, currency: 'KRW', changePct: isFinite(changePct) ? changePct : null };
 }
-// 국장 정규장 종가(KRX). polling 실시간 closePrice는 15:30 뒤 애프터마켓(넥스트레이드) 가격으로 바뀌므로
-// 15:30 이후 '오늘 봉'에는 m.stock basic의 closePrice(= 네이버 일봉·리포트와 같은 정규장 종가)를 씀(2026-10-14 확인: 삼성 234,000 vs 실시간 233,500)
-async function fetchNaverKrxClose(naverCode){
-  let res;
-  try{ res = await fetchViaProxy(`https://m.stock.naver.com/api/stock/${naverCode}/basic?_=${Date.now()}`); }catch(e){ return null; }
-  if(!res || !res.ok) return null;
-  let j;
-  try{ j = await res.json(); }catch(e){ return null; }
-  const price = parseFloat(String(j && j.closePrice).replace(/,/g, ''));
-  return isFinite(price) && price > 0 ? { price, currency: 'KRW' } : null;
-}
 function koreanMarketTimesForToday(){
   const kstMs = Date.now() + 9*60*60*1000;
   const kst = new Date(kstMs);
@@ -6615,11 +6604,11 @@ const AN_BUY_KEYS = ['buyb', 'buy', 'up'];      // 앞일수록 우선(싼 자�
 // 매수·바닥/눌림: 내렸어도 월 정이거나 현재가가 10개월선 위면 매수 가능, 아니면 종가 대기
 // 매수·추세: 내렸어도 추세 5가지가 유지되면 매수 가능, 하나라도 깨지면 종가 대기(깨진 항목은 적지 않음)
 // 어느 매수든 오르면 종가 대기 / 경보(옛 매도·전량): 자동 매도 아님 → 장중엔 '점검'만 표시(2026-10-13)
-// 국내 = 국장 09:00~15:30 KST, 미국 = 뉴욕 09:30~16:00(현지 시각 기준이라 서머타임 자동 반영: 한국 22:30~05:00 / 겨울 23:30~06:00, 2026-10-13)
+// 국내 = 국장 09:00~20:00 KST(2026-10-14~, 전날 20:00 종가 기준 · 네이버 현재가), 미국 = 뉴욕 09:30~16:00(현지 시각 기준이라 서머타임 자동 반영: 한국 22:30~05:00 / 겨울 23:30~06:00, 2026-10-13)
 const AN_LIVE_SIG = { sell: '재검토', buyb: '매수·바닥', buy: '매수·눌림', up: '매수·추세' };
 function anKstNow(){ const k = new Date(Date.now() + 9 * 3600e3); return { k, hm: k.getUTCHours() * 100 + k.getUTCMinutes(), dow: k.getUTCDay(),
   date: `${k.getUTCFullYear()}-${anPad(k.getUTCMonth()+1)}-${anPad(k.getUTCDate())}` }; }
-function anKrIntraday(){ const t = anKstNow(); return t.dow >= 1 && t.dow <= 5 && t.hm >= 900 && t.hm < 1530; }
+function anKrIntraday(){ const t = anKstNow(); return t.dow >= 1 && t.dow <= 5 && t.hm >= 900 && t.hm < 2000; }   // 09:00~20:00(애프터마켓 포함, 일봉 확정 20:00 — 2026-10-14)
 // 뉴욕 현지 시각(브라우저 시간대 자료로 서머타임 반영) → { hm, dow, date }
 function anNyNow(){
   const o = {};
@@ -7157,28 +7146,20 @@ async function anFetchNaver(code, years){
     if(!(close > 0)) continue;
     map.set(`${m[1].slice(0,4)}-${m[1].slice(4,6)}-${m[1].slice(6,8)}`, [close, high > 0 ? high : close, low > 0 ? low : close, vol >= 0 ? vol : null]);
   }
-  // 국장 마감(15:30) 전에 받은 오늘 봉은 미완성이므로 뺀다
+  // 국장 일봉 확정(20:00, 애프터마켓 마감) 전에 받은 오늘 봉은 미완성이므로 뺀다(2026-10-14 — 증권사 공식 일봉 종가 = 20:00)
   const kHm = k.getUTCHours() * 100 + k.getUTCMinutes(), kDow = k.getUTCDay();
   const todayKey = `${k.getUTCFullYear()}-${anPad(k.getUTCMonth()+1)}-${anPad(k.getUTCDate())}`;
-  if(kDow >= 1 && kDow <= 5 && kHm < 1530) map.delete(todayKey);
+  if(kDow >= 1 && kDow <= 5 && kHm < 2000) map.delete(todayKey);
   if(map.size < 30) throw new Error('네이버 데이터 부족');
   return anFromMap(map);
 }
 
-// 가장 최근 장 마감 시각(ms). KR = 평일 16:30 KST, US = 화~토 07:00 KST (미장 마감 후)
-// 국장 '오늘 종가'가 확정된 날짜(평일 15:30 이후면 오늘, 아니면 null)
+// 가장 최근 장 마감 시각(ms). KR = 평일 20:05 KST, US = 화~토 07:00 KST (미장 마감 후)
+// 국장 '오늘 종가'가 확정된 날짜(평일 20:00 이후면 오늘, 아니면 null — 2026-10-14)
 function anKrToday(){
   const k = new Date(Date.now() + 9 * 3600e3), hm = k.getUTCHours() * 100 + k.getUTCMinutes(), dow = k.getUTCDay();
-  if(dow < 1 || dow > 5 || hm < 1530) return null;
+  if(dow < 1 || dow > 5 || hm < 2000) return null;
   return `${k.getUTCFullYear()}-${anPad(k.getUTCMonth()+1)}-${anPad(k.getUTCDate())}`;
-}
-
-// 국장 일봉 확정 시각(오늘 16:35 KST, ms). 네이버 closePriceSendTime 16:30 — 그 전에 받은 오늘 봉은 임시로 봄(2026-10-14). 장 열린 날 15:30 이후만, 아니면 0
-function anKrFinalAt(){
-  const t = anKrToday();
-  if(!t) return 0;
-  const [y, m, d] = t.split('-').map(Number);
-  return Date.UTC(y, m - 1, d, 7, 35);   // 16:35 KST = 07:35 UTC
 }
 
 // 폭락장 (market_report.crash_info): 지수 고점 -20% / VIX 30 / 바닥 지표 2개 — 하나라도 켜지면 표시만(돈 쓰는 방식은 본인 판단)
@@ -7198,7 +7179,7 @@ function anLastClose(market){
     const k = new Date(now + KST - back * 864e5), dow = k.getUTCDay();
     const ok = market === 'KR' ? (dow >= 1 && dow <= 5) : (dow >= 2 && dow <= 6);
     if(!ok) continue;
-    const t = Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate(), market === 'KR' ? 15 : 7, market === 'KR' ? 32 : 0) - KST;   // 국장 15:32(시간외 종가 15:40 전 확인), 미장 07:00
+    const t = Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate(), market === 'KR' ? 20 : 7, market === 'KR' ? 5 : 0) - KST;   // 국장 20:05(일봉 확정 20:00 뒤, 2026-10-14), 미장 07:00
     if(t <= now) return t;
   }
   return 0;
@@ -7209,17 +7190,15 @@ const AN_BARS_V = 2;    // 2 = 야후 마지막 날 빈 종가를 meta 가격으
 async function anGetBars(spec){
   const ck = 'bars3:' + spec.key;   // bars3 = bars2 + 저가·거래량(v1: 52주 저점·거래량 폭증). 예전 캐시는 버리고 새로 받음
   const cached = await anDB.get(ck);
-  // 국장 15:30 이후인데 캐시에 오늘 봉이 없으면(마감 직후 받아 둔 캐시) 10분마다 다시 받아 봄 — 네이버 일봉에 정규장 종가가 생기면 그걸 씀(2026-10-14)
+  // 국장: 20:00 이후인데 캐시에 오늘 봉이 없으면(네이버 일봉 반영 전) 10분마다 다시 받아 봄 — 될 때까지(2026-10-14)
   const krT = spec.market === 'KR' ? anKrToday() : null;
   const noToday = krT && cached && cached.dates && cached.dates[cached.dates.length - 1] < krT && Date.now() - cached.fetchedAt > 10 * 60e3;
-  const fin = krT ? anKrFinalAt() : 0;   // 16:35 전에 받은 오늘 일봉은 임시 → 16:35 뒤 첫 분석에서 다시 받음
-  const notFinal = fin && Date.now() >= fin && cached && cached.fetchedAt < fin;
-  if(cached && cached.v === AN_BARS_V && cached.fetchedAt >= anLastClose(spec.market) && !noToday && !notFinal) return cached;   // v: 받는 방식이 바뀌면 한 번 새로 받음
+  if(cached && cached.v === AN_BARS_V && cached.fetchedAt >= anLastClose(spec.market) && !noToday) return cached;   // v: 받는 방식이 바뀌면 한 번 새로 받음
   let lastErr = null;
   for(const f of spec.fetchers){
     try{
       const b = await f();
-      const rec = { dates: b.dates, close: b.close, high: b.high, low: b.low, vol: b.vol, fetchedAt: Date.now(), v: AN_BARS_V };
+      const rec = { dates: b.dates, close: b.close, high: b.high, low: b.low, vol: b.vol, fetchedAt: Date.now(), v: AN_BARS_V, src: spec.fetchers.indexOf(f) };   // src 0 = 첫 출처(국장 = 네이버)
       await anDB.set(ck, rec);
       return rec;
     }catch(e){ lastErr = e; }
@@ -7530,23 +7509,15 @@ async function runAnalysis(){
           if(!spec){ unresolved.push(h.name); continue; }
           let bars = await anGetBars(spec);
           if(bars.stale) stale.push(h.name);
-          if(spec.market === 'KR'){                 // 15:30 이후: 오늘 봉이 없거나, 종가 확정(16:35) 전에 받은 일봉이면 오늘 종가를 네이버 정규장 종가로 맞춤
-            const t = anKrToday();
-            const last = bars.dates[bars.dates.length - 1];
-            if(t && (last < t || (last === t && !(bars.fetchedAt >= anKrFinalAt())))){
-              // 마감 직후 네이버 일봉의 오늘 봉은 애프터마켓 가격일 수 있음(2026-10-14 LG에너지솔루션 422,000 vs 정규장 419,000)
-              const q = await fetchNaverKrxClose(spec.code).catch(() => null);
-              if(q && q.price > 0){
-                const n = bars.close.length;
-                bars = last < t
-                  ? Object.assign({}, bars, { dates: bars.dates.concat([t]), close: bars.close.concat([q.price]), high: bars.high.concat([q.price]),
-                                              low: bars.low.concat([q.price]), vol: (bars.vol || []).concat([null]) })
-                  : Object.assign({}, bars, { close: bars.close.slice(0, n - 1).concat([q.price]),
-                                              high: bars.high.slice(0, n - 1).concat([Math.max(bars.high[n - 1], q.price)]),
-                                              low: bars.low.slice(0, n - 1).concat([Math.min(bars.low[n - 1], q.price)]) });
-                if(last < t) todayPatched.push(h.name);
-              } else if(last < t) todayMissing.push(h.name);
+          if(spec.market === 'KR'){                 // 국장 판정 = 네이버 일봉 20:00 확정 종가(2026-10-14): 20:00 전 오늘 봉·네이버가 아닌 출처(야후 = 15:30 정규장 종가)의 오늘 봉은 뺌
+            const kt = anKstNow(), last = bars.dates[bars.dates.length - 1];
+            const before20 = kt.dow >= 1 && kt.dow <= 5 && kt.hm < 2000;
+            if(last === kt.date && (before20 || bars.src > 0)){
+              const n = bars.dates.length - 1;
+              bars = Object.assign({}, bars, { dates: bars.dates.slice(0, n), close: bars.close.slice(0, n), high: bars.high.slice(0, n),
+                                               low: bars.low.slice(0, n), vol: (bars.vol || []).slice(0, n) });
             }
+            if(anKrToday() && bars.dates[bars.dates.length - 1] < anKrToday()) todayMissing.push(h.name);   // 20:00 뒤인데 네이버 오늘 종가 없음
           }
           const r = anAnalyze(bars, spec.code, h.name);
           r.key = spec.key;                          // 신호 기록에서 이 종목 시세 캐시를 다시 찾을 때 씀
@@ -7554,7 +7525,7 @@ async function runAnalysis(){
           r.hname = h.name;
           try{ r.rs60 = anRelStrength(bars, (await benchP)[spec.market]); }catch(e){ r.rs60 = null; }
           r.review = anReview(r);
-          // 장중(국장 09:00~15:30 KST · 미장 09:30~16:00 뉴욕): 매수·매도 칸이 뜬 종목은 현재가도 받아 '놓친 다음 날 장중' 규칙을 판정(anLiveVerdict)
+          // 장중(국장 09:00~20:00 KST · 미장 09:30~16:00 뉴욕): 매수·매도 칸이 뜬 종목은 현재가도 받아 '놓친 다음 날 장중' 규칙을 판정(anLiveVerdict)
           // 장중이면 모든 종목 현재가를 받아 차트에 붙임(표시만 — 신호는 확정 종가 기준 그대로, 2026-10-13)
           const ln = (spec.market === 'KR' || (spec.market === 'US' && !spec.code.includes('.'))) ? anLiveNow(spec.market) : null;
           if(ln && ln.open){
@@ -7858,7 +7829,7 @@ function anHeadLine(res){
   if(krRes.length){
     const t = res.krToday;
     const ok = t ? krRes.filter(r => r.last === t).length : 0;
-    todayTxt = t ? (ok === krRes.length ? ' · 국장 오늘 종가 반영' : ` · 국장 오늘 종가 ${ok}/${krRes.length} (나머지 어제 시세)`) : '';   // 장중·장 전에는 표시 안 함(실시간으로 바뀌는 부분이 있어 '어제 종가 기준'은 오해 소지, 2026-10-14)
+    todayTxt = t ? (ok === krRes.length ? ' · 국장 오늘 종가(20:00) 반영' : ` · 국장 오늘 종가 ${ok}/${krRes.length} (나머지 어제 시세)`) : '';   // 장중·장 전에는 표시 안 함(실시간으로 바뀌는 부분이 있어 '어제 종가 기준'은 오해 소지, 2026-10-14)
   }
   return `<div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}</span></div>`;
 }
@@ -7950,7 +7921,7 @@ function anRenderResult(res){
   if(res.failed && res.failed.length) notes.push('조회 실패 : ' + res.failed.join(', '));
   if(res.stale && res.stale.length) notes.push('이전 시세로 분석 : ' + res.stale.join(', '));
   if(res.todayPatched && res.todayPatched.length) notes.push('오늘 종가를 네이버 정규장 종가로 붙임 : ' + res.todayPatched.join(', '));
-  if(res.todayMissing && res.todayMissing.length) notes.push('오늘 종가 못 받음(어제 시세) : ' + res.todayMissing.join(', '));
+  if(res.todayMissing && res.todayMissing.length) notes.push('네이버 오늘 종가(20:00 확정) 아직 없음 — 어제 기준, 다시 분석하면 다시 받음 : ' + res.todayMissing.join(', '));
   if(res.snap && res.snap.err && res.snap.err.length) notes.push('시장 지표 실패 : ' + res.snap.err.join(', '));
 
   return `
@@ -8308,7 +8279,7 @@ async function anGhUpload(){
       { method: 'PUT', headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if(!r.ok) throw new Error(r.status === 409 ? 'GitHub 목록이 그새 바뀜 — 다시 분석 후 시도' : r.status === 403 || r.status === 401 ? '토큰 권한 부족(Contents 쓰기 필요)' : 'GitHub 응답 ' + r.status);
     anGh.diff = null; anGh.err = '';
-    showNoticeModal(`GitHub 리포트 종목 목록을 올렸어요 (${list.length}개). 다음 리포트(15:31 / 07:10)부터 반영돼요.`);
+    showNoticeModal(`GitHub 리포트 종목 목록을 올렸어요 (${list.length}개). 다음 리포트(20:05 / 07:10)부터 반영돼요.`);
   }catch(e){ showNoticeModal('올리지 못했습니다: ' + (e && e.message ? e.message : e)); }
   finally{ anGh.busy = false; anGhPaint(); }
 }
