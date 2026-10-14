@@ -7764,7 +7764,7 @@ function anGauge(msig, key, title){
   const rows = g.items.map(([lb, val, st]) => `<li class="${st ? 'on' : st == null ? 'na' : 'off'}"><span class="an-dot"></span><span class="an-gt">${anE(lb)}</span><b>${anE(val)}</b></li>`).join('');
   const pct = g.total ? Math.floor(100 * g.score / g.total) : 0;
   const extra = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
-    ? `<div class="an-glink"><a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a><a class="an-gbtn" href="${AN.PER_LINK}" target="_blank" rel="noopener">코스피 PER 확인 →</a><small>과거 대비 싼 구간인지 (indexergo)</small></div>` : '';
+    ? `<div class="an-glink"><a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a><a class="an-gbtn" href="${AN.PER_LINK}" target="_blank" rel="noopener">코스피 PER 확인 →</a></div>` : '';
   // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
   return `<details class="an-gauge ${key} ${g.cls} s${Math.min(g.score, 3)}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
