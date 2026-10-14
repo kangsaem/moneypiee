@@ -167,7 +167,7 @@ const cv = (k, inner, c2, id) => `<div class="cv${c2 ? ' ' + c2 : ''}"${id ? ` i
 function skeleton(){
   $('c200').innerHTML = `
   <details class="sec acc live" id="live" open>
-    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><button type="button" id="closeAll">전체 닫기</button></span></summary>
+    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><button type="button" id="closeAll">전체 닫기</button><span class="xpages">${XOTH.map(k => `<a class="xpage" href="${k}200.html${/[?&]embed=1/.test(location.search) ? '?embed=1' : ''}">${XN[k]}<span class="xw"> 사례</span></a>`).join('')}</span></span></summary>
     <div class="cards"><div class="case" id="lvRow">
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
       <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span>${GLG}${XCHIPS}</div>
@@ -180,6 +180,9 @@ function skeleton(){
 }
 
 // ---------- 맨 위(현재 지수 + 진행 중 국면) ----------
+// 지금 200일선 이탈 중(진행 중 국면)이면 그 국면이 속한 하락률 구간 탭을 연분홍으로(닫힌 상태일 때만, CSS)
+let NOW_BAND = null;
+function markBand(nm){ NOW_BAND = nm; document.querySelectorAll('details.acc[data-band]').forEach(d => d.classList.toggle('nowband', d.dataset.band === nm)); }
 function render(r, live){
   const at = live.at ? live.at.slice(0, 16).replace('T', ' ') : '';
   $('lvTime').textContent = `${r.todayKey}${at && at.length > 11 ? ' · ' + at.slice(11) : ''}${live.tz || ''}`;
@@ -207,9 +210,11 @@ function render(r, live){
     set('lvRec', `–<span class="d">200일선 안정 뒤 계산</span>`, 'dim');
     $('lvRecChip').innerHTML = `<span class="rchip">진행 중 ${ep.D.length - ep.b}일째</span>`;   // 이탈일 = 1일
     liveEp = ep; gDraw($('lvG'));
+    markBand(bandOf(ep.chg));
   }else{
     ['lvDrop', 'lvUp', 'lvFail', 'lvRec'].forEach(id => set(id, '–', 'dim'));
     liveEp = null; $('lvG').innerHTML = ''; $('lvRecChip').innerHTML = '';
+    markBand(null);
   }
 }
 
@@ -258,13 +263,14 @@ function renderBands(){
     const mn = Math.min(...pg), mx = Math.max(...pg), sg = v => v > 0 ? '▲' : v < 0 ? '▼' : '';
     const rng = mn >= 0 || mx <= 0 ? `${sg(mn || mx)}${Math.abs(mn).toFixed(1)}~${Math.abs(mx).toFixed(1)}` : `${sg(mn)}${Math.abs(mn).toFixed(1)}~${sg(mx)}${mx.toFixed(1)}`;
     const meta = `${list.length}건 · 전날 200일선 대비 ${rng}<span class="pc">%</span> · 200일선 안정 중간값 ${median(st)}거래일`;
-    html += `<details class="sec acc${first ? ' key' : ''}" data-band="${nm}">
+    html += `<details class="sec acc" data-band="${nm}">
     <summary><span class="st">전날 200일선 위 → 당일 ${nm} 하락하며 이탈</span><span class="meta">${meta}</span></summary>
     <div class="cards">${list.map(card).join('')}</div>
   </details>`;
     first = false;
   });
   $('bands').innerHTML = html;
+  if(NOW_BAND) markBand(NOW_BAND);
   document.querySelectorAll('details.acc[data-band]').forEach(d => {
     const go = () => { if(d.open) d.querySelectorAll('.gch[data-g]').forEach(gDraw); };
     d.addEventListener('toggle', go); go();
@@ -287,6 +293,7 @@ function renderNotes(cases){
 }
 // 세부내용 버튼(날짜 아래·이슈 왼쪽) → 그래프 아래 칸 펼침 / 전체 닫기 = 구간 아코디언·세부내용 모두 닫음(맨 위 현재 지수는 그대로)
 document.addEventListener('click', ev => {
+  const xp = ev.target.closest('.xpage'); if(xp){ ev.stopPropagation(); return; }   // 링크는 그대로 이동(제목 줄 접힘 없이)
   if(ev.target.closest('#closeAll')){
     ev.preventDefault(); ev.stopPropagation();                // 회색 제목 줄 안 버튼 — 맨 위 카드는 접지 않음
     document.querySelectorAll('details.acc[data-band]').forEach(d => { d.open = false; });
