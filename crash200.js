@@ -110,7 +110,7 @@ function compute(live, daily){
   const lows = keys.map(k => daily.get(k).l > 0 ? daily.get(k).l : daily.get(k).c);
   const todayLow = todayBar && todayBar.l > 0 ? Math.min(todayBar.l, p) : p;
   const ep = trackEpisode([...keys, todayKey], [...closes, p], chgPct, [...lows, todayLow]);
-  return { todayKey, p, chgPct, prevClose, maPrev, maToday, w60, ep };
+  return { todayKey, p, chgPct, prevClose, maPrev, maToday, w60, ep, D: [...keys, todayKey], C: [...closes, p] };
 }
 // TRACK_FROM(진행 중 사례 이탈일, 없으면 마지막 계산일) 이후 첫 이탈부터: 바닥까지·60주선·200일선 위 연속·실패. 40일 채우면 안정 → 그 뒤 새 이탈은 새로 추적
 function trackEpisode(D, C, liveChg, L){
@@ -202,7 +202,8 @@ function render(r, live){
     if(g60 <= 0) set('lvW60', `이미 아래<span class="d">60주선 ${tri(g60)}</span>`, 'dim');
     else set('lvW60', `<span class="chipv dn">${tri(-(r.w60 / r.p - 1) * 100)}</span><span class="d">더 빠지면 도달</span>`);
   }
-  $('lvCh2').hidden = !ep;
+  $('lvCh2').hidden = false;
+  $('lvRow').classList.toggle('idle', !ep);                 // 진행 중 국면이 없으면: 날짜·칩·세부내용 없이 그래프(기간 탭·범례·겹쳐 보기)만
   if(ep){
     set('lvDrop', `${tri(ep.drop)}<span class="d">${ep.dropDays ? ep.dropDays + '거래일 뒤' : '이탈일이 최저'}</span>`, ep.drop < 0 ? 'dn' : '');
     set('lvUp', ep.nowAbove ? `<span class="big">${ep.run}거래일</span><span class="d">40거래일 유지 = 안정</span>` : `–<span class="d">200일선 아래</span>`, ep.nowAbove ? '' : 'dim');
@@ -213,7 +214,7 @@ function render(r, live){
     markBand(bandOf(ep.chg));
   }else{
     ['lvDrop', 'lvUp', 'lvFail', 'lvRec'].forEach(id => set(id, '–', 'dim'));
-    liveEp = null; $('lvG').innerHTML = ''; $('lvRecChip').innerHTML = '';
+    liveEp = { idle: true, D: r.D, C: r.C }; $('lvRecChip').innerHTML = ''; gDraw($('lvG'));
     markBand(null);
   }
 }
@@ -344,7 +345,7 @@ function gChartData(D, C, a, b, o){
   for(let i = Math.max(from, 1); i <= b; i++) if(ma[i] != null && ma[i - 1] != null && C[i] > ma[i] && C[i - 1] <= ma[i - 1])
     ch.ups.push({ i: i - a, stab: i === o.stab, lab: i === o.stab ? D[i].slice(2).replace(/-/g, '.') : null });
   let lo = from; for(let i = from; i <= b; i++) if(C[i] < C[lo]) lo = i;
-  ch.low = lo - a;
+  ch.low = o.brk != null ? lo - a : null;                     // 국면이 없으면(평소) 최저 ▲ 없음
   ch.blue = o.stab != null && o.stab <= b ? [o.stab - a, Math.min(b, o.stab + HOLD_DAYS - 1) - a] : null;
   const gr = o.gray ? (Array.isArray(o.gray[0]) ? o.gray : [o.gray]) : [];            // 어둡게 덮을 구간들(좌·우)
   ch.gray = gr.map(r => [Math.max(r[0], a) - a, Math.min(r[1], b) - a]).filter(r => r[1] >= r[0]);
@@ -444,14 +445,14 @@ async function gParams(key){
   if(key === 'live'){
     const e = liveEp; if(!e) return null;
     const per = G_PER.find(p => p[0] === gLivePer) || G_PER[1];
-    let D = e.D, C = e.C, off = 0;
+    let D = e.D, C = e.C, off = 0;   // e.idle = 진행 중 국면 없음(평소 지수 그래프)
     if(per[2] + 330 > D.length){
       try{ const L = await gLongHistory(), pre = []; for(let i = 0; i < L.D.length && L.D[i] < D[0]; i++) pre.push(i);
            if(pre.length){ D = pre.map(i => L.D[i]).concat(D); C = pre.map(i => L.C[i]).concat(C); off = pre.length; } }catch(err){}
     }
     const b = C.length - 1, a = Math.max(0, b - per[2] + 1);
     const tabs = `<div class="an-cper">${G_PER.map(([k, nm]) => `<button type="button" data-gper="${k}"${k === per[0] ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>`;
-    return { D, C, a, b, o: { brk: e.b + off, stab: e.recovered ? e.runFromIdx + off : null }, prefix: tabs };
+    return { D, C, a, b, o: e.idle ? {} : { brk: e.b + off, stab: e.recovered ? e.runFromIdx + off : null }, prefix: tabs };
   }
   const c = DATA.cases.find(x => x.date === key), g = c && c.g;
   if(!g) return null;
