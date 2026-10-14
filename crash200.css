@@ -224,7 +224,7 @@ details.acc[data-band]>summary::after{left:14px;right:auto;top:20px}
 .closeall{display:flex!important;align-items:center;gap:6px}
 .closeall .ca-sp{flex:1 1 0;min-width:0}
 .closeall>button{flex:0 0 auto}
-.closeall .xpages{flex:1 0 0;min-width:max-content;display:flex;justify-content:flex-end;gap:6px;grid-column:auto}
+.closeall .xpages{flex:1 0 0;min-width:max-content;display:flex;justify-content:flex-start;gap:6px;grid-column:auto}   /* 다른 지수 = 왼쪽 끝(2026-10-14 16:11) */
 .cper-row{display:flex;align-items:center;gap:6px;margin:2px 0 4px}
 .cper-row .an-cper{margin:0}
 .cper-row .xchips{margin-left:auto}
