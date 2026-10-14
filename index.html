@@ -835,6 +835,17 @@ async function fetchNaverStockPrice(naverCode){
   const changePct = parseFloat(String(row.fluctuationsRatio).replace(/,/g, ''));
   return { price, currency: 'KRW', changePct: isFinite(changePct) ? changePct : null };
 }
+// 국장 정규장 종가(KRX). polling 실시간 closePrice는 15:30 뒤 애프터마켓(넥스트레이드) 가격으로 바뀌므로
+// 15:30 이후 '오늘 봉'에는 m.stock basic의 closePrice(= 네이버 일봉·리포트와 같은 정규장 종가)를 씀(2026-10-14 확인: 삼성 234,000 vs 실시간 233,500)
+async function fetchNaverKrxClose(naverCode){
+  let res;
+  try{ res = await fetchViaProxy(`https://m.stock.naver.com/api/stock/${naverCode}/basic?_=${Date.now()}`); }catch(e){ return null; }
+  if(!res || !res.ok) return null;
+  let j;
+  try{ j = await res.json(); }catch(e){ return null; }
+  const price = parseFloat(String(j && j.closePrice).replace(/,/g, ''));
+  return isFinite(price) && price > 0 ? { price, currency: 'KRW' } : null;
+}
 function koreanMarketTimesForToday(){
   const kstMs = Date.now() + 9*60*60*1000;
   const kst = new Date(kstMs);
@@ -7190,7 +7201,10 @@ const AN_BARS_V = 2;    // 2 = 야후 마지막 날 빈 종가를 meta 가격으
 async function anGetBars(spec){
   const ck = 'bars3:' + spec.key;   // bars3 = bars2 + 저가·거래량(v1: 52주 저점·거래량 폭증). 예전 캐시는 버리고 새로 받음
   const cached = await anDB.get(ck);
-  if(cached && cached.v === AN_BARS_V && cached.fetchedAt >= anLastClose(spec.market)) return cached;   // v: 받는 방식이 바뀌면 한 번 새로 받음
+  // 국장 15:30 이후인데 캐시에 오늘 봉이 없으면(마감 직후 받아 둔 캐시) 10분마다 다시 받아 봄 — 네이버 일봉에 정규장 종가가 생기면 그걸 씀(2026-10-14)
+  const krT = spec.market === 'KR' ? anKrToday() : null;
+  const noToday = krT && cached && cached.dates && cached.dates[cached.dates.length - 1] < krT && Date.now() - cached.fetchedAt > 10 * 60e3;
+  if(cached && cached.v === AN_BARS_V && cached.fetchedAt >= anLastClose(spec.market) && !noToday) return cached;   // v: 받는 방식이 바뀌면 한 번 새로 받음
   let lastErr = null;
   for(const f of spec.fetchers){
     try{
@@ -7506,10 +7520,10 @@ async function runAnalysis(){
           if(!spec){ unresolved.push(h.name); continue; }
           let bars = await anGetBars(spec);
           if(bars.stale) stale.push(h.name);
-          if(spec.market === 'KR'){                 // 15:30 이후인데 일봉에 오늘이 없으면 실시간 현재가(= 종가)로 오늘 봉을 붙임
+          if(spec.market === 'KR'){                 // 15:30 이후인데 일봉에 오늘이 없으면 네이버 정규장 종가로 오늘 봉을 붙임
             const t = anKrToday();
             if(t && bars.dates[bars.dates.length - 1] < t){
-              const q = await fetchNaverStockPrice(spec.code).catch(() => null);
+              const q = await fetchNaverKrxClose(spec.code).catch(() => null);   // 정규장 종가(실시간 시세는 장 마감 뒤 넥스트레이드 가격이라 쓰지 않음, 2026-10-14)
               if(q && q.price > 0){
                 bars = Object.assign({}, bars, { dates: bars.dates.concat([t]), close: bars.close.concat([q.price]), high: bars.high.concat([q.price]),
                                                  low: bars.low.concat([q.price]), vol: (bars.vol || []).concat([null]) });
@@ -7918,7 +7932,7 @@ function anRenderResult(res){
   if(res.unresolved && res.unresolved.length) notes.push('제외종목 : ' + res.unresolved.join(', '));
   if(res.failed && res.failed.length) notes.push('조회 실패 : ' + res.failed.join(', '));
   if(res.stale && res.stale.length) notes.push('이전 시세로 분석 : ' + res.stale.join(', '));
-  if(res.todayPatched && res.todayPatched.length) notes.push('오늘 종가를 실시간 시세로 붙임 : ' + res.todayPatched.join(', '));
+  if(res.todayPatched && res.todayPatched.length) notes.push('오늘 종가를 네이버 정규장 종가로 붙임 : ' + res.todayPatched.join(', '));
   if(res.todayMissing && res.todayMissing.length) notes.push('오늘 종가 못 받음(어제 시세) : ' + res.todayMissing.join(', '));
   if(res.snap && res.snap.err && res.snap.err.length) notes.push('시장 지표 실패 : ' + res.snap.err.join(', '));
 

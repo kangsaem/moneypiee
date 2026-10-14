@@ -953,3 +953,9 @@
 - Cloudflare Developer Platform 커넥터 연결됨: Worker 목록·코드 읽기만 가능(cron·비밀값·로그는 대시보드에서 직접).
 - GitHub 토큰 'moneypier Tele Timer' 만료 2027-10-14 → 그 전에 새 토큰을 Worker GH_TOKEN에 교체(만료되면 텔레그램 '실행 요청 실패' 알림).
 - 확인할 것: 내일 10/15 07:10 미장 · 15:31 국장이 제시간에 오는지.
+
+## 2026-10-14 17:15 휴대폰 V1 ↔ 리포트 차이(LG에너지솔루션) 수정
+- 증상: 휴대폰 V1 LG에너지솔루션 재검토(RSI 71·5일 +8.6%, 422,000) vs 리포트·텔레그램 재검토 0(RSI 69.8·5일 약 +7.8%, 419,000). 과열 조건 2개가 경계에서 갈림.
+- 원인(moneypier naver_probe 확인, results/naver_probe.txt): 15:30 이후 polling realtime closePrice = 애프터마켓(넥스트레이드) 가격(삼성 17:03 233,500 vs 정규장 234,000). 휴대폰은 마감 직후 받은 일봉 캐시에 오늘 봉이 없으면 이 값을 오늘 종가로 붙였음. 네이버 일봉(siseJson)·m.stock basic closePrice·FDR은 정규장 종가.
+- 수정(사용자 A): ① 오늘 봉 붙이기 = fetchNaverKrxClose(m.stock basic closePrice) ② anGetBars: 15:30 이후 캐시에 오늘 봉이 없으면 10분마다 일봉 다시 받기. 알림 문구 '오늘 종가를 네이버 정규장 종가로 붙임'.
+- 판정 기준 = 정규장 종가(V1·백테스트·시간외 종가 주문과 같음). 오늘 LG = 재검토 아님(경계).
