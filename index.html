@@ -6717,7 +6717,9 @@ function anLiveVerdict(r, keys){
   if(!L || L.date !== now.date || !now.open) return null;
   const ks = keys.filter(k => k in AN_LIVE_SIG && r.vr && k in r.vr);
   if(!ks.length) return null;
-  const parts = ks.map(k => `${AN_LIVE_SIG[k]} ${anRangeTxt(r.vr[k])} ${anInRange(r.vr[k], L.px) ? '안' : '밖'}`);
+  const free = v => v && v.loOpen && (v.hiOpen || v.key === 'sell');
+  const parts = ks.filter(k => !free(r.vr[k])).map(k => `${AN_LIVE_SIG[k]} ${anRangeTxt(r.vr[k])} ${anInRange(r.vr[k], L.px) ? '안' : '밖'}`);
+  if(!parts.length) return null;
   return { line: `장중 ${anPrice(L.px)} (${anS(L.chg, 1)}%) · ${parts.join(' · ')}` };
 }
 
@@ -7911,6 +7913,7 @@ function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
         const k = (AN_REVIEW.find(([, nm]) => nm === f) || [])[0];
         if(!k || !r.vr || !(k in r.vr)) return '';
         const v = r.vr[k], out = lvNow && !anInRange(v, r.live.px);
+        if(v && v.loOpen && (v.hiOpen || v.key === 'sell')) return '';   // ±30% 안 전부 유효 = 범위 칩 없음(2026-10-15)
         return `<span class="an-chip an-vr ${CH[tones[f]]}${out || !v ? ' off' : ''}" title="${anE((v ? (v.asof + ' 종가 ' + anPrice(v.base) + ' 기준 ') : '') + '신호가 유지되는 다음 거래일 가격 범위')}">${anE(anRangeTxt(v))}</span>`;
       };
       const gchips = allF.filter(f => tones[f]).map(f => `<span class="an-chip ${CH[tones[f]]}">${anE(f)}</span>${vrChip(f)}`).join('');
