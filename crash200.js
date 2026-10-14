@@ -167,7 +167,7 @@ const cv = (k, inner, c2, id) => `<div class="cv${c2 ? ' ' + c2 : ''}"${id ? ` i
 function skeleton(){
   $('c200').innerHTML = `
   <details class="sec acc live" id="live" open>
-    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><span class="ca-sp"></span><button type="button" id="closeAll"><i class="cchev"></i><span id="closeAllTx">전체 열기</span></button><span class="xpages">${XOTH.map(k => `<a class="xpage" style="--xc:${XC[k]}" href="${k}200.html?${/[?&]embed=1/.test(location.search) ? 'embed=1&' : ''}v=${Math.floor(Date.now() / 60000)}">▶ ${XN[k]}</a>`).join('')}</span></span></summary>
+    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><span class="ca-sp"></span><button type="button" id="closeAll"><i class="cchev"></i><span id="closeAllTx">전체 열기</span></button><span class="xpages">${XOTH.map(k => `<a class="xpage" style="--xc:${XC[k]}" href="${k}200.html?${/[?&]embed=1/.test(location.search) ? 'embed=1&' : ''}v=${Math.floor(Date.now() / 60000)}">▶ ${XN[k]}</a>`).join('')}</span></span></summary>
     <div class="cards"><div class="case" id="lvRow">
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
       <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span>${GLG}</div>
@@ -193,7 +193,7 @@ function render(r, live){
   const prevGap = ep ? ep.prevGap : (r.prevClose / r.maPrev - 1) * 100;
   set('lvPrevGap', tri(prevGap), cls(prevGap));
   const g200 = (r.p / r.maToday - 1) * 100;
-  $('lvL1').textContent = `현재 ${CFG.name} ${fmt(r.p)}`;
+  $('lvL1').textContent = `${CFG.name} ${fmt(r.p)}`;
   $('lvL1c').innerHTML = r.chgPct != null ? tri(r.chgPct, 2) : ''; $('lvL1c').className = cls(r.chgPct);
   $('lvL2').innerHTML = `200일선 ${g200 < 0 ? '아래' : '위'} <span class="${cls(g200)}">${tri(g200, 2)}</span>`;
   if(ep && ep.w60 && ep.w60.days != null) set('lvW60', `${ep.w60.days}거래일<span class="d">이탈일 ${ep.w60b != null ? tri(ep.w60b) + ' 위' : ''}</span>`);
