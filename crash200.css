@@ -195,9 +195,9 @@ tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
 .closeall>button{grid-column:2}
 .xpages{grid-column:3;justify-self:end;display:flex;gap:6px}
 @media (max-width:600px){ .xpage .xw{display:none} .closeall{grid-template-columns:1fr} .closeall>button{grid-column:1;justify-self:center} .xpages{grid-column:1} }   /* 모바일: 전체 닫기 가운데, 다른 지수 사례는 아래 줄 오른쪽 */
-.xpage{font-size:11.5px;padding:2px 8px;border-radius:6px;border:1px solid #9A9BA1;color:#4A4B50;text-decoration:none;white-space:nowrap}
+.xpage{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px solid var(--xc);background:var(--xc);color:#1E1F22;text-decoration:none;white-space:nowrap}   /* 겹쳐 보기 칩을 켠 모양(채움) */
 details.acc.nowband:not([open])>summary{background:rgba(232,123,164,.18)}   /* 지금 이탈 중인 구간(닫힌 상태) = 연분홍 */
-.closeall button{font:inherit;font-size:12px;padding:2px 14px;border-radius:6px;border:1px solid #9A9BA1;background:transparent;color:#4A4B50;cursor:pointer}
+.closeall button{font:inherit;font-size:12px;padding:2px 14px;border-radius:6px;border:1px solid #4A4B50;background:#4A4B50;color:#E8ECF3;cursor:pointer}   /* 반전(2026-10-14) */
 /* 다른 지수 겹쳐 보기(2026-10-14) */
 .xchips{display:inline-flex;gap:4px;margin-left:6px}
 .xchip{font:inherit;font-size:10.5px;font-weight:600;line-height:1.3;padding:1px 7px;border-radius:6px;border:1px solid var(--xc);background:transparent;color:var(--xc);cursor:pointer}
@@ -206,6 +206,7 @@ details.acc.nowband:not([open])>summary{background:rgba(232,123,164,.18)}   /* �
 .gch .g-ov{fill:none;stroke-width:1.3px!important}
 /* 전체 열기/닫기 화살표(구간 탭 ::after와 같은 모양·회전) */
 #closeAll{display:inline-flex;align-items:center;gap:7px}
-#closeAll .cchev{display:inline-block;width:7px;height:7px;border-right:1.5px solid #4A4B50;border-bottom:1.5px solid #4A4B50;transform:translateY(25%) rotate(-135deg);transition:transform .15s}
+#closeAll .cchev{display:inline-block;width:7px;height:7px;border-right:1.5px solid #E8ECF3;border-bottom:1.5px solid #E8ECF3;transform:translateY(25%) rotate(-135deg);transition:transform .15s}
 #closeAll.any .cchev{transform:translateY(-25%) rotate(45deg)}
 @media (prefers-reduced-motion:reduce){#closeAll .cchev{transition:none}}
+.case .ch2[hidden]{display:none}
