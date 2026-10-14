@@ -265,8 +265,10 @@ function renderBands(){
   });
   if(CFG.autoNotes) renderNotes(cases);
 }
+// 그래프 표시 설명(요약 맨 위, 2026-10-14)
+const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">하늘색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 회색 영역 = 짧은 사례를 가운데 맞추려고 앞에 붙인 기간 · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라)';
 function renderNotes(cases){
-  const li = [];
+  const li = [G_NOTE];
   li.push(`200일선 안정 = 200일선 위 ${HOLD_DAYS}거래일 유지(그 첫날까지 거래일 수, 아래 줄은 이탈 전날 지수 대비 안정 첫날 지수). 이후 바닥까지 = 이탈일 종가 → 안정 전까지 최저 종가`);
   li.push('지수회복까지 = 200일선 안정일(포함) 이후 이탈 전날 종가 이상으로 처음 돌아온 날(이탈일 = 1일). 돌파후 재이탈 = 40거래일을 못 버티고 다시 깬 횟수');
   li.push(`사례 = 안정된 상태에서 처음 200일선을 깬 날(국면당 한 줄, ${DATA.cases[0] ? DATA.cases[0].date.slice(0, 4) : ''}~ ${cases.length}개 국면)`);
@@ -529,6 +531,7 @@ function applyCooldown(){
   const open = DATA.cases.find(c => c.open);
   TRACK_FROM = open ? open.date : (DATA.made || '9999');     // 진행 중 사례가 있으면 그 이탈일부터, 없으면 마지막 계산일 이후 새 이탈
   renderBands();
+  if(!CFG.autoNotes){ const ul = document.querySelector('.note ul'); if(ul) ul.insertAdjacentHTML('afterbegin', `<li>${G_NOTE}</li>`); }
   archFetch().then(x => { archList = x.list || []; archPaint(); archGraphs(); }).catch(() => {});   // 세 지수 모두
   loadAll();
 })();
