@@ -1,0 +1,184 @@
+
+/* 머니파이 다크 테마 그대로: 한 장짜리 표 + 조건 칩 + 짧은 메모 */
+:root{
+  --bg:#1E1F22; --surface:#28292D; --surface2:#313338; --border:#3D3E43;
+  --text:#E8ECF3; --text-dim:#9A9BA1; --sub:#C9C9C9;
+  --up:#E87BA4; --dn:#5FB8E0; --ok:#4FD1C0; --amber:#F0B44A;
+  --upbg:rgba(232,123,164,.14); --dnbg:rgba(95,184,224,.14); --okbg:rgba(79,209,192,.14);
+  --font:'Inter',-apple-system,'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',Roboto,Helvetica,Arial,sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:20px 32px;display:flex;flex-direction:column;gap:14px}
+.sec{display:flex;flex-direction:column;gap:6px;margin-top:18px}
+h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
+.meta{font-size:12px;color:var(--text-dim)}
+.acc{background:var(--surface);border-radius:8px;gap:0}
+.acc summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;flex-direction:column;gap:2px;position:relative;padding-right:36px}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:"";position:absolute;right:16px;top:50%;width:7px;height:7px;border-right:1.5px solid var(--text-dim);border-bottom:1.5px solid var(--text-dim);transform:translateY(-70%) rotate(45deg);transition:transform .15s}
+.acc[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
+.acc summary:focus-visible{outline:1.5px solid var(--dn);outline-offset:-2px;border-radius:8px}
+.lv-st{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.lv-lines{display:flex;flex-direction:column;gap:1px}
+#lvL1{font-size:19px;font-weight:700;letter-spacing:-.01em}
+.acc.live>summary{background:#C9C9C9;color:#1E1F22;border-radius:8px 8px 0 0}
+.acc.live:not([open])>summary{border-radius:8px}
+.acc.live>summary .dim,.acc.live>summary #reloadPricesLabel{color:#4A4B50!important}
+.acc.live>summary .up{color:#C2185B} .acc.live>summary .dn{color:#1565C0}
+.acc.live>summary::after{border-color:#4A4B50}
+#lvTime{font-size:12px;font-weight:400}
+.lv-btns{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.acc .st{font-size:14px;font-weight:600}
+.acc .tbl{border-radius:0 0 8px 8px;border-top:1px solid var(--border)}
+.acc,.acc+.acc{margin-top:0}
+@media (prefers-reduced-motion:reduce){.acc summary::after{transition:none}}
+.acc.key .st{color:var(--up)}
+.chipv{display:inline-block;padding:2px 8px;border-radius:4px;color:#fff;font-weight:600}
+.chipv.dn{background:#2B78B5;color:#fff} .chipv.up{background:#C2185B;color:#fff}
+.acc .meta.up{color:var(--up)}
+.issue.hit{color:var(--up);font-weight:500}
+.hitrow td{background:var(--upbg)}
+h1{font-size:17px;font-weight:600;margin:0;text-wrap:balance}
+.cond{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;font-weight:500;padding:3px 8px;border-radius:6px;background:var(--surface2);color:var(--sub)}
+.chip.dn{background:var(--dnbg);color:var(--dn)}
+.chip.ok{background:var(--okbg);color:var(--ok)}
+.tbl{overflow-x:auto;background:var(--surface);border-radius:8px}
+table{width:100%;border-collapse:collapse;min-width:860px;font-variant-numeric:tabular-nums}
+th{font-size:11.5px;font-weight:500;color:var(--text-dim);text-align:right;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:12px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:500}
+tr:last-child td{border-bottom:0}
+.date{font-weight:600}
+.issue{display:block;font-size:12px;font-weight:400;color:var(--text-dim);margin-top:2px;white-space:normal;max-width:240px}
+.up{color:var(--up)} .dn{color:var(--dn)} .dim{color:var(--text-dim);font-weight:400}
+table{table-layout:fixed}
+th:nth-child(1){width:23%} th:nth-child(2){width:11%} th:nth-child(3){width:12%} th:nth-child(4){width:14%}
+th:nth-child(5){width:15%} th:nth-child(6){width:10%} th:nth-child(7){width:15%}
+th{white-space:normal;word-break:keep-all;vertical-align:bottom}   /* 2026-10-14 열 이름이 길어져 줄바꿈 허용 */
+td{overflow-wrap:anywhere}
+.d.up{color:var(--up)} .d.dn{color:var(--dn)}
+.d{white-space:normal;display:block;font-size:11.5px;font-weight:400;color:var(--text-dim)}
+.grp td{background:var(--surface2);color:var(--text);font-weight:600;font-size:12.5px;padding:8px 12px;text-align:left}
+.grp td span{color:var(--text-dim);font-weight:400;margin-left:8px}
+.issue.miss{color:var(--border)}
+.issue.big{color:#F2A65A;font-weight:600} .chipv.big{background:#F2A65A;color:#1E1F22}   /* 추가 하락이 가장 컸던 사례(2000-03-09 IT버블 붕괴): 이슈 주황 글자, 추가 하락 값은 주황 반전 */
+.fast td{background:rgba(79,209,192,.07)}
+.badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;background:var(--ok);color:var(--bg);font-weight:600;margin-left:4px}
+.note{background:var(--surface);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--sub)}
+.note b{color:var(--text);font-weight:600}
+.note li.hl{color:var(--up);font-weight:500}
+.note li.hl2{color:var(--dn);font-weight:500}
+.now{background:var(--upbg);box-shadow:inset 0 0 0 1px var(--up)}
+.now b{color:var(--up)}
+.now .v{color:var(--up);font-weight:600}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.src{font-size:11.5px;color:var(--text-dim)}
+
+body{margin:0}
+.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.head h1{flex:1;min-width:0}
+@keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.reload-spin{animation:reloadSpin .6s linear}
+.lv-body{border-top:1px solid var(--border);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.lv-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lv-grid>div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.lv-grid .k{font-size:11.5px;color:var(--text-dim)}
+.lv-grid .v{font-size:16px;color:var(--text);font-variant-numeric:tabular-nums}
+.live .s{font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.live .s.up{color:var(--up)} .live .s.dn{color:var(--dn)}
+.lv-judge{font-size:13px;font-weight:600;color:var(--text)}
+.lv-judge.hit{color:var(--up)}
+
+/* 모바일(600px 이하): 표 → 카드. 한 사례 = 카드 한 장, 라벨·값 2열 */
+@media (max-width:600px){
+  .tbl{overflow-x:visible}
+  .tbl table{min-width:0;table-layout:auto}
+  .tbl table,.tbl tbody,.tbl tr,.tbl td{display:block;width:auto}
+  .tbl thead{display:none}
+  .tbl tr{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px 10px;padding:12px 14px;border-bottom:1px solid var(--border)}
+  .tbl tr:last-child{border-bottom:0}
+  .tbl td{padding:0;border:0;text-align:left;white-space:normal;background:none!important}
+  .tbl td:first-child{grid-column:1/-1}
+  .tbl td:nth-child(n+2):nth-child(-n+4){grid-column:span 4}
+  .tbl td:nth-child(n+5){grid-column:span 4}
+  .tbl td{overflow-wrap:normal;word-break:keep-all}
+  .tbl td:not(:first-child)::before{content:attr(data-label);display:block;font-size:11px;font-weight:400;color:var(--text-dim);margin-bottom:1px}
+  .tbl .issue{max-width:none}
+  .tbl tr.fast{background:rgba(79,209,192,.07)}
+  .tbl tr.hitrow{background:var(--upbg)}
+}
+html.embed .back{display:none;}
+/* 2026-10-14 2차: 사례 = 카드(날짜·당일 칩·이슈 → 그래프 → 세부내용 접힘), PC·모바일 같은 형식 */
+.cards{border-top:1px solid var(--border)}
+.case{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.case:last-child{border-bottom:0}
+.case.fast{background:rgba(79,209,192,.07)} .case.hitrow{background:var(--upbg)}
+.case .ch{display:flex;flex-wrap:wrap;align-items:center;gap:2px 0}
+.case .ch .issue{flex-basis:100%;max-width:none;margin-top:1px}
+.case .gch:empty{display:none}
+.acc .cdet>summary{list-style:none;cursor:pointer;font-size:12px;color:var(--text-dim);display:inline-flex;flex-direction:row;align-items:center;gap:4px;padding:0;position:static}
+.cdet>summary::-webkit-details-marker{display:none}
+.acc .cdet>summary::after,.acc .cdet[open]>summary::after{content:"▾";position:static;width:auto;height:auto;border:0;transform:none;font-size:10px}
+.acc .cdet[open]>summary::after{content:"▴"}
+.cgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px 12px;margin-top:8px;font-weight:500;font-variant-numeric:tabular-nums}
+.cgrid .k{display:block;font-size:11px;font-weight:400;color:var(--text-dim);margin-bottom:1px}
+.cv{min-width:0;word-break:keep-all}
+@media (max-width:600px){ .cgrid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+/* 2026-10-14: ▲▼ 숫자 + 작은 %(머니파이 경제지표 모양), 당일 등락률 = 날짜 옆 하늘색 칩, 큰 값 + 작은 설명 */
+.pc{font-size:.7em;margin-left:1px}
+.chipv.day{background:#5FB8E0;color:#fff;font-size:11.5px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+.chipv.day.up{background:#E87BA4}
+#lvL1h{display:flex;align-items:baseline;gap:8px}
+#lvL1c{font-size:14px;font-weight:700}
+.acc.live>summary #lvL1c.up{color:#C2185B} .acc.live>summary #lvL1c.dn{color:#1565C0}
+td .big{font-weight:600}
+.gbtn{display:inline-block;margin-top:5px;font:inherit;font-size:11px;padding:1px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer}
+.gbtn[aria-expanded="true"]{color:var(--text);border-color:var(--sub)}
+tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
+@media (max-width:600px){ .tbl tr.grow{padding-top:0} .tbl tr.grow td::before{display:none} }
+/* 그래프: 머니파이 V1 지수 차트와 같은 모양(칩·설명 없음, 기간 고정) */
+.gch{--c5:#F472B6;--c20:#F87171;--cw5:#A3E635;--cw10:#22C55E;--cm5:#60A5FA;--cm10:#818CF8}
+.gch .an-lg{display:flex;flex-wrap:wrap;gap:3px 12px;align-items:center;font-size:10.5px;color:var(--text-dim);margin:2px 0}
+.gch .an-lgi{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.gch .an-sw{display:inline-block;width:9px;height:9px;border-radius:2px}
+.gch .an-sw-close{background:var(--text);border-radius:50%} .gch .an-sw-ma5{background:var(--c5)} .gch .an-sw-ma20{background:var(--c20)}
+.gch .an-sw-w5{background:var(--cw5)} .gch .an-sw-w10{background:var(--cw10)} .gch .an-sw-m5{background:var(--cm5)} .gch .an-sw-m10{background:var(--cm10)} .gch .an-sw-ma200{background:#FF0000}
+.gch .an-svgbox{position:relative}
+.gch .an-chart{width:100%;height:auto;display:block}
+.gch .an-chart path{fill:none;stroke-linejoin:round;stroke-linecap:round;stroke-width:1px;vector-effect:non-scaling-stroke}
+.gch .an-chart line{vector-effect:non-scaling-stroke;stroke-width:1px}
+.gch .an-ch-bg{fill:none;stroke:var(--border)}
+.gch .an-ch-close{stroke:var(--text);stroke-width:1.4px!important}
+.gch .an-ch-ma5{stroke:var(--c5)} .gch .an-ch-ma20{stroke:var(--c20)} .gch .an-ch-w5{stroke:var(--cw5)} .gch .an-ch-w10{stroke:var(--cw10)}
+.gch .an-ch-m5{stroke:var(--cm5)} .gch .an-ch-m10{stroke:var(--cm10)} .gch .an-ch-ma200{stroke:#FF0000}
+.gch .an-ch-w5,.gch .an-ch-w10,.gch .an-ch-m5,.gch .an-ch-m10{opacity:.6}   /* 200일선·종가 외 투명도 0.6 */
+.gch .g-green{fill:#A3E635;opacity:.25} .gch .g-blue{fill:#5FB8E0;opacity:.25}
+.gch .g-up{stroke:#FF3B30;stroke-dasharray:3 3;opacity:.9}
+.gch .g-uplab{fill:#FF6B6B;font-size:9.5px;font-weight:600}
+.gch .an-cper{display:flex;gap:3px;margin:2px 0 4px} .gch .an-cper button{font:inherit;font-size:11px;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer}
+.gch .an-cper button.on{background:var(--surface2);color:var(--text);border-color:#C9C9C9}
+.rchip{display:inline-block;margin-left:6px;font-size:11px;font-weight:600;line-height:1.3;padding:1px 6px;border:1px solid #D4FF3D;border-radius:6px;color:#D4FF3D;vertical-align:1px;white-space:nowrap}
+.gch .an-ch-vl{stroke:var(--text);opacity:.1} .gch .an-ch-mo{fill:var(--text-dim);font-size:9px} .gch .an-ch-t{fill:var(--text-dim);font-size:9px}
+.gch .an-lastdot{position:absolute;width:9px;height:9px;border-radius:50%;background:#FFFFFF;border:2px solid #1E1F22;box-shadow:0 0 0 1px rgba(255,255,255,.35);transform:translate(-50%,-50%);box-sizing:border-box;pointer-events:none}
+.gch .an-lastlbl{position:absolute;transform:translateY(-100%);font-size:11px;font-weight:700;line-height:1;white-space:nowrap;color:var(--text);text-shadow:0 0 3px var(--surface),0 0 3px var(--surface);pointer-events:none}
+.gch .gnone{font-size:12px;color:var(--text-dim);padding:6px 0}
+.back{display:inline-flex;align-items:center;gap:7px;margin:2px 0 12px;font-size:18px;color:var(--text);text-decoration:none;} .back b{font-weight:700}
+
+/* 2026-10-14 4차: 세 지수 공용(crash200.js) */
+.case.hitrow{background:none}
+.case .ch2{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.case .ch2 .issue{display:inline;margin:0;max-width:none}
+.dbtn{font:inherit;font-size:11.5px;padding:1px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;flex-shrink:0}
+.dbtn[aria-expanded="true"]{color:var(--text);border-color:var(--sub)}
+.covid{font-size:12px;font-weight:600;color:var(--up)}
+.case .cgrid{margin-top:2px}
+.gch .an-ch-w60{stroke:#C084FC}
+.gch .an-ch-w5,.gch .an-ch-w10,.gch .an-ch-w60{opacity:.6}
+.gch .g-gray{fill:#3A3B40;opacity:.3} .gch .g-gray{fill:#55575E}
+.gch .g-blue{fill:#5FB8E0;opacity:.3}
+.gch .g-up{stroke:#5FB8E0;stroke-dasharray:3 3;opacity:.9} .gch .g-up.s{stroke:#FF3B30}
+.gch .g-low{stroke:#FF3B30;stroke-dasharray:3 3}
+.gch .g-lowmk{fill:#FF3B30;font-size:10px}
+.cgrid[hidden]{display:none!important}

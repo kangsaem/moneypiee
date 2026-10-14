@@ -5,259 +5,33 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>나스닥 200일선 붕괴 사례</title>
 <meta property="og:title" content="나스닥 200일선 붕괴 사례">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.moneypie.kr/ndx200.html">
+<meta name="twitter:title" content="나스닥 200일선 붕괴 사례">
+<meta name="description" content="나스닥가 200일선을 깬 1996년 이후 국면 — 바닥까지 하락, 60주선, 200일선 안정·지수회복까지 걸린 기간과 이번 국면 실시간 추적">
 <meta property="og:site_name" content="머니파이">
 <link rel="icon" href="favicon-32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-<style>
-/* 머니파이 다크 테마 그대로: 한 장짜리 표 + 조건 칩 + 짧은 메모 */
-:root{
-  --bg:#1E1F22; --surface:#28292D; --surface2:#313338; --border:#3D3E43;
-  --text:#E8ECF3; --text-dim:#9A9BA1; --sub:#C9C9C9;
-  --up:#E87BA4; --dn:#5FB8E0; --ok:#4FD1C0; --amber:#F0B44A;
-  --upbg:rgba(232,123,164,.14); --dnbg:rgba(95,184,224,.14); --okbg:rgba(79,209,192,.14);
-  --font:'Inter',-apple-system,'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',Roboto,Helvetica,Arial,sans-serif;
-  color-scheme:dark;
-}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
-.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:20px 32px;display:flex;flex-direction:column;gap:14px}
-.sec{display:flex;flex-direction:column;gap:6px;margin-top:18px}
-h2{font-size:15px;font-weight:600;margin:0;text-wrap:balance}
-.meta{font-size:12px;color:var(--text-dim)}
-.acc{background:var(--surface);border-radius:8px;gap:0}
-.acc summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;flex-direction:column;gap:2px;position:relative;padding-right:36px}
-.acc summary::-webkit-details-marker{display:none}
-.acc summary::after{content:"";position:absolute;right:16px;top:50%;width:7px;height:7px;border-right:1.5px solid var(--text-dim);border-bottom:1.5px solid var(--text-dim);transform:translateY(-70%) rotate(45deg);transition:transform .15s}
-.acc[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
-.acc summary:focus-visible{outline:1.5px solid var(--dn);outline-offset:-2px;border-radius:8px}
-.lv-st{display:flex;align-items:center;gap:8px;justify-content:space-between}
-.lv-lines{display:flex;flex-direction:column;gap:1px}
-#lvL1{font-size:19px;font-weight:700;letter-spacing:-.01em}
-.acc.live>summary{background:#C9C9C9;color:#1E1F22;border-radius:8px 8px 0 0}
-.acc.live:not([open])>summary{border-radius:8px}
-.acc.live>summary .dim,.acc.live>summary #reloadPricesLabel{color:#4A4B50!important}
-.acc.live>summary .up{color:#C2185B} .acc.live>summary .dn{color:#1565C0}
-.acc.live>summary::after{border-color:#4A4B50}
-#lvTime{font-size:12px;font-weight:400}
-.lv-btns{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.acc .st{font-size:14px;font-weight:600}
-.acc .tbl{border-radius:0 0 8px 8px;border-top:1px solid var(--border)}
-.acc,.acc+.acc{margin-top:0}
-@media (prefers-reduced-motion:reduce){.acc summary::after{transition:none}}
-.acc.key .st{color:var(--up)}
-.chipv{display:inline-block;padding:2px 8px;border-radius:4px;color:#fff;font-weight:600}
-.chipv.dn{background:#2B78B5;color:#fff} .chipv.up{background:#C2185B;color:#fff}
-.acc .meta.up{color:var(--up)}
-.issue.hit{color:var(--up);font-weight:500}
-.hitrow td{background:var(--upbg)}
-h1{font-size:17px;font-weight:600;margin:0;text-wrap:balance}
-.cond{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-size:12px;font-weight:500;padding:3px 8px;border-radius:6px;background:var(--surface2);color:var(--sub)}
-.chip.dn{background:var(--dnbg);color:var(--dn)}
-.chip.ok{background:var(--okbg);color:var(--ok)}
-.tbl{overflow-x:auto;background:var(--surface);border-radius:8px}
-table{width:100%;border-collapse:collapse;min-width:860px;font-variant-numeric:tabular-nums}
-th{font-size:11.5px;font-weight:500;color:var(--text-dim);text-align:right;padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
-th:first-child,td:first-child{text-align:left}
-td{padding:12px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:500}
-tr:last-child td{border-bottom:0}
-.date{font-weight:600}
-.issue{display:block;font-size:12px;font-weight:400;color:var(--text-dim);margin-top:2px;white-space:normal;max-width:240px}
-.up{color:var(--up)} .dn{color:var(--dn)} .dim{color:var(--text-dim);font-weight:400}
-table{table-layout:fixed}
-th:nth-child(1){width:23%} th:nth-child(2){width:11%} th:nth-child(3){width:12%} th:nth-child(4){width:14%}
-th:nth-child(5){width:15%} th:nth-child(6){width:10%} th:nth-child(7){width:15%}
-th{white-space:normal;word-break:keep-all;vertical-align:bottom}   /* 2026-10-14 열 이름이 길어져 줄바꿈 허용 */
-td{overflow-wrap:anywhere}
-.d.up{color:var(--up)} .d.dn{color:var(--dn)}
-.d{white-space:normal;display:block;font-size:11.5px;font-weight:400;color:var(--text-dim)}
-.grp td{background:var(--surface2);color:var(--text);font-weight:600;font-size:12.5px;padding:8px 12px;text-align:left}
-.grp td span{color:var(--text-dim);font-weight:400;margin-left:8px}
-.issue.miss{color:var(--border)}
-.issue.big{color:#F2A65A;font-weight:600} .chipv.big{background:#F2A65A;color:#1E1F22}   /* 추가 하락이 가장 컸던 사례(2000-03-09 IT버블 붕괴): 이슈 주황 글자, 추가 하락 값은 주황 반전 */
-.fast td{background:rgba(79,209,192,.07)}
-.badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;background:var(--ok);color:var(--bg);font-weight:600;margin-left:4px}
-.note{background:var(--surface);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--sub)}
-.note b{color:var(--text);font-weight:600}
-.note li.hl{color:var(--up);font-weight:500}
-.note li.hl2{color:var(--dn);font-weight:500}
-.now{background:var(--upbg);box-shadow:inset 0 0 0 1px var(--up)}
-.now b{color:var(--up)}
-.now .v{color:var(--up);font-weight:600}
-ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
-.src{font-size:11.5px;color:var(--text-dim)}
-
-body{margin:0}
-.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.head h1{flex:1;min-width:0}
-@keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.reload-spin{animation:reloadSpin .6s linear}
-.lv-body{border-top:1px solid var(--border);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
-.lv-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.lv-grid>div{display:flex;flex-direction:column;gap:1px;min-width:0}
-.lv-grid .k{font-size:11.5px;color:var(--text-dim)}
-.lv-grid .v{font-size:16px;color:var(--text);font-variant-numeric:tabular-nums}
-.live .s{font-size:12px;color:var(--text-dim);font-variant-numeric:tabular-nums}
-.live .s.up{color:var(--up)} .live .s.dn{color:var(--dn)}
-.lv-judge{font-size:13px;font-weight:600;color:var(--text)}
-.lv-judge.hit{color:var(--up)}
-
-/* 모바일(600px 이하): 표 → 카드. 한 사례 = 카드 한 장, 라벨·값 2열 */
-@media (max-width:600px){
-  .tbl{overflow-x:visible}
-  .tbl table{min-width:0;table-layout:auto}
-  .tbl table,.tbl tbody,.tbl tr,.tbl td{display:block;width:auto}
-  .tbl thead{display:none}
-  .tbl tr{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px 10px;padding:12px 14px;border-bottom:1px solid var(--border)}
-  .tbl tr:last-child{border-bottom:0}
-  .tbl td{padding:0;border:0;text-align:left;white-space:normal;background:none!important}
-  .tbl td:first-child{grid-column:1/-1}
-  .tbl td:nth-child(n+2):nth-child(-n+4){grid-column:span 4}
-  .tbl td:nth-child(n+5){grid-column:span 4}
-  .tbl td{overflow-wrap:normal;word-break:keep-all}
-  .tbl td:not(:first-child)::before{content:attr(data-label);display:block;font-size:11px;font-weight:400;color:var(--text-dim);margin-bottom:1px}
-  .tbl .issue{max-width:none}
-  .tbl tr.fast{background:rgba(79,209,192,.07)}
-  .tbl tr.hitrow{background:var(--upbg)}
-}
-html.embed .back{display:none;}
-/* 2026-10-14 2차: 사례 = 카드(날짜·당일 칩·이슈 → 그래프 → 세부내용 접힘), PC·모바일 같은 형식 */
-.cards{border-top:1px solid var(--border)}
-.case{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
-.case:last-child{border-bottom:0}
-.case.fast{background:rgba(79,209,192,.07)} .case.hitrow{background:var(--upbg)}
-.case .ch{display:flex;flex-wrap:wrap;align-items:center;gap:2px 0}
-.case .ch .issue{flex-basis:100%;max-width:none;margin-top:1px}
-.case .gch:empty{display:none}
-.acc .cdet>summary{list-style:none;cursor:pointer;font-size:12px;color:var(--text-dim);display:inline-flex;flex-direction:row;align-items:center;gap:4px;padding:0;position:static}
-.cdet>summary::-webkit-details-marker{display:none}
-.acc .cdet>summary::after,.acc .cdet[open]>summary::after{content:"▾";position:static;width:auto;height:auto;border:0;transform:none;font-size:10px}
-.acc .cdet[open]>summary::after{content:"▴"}
-.cgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px 12px;margin-top:8px;font-weight:500;font-variant-numeric:tabular-nums}
-.cgrid .k{display:block;font-size:11px;font-weight:400;color:var(--text-dim);margin-bottom:1px}
-.cv{min-width:0;word-break:keep-all}
-@media (max-width:600px){ .cgrid{grid-template-columns:repeat(3,minmax(0,1fr))} }
-/* 2026-10-14: ▲▼ 숫자 + 작은 %(머니파이 경제지표 모양), 당일 등락률 = 날짜 옆 하늘색 칩, 큰 값 + 작은 설명 */
-.pc{font-size:.7em;margin-left:1px}
-.chipv.day{background:#5FB8E0;color:#fff;font-size:11.5px;padding:1px 6px;margin-left:6px;vertical-align:1px}
-.chipv.day.up{background:#E87BA4}
-#lvL1h{display:flex;align-items:baseline;gap:8px}
-#lvL1c{font-size:14px;font-weight:700}
-.acc.live>summary #lvL1c.up{color:#C2185B} .acc.live>summary #lvL1c.dn{color:#1565C0}
-td .big{font-weight:600}
-.gbtn{display:inline-block;margin-top:5px;font:inherit;font-size:11px;padding:1px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer}
-.gbtn[aria-expanded="true"]{color:var(--text);border-color:var(--sub)}
-tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
-@media (max-width:600px){ .tbl tr.grow{padding-top:0} .tbl tr.grow td::before{display:none} }
-/* 그래프: 머니파이 V1 지수 차트와 같은 모양(칩·설명 없음, 기간 고정) */
-.gch{--c5:#F472B6;--c20:#F87171;--cw5:#A3E635;--cw10:#22C55E;--cm5:#60A5FA;--cm10:#818CF8}
-.gch .an-lg{display:flex;flex-wrap:wrap;gap:3px 12px;align-items:center;font-size:10.5px;color:var(--text-dim);margin:2px 0}
-.gch .an-lgi{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
-.gch .an-sw{display:inline-block;width:9px;height:9px;border-radius:2px}
-.gch .an-sw-close{background:var(--text);border-radius:50%} .gch .an-sw-ma5{background:var(--c5)} .gch .an-sw-ma20{background:var(--c20)}
-.gch .an-sw-w5{background:var(--cw5)} .gch .an-sw-w10{background:var(--cw10)} .gch .an-sw-m5{background:var(--cm5)} .gch .an-sw-m10{background:var(--cm10)} .gch .an-sw-ma200{background:#FF0000}
-.gch .an-svgbox{position:relative}
-.gch .an-chart{width:100%;height:auto;display:block}
-.gch .an-chart path{fill:none;stroke-linejoin:round;stroke-linecap:round;stroke-width:1px;vector-effect:non-scaling-stroke}
-.gch .an-chart line{vector-effect:non-scaling-stroke;stroke-width:1px}
-.gch .an-ch-bg{fill:none;stroke:var(--border)}
-.gch .an-ch-close{stroke:var(--text);stroke-width:1.4px!important}
-.gch .an-ch-ma5{stroke:var(--c5)} .gch .an-ch-ma20{stroke:var(--c20)} .gch .an-ch-w5{stroke:var(--cw5)} .gch .an-ch-w10{stroke:var(--cw10)}
-.gch .an-ch-m5{stroke:var(--cm5)} .gch .an-ch-m10{stroke:var(--cm10)} .gch .an-ch-ma200{stroke:#FF0000}
-.gch .an-ch-vl{stroke:var(--text);opacity:.1} .gch .an-ch-mo{fill:var(--text-dim);font-size:9px} .gch .an-ch-t{fill:var(--text-dim);font-size:9px}
-.gch .an-lastdot{position:absolute;width:9px;height:9px;border-radius:50%;background:#FFFFFF;border:2px solid #1E1F22;box-shadow:0 0 0 1px rgba(255,255,255,.35);transform:translate(-50%,-50%);box-sizing:border-box;pointer-events:none}
-.gch .an-lastlbl{position:absolute;transform:translateY(-100%);font-size:11px;font-weight:700;line-height:1;white-space:nowrap;color:var(--text);text-shadow:0 0 3px var(--surface),0 0 3px var(--surface);pointer-events:none}
-.gch .gnone{font-size:12px;color:var(--text-dim);padding:6px 0}
-.back{display:inline-flex;align-items:center;gap:7px;margin:2px 0 12px;font-size:18px;color:var(--text);text-decoration:none;} .back b{font-weight:700}
-</style>
+<link rel="stylesheet" href="crash200.css?v=20261014d">
 </head>
 <body>
 <script>if(/[?&]embed=1/.test(location.search)) document.documentElement.classList.add("embed");</script>
-<!-- 2026-10-14: 머니파이 V1 나스닥 200일선 칩 연결용 틀. 맨 위 실시간 줄만 작동, 과거 사례는 준비 중(코스피 kospi200.html과 같은 형식으로 채울 예정) -->
+<!-- 2026-10-14: 세 지수(코스피·S&P500·나스닥) 공용 화면 = crash200.js · crash200.css, 사례 자료 = crash200_ndx.json(moneypier crash200.py) -->
 <div class="wrap">
   <a class="back" href="/" onclick="try{if(document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1){history.back();return false;}}catch(e){}"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" style="flex-shrink:0"><path d="M10.5 2.5 5 8l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><img src="apple-touch-icon_old.png" alt="" style="width:22px;height:22px;border-radius:6px"><b>머니파이</b></a>
-  <details class="sec acc live" id="live" open>
-    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">나스닥 –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
-    <div class="cards"><div class="case"><div class="gnone" style="font-size:13px;color:var(--text-dim)">나스닥 200일선 이탈 과거 사례는 준비 중입니다.</div></div></div>
-  </details>
+  <div id="c200"></div>
+  <div class="note">
+    <b>한계</b>
+    <ul>
+      <li>사례: 1996~ 일봉(FinanceDataReader·야후, GitHub Actions에서 계산). 200일선·60주선은 1990년부터의 자료로 계산함.</li>
+      <li>오늘 칸: 야후 일봉·현재가(뉴욕 시간). 200일선·60주선은 리로드할 때마다 그 시점 현재가를 넣어 다시 계산함.</li>
+      <li>이슈는 바닥까지 크게 빠진 국면만 널리 알려진 사건으로 적음(기억 기준, 기사 확인 안 함). 나머지는 비워 둠.</li>
+      <li>그룹별 사례 수가 적어 패턴으로 일반화하기는 어려움.</li>
+    </ul>
+  </div>
 </div>
-<script>
-const PROXY_PRIMARY = 'https://moneypie-proxy.y0n2.workers.dev/?url=';
-const PROXY_SECONDARY = 'https://moneypie-proxy2-1091905448059.asia-northeast3.run.app/?url=';
-function fetchWithTimeout(url, opts, ms){
-  const c = new AbortController(); const t = setTimeout(() => c.abort(), ms || 4000);
-  return fetch(url, { ...opts, signal: c.signal }).finally(() => clearTimeout(t));
-}
-async function fetchViaProxy(targetUrl, timeoutMs, retries){
-  timeoutMs = timeoutMs || 7000; retries = retries != null ? retries : 1;
-  let res = null;
-  try{
-    for(let a = 0; a <= retries; a++){
-      res = await fetchWithTimeout(PROXY_PRIMARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs);
-      if(res.status !== 429) break;
-      if(a < retries) await new Promise(r => setTimeout(r, 1500));
-    }
-  }catch(e){ res = null; }
-  if(res && res.ok) return res;
-  try{
-    const r2 = await fetchWithTimeout(PROXY_SECONDARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs);
-    return r2;
-  }catch(e){ if(res) return res; throw e; }
-}
-const pad = n => String(n).padStart(2, '0');
-const tri = (x, nd) => `${x > 0 ? '▲' : x < 0 ? '▼' : ''}${Math.abs(x).toFixed(nd == null ? 1 : nd)}<span class="pc">%</span>`;
-const cls = x => x > 0 ? 'up' : x < 0 ? 'dn' : '';
-const SYM = '^IXIC', NAME = '나스닥';
-async function loadAll(){
-  const $ = id => document.getElementById(id);
-  try{
-    const res = await fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(SYM)}?range=2y&interval=1d`, 15000);
-    if(!res || !res.ok) throw new Error('야후 응답 없음');
-    const r = (await res.json()).chart?.result?.[0];
-    const q = r?.indicators?.quote?.[0] || {}, C = (q.close || []).filter(v => v > 0);
-    if(C.length < 201) throw new Error('일봉 부족');
-    const p = r.meta?.regularMarketPrice || C[C.length - 1], prev = C[C.length - 2];
-    const ma = C.slice(-200).reduce((a, b) => a + b, 0) / 200, g = (p / ma - 1) * 100, chg = (p / prev - 1) * 100;
-    $('lvL1').textContent = `${NAME} ${p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    $('lvL1c').innerHTML = tri(chg, 2); $('lvL1c').className = cls(chg);
-    $('lvL2').innerHTML = `200일선 ${g < 0 ? '아래' : '위'} <span class="${cls(g)}">${tri(g, 2)}</span>`;
-    const t = r.meta?.regularMarketTime ? new Date(r.meta.regularMarketTime * 1000) : new Date();
-    $('lvTime').textContent = t.toLocaleString('ko-KR', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) + ' (뉴욕)';
-    return true;
-  }catch(e){ $('lvTime').textContent = '불러오지 못함 · ' + (e && e.message ? e.message : '네트워크 오류'); return false; }
-}
-// 리로드 버튼: 머니파이 reloadPricesBtn과 같은 모양·1분 쿨다운
-const LS_KEY = 'ndx200:lastRefreshAt', COOLDOWN = 60 * 1000;
-let lastAt = 0; try{ lastAt = parseInt(localStorage.getItem(LS_KEY), 10) || 0; }catch(e){}
-let cdTimer = null;
-function applyCooldown(){
-  const btn = document.getElementById('reloadPricesBtn'), label = document.getElementById('reloadPricesLabel');
-  if(cdTimer){ clearInterval(cdTimer); cdTimer = null; }
-  function tick(){
-    const el = Date.now() - lastAt, remain = COOLDOWN - el;
-    if(remain > 0){
-      btn.disabled = true; btn.style.background = '#555555'; btn.style.color = '#999999'; btn.style.cursor = 'default';
-      label.style.display = 'flex';
-      label.textContent = el < 10000 ? '시세 갱신됨' : `${Math.ceil(remain / 60000)}분간 쿨다운`;
-    }else{
-      btn.disabled = false; btn.style.background = '#D4FF3D'; btn.style.color = '#111'; btn.style.cursor = 'pointer';
-      label.style.display = 'none';
-      if(cdTimer){ clearInterval(cdTimer); cdTimer = null; }
-    }
-  }
-  tick(); cdTimer = setInterval(tick, 1000);
-}
-document.getElementById('reloadPricesBtn').addEventListener('click', async (ev) => {
-  ev.preventDefault(); ev.stopPropagation();
-  const btn = document.getElementById('reloadPricesBtn');
-  if(btn.disabled) return;
-  btn.classList.remove('reload-spin'); void btn.offsetWidth; btn.classList.add('reload-spin');
-  lastAt = Date.now(); try{ localStorage.setItem(LS_KEY, String(lastAt)); }catch(e){}
-  applyCooldown();
-  await loadAll();
-});
-applyCooldown();
-loadAll();
-</script>
+<script>window.C200 = {"key": "ndx", "name": "나스닥", "live": "yahoo", "naver": null, "yahoo": "^IXIC", "issues": {"1998-08-27": "러시아 디폴트 · LTCM", "2000-04-14": "IT버블 붕괴", "2007-11-21": "서브프라임 · 글로벌 금융위기", "2010-05-20": "유럽 재정위기(플래시 크래시)", "2011-06-15": "미국 신용등급 강등 · 유럽 재정위기", "2015-08-20": "중국 위안화 절하 쇼크", "2018-10-10": "연준 금리 인상 · 미중 무역분쟁", "2020-03-09": "코로나19", "2022-01-18": "연준 긴축 · 인플레", "2025-03-03": "트럼프 관세 충격"}, "missText": false, "archive": false, "autoNotes": true, "v": "20261014d"};</script>
+<script src="crash200.js?v=20261014d"></script>
 </body>
 </html>

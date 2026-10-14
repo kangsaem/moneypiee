@@ -1,0 +1,513 @@
+// 200일선 붕괴 사례 페이지 공용 코드(2026-10-14) — kospi200.html · spx200.html · ndx200.html
+// 페이지마다 window.C200 = { key, name, live: 'naver' | 'yahoo', naver, yahoo, issues: { 'YYYY-MM-DD': '이슈' }, missText, archive, autoNotes }
+// 사례 값·그래프 일봉 = crash200_<key>.json (moneypier crash200.py, GitHub Actions에서 계산해 이 저장소로 복사)
+// 맨 위 = 현재 지수 + 진행 중 국면(실시간 현재가로 다시 계산), 아래 = 하락률 구간별 사례 카드(날짜·칩 / 세부내용 버튼·이슈 / 그래프 / 세부내용)
+'use strict';
+const CFG = window.C200;
+const HOLD_DAYS = 40;
+const $ = id => document.getElementById(id);
+
+// ---------- 공용 ----------
+const PROXY_PRIMARY = 'https://moneypie-proxy.y0n2.workers.dev/?url=';
+const PROXY_SECONDARY = 'https://moneypie-proxy2-1091905448059.asia-northeast3.run.app/?url=';
+function fetchWithTimeout(url, opts, ms){
+  const c = new AbortController(); const t = setTimeout(() => c.abort(), ms || 4000);
+  return fetch(url, { ...opts, signal: c.signal }).finally(() => clearTimeout(t));
+}
+async function fetchViaProxy(targetUrl, timeoutMs, retries){
+  timeoutMs = timeoutMs || 7000; retries = retries != null ? retries : 1;
+  let res = null;
+  try{
+    for(let a = 0; a <= retries; a++){
+      res = await fetchWithTimeout(PROXY_PRIMARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs);
+      if(res.status !== 429) break;
+      if(a < retries) await new Promise(r => setTimeout(r, 1500));
+    }
+  }catch(e){ res = null; }
+  if(res && res.ok) return res;
+  try{ return await fetchWithTimeout(PROXY_SECONDARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs); }
+  catch(e){ if(res) return res; throw e; }
+}
+const num = v => { const x = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isFinite(x) ? x : null; };
+const pad = n => String(n).padStart(2, '0');
+const kstNow = () => new Date(Date.now() + 9 * 3600e3);
+const kstKey = k => `${k.getUTCFullYear()}-${pad(k.getUTCMonth() + 1)}-${pad(k.getUTCDate())}`;
+const nyKey = ms => { const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms)); return p; };
+const fmt = x => x == null ? '–' : x.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const tri = (x, nd) => `${x > 0 ? '▲' : x < 0 ? '▼' : ''}${Math.abs(x).toFixed(nd == null ? 1 : nd)}<span class="pc">%</span>`;   // ▲▼ + 작은 %
+const cls = x => x > 0 ? 'up' : x < 0 ? 'dn' : '';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const median = a => { const s = a.slice().sort((x, y) => x - y), n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : null; };
+const ymd = s => s.length === 8 ? `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}` : s;
+const BANDS = [[-5, '-5% 이상'], [-3, '-3~-5%'], [-2, '-2~-3%'], [-1, '-1~-2%'], [0, '0~-1%']];
+const bandOf = chg => { for(const [lim, nm] of BANDS) if(chg <= lim) return nm; return '0~-1%'; };
+
+// ---------- 시세 ----------
+// 국장: 네이버 실시간 지수 + 네이버 일봉(2년), 실패 시 야후 / 미장: 야후 일봉(2년) + 메타 현재가
+async function liveNaver(){
+  const url = `https://polling.finance.naver.com/api/realtime/domestic/index/${CFG.naver}?_=${Date.now()}`;
+  let res;
+  try{ res = await fetchWithTimeout(url, { cache: 'no-store' }, 3000); if(!res.ok) throw 0; }
+  catch(e){ res = await fetchViaProxy(url); }
+  if(!res || !res.ok) throw new Error('실시간 지수 응답 없음');
+  const row = (await res.json()).datas?.[0];
+  if(!row) throw new Error('실시간 지수 데이터 없음');
+  return { price: num(row.closePrice), chgPct: num(row.fluctuationsRatio), at: row.localTradedAt || '', tz: '' };
+}
+function parseNaver(txt){
+  const re = /\[\s*["'](\d{8})["']\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)/g, map = new Map(); let m;
+  while((m = re.exec(txt))){ const c = parseFloat(m[5]); if(c > 0) map.set(ymd(m[1]), { l: parseFloat(m[4]), c }); }
+  return map;
+}
+async function dailyNaver(years){
+  const k = kstNow(), y = k.getUTCFullYear(), d = yy => `${yy}${pad(k.getUTCMonth() + 1)}${pad(k.getUTCDate())}`;
+  const res = await fetchViaProxy(`https://api.finance.naver.com/siseJson.naver?symbol=${CFG.naver}&requestType=1&startTime=${d(y - years)}&endTime=${d(y)}&timeframe=day`, 20000);
+  if(!res || !res.ok) throw new Error('네이버 일봉 ' + (res ? res.status : '응답 없음'));
+  const map = parseNaver(await res.text());
+  if(map.size < 320) throw new Error('네이버 일봉 부족');
+  return map;
+}
+async function chartYahoo(range){
+  const res = await fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(CFG.yahoo)}?range=${range}&interval=1d`, 15000);
+  if(!res || !res.ok) throw new Error('야후 일봉 응답 없음');
+  const r = (await res.json()).chart?.result?.[0];
+  const ts = r?.timestamp || [], q = r?.indicators?.quote?.[0] || {}, map = new Map(), us = CFG.live === 'yahoo';
+  ts.forEach((t, i) => { const c = q.close?.[i]; if(c > 0) map.set(us ? nyKey(t * 1000) : kstKey(new Date(t * 1000 + 9 * 3600e3)), { l: q.low?.[i] > 0 ? q.low[i] : c, c }); });
+  if(map.size < 320) throw new Error('야후 일봉 부족');
+  return { map, meta: r.meta || {} };
+}
+async function loadLive(){
+  if(CFG.live === 'naver'){
+    const [live, daily] = await Promise.all([liveNaver(), dailyNaver(2).catch(async () => (await chartYahoo('2y')).map)]);
+    return { live, daily };
+  }
+  const { map, meta } = await chartYahoo('2y');
+  const t = meta.regularMarketTime ? meta.regularMarketTime * 1000 : Date.now(), day = nyKey(t), keys = [...map.keys()].filter(k => k < day).sort();
+  const price = meta.regularMarketPrice || map.get(day)?.c, prev = map.get(keys[keys.length - 1])?.c;
+  const at = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(t));
+  return { live: { price, chgPct: prev ? (price / prev - 1) * 100 : null, at: `${day}T${at}`, tz: ' (뉴욕)' }, daily: map };
+}
+
+// ---------- 진행 중 국면 추적(현재가 포함) ----------
+function weekKey(key){
+  const d = new Date(key + 'T00:00:00Z'), dow = (d.getUTCDay() + 6) % 7;
+  return kstKey(new Date(d.getTime() - dow * 864e5 + 9 * 3600e3 - 9 * 3600e3));
+}
+let TRACK_FROM = '9999';
+function compute(live, daily){
+  const todayKey = live.at && /^\d{4}-\d{2}-\d{2}/.test(live.at) ? live.at.slice(0, 10) : kstKey(kstNow());
+  const todayBar = daily.get(todayKey);
+  const keys = [...daily.keys()].filter(k => k < todayKey).sort();
+  const closes = keys.map(k => daily.get(k).c);
+  const p = live.price != null ? live.price : (todayBar ? todayBar.c : null);
+  if(p == null || closes.length < 300) throw new Error('계산할 데이터 부족');
+  const n = closes.length, sum = a => a.reduce((s, x) => s + x, 0);
+  const prevClose = closes[n - 1], maPrev = sum(closes.slice(n - 200)) / 200, maToday = (sum(closes.slice(n - 199)) + p) / 200;
+  const wk = new Map(); keys.forEach((k, i) => wk.set(weekKey(k), closes[i])); wk.set(weekKey(todayKey), p);
+  const wv = [...wk.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1).map(e => e[1]);
+  const w60 = wv.length >= 60 ? sum(wv.slice(-60)) / 60 : null;
+  const chgPct = live.chgPct != null ? live.chgPct : (p / prevClose - 1) * 100;
+  const lows = keys.map(k => daily.get(k).l > 0 ? daily.get(k).l : daily.get(k).c);
+  const todayLow = todayBar && todayBar.l > 0 ? Math.min(todayBar.l, p) : p;
+  const ep = trackEpisode([...keys, todayKey], [...closes, p], chgPct, [...lows, todayLow]);
+  return { todayKey, p, chgPct, prevClose, maPrev, maToday, w60, ep };
+}
+// TRACK_FROM(진행 중 사례 이탈일, 없으면 마지막 계산일) 이후 첫 이탈부터: 바닥까지·60주선·200일선 위 연속·실패. 40일 채우면 안정 → 그 뒤 새 이탈은 새로 추적
+function trackEpisode(D, C, liveChg, L){
+  const N = C.length, ma = new Array(N).fill(null);
+  let s = 0;
+  for(let i = 0; i < N; i++){ s += C[i]; if(i >= 200) s -= C[i - 200]; if(i >= 199) ma[i] = s / 200; }
+  const wk = D.map(weekKey), lastOfWeek = new Map();
+  D.forEach((d, i) => lastOfWeek.set(wk[i], C[i]));
+  const weeks = [...lastOfWeek.keys()].sort();
+  const w60At = i => { const k = weeks.indexOf(wk[i]); if(k < 59) return null; let t = C[i]; for(let j = k - 59; j < k; j++) t += lastOfWeek.get(weeks[j]); return t / 60; };
+  let ep = null;
+  const done = [];
+  const fin = e => {
+    const end = e.recovered ? e.runFromIdx : N; let mi = e.b; for(let k = e.b; k < end; k++) if(C[k] < C[mi]) mi = k;
+    e.min = C[mi]; e.minAt = mi; e.drop = (e.min / C[e.b] - 1) * 100; e.dropDays = e.minAt - e.b; if(e.recovered) e.recDays = e.runFromIdx - e.b;
+    e.prevClose = C[e.b - 1]; e.stabPct = e.recovered ? (C[e.runFromIdx] / e.prevClose - 1) * 100 : null;
+    e.idxRec = null; e.idxRecDays = null;
+    if(e.recovered) for(let k = e.runFromIdx; k < N; k++) if(C[k] >= e.prevClose){ e.idxRec = D[k]; e.idxRecDays = k - e.runFromIdx; e.idxRecN = k - e.b + 1; break; }
+    return e;
+  };
+  for(let i = 1; i < N; i++){
+    if(D[i] < TRACK_FROM || ma[i] == null || ma[i - 1] == null) continue;
+    const above = C[i] >= ma[i];
+    if(!ep || ep.recovered){
+      if(C[i - 1] > ma[i - 1] && C[i] < ma[i]){
+        if(ep) done.push(fin(ep));
+        ep = { b: i, date: D[i], chg: i === N - 1 && liveChg != null ? liveChg : (C[i] / C[i - 1] - 1) * 100,
+               prevGap: (C[i - 1] / ma[i - 1] - 1) * 100, run: 0, fail: 0, recovered: null };
+        const w = w60At(i);
+        ep.w60b = w ? (C[i] / w - 1) * 100 : null;
+        ep.w60 = w == null ? null : C[i] <= w ? { already: true } : (L && L[i] <= w ? { days: 0, date: D[i] } : null);
+      }
+      continue;
+    }
+    if(!ep.w60 && L && !ep.recovered){ const w = w60At(i); if(w != null && L[i] <= w) ep.w60 = { days: i - ep.b, date: D[i] }; }
+    if(above){ ep.run++; if(ep.run === 1){ ep.runFrom = D[i]; ep.runFromIdx = i; } if(ep.run >= HOLD_DAYS) ep.recovered = ep.runFrom; }
+    else { if(ep.run > 0) ep.fail++; ep.run = 0; }
+  }
+  if(ep){ fin(ep); ep.nowAbove = C[N - 1] >= ma[N - 1]; ep.done = done; ep.D = D; ep.C = C; }
+  return ep;
+}
+
+// ---------- 화면 뼈대 ----------
+const CELL = ['전날 200일선 대비위치', '이후 바닥까지', '60주선까지', '200일선 안정', '돌파후 재이탈', '지수회복까지'];
+const LV_IDS = ['lvPrevGap', 'lvDrop', 'lvW60', 'lvUp', 'lvFail', 'lvRec'];
+const LV_LAB = Object.fromEntries(LV_IDS.map((id, i) => [id, i === 3 ? '최근 200일선 돌파후' : CELL[i]]));
+const cv = (k, inner, c2, id) => `<div class="cv${c2 ? ' ' + c2 : ''}"${id ? ` id="${id}"` : ''}><span class="k">${k}</span>${inner}</div>`;
+function skeleton(){
+  $('c200').innerHTML = `
+  <details class="sec acc live" id="live" open>
+    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
+    <div class="cards"><div class="case" id="lvRow">
+      <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
+      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span></div>
+      <div class="gch" id="lvG"></div>
+      <div class="cgrid" hidden>${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>
+    </div></div>
+  </details>
+  <div id="bands"></div>
+  ${CFG.autoNotes ? '<div class="note" id="autoNotes"></div>' : ''}`;
+}
+
+// ---------- 맨 위(현재 지수 + 진행 중 국면) ----------
+function render(r, live){
+  const at = live.at ? live.at.slice(0, 16).replace('T', ' ') : '';
+  $('lvTime').textContent = `${r.todayKey}${at && at.length > 11 ? ' · ' + at.slice(11) : ''}${live.tz || ''}`;
+  const ep = r.ep && !r.ep.recovered ? r.ep : null, dayChg = ep ? ep.chg : r.chgPct;
+  $('lvDate').textContent = ep ? ep.date : r.todayKey;
+  $('lvChg').innerHTML = `<span class="chipv day${dayChg > 0 ? ' up' : ''}">${tri(dayChg, 2)}</span>`;
+  const set = (id, html, c) => { const el = $(id); el.innerHTML = `<span class="k">${LV_LAB[id]}</span>` + html; el.className = 'cv' + (c ? ' ' + c : ''); };
+  const prevGap = ep ? ep.prevGap : (r.prevClose / r.maPrev - 1) * 100;
+  set('lvPrevGap', tri(prevGap), cls(prevGap));
+  const g200 = (r.p / r.maToday - 1) * 100;
+  $('lvL1').textContent = `현재 ${CFG.name} ${fmt(r.p)}`;
+  $('lvL1c').innerHTML = r.chgPct != null ? tri(r.chgPct, 2) : ''; $('lvL1c').className = cls(r.chgPct);
+  $('lvL2').innerHTML = `200일선 ${g200 < 0 ? '아래' : '위'} <span class="${cls(g200)}">${tri(g200, 2)}</span>`;
+  if(ep && ep.w60 && ep.w60.days != null) set('lvW60', `${ep.w60.days}거래일<span class="d">이탈일 ${ep.w60b != null ? tri(ep.w60b) + ' 위' : ''}</span>`);
+  else if(r.w60 != null){
+    const g60 = (r.p / r.w60 - 1) * 100;
+    if(g60 <= 0) set('lvW60', `이미 아래<span class="d">60주선 ${tri(g60)}</span>`, 'dim');
+    else set('lvW60', `<span class="chipv dn">${tri(-(r.w60 / r.p - 1) * 100)}</span><span class="d">더 빠지면 도달</span>`);
+  }
+  $('lvCh2').hidden = !ep;
+  if(ep){
+    set('lvDrop', `${tri(ep.drop)}<span class="d">${ep.dropDays ? ep.dropDays + '거래일 뒤' : '이탈일이 최저'}</span>`, ep.drop < 0 ? 'dn' : '');
+    set('lvUp', ep.nowAbove ? `<span class="big">${ep.run}거래일</span><span class="d">40거래일 유지 = 안정</span>` : `–<span class="d">200일선 아래</span>`, ep.nowAbove ? '' : 'dim');
+    set('lvFail', `${ep.fail}회`);
+    set('lvRec', `–<span class="d">200일선 안정 뒤 계산</span>`, 'dim');
+    $('lvRecChip').innerHTML = `<span class="rchip">진행 중 ${ep.D.length - ep.b}일째</span>`;   // 이탈일 = 1일
+    liveEp = ep; gDraw($('lvG'));
+  }else{
+    ['lvDrop', 'lvUp', 'lvFail', 'lvRec'].forEach(id => set(id, '–', 'dim'));
+    liveEp = null; $('lvG').innerHTML = ''; $('lvRecChip').innerHTML = '';
+  }
+}
+
+// ---------- 사례 카드 ----------
+let DATA = null, BIG = null;
+function issueHtml(c){
+  const t = (CFG.issues || {})[c.date];
+  const cov = c.covid && !(t || '').includes('코로나') ? '<span class="covid">+ 코로나19</span>' : '';
+  if(!t) return CFG.missText ? `<span class="issue miss">이슈 확인 못 함</span>${cov}` : cov;
+  return `<span class="issue${c.date === BIG ? ' big' : ''}">${esc(t)}</span>${cov}`;
+}
+function cardCells(c){
+  const dropTxt = c.dropDays > 0 && c.drop < 0
+    ? (c.date === BIG ? `<span class="chipv big">${tri(c.drop)}</span>` : tri(c.drop)) + `<span class="d">${c.dropDays === 1 ? '다음 날' : c.dropDays + '거래일 뒤'}</span>` : '없음';
+  const w = c.w60 || {};
+  const w60 = w.na ? cv(CELL[2], '–<span class="d">60주 자료 부족</span>', 'dim')
+            : w.already ? cv(CELL[2], `이미 아래<span class="d">60주선 ${c.w60b != null ? tri(c.w60b) : ''}</span>`, 'dim')
+            : w.none ? cv(CELL[2], `미도달<span class="d">60주선 ${c.w60b != null ? tri(c.w60b) + ' 위' : ''}</span>`, 'dim')
+            : cv(CELL[2], `${w.days ? w.days + '거래일' : '당일'}<span class="d">이탈일 ${c.w60b != null ? tri(c.w60b) + ' 위' : ''}</span>`);
+  const fast = c.stabDays != null && c.stabDays <= 5;
+  const stab = c.stab ? cv(CELL[3], `<span class="big">${c.stabDays}거래일 후</span>${fast ? '<span class="badge">즉시</span>' : ''}<span class="d">이탈 전날 대비 <span class="${cls(c.stabPct)}">${tri(c.stabPct)}</span></span>`)
+                      : cv(CELL[3], '–<span class="d">진행 중</span>', 'dim');
+  const rec = c.rec ? cv(CELL[5], `<span class="big">${c.recN}거래일</span><span class="d">${c.rec} · 이탈일 = 1일</span>`) : cv(CELL[5], '미회복', 'dim');
+  return cv(CELL[0], tri(c.prevGap), cls(c.prevGap)) + cv(CELL[1], dropTxt, c.drop < 0 && c.dropDays > 0 && c.date !== BIG ? 'dn' : (c.dropDays > 0 ? '' : 'dim'))
+       + w60 + stab + cv(CELL[4], `${c.fails}회`) + rec;
+}
+function card(c){
+  const fast = c.stabDays != null && c.stabDays <= 5;
+  return `<div class="case${fast ? ' fast' : ''}" data-case="${c.date}">
+  <div class="ch"><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span><span class="rchip">${c.recN ? '지수회복 ' + c.recN + '일' : '지수회복 전'}</span></div>
+  <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}</div>
+  <div class="gch" data-g="${c.date}"></div>
+  <div class="cgrid" hidden>${cardCells(c)}</div>
+</div>`;
+}
+function renderBands(){
+  const cases = DATA.cases.filter(c => !c.open);
+  BIG = cases.reduce((m, c) => (!m || c.drop < m.drop ? c : m), null)?.date;   // 바닥까지 하락이 가장 큰 사례 = 주황 강조
+  const by = new Map(BANDS.map(([, nm]) => [nm, []]));
+  cases.forEach(c => by.get(bandOf(c.chg)).push(c));
+  let html = '', first = true;
+  BANDS.forEach(([, nm]) => {
+    const list = by.get(nm).sort((a, b) => a.date < b.date ? -1 : 1);
+    if(!list.length) return;
+    const pg = list.map(c => c.prevGap), st = list.map(c => c.stabDays).filter(x => x != null);
+    const mn = Math.min(...pg), mx = Math.max(...pg), sg = v => v > 0 ? '▲' : v < 0 ? '▼' : '';
+    const rng = mn >= 0 || mx <= 0 ? `${sg(mn || mx)}${Math.abs(mn).toFixed(1)}~${Math.abs(mx).toFixed(1)}` : `${sg(mn)}${Math.abs(mn).toFixed(1)}~${sg(mx)}${mx.toFixed(1)}`;
+    const meta = `${list.length}건 · 전날 200일선 대비 ${rng}<span class="pc">%</span> · 200일선 안정 중간값 ${median(st)}거래일`;
+    html += `<details class="sec acc${first ? ' key' : ''}" data-band="${nm}">
+    <summary><span class="st">전날 200일선 위 → 당일 ${nm} 하락하며 이탈</span><span class="meta">${meta}</span></summary>
+    <div class="cards">${list.map(card).join('')}</div>
+  </details>`;
+    first = false;
+  });
+  $('bands').innerHTML = html;
+  document.querySelectorAll('details.acc[data-band]').forEach(d => {
+    const go = () => { if(d.open) d.querySelectorAll('.gch[data-g]').forEach(gDraw); };
+    d.addEventListener('toggle', go); go();
+  });
+  if(CFG.autoNotes) renderNotes(cases);
+}
+function renderNotes(cases){
+  const li = [];
+  li.push(`200일선 안정 = 200일선 위 ${HOLD_DAYS}거래일 유지(그 첫날까지 거래일 수, 아래 줄은 이탈 전날 지수 대비 안정 첫날 지수). 이후 바닥까지 = 이탈일 종가 → 안정 전까지 최저 종가`);
+  li.push('지수회복까지 = 200일선 안정일(포함) 이후 이탈 전날 종가 이상으로 처음 돌아온 날(이탈일 = 1일). 돌파후 재이탈 = 40거래일을 못 버티고 다시 깬 횟수');
+  li.push(`사례 = 안정된 상태에서 처음 200일선을 깬 날(국면당 한 줄, ${DATA.cases[0] ? DATA.cases[0].date.slice(0, 4) : ''}~ ${cases.length}개 국면)`);
+  BANDS.forEach(([, nm]) => {
+    const l = cases.filter(c => bandOf(c.chg) === nm); if(!l.length) return;
+    const dr = median(l.map(c => c.drop)), st = median(l.map(c => c.stabDays)), rc = median(l.filter(c => c.recN).map(c => c.recN));
+    li.push(`<span class="hl2">${nm} (${l.length}건): 바닥까지 중간값 ${tri(dr)} · 200일선 안정 중간값 ${st}거래일${rc != null ? ` · 지수회복 중간값 ${rc}일` : ''}</span>`);
+  });
+  $('autoNotes').innerHTML = `<b>요약</b><ul>${li.map(x => `<li>${x}</li>`).join('')}</ul>`;
+}
+// 세부내용 버튼(날짜 아래·이슈 왼쪽) → 그래프 아래 칸 펼침
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('.dbtn'); if(!b) return;
+  const g = b.closest('.case').querySelector('.cgrid'), open = g.hidden;
+  g.hidden = !open; b.setAttribute('aria-expanded', open ? 'true' : 'false'); b.textContent = open ? '세부내용 ▴' : '세부내용 ▾';
+});
+
+// ---------- 그래프 ----------
+// 종가(흰색)·200일(빨강)·5주·10주·60주(투명도 0.6). 최저 종가 날 = 아래 ▲ + 빨간 점선, 200일선 상향 돌파 = 하늘색 점선(마지막 돌파 = 안정일만 빨간 점선 + 날짜),
+// 안정일부터 40거래일 = 하늘색(0.3). 지수회복까지 21거래일 미만이면 앞을 채워 가운데 정렬(채운 앞쪽 = 진회색 0.3)
+let liveEp = null;
+const G_YEARLY = 300;
+const gRoll = (a, n) => { const o = new Array(a.length).fill(null); let t = 0; for(let i = 0; i < a.length; i++){ t += a[i]; if(i >= n) t -= a[i - n]; if(i >= n - 1) o[i] = t / n; } return o; };
+const gParse = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+const gFmt = ms => { const d = new Date(ms); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`; };
+const gKey = s => gFmt(gParse(s) + ((5 - new Date(gParse(s)).getUTCDay() + 7) % 7) * 864e5);   // 그 주의 금요일
+function gWeekMa(D, C, n){                                     // 주 마지막 거래일에 n주 이평, 사이는 직선 연결(V1과 같음)
+  const bd = [], bv = []; let pk = null;
+  D.forEach((d, i) => { const k = gKey(d); if(k === pk){ bd[bd.length - 1] = d; bv[bv.length - 1] = C[i]; } else { bd.push(d); bv.push(C[i]); pk = k; } });
+  const ma = gRoll(bv, n), pos = new Map(D.map((d, i) => [d, i])), o = new Array(D.length).fill(null);
+  bd.forEach((d, j) => { if(ma[j] != null) o[pos.get(d)] = ma[j]; });
+  let last = -1;
+  for(let i = 0; i < o.length; i++){ if(o[i] == null) continue; if(last >= 0 && i - last > 1) for(let k = last + 1; k < i; k++) o[k] = o[last] + (o[i] - o[last]) * (k - last) / (i - last); last = i; }
+  return o;
+}
+const G_LINES = ['w5', 'w10', 'w60'];
+function gChartData(D, C, a, b, o){
+  o = o || {};
+  const cut = x => x.slice(a, b + 1), ma = gRoll(C, 200);
+  const ch = { dates: cut(D).map(s => `${s.slice(2, 4)}.${s.slice(5, 7)}.${s.slice(8, 10)}`), close: cut(C), ma200: cut(ma),
+               w5: cut(gWeekMa(D, C, 5)), w10: cut(gWeekMa(D, C, 10)), w60: cut(gWeekMa(D, C, 60)) };
+  const from = o.brk != null ? Math.max(a, o.brk) : a;
+  ch.ups = [];
+  for(let i = Math.max(from, 1); i <= b; i++) if(ma[i] != null && ma[i - 1] != null && C[i] > ma[i] && C[i - 1] <= ma[i - 1])
+    ch.ups.push({ i: i - a, stab: i === o.stab, lab: i === o.stab ? D[i].slice(2).replace(/-/g, '.') : null });
+  let lo = from; for(let i = from; i <= b; i++) if(C[i] < C[lo]) lo = i;
+  ch.low = lo - a;
+  ch.blue = o.stab != null && o.stab <= b ? [o.stab - a, Math.min(b, o.stab + HOLD_DAYS - 1) - a] : null;
+  ch.gray = o.gray ? [Math.max(o.gray[0], a) - a, Math.min(o.gray[1], b) - a] : null;
+  return ch;
+}
+function gPath(v, x, y){ let d = '', pen = false; v.forEach((u, i) => { if(u == null){ pen = false; return; } d += (pen ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(u).toFixed(1); pen = true; }); return d; }
+function gSvg(ch){
+  const close = ch.close, n = close.length;
+  if(n < 2) return '<div class="gnone">그래프 자료 부족</div>';
+  const keys = G_LINES.concat(['ma200']);
+  const W = 660, PH = 170, pl = 4, pt = 4, pb = 26, H = pt + PH + pb, xr = W - 2;
+  const vals = close.filter(v => v != null); keys.forEach(k => (ch[k] || []).forEach(v => { if(v != null) vals.push(v); }));
+  let lo = Math.min(...vals), hi = Math.max(...vals); if(hi === lo) hi = lo + 1;
+  const mg = (hi - lo) * .06; lo -= mg; hi += mg;
+  const x = i => pl + (xr - pl - 2) * i / (n - 1), y = v => pt + PH * (1 - (v - lo) / (hi - lo)), half = (xr - pl - 2) / (n - 1) / 2;
+  const band = (r, c) => { const x0 = Math.max(pl, x(r[0]) - half), x1 = Math.min(xr, x(r[1]) + half); return `<rect class="${c}" x="${x0.toFixed(1)}" y="${pt}" width="${Math.max(1, x1 - x0).toFixed(1)}" height="${PH}"/>`; };
+  const o = [`<svg class="an-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(CFG.name)} 그래프">`, `<rect class="an-ch-bg" x="0" y="${pt}" width="${xr}" height="${PH}"/>`];
+  if(ch.gray && ch.gray[1] >= ch.gray[0]) o.push(band(ch.gray, 'g-gray'));
+  if(ch.blue && ch.blue[1] >= ch.blue[0]) o.push(band(ch.blue, 'g-blue'));
+  const yearly = n > G_YEARLY;
+  for(let i = 1; i < n; i++){
+    const a = yearly ? ch.dates[i].slice(0, 2) : ch.dates[i].slice(3, 5), b = yearly ? ch.dates[i - 1].slice(0, 2) : ch.dates[i - 1].slice(3, 5);
+    if(a !== b){ const xv = x(i).toFixed(1); o.push(`<line class="an-ch-vl" x1="${xv}" x2="${xv}" y1="${pt}" y2="${pt + PH}"/><text class="an-ch-mo" x="${(x(i) + 2).toFixed(1)}" y="${pt + PH - 3}">${yearly ? "'" + a : parseInt(a, 10)}</text>`); }
+  }
+  keys.slice().reverse().forEach(k => { if(ch[k]) o.push(`<path class="an-ch-${k}" d="${gPath(ch[k], x, y)}"/>`); });
+  o.push(`<path class="an-ch-close" d="${gPath(close, x, y)}"/>`);
+  let lab = null;
+  ch.ups.forEach(u => {                                       // 200일선 상향 돌파: 하늘색 점선, 안정일 돌파만 빨간 점선
+    const xv = x(u.i).toFixed(1);
+    o.push(`<line class="${u.stab ? 'g-up s' : 'g-up'}" x1="${xv}" x2="${xv}" y1="${y(close[u.i]).toFixed(1)}" y2="${pt + PH}"/>`);
+    if(u.lab) lab = u;
+  });
+  if(ch.low != null && ch.low >= 0){                          // 최저 종가 날: 빨간 점선 + 아래 ▲
+    const xv = x(ch.low);
+    o.push(`<line class="g-low" x1="${xv.toFixed(1)}" x2="${xv.toFixed(1)}" y1="${y(close[ch.low]).toFixed(1)}" y2="${pt + PH}"/>`);
+    o.push(`<text class="g-lowmk" x="${xv.toFixed(1)}" y="${pt + PH + 10}" text-anchor="middle">▲</text>`);
+  }
+  const anchor = xv => xv < 60 ? 'start' : xv > xr - 60 ? 'end' : 'middle';
+  const ends = [`<text class="an-ch-t" x="${pl}" y="${H - 3}">${ch.dates[0]}</text>`, `<text class="an-ch-t" x="${x(n - 1).toFixed(1)}" y="${H - 3}" text-anchor="end">${ch.dates[n - 1]}</text>`];
+  if(lab){
+    const xv = x(lab.i);
+    if(xv < 70) ends[0] = ''; if(xv > xr - 70) ends[1] = '';
+    o.push(`<text class="g-uplab" x="${xv.toFixed(1)}" y="${H - 3}" text-anchor="${anchor(xv)}">${lab.lab}</text>`);
+  }
+  o.push(ends.join('') + '</svg>');
+  const ly = y(close[n - 1]), lt = close[n - 1].toLocaleString('en-US', { maximumFractionDigits: 0 });
+  return `<div class="an-svgbox">${o.join('')}<span class="an-lastdot" style="left:${(x(n - 1) / W * 100).toFixed(2)}%;top:${(ly / H * 100).toFixed(2)}%"></span>`
+       + `<span class="an-lastlbl" style="left:min(${((x(n - 1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(lt.length * .6 + .2).toFixed(1)}em));top:calc(${(ly / H * 100).toFixed(2)}% - 5px)">${lt}</span></div>`;
+}
+// 진행 중 사례 기간 탭(V1과 같음). 3·5년은 머니파이 V1이 이 기기 IndexedDB에 저장한 12년 일봉(bars3:idx:<key>, 같은 사이트)을 앞에 붙임, 없으면 한 번 더 받음
+const G_PER = [['3m', '3개월', 63], ['6m', '6개월', 132], ['1y', '1년', 252], ['3y', '3년', 756], ['5y', '5년', 1260]];
+let gLivePer = '6m', gLongP = null;
+function gIdbGet(key){
+  return new Promise(res => {
+    try{
+      const rq = indexedDB.open('moneypie-analysis', 1);
+      rq.onupgradeneeded = () => { const db = rq.result; if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv'); };
+      rq.onerror = rq.onblocked = () => res(null);
+      rq.onsuccess = () => { try{ const g = rq.result.transaction('kv', 'readonly').objectStore('kv').get(key); g.onsuccess = () => res(g.result || null); g.onerror = () => res(null); }catch(e){ res(null); } };
+    }catch(e){ res(null); }
+  });
+}
+async function gLongHistory(){
+  if(!gLongP) gLongP = (async () => {
+    const b = await gIdbGet('bars3:idx:' + CFG.key);
+    if(b && b.dates && b.dates.length > 1500) return { D: b.dates, C: b.close };
+    const map = CFG.live === 'naver' ? await dailyNaver(6) : (await chartYahoo('10y')).map;
+    const D = [...map.keys()].sort(); return { D, C: D.map(d => map.get(d).c) };
+  })().catch(e => { gLongP = null; throw e; });
+  return gLongP;
+}
+async function gHtml(key){
+  if(key === 'live'){
+    const e = liveEp; if(!e) return '';
+    const per = G_PER.find(p => p[0] === gLivePer) || G_PER[1];
+    let D = e.D, C = e.C, off = 0;
+    if(per[2] + 330 > D.length){
+      try{ const L = await gLongHistory(), pre = []; for(let i = 0; i < L.D.length && L.D[i] < D[0]; i++) pre.push(i);
+           if(pre.length){ D = pre.map(i => L.D[i]).concat(D); C = pre.map(i => L.C[i]).concat(C); off = pre.length; } }catch(err){}
+    }
+    const b = C.length - 1, a = Math.max(0, b - per[2] + 1);
+    const tabs = `<div class="an-cper">${G_PER.map(([k, nm]) => `<button type="button" data-gper="${k}"${k === per[0] ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>`;
+    return tabs + gSvg(gChartData(D, C, a, b, { brk: e.b + off, stab: e.recovered ? e.runFromIdx + off : null }));
+  }
+  const c = DATA.cases.find(x => x.date === key), g = c && c.g;
+  if(!g) return '<div class="gnone">그래프 자료 없음</div>';
+  const D = g.d.map(ymd);
+  return gSvg(gChartData(D, g.c, g.from, D.length - 1, { brk: g.brk, stab: g.stab, gray: g.gray }));
+}
+async function gDraw(el){
+  if(!el) return;
+  const key = el.id === 'lvG' ? 'live' : el.dataset.g;
+  if(key !== 'live' && el.dataset.drawn) return;
+  el.dataset.drawn = '1';
+  try{ el.innerHTML = await gHtml(key); }catch(e){ el.innerHTML = `<div class="gnone">그래프를 그리지 못함 (${esc(e.message || e)})</div>`; delete el.dataset.drawn; }
+}
+document.addEventListener('click', ev => {
+  const bt = ev.target.closest('#lvG [data-gper]'); if(!bt) return;
+  gLivePer = bt.dataset.gper; gDraw($('lvG'));
+});
+
+// ---------- 회복된 국면 자동 보관(코스피만, 2026-10-13) ----------
+// 진행 중 국면이 안정되면 이 기기에 머니파이 GitHub 토큰이 있을 때만 moneypier/kospi200_cases.json에 한 줄 추가 → 다음 계산 전까지 카드로 붙여 보여 줌
+const ARCH = { REPO: 'kangsaem/moneypier', PATH: 'kospi200_cases.json', KEY: 'mp-gh-token' };
+let archList = [];
+const ghTok = () => { try{ return localStorage.getItem(ARCH.KEY) || ''; }catch(e){ return ''; } };
+const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(String(s).replace(/\s/g, '')), c => c.charCodeAt(0)));
+const b64enc = s => { let x = ''; new TextEncoder().encode(s).forEach(c => { x += String.fromCharCode(c); }); return btoa(x); };
+async function archFetch(){
+  const tok = ghTok();
+  if(tok){
+    const r = await fetch(`https://api.github.com/repos/${ARCH.REPO}/contents/${ARCH.PATH}?t=${Date.now()}`, { headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' }, cache: 'no-store' });
+    if(r.status === 404) return { list: [], sha: null };
+    if(!r.ok) throw new Error('GitHub ' + r.status);
+    const j = await r.json(); return { list: JSON.parse(b64dec(j.content)), sha: j.sha };
+  }
+  const r = await fetch(`https://raw.githubusercontent.com/${ARCH.REPO}/main/${ARCH.PATH}?t=${Date.now()}`, { cache: 'no-store' });
+  if(!r.ok) return { list: [], sha: null };
+  return { list: await r.json(), sha: null };
+}
+function archPaint(){
+  const have = new Set(DATA.cases.map(c => c.date));
+  archList.forEach(a => {
+    if(have.has(a.date)) return;
+    const det = document.querySelector(`details.acc[data-band="${bandOf(a.chg)}"] .cards`); if(!det) return;
+    const c = { date: a.date, chg: a.chg, prevGap: a.prevGap, drop: a.drop, dropDays: a.dropDays, w60: a.w60 || { none: true }, w60b: a.w60b,
+                stab: a.recovered, stabDays: a.recDays, stabPct: a.stabPct, fails: a.fail, rec: a.idxRec, recN: a.idxRecN || (a.idxRec ? a.recDays + (a.idxRecDays || 0) + 1 : null), covid: false };
+    det.insertAdjacentHTML('beforeend', card(c).replace(`<div class="gch" data-g="${c.date}"></div>`, ''));
+    have.add(a.date);
+  });
+}
+async function archSave(ep){
+  const all = ep ? (ep.done || []).concat(ep) : [];
+  if(!CFG.archive || !ghTok() || !all.some(e => e.recovered)) return '';
+  const cur = await archFetch();
+  const todo = all.filter(e => e.recovered && !cur.list.some(c => c.date === e.date));
+  if(!todo.length) return '';
+  const recs = todo.map(e => ({ date: e.date, issue: '', chg: +e.chg.toFixed(2), prevGap: +e.prevGap.toFixed(1), drop: +e.drop.toFixed(1), dropDays: e.dropDays,
+    w60: e.w60 || null, w60b: e.w60b != null ? +e.w60b.toFixed(1) : null, recovered: e.recovered, recDays: e.recDays, fail: e.fail,
+    stabPct: e.stabPct != null ? +e.stabPct.toFixed(2) : null, idxRec: e.idxRec, idxRecDays: e.idxRecDays, idxRecN: e.idxRecN, savedAt: new Date().toISOString().slice(0, 10) }));
+  const list = cur.list.concat(recs);
+  const body = { message: `코스피 200일선 붕괴 사례 보관: ${recs.map(c => c.date + ' (회복 ' + c.recovered + ')').join(', ')} [skip ci]`, content: b64enc(JSON.stringify(list, null, 1) + '\n') };
+  if(cur.sha) body.sha = cur.sha;
+  const r = await fetch(`https://api.github.com/repos/${ARCH.REPO}/contents/${ARCH.PATH}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + ghTok(), Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if(!r.ok) throw new Error(r.status === 401 || r.status === 403 ? '토큰 권한 부족' : 'GitHub ' + r.status);
+  archList = list; archPaint();
+  return '사례 저장됨';
+}
+
+// ---------- 불러오기·리로드 ----------
+async function loadAll(){
+  try{
+    const { live, daily } = await loadLive();
+    const r = compute(live, daily);
+    render(r, live);
+    archSave(r.ep).then(msg => { if(msg) $('lvTime').textContent += ' · ' + msg; }).catch(e => { $('lvTime').textContent += ' · 사례 저장 실패(' + (e && e.message ? e.message : e) + ')'; });
+    return true;
+  }catch(e){ $('lvTime').textContent = '불러오지 못함 · ' + (e && e.message ? e.message : '네트워크 오류'); return false; }
+}
+const LS_KEY = CFG.key + '200:lastRefreshAt', COOLDOWN = 60 * 1000;
+let lastAt = 0; try{ lastAt = parseInt(localStorage.getItem(LS_KEY), 10) || 0; }catch(e){}
+let cdTimer = null;
+function applyCooldown(){
+  const btn = $('reloadPricesBtn'), label = $('reloadPricesLabel');
+  if(cdTimer){ clearInterval(cdTimer); cdTimer = null; }
+  function tick(){
+    const el = Date.now() - lastAt, remain = COOLDOWN - el;
+    if(remain > 0){
+      btn.disabled = true; btn.style.background = '#555555'; btn.style.color = '#999999'; btn.style.cursor = 'default';
+      label.style.display = 'flex'; label.textContent = el < 10000 ? '시세 갱신됨' : `${Math.ceil(remain / 60000)}분간 쿨다운`;
+    }else{
+      btn.disabled = false; btn.style.background = '#D4FF3D'; btn.style.color = '#111'; btn.style.cursor = 'pointer';
+      label.style.display = 'none'; if(cdTimer){ clearInterval(cdTimer); cdTimer = null; }
+    }
+  }
+  tick(); cdTimer = setInterval(tick, 1000);
+}
+(async function start(){
+  skeleton();
+  $('reloadPricesBtn').addEventListener('click', async ev => {
+    ev.preventDefault(); ev.stopPropagation();
+    const btn = $('reloadPricesBtn'); if(btn.disabled) return;
+    btn.classList.remove('reload-spin'); void btn.offsetWidth; btn.classList.add('reload-spin');
+    lastAt = Date.now(); try{ localStorage.setItem(LS_KEY, String(lastAt)); }catch(e){}
+    applyCooldown(); await loadAll();
+  });
+  applyCooldown();
+  try{
+    const r = await fetch(`crash200_${CFG.key}.json?v=${CFG.v || ''}`, { cache: 'no-cache' });
+    if(!r.ok) throw new Error('사례 자료 ' + r.status);
+    DATA = await r.json();
+  }catch(e){ $('bands').innerHTML = `<div class="note">사례 자료를 불러오지 못함 (${esc(e.message || e)})</div>`; DATA = { cases: [], made: '9999' }; }
+  const open = DATA.cases.find(c => c.open);
+  TRACK_FROM = open ? open.date : (DATA.made || '9999');     // 진행 중 사례가 있으면 그 이탈일부터, 없으면 마지막 계산일 이후 새 이탈
+  renderBands();
+  if(CFG.archive) archFetch().then(x => { archList = x.list || []; archPaint(); }).catch(() => {});
+  loadAll();
+})();
