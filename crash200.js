@@ -266,7 +266,7 @@ function renderBands(){
   if(CFG.autoNotes) renderNotes(cases);
 }
 // 그래프 표시 설명(요약 맨 위, 2026-10-14)
-const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">하늘색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 회색 영역 = 짧은 사례를 가운데 맞추려고 앞에 붙인 기간 · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라)';
+const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">하늘색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 어둡게 덮인 영역 = 짧은 사례를 가운데 맞추려고 앞에 붙인 기간 · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라)';
 function renderNotes(cases){
   const li = [G_NOTE];
   li.push(`200일선 안정 = 200일선 위 ${HOLD_DAYS}거래일 유지(그 첫날까지 거래일 수, 아래 줄은 이탈 전날 지수 대비 안정 첫날 지수). 이후 바닥까지 = 이탈일 종가 → 안정 전까지 최저 종가`);
@@ -332,7 +332,6 @@ function gSvg(ch){
   const x = i => pl + (xr - pl - 2) * i / (n - 1), y = v => pt + PH * (1 - (v - lo) / (hi - lo)), half = (xr - pl - 2) / (n - 1) / 2;
   const band = (r, c) => { const x0 = Math.max(pl, x(r[0]) - half), x1 = Math.min(xr, x(r[1]) + half); return `<rect class="${c}" x="${x0.toFixed(1)}" y="${pt}" width="${Math.max(1, x1 - x0).toFixed(1)}" height="${PH}"/>`; };
   const o = [`<svg class="an-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(CFG.name)} 그래프">`, `<rect class="an-ch-bg" x="0" y="${pt}" width="${xr}" height="${PH}"/>`];
-  if(ch.gray && ch.gray[1] >= ch.gray[0]) o.push(band(ch.gray, 'g-gray'));
   if(ch.blue && ch.blue[1] >= ch.blue[0]) o.push(band(ch.blue, 'g-blue'));
   const yearly = n > G_YEARLY;
   for(let i = 1; i < n; i++){
@@ -341,6 +340,7 @@ function gSvg(ch){
   }
   keys.slice().reverse().forEach(k => { if(ch[k]) o.push(`<path class="an-ch-${k}" d="${gPath(ch[k], x, y)}"/>`); });
   o.push(`<path class="an-ch-close" d="${gPath(close, x, y)}"/>`);
+  if(ch.gray && ch.gray[1] >= ch.gray[0]) o.push(band(ch.gray, 'g-gray'));   // 앞에 붙인 기간 = 검은색(0.5)으로 선 위를 덮음
   let lab = null;
   ch.ups.forEach(u => {                                       // 200일선 상향 돌파: 하늘색 점선, 안정일 돌파만 빨간 점선
     const xv = x(u.i).toFixed(1);

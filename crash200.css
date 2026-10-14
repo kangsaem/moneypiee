@@ -176,7 +176,7 @@ tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
 .case .cgrid{margin-top:2px}
 .gch .an-ch-w60{stroke:#C084FC}
 .gch .an-ch-w5,.gch .an-ch-w10,.gch .an-ch-w60{opacity:.6}
-.gch .g-gray{fill:#3A3B40;opacity:.3} .gch .g-gray{fill:#55575E}
+.gch .g-gray{fill:#000;opacity:.5}
 .gch .g-blue{fill:#5FB8E0;opacity:.3}
 .gch .g-up{stroke:#FF3B30;stroke-dasharray:3 3;opacity:.9}   /* 200일선 돌파 = 모두 빨간 점선(2026-10-14) */
 .gch .g-low{stroke:#FF3B30;stroke-dasharray:3 3}
