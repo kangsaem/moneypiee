@@ -210,7 +210,7 @@ function render(r, live){
 // ---------- 사례 카드 ----------
 let DATA = null, BIG = null;
 function issueHtml(c){
-  const t = (CFG.issues || {})[c.date];
+  const t = (CFG.issues || {})[c.date] || c.issue;          // 보관 사례는 파일의 issue(나중에 채움)
   const cov = c.covid && !(t || '').includes('코로나') ? '<span class="covid">+ 코로나19</span>' : '';
   if(!t) return CFG.missText ? `<span class="issue miss">이슈 확인 못 함</span>${cov}` : cov;
   return `<span class="issue${c.date === BIG ? ' big' : ''}">${esc(t)}</span>${cov}`;
@@ -414,9 +414,12 @@ document.addEventListener('click', ev => {
   gLivePer = bt.dataset.gper; gDraw($('lvG'));
 });
 
-// ---------- 회복된 국면 자동 보관(코스피만, 2026-10-13) ----------
-// 진행 중 국면이 안정되면 이 기기에 머니파이 GitHub 토큰이 있을 때만 moneypier/kospi200_cases.json에 한 줄 추가 → 다음 계산 전까지 카드로 붙여 보여 줌
-const ARCH = { REPO: 'kangsaem/moneypier', PATH: 'kospi200_cases.json', KEY: 'mp-gh-token' };
+// ---------- 안정된 국면 자동 보관(2026-10-13 코스피 → 2026-10-14 세 지수 모두) ----------
+// 진행 중 국면이 안정(200일선 위 40거래일)되면, 페이지를 열거나 리로드할 때 이 기기에 머니파이 GitHub 토큰(mp-gh-token)이 있으면
+// moneypier/<key>200_cases.json에 한 줄 추가(같은 이탈일 건너뜀). 모든 기기가 이 파일을 읽어 해당 구간 끝에 카드로 붙임(다음 crash200 계산 전까지).
+// 그래프는 실시간 2년 일봉으로 그림(이탈 전날 ~ 지수회복일·안정일+39 중 늦은 날)
+const ARCH = { REPO: 'kangsaem/moneypier', PATH: CFG.key + '200_cases.json', KEY: 'mp-gh-token' };
+let LAST = null;                                              // 마지막 실시간 일봉(현재가 포함) — 보관 카드 그래프용
 let archList = [];
 const ghTok = () => { try{ return localStorage.getItem(ARCH.KEY) || ''; }catch(e){ return ''; } };
 const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(String(s).replace(/\s/g, '')), c => c.charCodeAt(0)));
@@ -434,19 +437,34 @@ async function archFetch(){
   return { list: await r.json(), sha: null };
 }
 function archPaint(){
-  const have = new Set(DATA.cases.map(c => c.date));
+  const have = new Set(DATA.cases.filter(c => !c.open).map(c => c.date));   // 진행 중(open) 사례는 빼야 안정 뒤 보관 카드가 붙음
   archList.forEach(a => {
     if(have.has(a.date)) return;
     const det = document.querySelector(`details.acc[data-band="${bandOf(a.chg)}"] .cards`); if(!det) return;
     const c = { date: a.date, chg: a.chg, prevGap: a.prevGap, drop: a.drop, dropDays: a.dropDays, w60: a.w60 || { none: true }, w60b: a.w60b,
-                stab: a.recovered, stabDays: a.recDays, stabPct: a.stabPct, fails: a.fail, rec: a.idxRec, recN: a.idxRecN || (a.idxRec ? a.recDays + (a.idxRecDays || 0) + 1 : null), covid: false };
-    det.insertAdjacentHTML('beforeend', card(c).replace(`<div class="gch" data-g="${c.date}"></div>`, ''));
+                stab: a.recovered, stabDays: a.recDays, stabPct: a.stabPct, fails: a.fail, issue: a.issue, rec: a.idxRec, recN: a.idxRecN || (a.idxRec ? a.recDays + (a.idxRecDays || 0) + 1 : null), covid: false };
+    det.insertAdjacentHTML('beforeend', card(c).replace(`<div class="gch" data-g="${c.date}"></div>`, `<div class="gch" data-arch="${c.date}"></div>`));
     have.add(a.date);
+  });
+}
+function archGraphs(){
+  if(!LAST) return;
+  document.querySelectorAll('.gch[data-arch]').forEach(el => {
+    if(el.dataset.drawn) return;
+    const a = archList.find(x => x.date === el.dataset.arch); if(!a) return;
+    const D = LAST.D, C = LAST.C, b = D.indexOf(a.date), u = a.recovered ? D.indexOf(a.recovered) : -1, r = a.idxRec ? D.indexOf(a.idxRec) : -1;
+    if(b < 1 || u < 0) return;                                 // 실시간 2년 안에 없으면 그래프 없이
+    const R = Math.min(D.length - 1, Math.max(r >= 0 ? r : D.length - 1, u + HOLD_DAYS - 1));
+    let L = b - 1, gray = null;
+    const recN = r >= 0 ? r - b + 1 : null;
+    if(recN != null && recN < 21){ L = Math.max(0, (b - 1) + u - R); if(L < b - 1) gray = [L, b - 2]; }
+    el.dataset.drawn = '1';
+    el.innerHTML = gSvg(gChartData(D, C, L, R, { brk: b, stab: u, gray }));
   });
 }
 async function archSave(ep){
   const all = ep ? (ep.done || []).concat(ep) : [];
-  if(!CFG.archive || !ghTok() || !all.some(e => e.recovered)) return '';
+  if(!ghTok() || !all.some(e => e.recovered)) return '';
   const cur = await archFetch();
   const todo = all.filter(e => e.recovered && !cur.list.some(c => c.date === e.date));
   if(!todo.length) return '';
@@ -454,11 +472,11 @@ async function archSave(ep){
     w60: e.w60 || null, w60b: e.w60b != null ? +e.w60b.toFixed(1) : null, recovered: e.recovered, recDays: e.recDays, fail: e.fail,
     stabPct: e.stabPct != null ? +e.stabPct.toFixed(2) : null, idxRec: e.idxRec, idxRecDays: e.idxRecDays, idxRecN: e.idxRecN, savedAt: new Date().toISOString().slice(0, 10) }));
   const list = cur.list.concat(recs);
-  const body = { message: `코스피 200일선 붕괴 사례 보관: ${recs.map(c => c.date + ' (회복 ' + c.recovered + ')').join(', ')} [skip ci]`, content: b64enc(JSON.stringify(list, null, 1) + '\n') };
+  const body = { message: `${CFG.name} 200일선 붕괴 사례 보관: ${recs.map(c => c.date + ' (회복 ' + c.recovered + ')').join(', ')} [skip ci]`, content: b64enc(JSON.stringify(list, null, 1) + '\n') };
   if(cur.sha) body.sha = cur.sha;
   const r = await fetch(`https://api.github.com/repos/${ARCH.REPO}/contents/${ARCH.PATH}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + ghTok(), Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if(!r.ok) throw new Error(r.status === 401 || r.status === 403 ? '토큰 권한 부족' : 'GitHub ' + r.status);
-  archList = list; archPaint();
+  archList = list; archPaint(); archGraphs();
   return '사례 저장됨';
 }
 
@@ -467,7 +485,10 @@ async function loadAll(){
   try{
     const { live, daily } = await loadLive();
     const r = compute(live, daily);
+    LAST = { D: [...[...daily.keys()].filter(k => k < r.todayKey).sort(), r.todayKey] };
+    LAST.C = LAST.D.map((d, i) => i === LAST.D.length - 1 ? r.p : daily.get(d).c);
     render(r, live);
+    archGraphs();
     archSave(r.ep).then(msg => { if(msg) $('lvTime').textContent += ' · ' + msg; }).catch(e => { $('lvTime').textContent += ' · 사례 저장 실패(' + (e && e.message ? e.message : e) + ')'; });
     return true;
   }catch(e){ $('lvTime').textContent = '불러오지 못함 · ' + (e && e.message ? e.message : '네트워크 오류'); return false; }
@@ -508,6 +529,6 @@ function applyCooldown(){
   const open = DATA.cases.find(c => c.open);
   TRACK_FROM = open ? open.date : (DATA.made || '9999');     // 진행 중 사례가 있으면 그 이탈일부터, 없으면 마지막 계산일 이후 새 이탈
   renderBands();
-  if(CFG.archive) archFetch().then(x => { archList = x.list || []; archPaint(); }).catch(() => {});
+  archFetch().then(x => { archList = x.list || []; archPaint(); archGraphs(); }).catch(() => {});   // 세 지수 모두
   loadAll();
 })();
