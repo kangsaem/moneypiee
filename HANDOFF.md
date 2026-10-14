@@ -947,3 +947,9 @@
 - moneypier cf-worker/worker.js: cron "31 6 * * 1-5"(국장)·"10 22 * * 1-5"(미장) → daily.yml workflow_dispatch(204 = 성공), 실패 시 20초 뒤 재시도 → 텔레그램 '[머니파이] 국장/미장 리포트 실행 요청 실패'. 비밀값 GH_TOKEN·TELEGRAM_TOKEN·TELEGRAM_CHAT_ID. 주소를 열면 안내 글만(실행 안 함).
 - build_page market_open_today(): 지수 마지막 봉(국장 코스피, 미장 S&P500) 날짜 ≠ 오늘 장 날짜(KST / 뉴욕)면 텔레그램만 건너뜀(리포트·기록은 생성). 지수 못 받으면 보냄.
 - daily.yml schedule 삭제는 Worker 시험 성공 뒤 커밋(그 전까지 GitHub 예약 유지).
+- 16:51 Worker 시험 성공: workflow_dispatch 실행(38531046659) 성공 → 10/14 국장 텔레그램 수신(사용자 확인). 16:51은 5분 단위가 아님(cron 저장 때 한 번 실행된 것으로 추정, 미확인).
+- Cloudflare cron 요일 주의: 1 = 일요일(1-5 = 일~목). 최종 cron = "31 6 * * MON-FRI"·"10 22 * * MON-FRI"(화면에 Monday through Friday). 시험용 */5는 삭제.
+- daily.yml schedule 삭제 main 반영(moneypier dada4e3). 남은 브랜치 cf-worker-remove-schedule은 프록시가 삭제를 막아 그대로(GitHub에서 지워도 됨).
+- Cloudflare Developer Platform 커넥터 연결됨: Worker 목록·코드 읽기만 가능(cron·비밀값·로그는 대시보드에서 직접).
+- GitHub 토큰 'moneypier Tele Timer' 만료 2027-10-14 → 그 전에 새 토큰을 Worker GH_TOKEN에 교체(만료되면 텔레그램 '실행 요청 실패' 알림).
+- 확인할 것: 내일 10/15 07:10 미장 · 15:31 국장이 제시간에 오는지.
