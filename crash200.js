@@ -157,6 +157,8 @@ function trackEpisode(D, C, liveChg, L){
 const CELL = ['전날 200일선 대비위치', '이후 바닥까지', '60주선까지', '200일선 안정', '돌파후 재이탈', '지수회복까지'];
 const LV_IDS = ['lvPrevGap', 'lvDrop', 'lvW60', 'lvUp', 'lvFail', 'lvRec'];
 const LV_LAB = Object.fromEntries(LV_IDS.map((id, i) => [id, i === 3 ? '최근 200일선 돌파후' : CELL[i]]));
+// 그래프 색 설명(V1 지수 차트 범례와 같은 크기) — 세부내용 버튼·이슈 줄 오른쪽
+const GLG = `<span class="glg"><span class="lgi"><i class="sw sw-close"></i>종가</span><span class="lgi"><i class="sw sw-w5"></i>5주 <i class="sw sw-w10"></i>10주</span><span class="lgi"><i class="sw sw-w60"></i>60주</span><span class="lgi"><i class="sw sw-ma200"></i>200일</span></span>`;
 const cv = (k, inner, c2, id) => `<div class="cv${c2 ? ' ' + c2 : ''}"${id ? ` id="${id}"` : ''}><span class="k">${k}</span>${inner}</div>`;
 function skeleton(){
   $('c200').innerHTML = `
@@ -164,10 +166,11 @@ function skeleton(){
     <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
     <div class="cards"><div class="case" id="lvRow">
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
-      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span></div>
+      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span>${GLG}</div>
       <div class="gch" id="lvG"></div>
       <div class="cgrid" hidden>${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>
     </div></div>
+    <div class="closeall"><button type="button" id="closeAll">전체 닫기</button></div>
   </details>
   <div id="bands"></div>
   ${CFG.autoNotes ? '<div class="note" id="autoNotes"></div>' : ''}`;
@@ -234,7 +237,7 @@ function card(c){
   const fast = c.stabDays != null && c.stabDays <= 5;
   return `<div class="case${fast ? ' fast' : ''}" data-case="${c.date}">
   <div class="ch"><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span><span class="rchip">${c.recN ? '지수회복 ' + c.recN + '일' : '지수회복 전'}</span></div>
-  <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}</div>
+  <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}${GLG}</div>
   <div class="gch" data-g="${c.date}"></div>
   <div class="cgrid" hidden>${cardCells(c)}</div>
 </div>`;
@@ -279,8 +282,14 @@ function renderNotes(cases){
   });
   $('autoNotes').innerHTML = `<b>요약</b><ul>${li.map(x => `<li>${x}</li>`).join('')}</ul>`;
 }
-// 세부내용 버튼(날짜 아래·이슈 왼쪽) → 그래프 아래 칸 펼침
+// 세부내용 버튼(날짜 아래·이슈 왼쪽) → 그래프 아래 칸 펼침 / 전체 닫기 = 구간 아코디언·세부내용 모두 닫음(맨 위 현재 지수는 그대로)
 document.addEventListener('click', ev => {
+  if(ev.target.closest('#closeAll')){
+    document.querySelectorAll('details.acc[data-band]').forEach(d => { d.open = false; });
+    document.querySelectorAll('.case .cgrid').forEach(g => { g.hidden = true; });
+    document.querySelectorAll('.dbtn').forEach(b => { b.setAttribute('aria-expanded', 'false'); b.textContent = '세부내용 ▾'; });
+    return;
+  }
   const b = ev.target.closest('.dbtn'); if(!b) return;
   const g = b.closest('.case').querySelector('.cgrid'), open = g.hidden;
   g.hidden = !open; b.setAttribute('aria-expanded', open ? 'true' : 'false'); b.textContent = open ? '세부내용 ▴' : '세부내용 ▾';

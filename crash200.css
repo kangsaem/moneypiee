@@ -183,3 +183,13 @@ tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
 .gch .g-lowmk{fill:#FF3B30;font-size:10px}
 .cgrid[hidden]{display:none!important}
 .note .gn-r{color:#FF3B30;font-weight:600} .note .gn-b{color:#5FB8E0;font-weight:600}
+/* 2026-10-14 14:05 */
+.chipv.day,.chipv.day.up{color:#1E1F22}                       /* 하락 칩: 하늘색 채움 유지, 글자·삼각형 = 어두운 배경색 */
+.dbtn,.case .ch2 .issue{color:var(--text)}                     /* 세부내용 버튼·이슈 = 날짜와 같은 글자색 */
+.case .ch2 .issue.miss{color:var(--text-dim)} .case .ch2 .issue.big{color:#F2A65A}
+.glg{margin-left:auto;display:inline-flex;flex-wrap:wrap;gap:3px 12px;align-items:center;font-size:10.5px;color:var(--text-dim)}
+.glg .lgi{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.glg .sw{display:inline-block;width:9px;height:9px;border-radius:2px}
+.glg .sw-close{background:var(--text);border-radius:50%} .glg .sw-w5{background:#A3E635} .glg .sw-w10{background:#22C55E} .glg .sw-w60{background:#C084FC} .glg .sw-ma200{background:#FF0000}
+.closeall{display:flex;justify-content:center;padding:8px 0 12px;border-top:1px solid var(--border)}
+.closeall button{font:inherit;font-size:12px;padding:3px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer}

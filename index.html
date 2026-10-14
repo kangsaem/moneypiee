@@ -6156,7 +6156,7 @@ const AN = {
   YEARS: 12, CONCURRENCY: 3,
   // 신용잔고·고객예탁금은 브라우저(GET 프록시)로 받을 수 없어 GitHub 리포트가 매일 내보내는 파일을 읽음. 실패하면 그 항목은 '-'
   MARKET_JSON: 'https://kangsaem.github.io/moneypier/market.json', CREDIT_TOP: 90,
-  PBR_LINK: 'https://www.indexergo.com/series/?frq=D&idxDetail=20406',
+  PBR_LINK: 'https://www.indexergo.com/series/?frq=D&idxDetail=20206',   // 코스피 PBR(2026-10-14, 전엔 20406 코스피200)
   // v1 (2026-10-10 백테스트로 확정) — market_report.py 와 같은 값
   BOTTOM_DROP: 25, BOTTOM_WIN: 120, BOTTOM_QUIET: 20, TOP_RISE: 50, TOP_WIN: 120, TOP_QUIET: 10, TOP_FAST: true, BOTTOM_FAST: false,
   RS_DAYS: 60, VOL_SPIKE: 2.5,
@@ -7763,7 +7763,7 @@ function anGauge(msig, key, title){
   const rows = g.items.map(([lb, val, st]) => `<li class="${st ? 'on' : st == null ? 'na' : 'off'}"><span class="an-dot"></span><span class="an-gt">${anE(lb)}</span><b>${anE(val)}</b></li>`).join('');
   const pct = g.total ? Math.floor(100 * g.score / g.total) : 0;
   const extra = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
-    ? `<a class="an-glink" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피200 PBR 확인 → <small>과거 대비 싼 구간인지 (indexergo)</small></a>` : '';
+    ? `<a class="an-glink" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 → <small>과거 대비 싼 구간인지 (indexergo)</small></a>` : '';
   // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
   return `<details class="an-gauge ${key} ${g.cls} s${Math.min(g.score, 3)}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
