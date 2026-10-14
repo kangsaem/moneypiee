@@ -959,3 +959,6 @@
 - 원인(moneypier naver_probe 확인, results/naver_probe.txt): 15:30 이후 polling realtime closePrice = 애프터마켓(넥스트레이드) 가격(삼성 17:03 233,500 vs 정규장 234,000). 휴대폰은 마감 직후 받은 일봉 캐시에 오늘 봉이 없으면 이 값을 오늘 종가로 붙였음. 네이버 일봉(siseJson)·m.stock basic closePrice·FDR은 정규장 종가.
 - 수정(사용자 A): ① 오늘 봉 붙이기 = fetchNaverKrxClose(m.stock basic closePrice) ② anGetBars: 15:30 이후 캐시에 오늘 봉이 없으면 10분마다 일봉 다시 받기. 알림 문구 '오늘 종가를 네이버 정규장 종가로 붙임'.
 - 판정 기준 = 정규장 종가(V1·백테스트·시간외 종가 주문과 같음). 오늘 LG = 재검토 아님(경계).
+- 17:20 2차: 새 브라우저(캐시 없음)는 재검토 없음 확인, 기존 기기는 그대로 → 캐시에 '오늘 봉'이 이미 있는데 값이 정규장 종가가 아니었음(마감 직후 받은 네이버 일봉의 임시 값으로 추정, 미확정).
+  수정: anKrFinalAt() = 오늘 16:35 KST(네이버 closePriceSendTime 16:30). 16:35 전에 받은 국장 일봉은 임시 → 16:35 뒤 첫 분석에서 다시 받음(anGetBars notFinal), 15:30~16:35 사이엔 오늘 봉 종가를 정규장 종가(fetchNaverKrxClose)로 덮어씀.
+  돋보기 = 매번 전 종목 다시 계산(종목을 거르지 않음). 다만 시세는 마지막 장 마감(국장 15:32) 뒤 받은 캐시를 다음 마감까지 재사용했음.

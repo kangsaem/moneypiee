@@ -7173,6 +7173,14 @@ function anKrToday(){
   return `${k.getUTCFullYear()}-${anPad(k.getUTCMonth()+1)}-${anPad(k.getUTCDate())}`;
 }
 
+// 국장 일봉 확정 시각(오늘 16:35 KST, ms). 네이버 closePriceSendTime 16:30 — 그 전에 받은 오늘 봉은 임시로 봄(2026-10-14). 장 열린 날 15:30 이후만, 아니면 0
+function anKrFinalAt(){
+  const t = anKrToday();
+  if(!t) return 0;
+  const [y, m, d] = t.split('-').map(Number);
+  return Date.UTC(y, m - 1, d, 7, 35);   // 16:35 KST = 07:35 UTC
+}
+
 // 폭락장 (market_report.crash_info): 지수 고점 -20% / VIX 30 / 바닥 지표 2개 — 하나라도 켜지면 표시만(돈 쓰는 방식은 본인 판단)
 const AN_CRASH = { DD: -20, VIX: 30, BOTTOM: 2, IDX: [['kospi', '코스피'], ['spx', 'S&P500'], ['ndx', '나스닥']] };
 function anCrash(snap, msig){
@@ -7204,7 +7212,9 @@ async function anGetBars(spec){
   // 국장 15:30 이후인데 캐시에 오늘 봉이 없으면(마감 직후 받아 둔 캐시) 10분마다 다시 받아 봄 — 네이버 일봉에 정규장 종가가 생기면 그걸 씀(2026-10-14)
   const krT = spec.market === 'KR' ? anKrToday() : null;
   const noToday = krT && cached && cached.dates && cached.dates[cached.dates.length - 1] < krT && Date.now() - cached.fetchedAt > 10 * 60e3;
-  if(cached && cached.v === AN_BARS_V && cached.fetchedAt >= anLastClose(spec.market) && !noToday) return cached;   // v: 받는 방식이 바뀌면 한 번 새로 받음
+  const fin = krT ? anKrFinalAt() : 0;   // 16:35 전에 받은 오늘 일봉은 임시 → 16:35 뒤 첫 분석에서 다시 받음
+  const notFinal = fin && Date.now() >= fin && cached && cached.fetchedAt < fin;
+  if(cached && cached.v === AN_BARS_V && cached.fetchedAt >= anLastClose(spec.market) && !noToday && !notFinal) return cached;   // v: 받는 방식이 바뀌면 한 번 새로 받음
   let lastErr = null;
   for(const f of spec.fetchers){
     try{
@@ -7520,15 +7530,22 @@ async function runAnalysis(){
           if(!spec){ unresolved.push(h.name); continue; }
           let bars = await anGetBars(spec);
           if(bars.stale) stale.push(h.name);
-          if(spec.market === 'KR'){                 // 15:30 이후인데 일봉에 오늘이 없으면 네이버 정규장 종가로 오늘 봉을 붙임
+          if(spec.market === 'KR'){                 // 15:30 이후: 오늘 봉이 없거나, 종가 확정(16:35) 전에 받은 일봉이면 오늘 종가를 네이버 정규장 종가로 맞춤
             const t = anKrToday();
-            if(t && bars.dates[bars.dates.length - 1] < t){
-              const q = await fetchNaverKrxClose(spec.code).catch(() => null);   // 정규장 종가(실시간 시세는 장 마감 뒤 넥스트레이드 가격이라 쓰지 않음, 2026-10-14)
+            const last = bars.dates[bars.dates.length - 1];
+            if(t && (last < t || (last === t && !(bars.fetchedAt >= anKrFinalAt())))){
+              // 마감 직후 네이버 일봉의 오늘 봉은 애프터마켓 가격일 수 있음(2026-10-14 LG에너지솔루션 422,000 vs 정규장 419,000)
+              const q = await fetchNaverKrxClose(spec.code).catch(() => null);
               if(q && q.price > 0){
-                bars = Object.assign({}, bars, { dates: bars.dates.concat([t]), close: bars.close.concat([q.price]), high: bars.high.concat([q.price]),
-                                                 low: bars.low.concat([q.price]), vol: (bars.vol || []).concat([null]) });
-                todayPatched.push(h.name);
-              } else todayMissing.push(h.name);
+                const n = bars.close.length;
+                bars = last < t
+                  ? Object.assign({}, bars, { dates: bars.dates.concat([t]), close: bars.close.concat([q.price]), high: bars.high.concat([q.price]),
+                                              low: bars.low.concat([q.price]), vol: (bars.vol || []).concat([null]) })
+                  : Object.assign({}, bars, { close: bars.close.slice(0, n - 1).concat([q.price]),
+                                              high: bars.high.slice(0, n - 1).concat([Math.max(bars.high[n - 1], q.price)]),
+                                              low: bars.low.slice(0, n - 1).concat([Math.min(bars.low[n - 1], q.price)]) });
+                if(last < t) todayPatched.push(h.name);
+              } else if(last < t) todayMissing.push(h.name);
             }
           }
           const r = anAnalyze(bars, spec.code, h.name);
