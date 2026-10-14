@@ -210,3 +210,6 @@ details.acc.nowband:not([open])>summary{background:rgba(232,123,164,.18)}   /* �
 #closeAll.any .cchev{transform:translateY(-25%) rotate(45deg)}
 @media (prefers-reduced-motion:reduce){#closeAll .cchev{transition:none}}
 .case .ch2[hidden]{display:none}
+/* 사례 구간 아코디언 화살표 = 제목 왼쪽(2026-10-14) */
+details.acc[data-band]>summary{padding-left:34px;padding-right:14px}
+details.acc[data-band]>summary::after{left:14px;right:auto;top:20px}
