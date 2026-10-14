@@ -2322,6 +2322,7 @@ function editHolding(accId, holdId){
   document.getElementById('editQty').value = h.quantity != null ? h.quantity : '';
   document.getElementById('editModal').style.display = 'flex';
   document.getElementById('editWatchBtn').style.display = accId === WATCHLIST_ID || isCashHolding(h) ? 'none' : '';
+  document.getElementById('editModal').classList.remove('watch-add');
   const isCashQty = isCashHolding(h) && h.quantity != null && h.currency;
   const hasCode = (h.quantity != null && h.symbol) || isCashQty;
   editResolvedCode = isCashQty ? { isCashCurrency: true, currency: h.currency }
@@ -2337,7 +2338,8 @@ function editHolding(accId, holdId){
 }
 function openAddHolding(accId){
   editContext = { accId, holdId: null };
-  document.getElementById('editModalTitle').textContent = '종목추가';
+  document.getElementById('editModalTitle').textContent = accId === WATCHLIST_ID ? '관심종목추가' : '종목추가';
+  document.getElementById('editModal').classList.toggle('watch-add', accId === WATCHLIST_ID);   // 관심종목추가 = 키워드/티커/코드 입력칸만(2026-10-14)
   document.getElementById('editName').value = '';
   document.getElementById('editAmount').value = '';
   document.getElementById('editGroup').value = '';
@@ -2386,6 +2388,8 @@ function closeEditModal(){
 async function saveEditModal(toWatch){
   if(!editContext) return;
   toWatch = toWatch === true;
+  const watchAdd = editContext.accId === WATCHLIST_ID && editContext.holdId == null;   // 관심 탭 추가: 평가액·개수 없이 이름(코드)만
+  if(watchAdd) toWatch = true;
   const acc = getAccount(editContext.accId);
   if(!acc) { closeEditModal(); return; }
   const isNew = editContext.holdId == null;
@@ -2436,9 +2440,10 @@ async function saveEditModal(toWatch){
     if(toWatch){
       const w = getAccount(WATCHLIST_ID);
       if(w.holdings.some(x => x.name === name || (opts && opts.symbol && x.symbol === opts.symbol))){ closeEditModal(); showNoticeModal('이미 관심종목이에요.'); return; }
+      if(!name){ alert('종목을 입력해주세요.'); return; }
       addHolding(WATCHLIST_ID, name, group, amount, region, opts);
       closeEditModal();
-      showNoticeModal(`${name} 관심종목에 등록했어요.`);
+      if(!watchAdd) showNoticeModal(`${name} 관심종목에 등록했어요.`);
       return;
     }
     addHolding(acc.id, name, group, amount, region, opts);
@@ -5535,6 +5540,21 @@ function renderPanel(){
     return;
   }
 
+  if(state.activeId === WATCHLIST_ID){
+    // 관심 탭(2026-10-14): 관심종목추가 버튼 + 오른쪽 돋보기(V1과 같은 전체 분석) + V1 형식 목록(관심종목만). 합계 없음
+    panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:14px;">
+        <div></div>
+        <button class="btn-memo" id="openAddHoldingBtn" style="height:26px;padding:0 12px;font-size:12px;">관심종목추가</button>
+        <div style="display:flex;justify-content:flex-end;"><button id="watchAnBtn" title="보유+관심 종목 분석(V1과 같음)" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></button></div>
+      </div>
+      <div id="watchRoot" class="an an-tab an-watch"></div>`;
+    document.getElementById('openAddHoldingBtn').addEventListener('click', () => openAddHolding(WATCHLIST_ID));
+    document.getElementById('watchAnBtn').addEventListener('click', () => { if(anState.running) return; anState.view = 'report'; runAnalysis(); loadMarketData(true).catch(() => {}); });
+    anWatchMount();
+    return;
+  }
+
   if(state.activeId === '__snapshots__'){
     renderSnapshotsPanel();
     return;
@@ -7805,6 +7825,49 @@ function anHeadLine(res){
   return `<div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}</span></div>`;
 }
 
+// 종목 줄(V1 탭·관심 탭 공용, 2026-10-14): 들어간 칸·대표 칸으로 정렬
+function anStockRows(results, only){
+  return results.map((r, i) => {
+    if(only && !only(r)) return null;
+    const rv = (r.review = anReview(r));
+    const show = anDisplayKeys(rv);
+    const keys = AN_LIST_ORDER.filter(k => show.includes(k));
+    const top = keys.length ? keys[0] : null;
+    return { r, i, rv, keys, top, rank: top ? AN_LIST_ORDER.indexOf(top) : AN_LIST_ORDER.length };
+  }).filter(Boolean).sort((a, b) => a.rank - b.rank || a.r.name.localeCompare(b.r.name));
+}
+// opt.right = 접었을 때 오른쪽 끝(V1 = RSI, 관심 탭 = 삭제 버튼)
+function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
+  opt = opt || {};
+  const CH = { buy: 'buy', sell: 'sell', wait: 'wait', down: 'down', warn: 'warn', hold2: 'hold2', hold1: 'hold1' };
+  try{
+      const tones = Object.fromEntries(anReviewGroups(r).map(([nm, t]) => [nm, t]));
+      const allF = anFlags(r);
+      const gchips = allF.filter(f => tones[f]).map(f => `<span class="an-chip ${CH[tones[f]]}">${anE(f)}</span>`).join('');
+      const others = allF.filter(f => !tones[f] && f !== '최근골든' && f !== '최근데드');   // 크로스는 추세 줄에
+      const rc = r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : '';
+      // 근거: 칸 이름(제목 칩과 같음)·기본 근거(반등 신호 / 하락 중·장기 추세 상승)·보유 설명은 빼고, 판단에 보탬이 되는 것만
+      const extraWhy = keys.flatMap(k => k === 'hold' ? [] : (k === 'buyb' || k === 'buy') ? rv[k].why.slice(1) : rv[k].why)
+        .filter(w => w !== '보유 유지 · 새로 사거나 더 사지 않음');
+      const whys = extraWhy.length ? `<div class="an-whyrow">${extraWhy.map(w => `<span class="an-why">${anE(w)}</span>`).join('')}</div>` : '';
+      const side = top ? AN_REV_SIDE[top] : 'none';
+      const lv = side === 'buy' || side === 'sell' ? r.sig[side] : null;
+      let limHtml = '';
+      if(ctx && ctx.hasOwn && AN_BUY_KEYS.some(k => rv[k])){     // 내 자산(계좌 종목)이 없으면(관심종목만) 표시 안 함
+        const L = anBuyLimit(r, ctx);
+        if(L){
+          limHtml = `<div class="an-limit">매수한도 ${L.pct.toFixed(1)}% / 현재 ${(L.have / ctx.total * 100).toFixed(1)}% / <b>잔여 ${Math.round(L.left).toLocaleString()}원</b></div>`;
+        }
+      }
+      const lv2 = anLiveVerdict(r, keys);
+      const liveChip = lv2 ? `<span class="an-live ${lv2.cls}" title="${anE(lv2.line)}">${anS(r.live.chg, 1)}% ${lv2.txt}</span>` : '';
+      const liveLine = lv2 ? `<div class="an-liveline">${anE(lv2.line)}</div>` : '';
+      return `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${[...new Set(keys.map(k => AN_CATEGORY[k]))].join(' ') || 'none'}">
+        <summary>${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b>${anE(r.name)}</b> ${gchips}${liveChip}${opt.right != null ? opt.right : `<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span>`}</summary>
+        <div class="an-sbody">${liveLine}${limHtml}${whys}${anMetricsHtml(r, side, lv, others, top && ['sell', 'buy'].includes(AN_CATEGORY[top]))}<div class="an-chwrap" data-an-chart="${i}"></div>
+          <details class="an-sub" data-an-key="x:${anE(r.code)}"><summary>세부 보기 <small>${anE(r.code)}</small></summary><pre>${anE(anDetailText(r))}</pre></details></div></details>`;
+  }catch(e){ return `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
+}
 function anRenderResult(res){
   const results = res.results || [];
   const at = new Date(res.at + 9 * 3600e3);
@@ -7831,51 +7894,15 @@ function anRenderResult(res){
   }).join('');
 
   // 종목마다: 들어간 칸들, 대표 칸(정렬용)
-  const rows = results.map((r, i) => {
-    const rv = rvOf(r);
-    const show = anDisplayKeys(rv);
-    const keys = AN_LIST_ORDER.filter(k => show.includes(k));
-    const top = keys.length ? keys[0] : null;
-    return { r, i, rv, keys, top, rank: top ? AN_LIST_ORDER.indexOf(top) : AN_LIST_ORDER.length };
-  }).sort((a, b) => a.rank - b.rank || a.r.name.localeCompare(b.r.name));
+  const rows = anStockRows(results);
 
   // 분류 탭: 개수만, 누르면 그 칸 종목만 (0개는 점선)
   const cats = x => [...new Set(x.keys.map(k => AN_CATEGORY[k]))];
   const cnt = c => rows.filter(x => cats(x).includes(c)).length;
   const tabs = AN_TABS.map(([c, nm]) => `<button class="an-ftab t-${c}${cnt(c) ? ' has' : ' zero'}" data-f="${c}">${nm} <b>${cnt(c)}</b></button>`).join('');
 
-  const CH = { buy: 'buy', sell: 'sell', wait: 'wait', down: 'down', warn: 'warn', hold2: 'hold2', hold1: 'hold1' };
   const H = anHeldSets();
-  let listHtml = '';
-  rows.forEach(({ r, i, rv, keys, top }) => {
-    try{
-      const tones = Object.fromEntries(anReviewGroups(r).map(([nm, t]) => [nm, t]));
-      const allF = anFlags(r);
-      const gchips = allF.filter(f => tones[f]).map(f => `<span class="an-chip ${CH[tones[f]]}">${anE(f)}</span>`).join('');
-      const others = allF.filter(f => !tones[f] && f !== '최근골든' && f !== '최근데드');   // 크로스는 추세 줄에
-      const rc = r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : '';
-      // 근거: 칸 이름(제목 칩과 같음)·기본 근거(반등 신호 / 하락 중·장기 추세 상승)·보유 설명은 빼고, 판단에 보탬이 되는 것만
-      const extraWhy = keys.flatMap(k => k === 'hold' ? [] : (k === 'buyb' || k === 'buy') ? rv[k].why.slice(1) : rv[k].why)
-        .filter(w => w !== '보유 유지 · 새로 사거나 더 사지 않음');
-      const whys = extraWhy.length ? `<div class="an-whyrow">${extraWhy.map(w => `<span class="an-why">${anE(w)}</span>`).join('')}</div>` : '';
-      const side = top ? AN_REV_SIDE[top] : 'none';
-      const lv = side === 'buy' || side === 'sell' ? r.sig[side] : null;
-      let limHtml = '';
-      if(ctx && ctx.hasOwn && AN_BUY_KEYS.some(k => rv[k])){     // 내 자산(계좌 종목)이 없으면(관심종목만) 표시 안 함
-        const L = anBuyLimit(r, ctx);
-        if(L){
-          limHtml = `<div class="an-limit">매수한도 ${L.pct.toFixed(1)}% / 현재 ${(L.have / ctx.total * 100).toFixed(1)}% / <b>잔여 ${Math.round(L.left).toLocaleString()}원</b></div>`;
-        }
-      }
-      const lv2 = anLiveVerdict(r, keys);
-      const liveChip = lv2 ? `<span class="an-live ${lv2.cls}" title="${anE(lv2.line)}">${anS(r.live.chg, 1)}% ${lv2.txt}</span>` : '';
-      const liveLine = lv2 ? `<div class="an-liveline">${anE(lv2.line)}</div>` : '';
-      listHtml += `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${[...new Set(keys.map(k => AN_CATEGORY[k]))].join(' ') || 'none'}">
-        <summary>${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b>${anE(r.name)}</b> ${gchips}${liveChip}<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span></summary>
-        <div class="an-sbody">${liveLine}${limHtml}${whys}${anMetricsHtml(r, side, lv, others, top && ['sell', 'buy'].includes(AN_CATEGORY[top]))}<div class="an-chwrap" data-an-chart="${i}"></div>
-          <details class="an-sub" data-an-key="x:${anE(r.code)}"><summary>세부 보기 <small>${anE(r.code)}</small></summary><pre>${anE(anDetailText(r))}</pre></details></div></details>`;
-    }catch(e){ listHtml += `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
-  });
+  const listHtml = rows.map(x => anStockHtml(x, ctx, H)).join('');
 
   // 종목 스크리닝은 뺌(2026-10-11) — 분류 탭·종목 칩과 중복
 
@@ -8276,6 +8303,7 @@ function anGhPaint(){
 }
 
 function anFillRoot(){
+  try{ anWatchFill(); }catch(e){}                       // 관심 탭이 열려 있으면 같이 갱신
   const root = document.getElementById('analysisRoot');
   if(!root) return;
   // 분석 ↔ 히스토리 전환 때 화면이 위로 당겨지지 않게: 탭 줄이 화면에서 같은 높이에 있도록 다시 맞춤
@@ -8310,6 +8338,39 @@ function anFillRoot(){
   placeBar();
   anGhPaint();
   keepPos();
+}
+
+// 관심 탭 목록(2026-10-14): 마지막 분석 결과에서 관심종목만 V1 형식으로. 접었을 때 RSI 자리 = 삭제 버튼. 분석 결과가 없는 종목은 이름만
+function anWatchMount(){
+  anUpdateProgress();
+  if(!anState.loaded){
+    anDB.get('lastResult').then(res => {
+      anState.loaded = true;
+      if(res && !anState.result){ anState.result = res; anState.html = null; }
+      anWatchFill();
+    });
+  }
+  anWatchFill();
+}
+function anWatchFill(){
+  const root = document.getElementById('watchRoot');
+  if(!root) return;
+  const w = getAccount(WATCHLIST_ID), items = ((w && w.holdings) || []).filter(h => h.name && !isCashHolding(h));
+  const del = h => `<button type="button" class="an-wdel" data-wdel="${anE(h.id)}">삭제</button>`;
+  if(!items.length){ root.innerHTML = '<div class="an-empty">관심종목이 없어요. 위 관심종목추가 버튼으로 넣어 주세요.</div>'; return; }
+  const results = (anState.result && anState.result.results) || [];
+  const hOf = r => items.find(h => h.name === r.hname || h.name === r.name || (h.symbol && (h.symbol === r.code || h.yahooSymbol === r.code)));
+  const used = new Set();
+  const rows = anStockRows(results, r => { const h = hOf(r); if(!h || used.has(h.id)) return false; used.add(h.id); return true; });
+  const ctx = (() => { try{ return anLimitCtx(); }catch(e){ return null; } })(), H = anHeldSets();
+  let html = rows.map(x => anStockHtml(x, ctx, H, { right: del(hOf(x.r)) })).join('');
+  const rest = items.filter(h => !used.has(h.id));                       // 아직 분석 안 된 종목
+  html += rest.map(h => `<div class="an-det an-stock an-wplain"><div class="an-wsum">${anIsWatchOnly({ hname: h.name, code: h.symbol }, H) ? '<i class="an-wdot"></i>' : ''}<b>${anE(h.name)}</b>${del(h)}</div></div>`).join('');
+  const busy = anState.running ? `<div class="an-none">분석 중 ${anState.done}/${anState.total}…</div>` : '';
+  const hint = rest.length && !anState.running ? '<div class="an-none">이름만 보이는 종목은 오른쪽 위 돋보기로 분석하면 신호가 나와요.</div>' : '';
+  root.innerHTML = busy + `<div class="an-list">${html}</div>` + hint;
+  root.querySelectorAll('[data-wdel]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); deleteHolding(WATCHLIST_ID, b.dataset.wdel); }));
+  anBindRoot(root);
 }
 
 function anUpdateProgress(){
@@ -8580,6 +8641,10 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 #analysisBtn.an-blink, #watchAnBtn.an-blink { animation: anBlink 1s ease-in-out infinite; }
 .an-wdot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#F04452; margin-right:5px; flex-shrink:0; }
 @media (max-width:600px){ .an-tab .an-rsir { display:none; } }
+.an-wdel { margin-left:auto; font:inherit; font-size:11px; height:22px; padding:0 8px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-dim); cursor:pointer; }
+.an-wsum { padding:6px 11px; display:flex; align-items:center; gap:4px; }
+#editModal.watch-add #editModeBadge, #editModal.watch-add #editModeQtyHint, #editModal.watch-add #editAmount, #editModal.watch-add #editQty,
+#editModal.watch-add #editQtyPreview, #editModal.watch-add #editGroup, #editModal.watch-add #editRegion { display:none !important; }
 #analysisHistBtn { width:64px !important; padding:0 !important; font-size:12px !important; text-align:center; white-space:nowrap; flex-shrink:0; }   /* 신호추적·최근종가 같은 폭 */
 .an-hb, .an-hg { font-style:normal !important; } .an-hstop { margin-left:6px; display:inline-flex; align-items:center; }
 .an-stock > summary { padding:4px 10px !important; } .an-stock > summary > b { font-size:12.5px; }
