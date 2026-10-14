@@ -7827,7 +7827,7 @@ function anHeadLine(res){
   if(krRes.length){
     const t = res.krToday;
     const ok = t ? krRes.filter(r => r.last === t).length : 0;
-    todayTxt = t ? (ok === krRes.length ? ' · 국장 오늘 종가 반영' : ` · 국장 오늘 종가 ${ok}/${krRes.length} (나머지 어제 시세)`) : ' · 국장 어제 종가 기준';
+    todayTxt = t ? (ok === krRes.length ? ' · 국장 오늘 종가 반영' : ` · 국장 오늘 종가 ${ok}/${krRes.length} (나머지 어제 시세)`) : '';   // 장중·장 전에는 표시 안 함(실시간으로 바뀌는 부분이 있어 '어제 종가 기준'은 오해 소지, 2026-10-14)
   }
   return `<div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}</span></div>`;
 }
