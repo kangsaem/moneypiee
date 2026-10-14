@@ -167,7 +167,7 @@ const cv = (k, inner, c2, id) => `<div class="cv${c2 ? ' ' + c2 : ''}"${id ? ` i
 function skeleton(){
   $('c200').innerHTML = `
   <details class="sec acc live" id="live" open>
-    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><button type="button" id="closeAll">전체 닫기</button><span class="xpages">${XOTH.map(k => `<a class="xpage" href="${k}200.html${/[?&]embed=1/.test(location.search) ? '?embed=1' : ''}">${XN[k]}<span class="xw"> 사례</span></a>`).join('')}</span></span></summary>
+    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><button type="button" id="closeAll"><i class="cchev"></i><span id="closeAllTx">전체 열기</span></button><span class="xpages">${XOTH.map(k => `<a class="xpage" href="${k}200.html${/[?&]embed=1/.test(location.search) ? '?embed=1' : ''}">${XN[k]}<span class="xw"> 사례</span></a>`).join('')}</span></span></summary>
     <div class="cards"><div class="case" id="lvRow">
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
       <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span>${GLG}${XCHIPS}</div>
@@ -250,6 +250,12 @@ function card(c){
   <div class="cgrid" hidden>${cardCells(c)}</div>
 </div>`;
 }
+// 전체 열기/닫기 버튼(2026-10-14 사용자 A): 모두 닫힘 = ^ '전체 열기', 하나라도 열림 = 뒤집힌 화살표 '전체 닫기'(구간 탭과 같은 회전)
+function allState(){
+  const any = [...document.querySelectorAll('details.acc[data-band]')].some(d => d.open), b = $('closeAll');
+  if(!b) return;
+  b.classList.toggle('any', any); $('closeAllTx').textContent = any ? '전체 닫기' : '전체 열기';
+}
 function renderBands(){
   const cases = DATA.cases.filter(c => !c.open);
   BIG = cases.reduce((m, c) => (!m || c.drop < m.drop ? c : m), null)?.date;   // 바닥까지 하락이 가장 큰 사례 = 주황 강조
@@ -272,7 +278,7 @@ function renderBands(){
   $('bands').innerHTML = html;
   if(NOW_BAND) markBand(NOW_BAND);
   document.querySelectorAll('details.acc[data-band]').forEach(d => {
-    const go = () => { if(d.open) d.querySelectorAll('.gch[data-g]').forEach(gDraw); };
+    const go = () => { if(d.open) d.querySelectorAll('.gch[data-g]').forEach(gDraw); allState(); };
     d.addEventListener('toggle', go); go();
   });
   if(CFG.autoNotes) renderNotes(cases);
@@ -296,7 +302,9 @@ document.addEventListener('click', ev => {
   const xp = ev.target.closest('.xpage'); if(xp){ ev.stopPropagation(); return; }   // 링크는 그대로 이동(제목 줄 접힘 없이)
   if(ev.target.closest('#closeAll')){
     ev.preventDefault(); ev.stopPropagation();                // 회색 제목 줄 안 버튼 — 맨 위 카드는 접지 않음
-    document.querySelectorAll('details.acc[data-band]').forEach(d => { d.open = false; });
+    const bands = [...document.querySelectorAll('details.acc[data-band]')];
+    if(!bands.some(d => d.open)){ bands.forEach(d => { d.open = true; }); return; }   // 모두 닫혀 있으면 = 전체 열기
+    bands.forEach(d => { d.open = false; });
     document.querySelectorAll('.case .cgrid').forEach(g => { g.hidden = true; });
     document.querySelectorAll('.dbtn').forEach(b => { b.setAttribute('aria-expanded', 'false'); b.textContent = '세부내용 ▾'; });
     return;

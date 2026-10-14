@@ -204,3 +204,8 @@ details.acc.nowband:not([open])>summary{background:rgba(232,123,164,.18)}   /* �
 .xchip[aria-pressed="true"]{background:var(--xc);color:#1E1F22}
 .xchip.na{opacity:.3;cursor:default}
 .gch .g-ov{fill:none;stroke-width:1.3px!important}
+/* 전체 열기/닫기 화살표(구간 탭 ::after와 같은 모양·회전) */
+#closeAll{display:inline-flex;align-items:center;gap:7px}
+#closeAll .cchev{display:inline-block;width:7px;height:7px;border-right:1.5px solid #4A4B50;border-bottom:1.5px solid #4A4B50;transform:translateY(25%) rotate(-135deg);transition:transform .15s}
+#closeAll.any .cchev{transform:translateY(-25%) rotate(45deg)}
+@media (prefers-reduced-motion:reduce){#closeAll .cchev{transition:none}}
