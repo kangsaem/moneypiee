@@ -175,7 +175,7 @@ tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
 .gch .an-ch-ma5{stroke:var(--c5)} .gch .an-ch-ma20{stroke:var(--c20)} .gch .an-ch-w5{stroke:var(--cw5)} .gch .an-ch-w10{stroke:var(--cw10)}
 .gch .an-ch-m5{stroke:var(--cm5)} .gch .an-ch-m10{stroke:var(--cm10)} .gch .an-ch-ma200{stroke:#FF0000}
 .gch .an-ch-w5,.gch .an-ch-w10,.gch .an-ch-m5,.gch .an-ch-m10{opacity:.6}   /* 200일선·종가 외 투명도 0.6 */
-.gch .g-green{fill:#A3E635;opacity:.5}
+.gch .g-green{fill:#A3E635;opacity:.25} .gch .g-blue{fill:#5FB8E0;opacity:.25}
 .gch .g-up{stroke:#FF3B30;stroke-dasharray:3 3;opacity:.9}
 .gch .g-uplab{fill:#FF6B6B;font-size:9.5px;font-weight:600}
 .gch .an-cper{display:flex;gap:3px;margin:2px 0 4px} .gch .an-cper button{font:inherit;font-size:11px;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer}
@@ -752,6 +752,9 @@ function gChartData(D, C, a, b, opt){
     const end = opt.stab != null ? opt.stab - 1 : b;
     for(let i = Math.max(a, opt.brk + 1); i <= Math.min(b, end); i++) if(C[i] >= opt.prev) ch.green.push(i - a);
   }
+  // 안정일 → 지수회복일(이탈 전날 지수 복귀) 구간 = 하늘색 영역(2026-10-14)
+  ch.blue = null;
+  if(opt.stab != null && opt.rec != null){ const s0 = Math.max(a, opt.stab), s1 = Math.min(b, opt.rec); if(s1 >= s0) ch.blue = [s0 - a, s1 - a]; }
   return ch;
 }
 function gPath(v, x, y){ let d = '', pen = false; v.forEach((u, i) => { if(u == null){ pen = false; return; } d += (pen ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(u).toFixed(1); pen = true; }); return d; }
@@ -772,6 +775,8 @@ function gSvg(ch){
     o.push(`<rect class="g-green" x="${x0.toFixed(1)}" y="${pt}" width="${Math.max(1, x1 - x0).toFixed(1)}" height="${PH}"/>`);
     k = j;
   }
+  if(ch.blue){ const x0 = Math.max(pl, x(ch.blue[0]) - half), x1 = Math.min(xr, x(ch.blue[1]) + half);
+    o.push(`<rect class="g-blue" x="${x0.toFixed(1)}" y="${pt}" width="${Math.max(1, x1 - x0).toFixed(1)}" height="${PH}"/>`); }
   const yearly = n > G_YEARLY;
   for(let i = 1; i < n; i++){
     const a = yearly ? ch.dates[i].slice(0, 2) : ch.dates[i].slice(3, 5), b = yearly ? ch.dates[i - 1].slice(0, 2) : ch.dates[i - 1].slice(3, 5);
@@ -851,7 +856,7 @@ async function gHtml(key){
   const c = (await gLoad()).cases[key];
   if(!c) return '<div class="gnone">그래프 자료 없음</div>';
   const D = c.d.map(s => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`), p0 = D.indexOf(c.from);
-  return gSvg(gChartData(D, c.c, p0, D.length - 1, { brk: p0 + 1, stab: c.stab ? D.indexOf(c.stab) : null, prev: c.prevClose }));
+  return gSvg(gChartData(D, c.c, p0, D.length - 1, { brk: p0 + 1, stab: c.stab ? D.indexOf(c.stab) : null, rec: c.rec ? D.indexOf(c.rec) : null, prev: c.prevClose }));
 }
 async function gDraw(el){
   if(!el) return;
