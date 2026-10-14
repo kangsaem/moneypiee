@@ -191,8 +191,8 @@ tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
 .glg .lgi{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
 .glg .sw{display:inline-block;width:9px;height:9px;border-radius:2px}
 .glg .sw-close{background:var(--text);border-radius:50%} .glg .sw-w5{background:#A3E635} .glg .sw-w10{background:#22C55E} .glg .sw-w60{background:#C084FC} .glg .sw-ma200{background:#FF0000}
-.closeall{display:flex;justify-content:center;padding:8px 0 12px;border-top:1px solid var(--border)}
-.closeall button{font:inherit;font-size:12px;padding:3px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer}
+.closeall{display:flex;justify-content:center;margin-top:6px}   /* 맨 위 회색 제목 줄 아래 가운데(2026-10-14) */
+.closeall button{font:inherit;font-size:12px;padding:2px 14px;border-radius:6px;border:1px solid #9A9BA1;background:transparent;color:#4A4B50;cursor:pointer}
 /* 다른 지수 겹쳐 보기(2026-10-14) */
 .xchips{display:inline-flex;gap:4px;margin-left:6px}
 .xchip{font:inherit;font-size:10.5px;font-weight:600;line-height:1.3;padding:1px 7px;border-radius:6px;border:1px solid var(--xc);background:transparent;color:var(--xc);cursor:pointer}

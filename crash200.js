@@ -167,14 +167,13 @@ const cv = (k, inner, c2, id) => `<div class="cv${c2 ? ' ' + c2 : ''}"${id ? ` i
 function skeleton(){
   $('c200').innerHTML = `
   <details class="sec acc live" id="live" open>
-    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
+    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><button type="button" id="closeAll">전체 닫기</button></span></summary>
     <div class="cards"><div class="case" id="lvRow">
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
       <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span>${GLG}${XCHIPS}</div>
       <div class="gch" id="lvG"></div>
       <div class="cgrid" hidden>${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>
     </div></div>
-    <div class="closeall"><button type="button" id="closeAll">전체 닫기</button></div>
   </details>
   <div id="bands"></div>
   ${CFG.autoNotes ? '<div class="note" id="autoNotes"></div>' : ''}`;
@@ -289,6 +288,7 @@ function renderNotes(cases){
 // 세부내용 버튼(날짜 아래·이슈 왼쪽) → 그래프 아래 칸 펼침 / 전체 닫기 = 구간 아코디언·세부내용 모두 닫음(맨 위 현재 지수는 그대로)
 document.addEventListener('click', ev => {
   if(ev.target.closest('#closeAll')){
+    ev.preventDefault(); ev.stopPropagation();                // 회색 제목 줄 안 버튼 — 맨 위 카드는 접지 않음
     document.querySelectorAll('details.acc[data-band]').forEach(d => { d.open = false; });
     document.querySelectorAll('.case .cgrid').forEach(g => { g.hidden = true; });
     document.querySelectorAll('.dbtn').forEach(b => { b.setAttribute('aria-expanded', 'false'); b.textContent = '세부내용 ▾'; });
