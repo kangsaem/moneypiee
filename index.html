@@ -7585,7 +7585,8 @@ function anLegend(ch){
     if(!ch[a] && !ch[b]) continue;                      // 긴 기간(3·5년)은 일봉 이평 없음
     p.push(`<span class="an-lgi">${sw(a)}${la} ${sw(b)}${lb}</span>`);
   }
-  if(ch.ma200) p.push(ch.k200 ? `<a class="an-lgi an-lgk" href="kospi200.html" title="코스피 200일선 붕괴 사례" onclick="return anK200Open(event)">${sw('ma200')}200일 ›</a>` : `<span class="an-lgi">${sw('ma200')}200일</span>`);
+  const pg200 = ch.k200 === true ? 'kospi200.html' : ch.k200;   // 지수 차트 범례 '200일 ›' → 그 지수 붕괴 사례(코스피·S&P500·나스닥, 코스닥 없음 · 2026-10-14)
+  if(ch.ma200) p.push(pg200 ? `<a class="an-lgi an-lgk" href="${pg200}" title="200일선 붕괴 사례" onclick="return anK200Open(event, '${pg200}')">${sw('ma200')}200일 ›</a>` : `<span class="an-lgi">${sw('ma200')}200일</span>`);
   if(ch.proj && Object.values(ch.proj).some(v => v)) p.push('<span class="an-lgn">점선 = 가격 유지 가정</span>');
   return `<div class="an-lg">${p.join('')}</div>`;
 }
@@ -7744,7 +7745,7 @@ async function anIndexChartFor(v, per){
   if(k >= 0){ dates = dates.slice(0, k + 1); close = close.slice(0, k + 1); close[k] = v.close; }   // 분석한 날까지(현재가를 붙였으면 그 값)
   else if(v.date > dates[dates.length - 1]){ dates = dates.concat([v.date]); close = close.concat([v.close]); }
   const ch = anIndexChartData(dates, close, p[2]);
-  ch.lastLabel = v.chart.lastLabel; if(v.chart.k200) ch.k200 = true;
+  ch.lastLabel = v.chart.lastLabel; if(v.chart.k200) ch.k200 = v.chart.k200;
   anIdxChartCache.set(ck, ch);
   return ch;
 }
@@ -7891,6 +7892,7 @@ function anRenderResult(res){
     const v = idx[k];
     if(!v) return '';
     v.key = k;                                             // 지수 차트 기간 버튼이 씀
+    if(v.chart && AN_200PAGE[k]) v.chart.k200 = AN_200PAGE[k];   // 범례 '200일 ›' 링크(저장된 옛 결과에도 바로 적용)
     const px = v.live ? v.live.price : v.close, chg = v.live && anOk(v.live.chg) ? v.live.chg : v.chg;   // 현재가(받았으면), 없으면 마지막 종가
     const ud = chg > 0 ? 'up' : chg < 0 ? 'dn' : '';
     return `<details class="an-idx" data-an-key="i:${k}"${anState.openKeys.has('i:' + k) ? ' open' : ''}><summary><span class="an-in">${anE(v.name)}</span>
