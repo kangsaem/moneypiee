@@ -159,6 +159,10 @@ const LV_IDS = ['lvPrevGap', 'lvDrop', 'lvW60', 'lvUp', 'lvFail', 'lvRec'];
 const LV_LAB = Object.fromEntries(LV_IDS.map((id, i) => [id, i === 3 ? '최근 200일선 돌파후' : CELL[i]]));
 // 그래프 색 설명(V1 지수 차트 범례와 같은 크기) — 세부내용 버튼·이슈 줄 오른쪽
 const GLG = `<span class="glg"><span class="lgi"><i class="sw sw-close"></i>종가</span><span class="lgi"><i class="sw sw-w5"></i>5주 <i class="sw sw-w10"></i>10주</span><span class="lgi"><i class="sw sw-w60"></i>60주</span><span class="lgi"><i class="sw sw-ma200"></i>200일</span></span>`;
+// 다른 지수 겹쳐 보기 칩(2026-10-14): 본인 페이지 지수는 빼고, 누른 카드에만 그 지수 종가(첫날 값을 맞춘 등락 비교)를 겹쳐 그림
+const XN = { kospi: '코스피', spx: 'S&P500', ndx: '나스닥' }, XC = { kospi: '#F2A65A', spx: '#5FB8E0', ndx: '#E87BA4' };
+const XOTH = Object.keys(XN).filter(k => k !== CFG.key);
+const XCHIPS = `<span class="xchips">${XOTH.map(k => `<button type="button" class="xchip" data-x="${k}" style="--xc:${XC[k]}" aria-pressed="false">${XN[k]}</button>`).join('')}</span>`;
 const cv = (k, inner, c2, id) => `<div class="cv${c2 ? ' ' + c2 : ''}"${id ? ` id="${id}"` : ''}><span class="k">${k}</span>${inner}</div>`;
 function skeleton(){
   $('c200').innerHTML = `
@@ -166,7 +170,7 @@ function skeleton(){
     <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">현재 ${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
     <div class="cards"><div class="case" id="lvRow">
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
-      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span>${GLG}</div>
+      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span>${GLG}${XCHIPS}</div>
       <div class="gch" id="lvG"></div>
       <div class="cgrid" hidden>${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>
     </div></div>
@@ -237,7 +241,7 @@ function card(c){
   const fast = c.stabDays != null && c.stabDays <= 5;
   return `<div class="case${fast ? ' fast' : ''}" data-case="${c.date}">
   <div class="ch"><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span><span class="rchip">${c.recN ? '지수회복 ' + c.recN + '일' : '지수회복 전'}</span></div>
-  <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}${GLG}</div>
+  <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}${GLG}${XCHIPS}</div>
   <div class="gch" data-g="${c.date}"></div>
   <div class="cgrid" hidden>${cardCells(c)}</div>
 </div>`;
@@ -337,6 +341,7 @@ function gSvg(ch){
   const keys = G_LINES.concat(['ma200']);
   const W = 660, PH = 170, pl = 4, pt = 4, pb = 26, H = pt + PH + pb, xr = W - 2;
   const vals = close.filter(v => v != null); keys.forEach(k => (ch[k] || []).forEach(v => { if(v != null) vals.push(v); }));
+  (ch.over || []).forEach(ov => ov.v.forEach(v => { if(v != null) vals.push(v); }));
   let lo = Math.min(...vals), hi = Math.max(...vals); if(hi === lo) hi = lo + 1;
   const mg = (hi - lo) * .06; lo -= mg; hi += mg;
   const x = i => pl + (xr - pl - 2) * i / (n - 1), y = v => pt + PH * (1 - (v - lo) / (hi - lo)), half = (xr - pl - 2) / (n - 1) / 2;
@@ -349,6 +354,10 @@ function gSvg(ch){
     if(a !== b){ const xv = x(i).toFixed(1); o.push(`<line class="an-ch-vl" x1="${xv}" x2="${xv}" y1="${pt}" y2="${pt + PH}"/><text class="an-ch-mo" x="${(x(i) + 2).toFixed(1)}" y="${pt + PH - 3}">${yearly ? "'" + a : parseInt(a, 10)}</text>`); }
   }
   keys.slice().reverse().forEach(k => { if(ch[k]) o.push(`<path class="an-ch-${k}" d="${gPath(ch[k], x, y)}"/>`); });
+  (ch.over || []).forEach(ov => {                             // 다른 지수: 전체는 흐리게, 그 지수가 자기 200일선 아래인 날만 진하게
+    o.push(`<path class="g-ov" style="stroke:${ov.color};opacity:.3" d="${gPath(ov.v, x, y)}"/>`);
+    o.push(`<path class="g-ov" style="stroke:${ov.color}" d="${gPath(ov.v.map((v, i) => ov.below[i] || ov.below[i - 1] || ov.below[i + 1] ? v : null), x, y)}"/>`);
+  });
   o.push(`<path class="an-ch-close" d="${gPath(close, x, y)}"/>`);
   (ch.gray || []).forEach(r => o.push(band(r, 'g-gray')));   // 핵심 구간 밖(좌우 채운 기간) = 검은색(0.5)으로 선 위를 덮음
   let lab = null;
@@ -396,9 +405,28 @@ async function gLongHistory(){
   })().catch(e => { gLongP = null; throw e; });
   return gLongP;
 }
-async function gHtml(key){
+const XSER = {};
+function xSeries(k){
+  if(!XSER[k]) XSER[k] = fetch(`crash200_series_${k}.json?v=${CFG.v || ''}`, { cache: 'no-cache' }).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(j => { const D = j.d.map(ymd), C = j.c; return { D, C, M: gRoll(C, 200), last: D[D.length - 1] }; })
+    .catch(e => { delete XSER[k]; throw e; });
+  return XSER[k];
+}
+let XREADY = null;                                             // 다른 지수 일봉(처음 그래프를 그릴 때 받아 둠)
+function xLoadAll(){ if(!XREADY) XREADY = Promise.all(XOTH.map(k => xSeries(k).then(v => [k, v]).catch(() => [k, null]))).then(Object.fromEntries); return XREADY; }
+function xAlign(S, dates){                                     // 날짜마다 그 지수의 같은 날(없으면 직전 거래일) 종가·200일선 아래 여부
+  let j = 0;
+  return dates.map(d => {
+    if(!S || d < S.D[0] || d > S.last) return null;
+    while(j + 1 < S.D.length && S.D[j + 1] <= d) j++;
+    while(j > 0 && S.D[j] > d) j--;
+    return { c: S.C[j], below: S.M[j] != null && S.C[j] < S.M[j] };
+  });
+}
+const GP = new WeakMap();                                      // 그래프 칸 → 그리기 값(칩을 누르면 다시 그림)
+async function gParams(key){
   if(key === 'live'){
-    const e = liveEp; if(!e) return '';
+    const e = liveEp; if(!e) return null;
     const per = G_PER.find(p => p[0] === gLivePer) || G_PER[1];
     let D = e.D, C = e.C, off = 0;
     if(per[2] + 330 > D.length){
@@ -407,20 +435,52 @@ async function gHtml(key){
     }
     const b = C.length - 1, a = Math.max(0, b - per[2] + 1);
     const tabs = `<div class="an-cper">${G_PER.map(([k, nm]) => `<button type="button" data-gper="${k}"${k === per[0] ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>`;
-    return tabs + gSvg(gChartData(D, C, a, b, { brk: e.b + off, stab: e.recovered ? e.runFromIdx + off : null }));
+    return { D, C, a, b, o: { brk: e.b + off, stab: e.recovered ? e.runFromIdx + off : null }, prefix: tabs };
   }
   const c = DATA.cases.find(x => x.date === key), g = c && c.g;
-  if(!g) return '<div class="gnone">그래프 자료 없음</div>';
+  if(!g) return null;
   const D = g.d.map(ymd);
-  return gSvg(gChartData(D, g.c, g.from, D.length - 1, { brk: g.brk, stab: g.stab, gray: g.gray }));
+  return { D, C: g.c, a: g.from, b: D.length - 1, o: { brk: g.brk, stab: g.stab, gray: g.gray }, prefix: '' };
+}
+// 그리기 + 이 카드 칩 상태(그 기간에 200일선 아래인 날이 없으면 흐리게·못 누름)
+function gRender(el, P){
+  if(!P){ el.innerHTML = '<div class="gnone">그래프 자료 없음</div>'; return; }
+  GP.set(el, P);
+  const ch = gChartData(P.D, P.C, P.a, P.b, P.o), cardEl = el.closest('.case'), dates = P.D.slice(P.a, P.b + 1);
+  const on = (cardEl && cardEl.dataset.x ? cardEl.dataset.x.split(',') : []).filter(Boolean);
+  ch.over = [];
+  const X = XREADY && XREADY.done;
+  if(X) on.forEach(k => {
+    const al = xAlign(X[k], dates), i0 = al.findIndex(v => v);
+    if(i0 < 0) return;
+    const f = P.C[P.a + i0] / al[i0].c;                        // 첫날(겹치는 첫날) 값을 같게 맞춤
+    ch.over.push({ color: XC[k], v: al.map(v => v ? v.c * f : null), below: al.map(v => !!(v && v.below)) });
+  });
+  el.innerHTML = P.prefix + gSvg(ch);
+  if(cardEl) cardEl.querySelectorAll('.xchip').forEach(b => {
+    const k = b.dataset.x, has = X ? xAlign(X[k], dates).some(v => v && v.below) : true;
+    b.disabled = !has; b.classList.toggle('na', !has);
+    const pressed = on.includes(k) && has; b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+  });
 }
 async function gDraw(el){
   if(!el) return;
   const key = el.id === 'lvG' ? 'live' : el.dataset.g;
   if(key !== 'live' && el.dataset.drawn) return;
   el.dataset.drawn = '1';
-  try{ el.innerHTML = await gHtml(key); }catch(e){ el.innerHTML = `<div class="gnone">그래프를 그리지 못함 (${esc(e.message || e)})</div>`; delete el.dataset.drawn; }
+  try{ gRender(el, await gParams(key)); }catch(e){ el.innerHTML = `<div class="gnone">그래프를 그리지 못함 (${esc(e.message || e)})</div>`; delete el.dataset.drawn; }
+  if(!XREADY) xLoadAll().then(X => {                            // 처음 받은 뒤: 이미 그린 그래프의 칩 상태를 갱신
+    XREADY.done = X;
+    document.querySelectorAll('.gch').forEach(g => { const P = GP.get(g); if(P) gRender(g, P); });
+  });
 }
+document.addEventListener('click', ev => {                     // 다른 지수 칩: 누른 카드에만 켜고 끔
+  const b = ev.target.closest('.xchip'); if(!b || b.disabled) return;
+  const cardEl = b.closest('.case'), g = cardEl.querySelector('.gch'), set = new Set((cardEl.dataset.x || '').split(',').filter(Boolean));
+  set.has(b.dataset.x) ? set.delete(b.dataset.x) : set.add(b.dataset.x);
+  cardEl.dataset.x = [...set].join(',');
+  const P = GP.get(g); if(P) gRender(g, P);
+});
 document.addEventListener('click', ev => {
   const bt = ev.target.closest('#lvG [data-gper]'); if(!bt) return;
   gLivePer = bt.dataset.gper; gDraw($('lvG'));
@@ -471,7 +531,7 @@ function archGraphs(){
     if(core < 63){ const pl = Math.floor((63 - core) / 2), L2 = Math.max(0, L - pl), R2 = Math.min(D.length - 1, R + (63 - core - pl));
       if(L2 < L) gray.push([L2, L - 1]); if(R2 > R) gray.push([R + 1, R2]); L = L2; R = R2; }
     el.dataset.drawn = '1';
-    el.innerHTML = gSvg(gChartData(D, C, L, R, { brk: b, stab: u, gray }));
+    gRender(el, { D, C, a: L, b: R, o: { brk: b, stab: u, gray }, prefix: '' });
   });
 }
 async function archSave(ep){
