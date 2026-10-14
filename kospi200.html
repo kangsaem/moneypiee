@@ -75,8 +75,9 @@ tr:last-child td{border-bottom:0}
 .issue{display:block;font-size:12px;font-weight:400;color:var(--text-dim);margin-top:2px;white-space:normal;max-width:240px}
 .up{color:var(--up)} .dn{color:var(--dn)} .dim{color:var(--text-dim);font-weight:400}
 table{table-layout:fixed}
-th:nth-child(1){width:24%} th:nth-child(2){width:11%} th:nth-child(3){width:10%} th:nth-child(4){width:13%}
-th:nth-child(5){width:17%} th:nth-child(6){width:17%} th:nth-child(7){width:8%}
+th:nth-child(1){width:23%} th:nth-child(2){width:11%} th:nth-child(3){width:12%} th:nth-child(4){width:14%}
+th:nth-child(5){width:15%} th:nth-child(6){width:10%} th:nth-child(7){width:15%}
+th{white-space:normal;word-break:keep-all;vertical-align:bottom}   /* 2026-10-14 열 이름이 길어져 줄바꿈 허용 */
 td{overflow-wrap:anywhere}
 .d.up{color:var(--up)} .d.dn{color:var(--dn)}
 .d{white-space:normal;display:block;font-size:11.5px;font-weight:400;color:var(--text-dim)}
@@ -130,6 +131,37 @@ body{margin:0}
   .tbl tr.hitrow{background:var(--upbg)}
 }
 html.embed .back{display:none;}
+/* 2026-10-14: ▲▼ 숫자 + 작은 %(머니파이 경제지표 모양), 당일 등락률 = 날짜 옆 하늘색 칩, 큰 값 + 작은 설명 */
+.pc{font-size:.7em;margin-left:1px}
+.chipv.day{background:#5FB8E0;color:#fff;font-size:11.5px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+.chipv.day.up{background:#E87BA4}
+#lvL1h{display:flex;align-items:baseline;gap:8px}
+#lvL1c{font-size:14px;font-weight:700}
+.acc.live>summary #lvL1c.up{color:#C2185B} .acc.live>summary #lvL1c.dn{color:#1565C0}
+td .big{font-weight:600}
+.gbtn{display:inline-block;margin-top:5px;font:inherit;font-size:11px;padding:1px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer}
+.gbtn[aria-expanded="true"]{color:var(--text);border-color:var(--sub)}
+tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
+@media (max-width:600px){ .tbl tr.grow{padding-top:0} .tbl tr.grow td::before{display:none} }
+/* 그래프: 머니파이 V1 지수 차트와 같은 모양(칩·설명 없음, 기간 고정) */
+.gch{--c5:#F472B6;--c20:#F87171;--cw5:#A3E635;--cw10:#22C55E;--cm5:#60A5FA;--cm10:#818CF8}
+.gch .an-lg{display:flex;flex-wrap:wrap;gap:3px 12px;align-items:center;font-size:10.5px;color:var(--text-dim);margin:2px 0}
+.gch .an-lgi{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.gch .an-sw{display:inline-block;width:9px;height:9px;border-radius:2px}
+.gch .an-sw-close{background:var(--text);border-radius:50%} .gch .an-sw-ma5{background:var(--c5)} .gch .an-sw-ma20{background:var(--c20)}
+.gch .an-sw-w5{background:var(--cw5)} .gch .an-sw-w10{background:var(--cw10)} .gch .an-sw-m5{background:var(--cm5)} .gch .an-sw-m10{background:var(--cm10)} .gch .an-sw-ma200{background:#FF0000}
+.gch .an-svgbox{position:relative}
+.gch .an-chart{width:100%;height:auto;display:block}
+.gch .an-chart path{fill:none;stroke-linejoin:round;stroke-linecap:round;stroke-width:1px;vector-effect:non-scaling-stroke}
+.gch .an-chart line{vector-effect:non-scaling-stroke;stroke-width:1px}
+.gch .an-ch-bg{fill:none;stroke:var(--border)}
+.gch .an-ch-close{stroke:var(--text);stroke-width:1.4px!important}
+.gch .an-ch-ma5{stroke:var(--c5)} .gch .an-ch-ma20{stroke:var(--c20)} .gch .an-ch-w5{stroke:var(--cw5)} .gch .an-ch-w10{stroke:var(--cw10)}
+.gch .an-ch-m5{stroke:var(--cm5)} .gch .an-ch-m10{stroke:var(--cm10)} .gch .an-ch-ma200{stroke:#FF0000}
+.gch .an-ch-vl{stroke:var(--text);opacity:.1} .gch .an-ch-mo{fill:var(--text-dim);font-size:9px} .gch .an-ch-t{fill:var(--text-dim);font-size:9px}
+.gch .an-lastdot{position:absolute;width:9px;height:9px;border-radius:50%;background:#FFFFFF;border:2px solid #1E1F22;box-shadow:0 0 0 1px rgba(255,255,255,.35);transform:translate(-50%,-50%);box-sizing:border-box;pointer-events:none}
+.gch .an-lastlbl{position:absolute;transform:translateY(-100%);font-size:11px;font-weight:700;line-height:1;white-space:nowrap;color:var(--text);text-shadow:0 0 3px var(--surface),0 0 3px var(--surface);pointer-events:none}
+.gch .gnone{font-size:12px;color:var(--text-dim);padding:6px 0}
 .back{display:inline-flex;align-items:center;gap:7px;margin:2px 0 12px;font-size:18px;color:var(--text);text-decoration:none;} .back b{font-weight:700}
 </style>
 </head>
@@ -139,21 +171,21 @@ html.embed .back{display:none;}
 <div class="wrap">
   <a class="back" href="/" onclick="try{if(document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1){history.back();return false;}}catch(e){}"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" style="flex-shrink:0"><path d="M10.5 2.5 5 8l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><img src="apple-touch-icon_old.png" alt="" style="width:22px;height:22px;border-radius:6px"><b>머니파이</b></a>
   <details class="sec acc live" id="live" open>
-    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1">코스피 –</span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
+    <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">코스피 –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>200일선 이탈일</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>상회일수</th><th>실패</th>
+        <th>200일선 이탈일</th><th>전날 200일선 대비위치</th><th>이후 바닥까지</th><th>60주선까지</th><th>최근 200일선 돌파후</th><th>돌파후 재이탈</th><th>지수회복까지</th>
       </tr></thead>
       <tbody>
         <tr id="lvRow">
-          <td><span class="date" id="lvDate">–</span></td>
-          <td id="lvChg">–</td>
+          <td><span class="date" id="lvDate">–</span><span id="lvChg"></span></td>
           <td id="lvPrevGap">–</td>
           <td id="lvDrop" class="dim">–</td>
           <td id="lvW60">–</td>
           <td id="lvUp" class="dim">–</td>
           <td id="lvFail" class="dim">–</td>
+          <td id="lvRec" class="dim">–</td>
         </tr>
       </tbody>
       </table>
@@ -161,192 +193,170 @@ html.embed .back{display:none;}
   </details>
 
   <details class="sec acc key" data-band="5">
-    <summary><span class="st">전날 200일선 위 → 당일 -5% 이상 하락하며 이탈한 사례</span><span class="meta">4건 · 전날 위치 +1.8~5.7% · 회복까지 중간값 149거래일</span></summary>
+    <summary><span class="st">전날 200일선 위 → 당일 -5% 이상 하락하며 이탈</span><span class="meta">4건 · 전날 200일선 대비 +1.8~5.7% · 200일선 안정 중간값 149거래일</span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
+        <th>이탈일 · 이슈</th><th>전날 200일선 대비위치</th><th>이후 바닥까지</th><th>60주선까지</th><th>200일선 안정</th><th>돌파후 재이탈</th><th>지수회복까지</th>
       </tr></thead>
       <tbody>
-        <tr>
-          <td><span class="date">2002-06-26</span><span class="issue">미국 회계부정(월드컴)</span><span class="d">-2% 이상 재이탈 · 07-22, 07-24</span></td>
-          <td class="dn">-7.15%</td><td class="up">+5.3%</td><td class="dn">-26.6%<span class="d">178거래일 뒤</span></td><td>20거래일<span class="d">이탈일 +3.0% 위</span></td>
-          
-          <td>2003-06-04<span class="d">232거래일 후</span></td><td>3회</td>
+        <tr data-case="2002-06-26">
+          <td><span class="date">2002-06-26</span><span class="chipv day">▼7.15<span class="pc">%</span></span><span class="issue">미국 회계부정(월드컴)</span><span class="d">-2% 이상 재이탈 · 07-22, 07-24</span></td>
+          <td class="up">▲5.3<span class="pc">%</span></td><td class="dn">▼26.6<span class="pc">%</span><span class="d">178거래일 뒤</span></td><td>20거래일<span class="d">이탈일 +3.0% 위</span></td>
+          <td><span class="big">232거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼15.3<span class="pc">%</span></span></span></td><td>3회</td><td><span class="big">5거래일 후</span><span class="d">2002-07-04</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2004-05-10</span><span class="issue">차이나 쇼크</span><span class="d">-2% 이상 재이탈 · 05-13, 10-25</span></td>
-          <td class="dn">-5.73%</td><td class="up">+4.0%</td><td class="dn">-9.0%<span class="d">59거래일 뒤</span></td><td>5거래일<span class="d">이탈일 +4.1% 위</span></td>
-          
-          <td>2004-10-28<span class="d">119거래일 후</span></td><td>6회</td>
+        <tr data-case="2004-05-10">
+          <td><span class="date">2004-05-10</span><span class="chipv day">▼5.73<span class="pc">%</span></span><span class="issue">차이나 쇼크</span><span class="d">-2% 이상 재이탈 · 05-13, 10-25</span></td>
+          <td class="up">▲4.0<span class="pc">%</span></td><td class="dn">▼9.0<span class="pc">%</span><span class="d">59거래일 뒤</span></td><td>5거래일<span class="d">이탈일 +4.1% 위</span></td>
+          <td><span class="big">119거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼0.6<span class="pc">%</span></span></span></td><td>6회</td><td><span class="big">89거래일 후</span><span class="d">2004-09-13</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2024-08-05</span><span class="issue">엔캐리 트레이드 청산</span><span class="d">-2% 이상 재이탈 · 09-04, 2025-02-28</span></td>
-          <td class="dn">-8.77%</td><td class="up">+1.8%</td><td class="dn">-6.1%<span class="d">162거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -6.2%</span></td>
-          
-          <td>2025-05-07<span class="d">179거래일 후</span></td><td>4회</td>
+        <tr data-case="2024-08-05">
+          <td><span class="date">2024-08-05</span><span class="chipv day">▼8.77<span class="pc">%</span></span><span class="issue">엔캐리 트레이드 청산</span><span class="d">-2% 이상 재이탈 · 09-04, 2025-02-28</span></td>
+          <td class="up">▲1.8<span class="pc">%</span></td><td class="dn">▼6.1<span class="pc">%</span><span class="d">162거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -6.2%</span></td>
+          <td><span class="big">179거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼3.8<span class="pc">%</span></span></span></td><td>4회</td><td><span class="big">8거래일 후</span><span class="d">2024-08-16</span></td>
         </tr>
-        <tr class="fast">
-          <td><span class="date">2026-07-29</span><span class="issue">반도체 대형주 급락</span></td>
-          <td class="dn">-5.98%</td><td class="up">+5.7%</td><td class="dn">-1.2%<span class="d">다음 날</span></td><td class="dim">미도달<span class="d">60주선 +12.8% 위</span></td>
-          
-          <td>2026-07-31<span class="badge">즉시</span><span class="d">2거래일 후</span></td><td>0회</td>
+        <tr class="fast" data-case="2026-07-29">
+          <td><span class="date">2026-07-29</span><span class="chipv day">▼5.98<span class="pc">%</span></span><span class="issue">반도체 대형주 급락</span></td>
+          <td class="up">▲5.7<span class="pc">%</span></td><td class="dn">▼1.2<span class="pc">%</span><span class="d">다음 날</span></td><td class="dim">미도달<span class="d">60주선 +12.8% 위</span></td>
+          <td><span class="big">2거래일 후</span><span class="badge">즉시</span><span class="d">이탈 전날 대비 <span class="up">▲9.5<span class="pc">%</span></span></span></td><td>0회</td><td><span class="big">2거래일 후</span><span class="d">2026-07-31</span></td>
         </tr>
       </tbody>
       </table>
     </div>
   </details>
   <details class="sec acc" data-band="3">
-    <summary><span class="st">전날 200일선 위 → 당일 -3~-5% 하락하며 이탈한 사례</span><span class="meta">2건 · 전날 위치 +3.1~4.0% · 회복까지 중간값 255거래일</span></summary>
+    <summary><span class="st">전날 200일선 위 → 당일 -3~-5% 하락하며 이탈</span><span class="meta">2건 · 전날 200일선 대비 +3.1~4.0% · 200일선 안정 중간값 255거래일</span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
+        <th>이탈일 · 이슈</th><th>전날 200일선 대비위치</th><th>이후 바닥까지</th><th>60주선까지</th><th>200일선 안정</th><th>돌파후 재이탈</th><th>지수회복까지</th>
       </tr></thead>
       <tbody>
-        <tr>
-          <td><span class="date">2000-01-25</span><span class="issue">IT버블 붕괴</span><span class="d">-2% 이상 재이탈 · 02-15, 03-09, 2001-07-09, 2001-08-09</span></td>
-          <td class="dn">-3.84%</td><td class="up">+4.0%</td><td class="dn">-47.4%<span class="d">401거래일 뒤</span></td><td>23거래일<span class="d">이탈일 +11.5% 위</span></td>
-          
-          <td>2001-11-05<span class="d">433거래일 후</span></td><td>5회</td>
+        <tr data-case="2000-01-25">
+          <td><span class="date">2000-01-25</span><span class="chipv day">▼3.84<span class="pc">%</span></span><span class="issue">IT버블 붕괴</span><span class="d">-2% 이상 재이탈 · 02-15, 03-09, 2001-07-09, 2001-08-09</span></td>
+          <td class="up">▲4.0<span class="pc">%</span></td><td class="dn">▼47.4<span class="pc">%</span><span class="d">401거래일 뒤</span></td><td>23거래일<span class="d">이탈일 +11.5% 위</span></td>
+          <td><span class="big">433거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼39.4<span class="pc">%</span></span></span></td><td>5회</td><td><span class="big">3거래일 후</span><span class="d">2000-01-28</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2020-02-24</span><span class="issue">코로나19</span><span class="d">-2% 이상 재이탈 · 06-15</span></td>
-          <td class="dn">-3.87%</td><td class="up">+3.1%</td><td class="dn">-29.9%<span class="d">18거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -2.0%</span></td>
-          
-          <td>2020-06-16<span class="d">77거래일 후</span></td><td>3회</td>
+        <tr data-case="2020-02-24">
+          <td><span class="date">2020-02-24</span><span class="chipv day">▼3.87<span class="pc">%</span></span><span class="issue">코로나19</span><span class="d">-2% 이상 재이탈 · 06-15</span></td>
+          <td class="up">▲3.1<span class="pc">%</span></td><td class="dn">▼29.9<span class="pc">%</span><span class="d">18거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -2.0%</span></td>
+          <td><span class="big">77거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼1.1<span class="pc">%</span></span></span></td><td>3회</td><td><span class="big">70거래일 후</span><span class="d">2020-06-05</span></td>
         </tr>
       </tbody>
       </table>
     </div>
   </details>
   <details class="sec acc" data-band="2">
-    <summary><span class="st">전날 200일선 위 → 당일 -2~-3% 하락하며 이탈한 사례</span><span class="meta">3건 · 전날 위치 +0.8~1.8% · 회복까지 중간값 308거래일</span></summary>
+    <summary><span class="st">전날 200일선 위 → 당일 -2~-3% 하락하며 이탈</span><span class="meta">3건 · 전날 200일선 대비 +0.8~1.8% · 200일선 안정 중간값 308거래일</span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
+        <th>이탈일 · 이슈</th><th>전날 200일선 대비위치</th><th>이후 바닥까지</th><th>60주선까지</th><th>200일선 안정</th><th>돌파후 재이탈</th><th>지수회복까지</th>
       </tr></thead>
       <tbody>
-        <tr>
-          <td><span class="date">2008-01-11</span><span class="issue">글로벌 금융위기</span><span class="d">-2% 이상 재이탈 · 2009-04-08</span></td>
-          <td class="dn">-2.33%</td><td class="up">+1.5%</td><td class="dn">-47.3%<span class="d">194거래일 뒤</span></td><td>4거래일<span class="d">이탈일 +5.4% 위</span></td>
-          
-          <td>2009-04-09<span class="d">308거래일 후</span></td><td>6회</td>
+        <tr data-case="2008-01-11">
+          <td><span class="date">2008-01-11</span><span class="chipv day">▼2.33<span class="pc">%</span></span><span class="issue">글로벌 금융위기</span><span class="d">-2% 이상 재이탈 · 2009-04-08</span></td>
+          <td class="up">▲1.5<span class="pc">%</span></td><td class="dn">▼47.3<span class="pc">%</span><span class="d">194거래일 뒤</span></td><td>4거래일<span class="d">이탈일 +5.4% 위</span></td>
+          <td><span class="big">308거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼27.9<span class="pc">%</span></span></span></td><td>6회</td><td><span class="big">74거래일 후</span><span class="d">2008-04-30</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2011-08-04</span><span class="issue">미국 신용등급 강등 · 유럽 재정위기</span></td>
-          <td class="dn">-2.31%</td><td class="up">+0.8%</td><td class="dn">-18.1%<span class="d">34거래일 뒤</span></td><td>1거래일<span class="d">이탈일 +2.4% 위</span></td>
-          
-          <td>2012-01-31<span class="d">121거래일 후</span></td><td>1회</td>
+        <tr data-case="2011-08-04">
+          <td><span class="date">2011-08-04</span><span class="chipv day">▼2.31<span class="pc">%</span></span><span class="issue">미국 신용등급 강등 · 유럽 재정위기</span></td>
+          <td class="up">▲0.8<span class="pc">%</span></td><td class="dn">▼18.1<span class="pc">%</span><span class="d">34거래일 뒤</span></td><td>1거래일<span class="d">이탈일 +2.4% 위</span></td>
+          <td><span class="big">121거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼5.3<span class="pc">%</span></span></span></td><td>1회</td><td><span class="big">739거래일 후</span><span class="d">2014-07-30</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2018-02-07</span><span class="issue">미중 무역분쟁</span><span class="d">-2% 이상 재이탈 · 03-23</span></td>
-          <td class="dn">-2.31%</td><td class="up">+1.8%</td><td class="dn">-20.3%<span class="d">366거래일 뒤</span></td><td>74거래일<span class="d">이탈일 +3.4% 위</span></td>
-          
-          <td>2019-12-10<span class="d">450거래일 후</span></td><td>18회</td>
+        <tr data-case="2018-02-07">
+          <td><span class="date">2018-02-07</span><span class="chipv day">▼2.31<span class="pc">%</span></span><span class="issue">미중 무역분쟁</span><span class="d">-2% 이상 재이탈 · 03-23</span></td>
+          <td class="up">▲1.8<span class="pc">%</span></td><td class="dn">▼20.3<span class="pc">%</span><span class="d">366거래일 뒤</span></td><td>74거래일<span class="d">이탈일 +3.4% 위</span></td>
+          <td><span class="big">450거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼14.5<span class="pc">%</span></span></span></td><td>18회</td><td><span class="big">11거래일 후</span><span class="d">2018-02-26</span></td>
         </tr>
       </tbody>
       </table>
     </div>
   </details>
   <details class="sec acc" data-band="1">
-    <summary><span class="st">전날 200일선 위 → 당일 -1~-2% 하락하며 이탈한 사례</span><span class="meta">10건 · 전날 위치 +0.0~1.5% · 회복까지 중간값 113거래일</span></summary>
+    <summary><span class="st">전날 200일선 위 → 당일 -1~-2% 하락하며 이탈</span><span class="meta">10건 · 전날 200일선 대비 +0.0~1.5% · 200일선 안정 중간값 113거래일</span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
+        <th>이탈일 · 이슈</th><th>전날 200일선 대비위치</th><th>이후 바닥까지</th><th>60주선까지</th><th>200일선 안정</th><th>돌파후 재이탈</th><th>지수회복까지</th>
       </tr></thead>
       <tbody>
-        <tr>
-          <td><span class="date">1996-05-21</span><span class="issue miss">이슈 확인 못 함</span></td>
-          <td class="dn">-1.62%</td><td class="up">+1.3%</td><td class="dn">-33.6%<span class="d">183거래일 뒤</span></td><td class="dim">–<span class="d">60주 자료 부족</span></td>
-          
-          <td>1997-05-19<span class="d">289거래일 후</span></td><td>1회</td>
+        <tr data-case="1996-05-21">
+          <td><span class="date">1996-05-21</span><span class="chipv day">▼1.62<span class="pc">%</span></span><span class="issue miss">이슈 확인 못 함</span></td>
+          <td class="up">▲1.3<span class="pc">%</span></td><td class="dn">▼33.6<span class="pc">%</span><span class="d">183거래일 뒤</span></td><td class="dim">–<span class="d">60주 자료 부족</span></td>
+          <td><span class="big">289거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼22.9<span class="pc">%</span></span></span></td><td>1회</td><td><span class="big">888거래일 후</span><span class="d">1999-07-05</span></td>
         </tr>
-        <tr>
-          <td><span class="date">1997-08-29</span><span class="issue big">외환위기(IMF)</span><span class="d">-2% 이상 재이탈 · 1998-10-19, 1998-10-27</span></td>
-          <td class="dn">-1.76%</td><td class="up">+0.9%</td><td><span class="chipv big">-60.2%</span><span class="d">231거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -4.4%</span></td>
-          
-          <td>1998-10-29<span class="d">342거래일 후</span></td><td>2회</td>
+        <tr data-case="1997-08-29">
+          <td><span class="date">1997-08-29</span><span class="chipv day">▼1.76<span class="pc">%</span></span><span class="issue big">외환위기(IMF)</span><span class="d">-2% 이상 재이탈 · 1998-10-19, 1998-10-27</span></td>
+          <td class="up">▲0.9<span class="pc">%</span></td><td><span class="chipv big">▼60.2<span class="pc">%</span></span><span class="d">231거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -4.4%</span></td>
+          <td><span class="big">342거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼48.3<span class="pc">%</span></span></span></td><td>2회</td><td><span class="big">458거래일 후</span><span class="d">1999-04-15</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2006-06-01</span><span class="issue">글로벌 긴축 우려</span><span class="d">-2% 이상 재이탈 · 06-07, 10-09</span></td>
-          <td class="dn">-1.72%</td><td class="up">+1.5%</td><td class="dn">-7.0%<span class="d">7거래일 뒤</span></td><td>6거래일<span class="d">이탈일 +6.9% 위</span></td>
-          
-          <td>2006-10-13<span class="d">90거래일 후</span></td><td>5회</td>
+        <tr data-case="2006-06-01">
+          <td><span class="date">2006-06-01</span><span class="chipv day">▼1.72<span class="pc">%</span></span><span class="issue">글로벌 긴축 우려</span><span class="d">-2% 이상 재이탈 · 06-07, 10-09</span></td>
+          <td class="up">▲1.5<span class="pc">%</span></td><td class="dn">▼7.0<span class="pc">%</span><span class="d">7거래일 뒤</span></td><td>6거래일<span class="d">이탈일 +6.9% 위</span></td>
+          <td><span class="big">90거래일 후</span><span class="d">이탈 전날 대비 <span class="up">▲2.3<span class="pc">%</span></span></span></td><td>5회</td><td><span class="big">52거래일 후</span><span class="d">2006-08-17</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2013-04-05</span><span class="issue">엔저 · 북한 리스크</span></td>
-          <td class="dn">-1.64%</td><td class="up">+1.1%</td><td class="dn">-7.6%<span class="d">54거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -0.9%</span></td>
-          
-          <td>2013-09-05<span class="d">105거래일 후</span></td><td>4회</td>
+        <tr data-case="2013-04-05">
+          <td><span class="date">2013-04-05</span><span class="chipv day">▼1.64<span class="pc">%</span></span><span class="issue">엔저 · 북한 리스크</span></td>
+          <td class="up">▲1.1<span class="pc">%</span></td><td class="dn">▼7.6<span class="pc">%</span><span class="d">54거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -0.9%</span></td>
+          <td><span class="big">105거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼0.4<span class="pc">%</span></span></span></td><td>4회</td><td><span class="big">17거래일 후</span><span class="d">2013-04-30</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2014-01-03</span><span class="issue">엔저 · 삼성전자 실적 우려</span></td>
-          <td class="dn">-1.07%</td><td class="up">+0.7%</td><td class="dn">-3.0%<span class="d">20거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -0.7%</span></td>
-          
-          <td>2014-06-26<span class="d">117거래일 후</span></td><td>8회</td>
+        <tr data-case="2014-01-03">
+          <td><span class="date">2014-01-03</span><span class="chipv day">▼1.07<span class="pc">%</span></span><span class="issue">엔저 · 삼성전자 실적 우려</span></td>
+          <td class="up">▲0.7<span class="pc">%</span></td><td class="dn">▼3.0<span class="pc">%</span><span class="d">20거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -0.7%</span></td>
+          <td><span class="big">117거래일 후</span><span class="d">이탈 전날 대비 <span class="up">▲1.4<span class="pc">%</span></span></span></td><td>8회</td><td><span class="big">13거래일 후</span><span class="d">2014-01-22</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2014-10-01</span><span class="issue miss">이슈 확인 못 함</span></td>
-          <td class="dn">-1.41%</td><td class="up">+1.4%</td><td class="dn">-5.5%<span class="d">64거래일 뒤</span></td><td>당일<span class="d">이탈일 +0.0% 위</span></td>
-          
-          <td>2015-03-13<span class="d">109거래일 후</span></td><td>1회</td>
+        <tr data-case="2014-10-01">
+          <td><span class="date">2014-10-01</span><span class="chipv day">▼1.41<span class="pc">%</span></span><span class="issue miss">이슈 확인 못 함</span></td>
+          <td class="up">▲1.4<span class="pc">%</span></td><td class="dn">▼5.5<span class="pc">%</span><span class="d">64거래일 뒤</span></td><td>당일<span class="d">이탈일 +0.0% 위</span></td>
+          <td><span class="big">109거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼1.7<span class="pc">%</span></span></span></td><td>1회</td><td><span class="big">111거래일 후</span><span class="d">2015-03-17</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2015-08-03</span><span class="issue">중국 증시 폭락 · 위안화 절하</span><span class="d">-2% 이상 재이탈 · 2016-06-24</span></td>
-          <td class="dn">-1.07%</td><td class="up">+1.0%</td><td class="dn">-8.9%<span class="d">14거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -0.3%</span></td>
-          
-          <td>2016-07-11<span class="d">230거래일 후</span></td><td>13회</td>
+        <tr data-case="2015-08-03">
+          <td><span class="date">2015-08-03</span><span class="chipv day">▼1.07<span class="pc">%</span></span><span class="issue">중국 증시 폭락 · 위안화 절하</span><span class="d">-2% 이상 재이탈 · 2016-06-24</span></td>
+          <td class="up">▲1.0<span class="pc">%</span></td><td class="dn">▼8.9<span class="pc">%</span><span class="d">14거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -0.3%</span></td>
+          <td><span class="big">230거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼2.0<span class="pc">%</span></span></span></td><td>13회</td><td><span class="big">49거래일 후</span><span class="d">2015-10-15</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2016-11-02</span><span class="issue">미국 대선(트럼프 당선)</span><span class="d">-2% 이상 재이탈 · 11-09</span></td>
-          <td class="dn">-1.42%</td><td class="up">+1.1%</td><td class="dn">-1.0%<span class="d">5거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -0.3%</span></td>
-          
-          <td>2016-12-08<span class="d">26거래일 후</span></td><td>2회</td>
+        <tr data-case="2016-11-02">
+          <td><span class="date">2016-11-02</span><span class="chipv day">▼1.42<span class="pc">%</span></span><span class="issue">미국 대선(트럼프 당선)</span><span class="d">-2% 이상 재이탈 · 11-09</span></td>
+          <td class="up">▲1.1<span class="pc">%</span></td><td class="dn">▼1.0<span class="pc">%</span><span class="d">5거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -0.3%</span></td>
+          <td><span class="big">26거래일 후</span><span class="d">이탈 전날 대비 <span class="up">▲1.2<span class="pc">%</span></span></span></td><td>2회</td><td><span class="big">26거래일 후</span><span class="d">2016-12-08</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2021-09-28</span><span class="issue">미국 긴축 · 인플레(2022 하락장)</span><span class="d">-2% 이상 재이탈 · 2023-03-14</span></td>
-          <td class="dn">-1.14%</td><td class="up">+0.4%</td><td class="dn">-30.4%<span class="d">249거래일 뒤</span></td><td>5거래일<span class="d">이탈일 +6.1% 위</span></td>
-          
-          <td>2023-03-22<span class="d">366거래일 후</span></td><td>5회</td>
+        <tr data-case="2021-09-28">
+          <td><span class="date">2021-09-28</span><span class="chipv day">▼1.14<span class="pc">%</span></span><span class="issue">미국 긴축 · 인플레(2022 하락장)</span><span class="d">-2% 이상 재이탈 · 2023-03-14</span></td>
+          <td class="up">▲0.4<span class="pc">%</span></td><td class="dn">▼30.4<span class="pc">%</span><span class="d">249거래일 뒤</span></td><td>5거래일<span class="d">이탈일 +6.1% 위</span></td>
+          <td><span class="big">366거래일 후</span><span class="d">이탈 전날 대비 <span class="dn">▼22.9<span class="pc">%</span></span></span></td><td>5회</td><td><span class="big">925거래일 후</span><span class="d">2025-07-09</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2023-09-26</span><span class="issue">미국 고금리 장기화</span></td>
-          <td class="dn">-1.31%</td><td class="up">+0.0%</td><td class="dn">-7.5%<span class="d">20거래일 뒤</span></td><td>1거래일<span class="d">이탈일 +0.2% 위</span></td>
-          
-          <td>2024-02-01<span class="d">84거래일 후</span></td><td>4회</td>
+        <tr data-case="2023-09-26">
+          <td><span class="date">2023-09-26</span><span class="chipv day">▼1.31<span class="pc">%</span></span><span class="issue">미국 고금리 장기화</span></td>
+          <td class="">0.0<span class="pc">%</span></td><td class="dn">▼7.5<span class="pc">%</span><span class="d">20거래일 뒤</span></td><td>1거래일<span class="d">이탈일 +0.2% 위</span></td>
+          <td><span class="big">84거래일 후</span><span class="d">이탈 전날 대비 <span class="up">▲1.9<span class="pc">%</span></span></span></td><td>4회</td><td><span class="big">24거래일 후</span><span class="d">2023-11-06</span></td>
         </tr>
       </tbody>
       </table>
     </div>
   </details>
   <details class="sec acc" data-band="0">
-    <summary><span class="st">전날 200일선 위 → 당일 0~-1% 하락하며 이탈한 사례</span><span class="meta">3건 · 전날 위치 +0.2~0.8% · 회복까지 중간값 15거래일</span></summary>
+    <summary><span class="st">전날 200일선 위 → 당일 0~-1% 하락하며 이탈</span><span class="meta">3건 · 전날 200일선 대비 +0.2~0.8% · 200일선 안정 중간값 15거래일</span></summary>
     <div class="tbl">
       <table>
       <thead><tr>
-        <th>이탈일 · 이슈</th><th>당일 등락률</th><th>전날 위치</th><th>이후 추가 하락</th><th>60주선 도달</th><th>회복까지</th><th>실패</th>
+        <th>이탈일 · 이슈</th><th>전날 200일선 대비위치</th><th>이후 바닥까지</th><th>60주선까지</th><th>200일선 안정</th><th>돌파후 재이탈</th><th>지수회복까지</th>
       </tr></thead>
       <tbody>
-        <tr class="fast">
-          <td><span class="date">2010-02-08</span><span class="issue">남유럽 재정위기</span></td>
-          <td class="dn">-0.91%</td><td class="up">+0.8%</td><td class="dim">없음</td><td class="dim">미도달<span class="d">60주선 +7.4% 위</span></td>
-          
-          <td>2010-02-09<span class="badge">즉시</span><span class="d">1거래일 후</span></td><td>0회</td>
+        <tr class="fast" data-case="2010-02-08">
+          <td><span class="date">2010-02-08</span><span class="chipv day">▼0.91<span class="pc">%</span></span><span class="issue">남유럽 재정위기</span></td>
+          <td class="up">▲0.8<span class="pc">%</span></td><td class="dim">없음</td><td class="dim">미도달<span class="d">60주선 +7.4% 위</span></td>
+          <td><span class="big">1거래일 후</span><span class="badge">즉시</span><span class="d">이탈 전날 대비 <span class="up">▲0.2<span class="pc">%</span></span></span></td><td>0회</td><td><span class="big">1거래일 후</span><span class="d">2010-02-09</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2010-05-18</span><span class="issue">유럽 재정위기</span></td>
-          <td class="dn">-0.50%</td><td class="up">+0.4%</td><td class="dn">-5.0%<span class="d">4거래일 뒤</span></td><td>4거래일<span class="d">이탈일 +4.5% 위</span></td>
-          
-          <td>2010-06-10<span class="d">15거래일 후</span></td><td>2회</td>
+        <tr data-case="2010-05-18">
+          <td><span class="date">2010-05-18</span><span class="chipv day">▼0.50<span class="pc">%</span></span><span class="issue">유럽 재정위기</span></td>
+          <td class="up">▲0.4<span class="pc">%</span></td><td class="dn">▼5.0<span class="pc">%</span><span class="d">4거래일 뒤</span></td><td>4거래일<span class="d">이탈일 +4.5% 위</span></td>
+          <td><span class="big">15거래일 후</span><span class="d">이탈 전날 대비 <span class="up">▲0.0<span class="pc">%</span></span></span></td><td>2회</td><td><span class="big">10거래일 후</span><span class="d">2010-06-03</span></td>
         </tr>
-        <tr>
-          <td><span class="date">2012-05-15</span><span class="issue">그리스 유로존 탈퇴 우려</span></td>
-          <td class="dn">-0.77%</td><td class="up">+0.2%</td><td class="dn">-6.8%<span class="d">49거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -3.6%</span></td>
-          
-          <td>2012-11-29<span class="d">137거래일 후</span></td><td>6회</td>
+        <tr data-case="2012-05-15">
+          <td><span class="date">2012-05-15</span><span class="chipv day">▼0.77<span class="pc">%</span></span><span class="issue">그리스 유로존 탈퇴 우려</span></td>
+          <td class="up">▲0.2<span class="pc">%</span></td><td class="dn">▼6.8<span class="pc">%</span><span class="d">49거래일 뒤</span></td><td class="dim">이미 아래<span class="d">60주선 -3.6%</span></td>
+          <td><span class="big">137거래일 후</span><span class="d">이탈 전날 대비 <span class="up">▲1.1<span class="pc">%</span></span></span></td><td>6회</td><td><span class="big">60거래일 후</span><span class="d">2012-08-09</span></td>
         </tr>
       </tbody>
       </table>
@@ -355,11 +365,12 @@ html.embed .back{display:none;}
   <div class="note">
     <b>요약</b>
     <ul>
-      <li>회복 = 200일선 위 40거래일 유지. 추가 하락 = 이탈일 종가 → 회복 전까지 최저 종가(중간에 잠깐 200일선 위로 올라가도 이어서 셈)</li>
+      <li>200일선 안정 = 200일선 위 40거래일 유지(그 첫날까지 거래일 수, 아래 줄은 이탈 전날 지수 대비 안정 첫날 지수). 이후 바닥까지 = 이탈일 종가 → 안정 전까지 최저 종가(중간에 잠깐 200일선 위로 올라가도 이어서 셈)</li>
+      <li>지수회복까지 = 이탈 전날 종가 이상으로 처음 돌아온 날. 돌파후 재이탈 = 40거래일을 못 버티고 다시 깬 횟수. 그래프 = 이탈 전날부터 안정일·지수회복일 중 늦은 날까지</li>
       <li>사례 = 회복된 상태에서 처음 200일선을 깬 날(국면당 한 줄, 1996~2026년 22개 국면 전부). 회복 전 재이탈은 같은 국면으로 묶고 -2% 이상 재이탈 날짜만 줄 안에 표시</li>
       <li>추가 하락이 컸던 경우: 1997-08-29 -60.2% (외환위기(IMF)), 2000-01-25 -47.4% (IT버블 붕괴), 2008-01-11 -47.3% (글로벌 금융위기), 1996-05-21 -33.6%, 2021-09-28 -30.4% (미국 긴축 · 인플레(2022 하락장)).</li>
       <li>22개 중 즉시 회복(5거래일 안)은 2번뿐: 2010-02-08 · 2026-07-29 — 둘 다 60주선에 닿지 않음</li>
-      <li>60주선에 닿은(또는 이탈일에 이미 아래) 19개 국면: 회복까지 최소 15거래일(2010-05-18) · 평균 186거래일 · 중간값 121거래일. 한 달 안 회복은 1번뿐 (1996-05-21은 60주선 자료 부족으로 제외)</li>
+      <li>60주선에 닿은(또는 이탈일에 이미 아래) 19개 국면: 200일선 안정까지 최소 15거래일(2010-05-18) · 평균 186거래일 · 중간값 121거래일. 한 달 안 회복은 1번뿐 (1996-05-21은 60주선 자료 부족으로 제외)</li>
       <li>첫날 낙폭이 작아도 크게 빠진 국면이 있음(1997 외환위기 첫날 -1.76%). 다만 첫날 -2% 이상 9개 중 6개, -1~-2% 10개 중 3개, 0~-1% 3개 중 0개가 10% 넘게 더 빠짐</li>
       <li class="hl2">-5% 이상 (4건): 추가 하락 -26.6% · -9.0% · -6.1% · -1.2% (중간값 -7.5%)</li>
       <li class="hl2">-3~-5% (2건): 추가 하락 -47.4% · -29.9% (중간값 -38.6%)</li>
@@ -377,11 +388,11 @@ html.embed .back{display:none;}
   <div class="note">
     <b>한계</b>
     <ul>
-      <li>표: 데이터 1995-05-02~2026-09-17 (KRX 원천). 200일선은 1996-01-05부터 계산됨. 1995년 이전은 확인 못 함.</li>
+      <li>표: 데이터 1995-05-02~2026-09-17 (KRX 원천). 200일선은 1996-01-05부터 계산됨. 1995년 이전은 확인 못 함. 안정 대비·지수회복·그래프는 2026-10-13까지 자료로 계산(안정일은 기존 표와 22건 모두 같음).</li>
       <li>오늘 칸: 네이버 실시간 지수·일봉(머니파이와 같은 경로). 200일선·60주선은 리로드할 때마다 그 시점 현재가를 넣어 다시 계산함.</li>
       <li>그룹별 사례가 2~10건(전체 22개 국면)이라 패턴으로 일반화하기는 어려움.</li>
       <li>이슈는 기억과 기사 검색으로 정리함(국면을 대표하는 큰 사건). 2건은 확인 못 해 비워둠.</li>
-      <li>"전날 위치"는 범위를 제한하지 않음. 그룹별 범위는 결과로 나온 값임. 200일선 이탈 121번 = 22개 국면(전부 표시).</li>
+      <li>"전날 200일선 대비위치"는 범위를 제한하지 않음. 그룹별 범위는 결과로 나온 값임. 200일선 이탈 121번 = 22개 국면(전부 표시).</li>
     </ul>
   </div>
   <div class="src">이슈 출처: 2026-07-29 서울신문 마감시황, 2004-10-25 머니투데이 뉴욕마감(2004-10-23). 나머지는 당시 널리 알려진 사건입니다.</div>
@@ -507,7 +518,11 @@ function trackEpisode(D, C, liveChg, L){
   const done = [];                                         // 회복이 끝난 지난 국면들(보관용)
   // 추가 하락 = 이탈일 → 회복(40일 유지 첫날) 전까지 최저 종가 · 회복 전이면 오늘(현재가)까지 (2026-10-13 19:45 국면 기준으로 바꿈, 전엔 첫 재돌파에서 끊음)
   const fin = e => { const end = e.recovered ? e.runFromIdx : N; let mi = e.b; for(let k = e.b; k < end; k++) if(C[k] < C[mi]) mi = k;
-    e.min = C[mi]; e.minAt = mi; e.drop = (e.min / C[e.b] - 1) * 100; e.dropDays = e.minAt - e.b; if(e.recovered) e.recDays = e.runFromIdx - e.b; return e; };
+    e.min = C[mi]; e.minAt = mi; e.drop = (e.min / C[e.b] - 1) * 100; e.dropDays = e.minAt - e.b; if(e.recovered) e.recDays = e.runFromIdx - e.b;
+    e.prevClose = C[e.b - 1]; e.stabPct = e.recovered ? (C[e.runFromIdx] / e.prevClose - 1) * 100 : null;
+    e.idxRec = null; e.idxRecDays = null;                  // 지수회복 = 이탈 전날 종가 이상인 첫날(2026-10-14)
+    for(let k = e.b + 1; k < N; k++) if(C[k] >= e.prevClose){ e.idxRec = D[k]; e.idxRecDays = k - e.b; break; }
+    return e; };
   for(let i = 1; i < N; i++){
     if(D[i] < TRACK_FROM || ma[i] == null || ma[i - 1] == null) continue;
     const above = C[i] >= ma[i];
@@ -526,12 +541,16 @@ function trackEpisode(D, C, liveChg, L){
     if(above){ ep.run++; if(ep.run === 1){ ep.runFrom = D[i]; ep.runFromIdx = i; } if(ep.run >= HOLD_DAYS) ep.recovered = ep.runFrom; }
     else { if(ep.run > 0) ep.fail++; ep.run = 0; }
   }
-  if(ep){ fin(ep); ep.nowAbove = C[N - 1] >= ma[N - 1]; ep.done = done; }
+  if(ep){
+    fin(ep); ep.nowAbove = C[N - 1] >= ma[N - 1]; ep.done = done;
+    ep.D = D; ep.C = C;                                    // 맨 위 줄 그래프용
+  }
   return ep;
 }
 
 const fmt = x => x == null ? '–' : x.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = x => (x > 0 ? '+' : '') + x.toFixed(2) + '%';
+const tri = (x, nd) => `${x > 0 ? '▲' : x < 0 ? '▼' : ''}${Math.abs(x).toFixed(nd == null ? 1 : nd)}<span class="pc">%</span>`;   // ▲▼ + 작은 %(2026-10-14)
 const cls = x => x > 0 ? 'up' : x < 0 ? 'dn' : '';
 function setGap(el, val, base, label){
   if(val == null || base == null){ el.textContent = ''; return; }
@@ -546,12 +565,13 @@ function render(r, live){
   $('lvTime').textContent = `${r.todayKey}${at ? ' · ' + at.slice(11) : ''}`;
   const ep = r.ep && !r.ep.recovered ? r.ep : null, dayChg = ep ? ep.chg : r.chgPct;   // 회복된 국면은 아래 표(보관)에서만 — 맨 위 줄은 오늘 상태로
   $('lvDate').textContent = ep ? ep.date : r.todayKey;
-  $('lvChg').innerHTML = `<span class="chipv ${cls(dayChg)}">${pct(dayChg)}</span>`; $('lvChg').className = '';
+  $('lvChg').innerHTML = `<span class="chipv day${dayChg > 0 ? ' up' : ''}">${tri(dayChg, 2)}</span>`;
   const prevGap = ep ? ep.prevGap : (r.prevClose / r.maPrev - 1) * 100;
-  $('lvPrevGap').textContent = pct(prevGap).replace(/(\.\d)\d%$/, '$1%');
+  $('lvPrevGap').innerHTML = tri(prevGap);
   $('lvPrevGap').className = cls(prevGap);
   const g200 = (r.p / r.maToday - 1) * 100;
   $('lvL1').textContent = `코스피 ${fmt(r.p)}`;
+  $('lvL1c').innerHTML = tri(r.chgPct, 2); $('lvL1c').className = cls(r.chgPct);
   $('lvL2').innerHTML = `200일선 ${g200 < 0 ? '아래' : '위'} <span class="${cls(g200)}">${pct(g200)}</span>`;
   if(ep && ep.w60 && ep.w60.days != null){
     $('lvW60').innerHTML = `${ep.w60.days}거래일<span class="d">이탈일 ${ep.w60b != null ? pct(ep.w60b).replace(/(\.\d)\d%$/, '$1%') + ' 위' : ''}</span>`; $('lvW60').className = '';
@@ -580,14 +600,18 @@ function render(r, live){
   $('lvRow').className = (ep && !ep.recovered) || j.classList.contains('hit') ? 'hitrow' : '';
   const p1 = x => (x > 0 ? '+' : '') + x.toFixed(1) + '%';
   if(ep){
-    $('lvDrop').innerHTML = `${p1(ep.drop)}<span class="d">${ep.dropDays ? ep.dropDays + '거래일 뒤' : '이탈일이 최저'}</span>`;
+    $('lvDrop').innerHTML = `${tri(ep.drop)}<span class="d">${ep.dropDays ? ep.dropDays + '거래일 뒤' : '이탈일이 최저'}</span>`;
     $('lvDrop').className = ep.drop < 0 ? 'dn' : '';
-    $('lvUp').innerHTML = ep.recovered ? `회복<span class="d">${ep.recovered}</span>`
-                        : ep.nowAbove ? `${ep.run}/${HOLD_DAYS}일<span class="d">200일선 위 연속</span>` : `0일<span class="d">200일선 아래</span>`;
-    $('lvUp').className = ep.recovered || ep.nowAbove ? '' : 'dim';
+    // 최근 200일선 돌파후 = 지금 이어지는 200일선 위 연속 거래일(실패한 돌파는 세지 않음, 40일 채우면 안정)
+    $('lvUp').innerHTML = ep.nowAbove ? `<span class="big">${ep.run}거래일</span><span class="d">40거래일 유지 = 안정</span>` : `–<span class="d">200일선 아래</span>`;
+    $('lvUp').className = ep.nowAbove ? '' : 'dim';
     $('lvFail').textContent = `${ep.fail}회`; $('lvFail').className = '';
+    $('lvRec').innerHTML = ep.idxRec ? `<span class="big">${ep.idxRecDays}거래일 후</span><span class="d">${ep.idxRec}</span>`
+                         : `미회복<span class="d">이탈 전날까지 ${tri((ep.prevClose / r.p - 1) * 100)}</span>`;
+    $('lvRec').className = ep.idxRec ? '' : 'dim';
+    liveEp = ep; gAddButtons();
   }else{
-    ['lvDrop', 'lvUp', 'lvFail'].forEach(id => { $(id).textContent = '–'; $(id).className = 'dim'; });
+    ['lvDrop', 'lvUp', 'lvFail', 'lvRec'].forEach(id => { $(id).textContent = '–'; $(id).className = 'dim'; });
   }
 }
 
@@ -616,15 +640,16 @@ async function archFetch(){
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const p1s = x => (x > 0 ? '+' : '') + x.toFixed(1) + '%';
 function archRow(c){
-  const drop = c.dropDays > 0 && c.drop < 0 ? `<td class="dn">${p1s(c.drop)}<span class="d">${c.dropDays === 1 ? '다음 날' : c.dropDays + '거래일 뒤'}</span></td>` : '<td class="dim">없음</td>';
+  const drop = c.dropDays > 0 && c.drop < 0 ? `<td class="dn">${tri(c.drop)}<span class="d">${c.dropDays === 1 ? '다음 날' : c.dropDays + '거래일 뒤'}</span></td>` : '<td class="dim">없음</td>';
   const w = c.w60 && c.w60.days != null ? `<td>${c.w60.days}거래일<span class="d">이탈일 ${c.w60b != null ? p1s(c.w60b) + ' 위' : ''}</span></td>`
           : c.w60 && c.w60.already ? `<td class="dim">이미 아래<span class="d">60주선 ${c.w60b != null ? p1s(c.w60b) : ''}</span></td>`
           : `<td class="dim">미도달<span class="d">60주선 ${c.w60b != null ? p1s(c.w60b) + ' 위' : ''}</span></td>`;
   const fast = c.recDays <= 5;
   return `<tr class="${fast ? 'fast ' : ''}arch" data-arch="${esc(c.date)}">
-          <td><span class="date">${esc(c.date)}</span><span class="issue${c.issue ? '' : ' miss'}">${esc(c.issue || '이슈 확인 못 함')}</span></td>
-          <td class="dn">${(c.chg > 0 ? '+' : '') + c.chg.toFixed(2)}%</td><td class="${c.prevGap >= 0 ? 'up' : 'dn'}">${p1s(c.prevGap)}</td>${drop}${w}
-          <td>${esc(c.recovered)}${fast ? '<span class="badge">즉시</span>' : ''}<span class="d">${c.recDays}거래일 후</span></td><td>${c.fail}회</td>
+          <td><span class="date">${esc(c.date)}</span><span class="chipv day">${tri(c.chg, 2)}</span><span class="issue${c.issue ? '' : ' miss'}">${esc(c.issue || '이슈 확인 못 함')}</span></td>
+          <td class="${c.prevGap >= 0 ? 'up' : 'dn'}">${tri(c.prevGap)}</td>${drop}${w}
+          <td><span class="big">${c.recDays}거래일 후</span>${fast ? '<span class="badge">즉시</span>' : ''}${c.stabPct != null ? `<span class="d">이탈 전날 대비 <span class="${cls(c.stabPct)}">${tri(c.stabPct)}</span></span>` : `<span class="d">${esc(c.recovered)}</span>`}</td><td>${c.fail}회</td>
+          ${c.idxRec ? `<td><span class="big">${c.idxRecDays}거래일 후</span><span class="d">${esc(c.idxRec)}</span></td>` : '<td class="dim">–</td>'}
         </tr>`;
 }
 function archPaint(){
@@ -649,6 +674,7 @@ async function archSave(ep){
   if(!todo.length) return '';
   const recs = todo.map(e => ({ date: e.date, issue: '', chg: +e.chg.toFixed(2), prevGap: +e.prevGap.toFixed(1), drop: +e.drop.toFixed(1), dropDays: e.dropDays,
                 w60: e.w60 || null, w60b: e.w60b != null ? +e.w60b.toFixed(1) : null, recovered: e.recovered, recDays: e.recDays, fail: e.fail,
+                stabPct: e.stabPct != null ? +e.stabPct.toFixed(2) : null, idxRec: e.idxRec, idxRecDays: e.idxRecDays,
                 savedAt: new Date().toISOString().slice(0, 10) }));
   const list = cur.list.concat(recs);
   const body = { message: `코스피 200일선 붕괴 사례 보관: ${recs.map(c => c.date + ' (회복 ' + c.recovered + ')').join(', ')} [skip ci]`, content: b64enc(JSON.stringify(list, null, 1) + '\n') };
@@ -709,14 +735,97 @@ document.getElementById('reloadPricesBtn').addEventListener('click', async (ev) 
   await loadAll();
 });
 
+// ===== 사례별 그래프(2026-10-14): 이탈 전날 → 200일선 안정일·지수회복일 중 늦은 날(아직이면 오늘). 접힘, 머니파이 V1 지수 차트와 같은 모양
+// 2년(504거래일) 넘으면 3년 차트처럼 주봉·월봉 이평만. 칩·설명 없음. 과거 사례 일봉 = kospi200_detail.json(GitHub Actions에서 계산, moneypier k200_detail.py)
+let liveEp = null, gDataP = null;
+const G_LONG = 504, G_YEARLY = 300;
+const gRoll = (a, n) => { const o = new Array(a.length).fill(null); let t = 0; for(let i = 0; i < a.length; i++){ t += a[i]; if(i >= n) t -= a[i - n]; if(i >= n - 1) o[i] = t / n; } return o; };
+const gParse = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+const gFmt = ms => { const d = new Date(ms); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`; };
+const gKey = (s, rule) => rule === 'M' ? s.slice(0, 7) : gFmt(gParse(s) + ((5 - new Date(gParse(s)).getUTCDay() + 7) % 7) * 864e5);
+function gBarMa(D, C, n, rule){                                // 주(월) 마지막 거래일에 n봉 이평, 사이는 직선 연결(V1과 같음)
+  const bd = [], bv = []; let pk = null;
+  D.forEach((d, i) => { const k = gKey(d, rule); if(k === pk){ bd[bd.length - 1] = d; bv[bv.length - 1] = C[i]; } else { bd.push(d); bv.push(C[i]); pk = k; } });
+  const ma = gRoll(bv, n), pos = new Map(D.map((d, i) => [d, i])), o = new Array(D.length).fill(null);
+  bd.forEach((d, j) => { if(ma[j] != null) o[pos.get(d)] = ma[j]; });
+  let last = -1;
+  for(let i = 0; i < o.length; i++){ if(o[i] == null) continue; if(last >= 0 && i - last > 1) for(let k = last + 1; k < i; k++) o[k] = o[last] + (o[i] - o[last]) * (k - last) / (i - last); last = i; }
+  return o;
+}
+const G_LINES = [['5일', 'ma5'], ['20일', 'ma20'], ['5주', 'w5'], ['10주', 'w10'], ['5월', 'm5'], ['10월', 'm10']];
+function gChartData(D, C, a, b){
+  const n = b - a + 1, long = n > G_LONG, cut = x => x.slice(a, b + 1);
+  return { dates: cut(D).map(s => `${s.slice(2, 4)}.${s.slice(5, 7)}.${s.slice(8, 10)}`), close: cut(C),
+           ma5: long ? null : cut(gRoll(C, 5)), ma20: long ? null : cut(gRoll(C, 20)),
+           w5: cut(gBarMa(D, C, 5, 'W')), w10: cut(gBarMa(D, C, 10, 'W')), m5: cut(gBarMa(D, C, 5, 'M')), m10: cut(gBarMa(D, C, 10, 'M')), ma200: cut(gRoll(C, 200)) };
+}
+function gPath(v, x, y){ let d = '', pen = false; v.forEach((u, i) => { if(u == null){ pen = false; return; } d += (pen ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(u).toFixed(1); pen = true; }); return d; }
+function gSvg(ch){
+  const close = ch.close, n = close.length;
+  if(n < 2) return '<div class="gnone">그래프 자료 부족</div>';
+  const keys = G_LINES.map(x => x[1]).concat(['ma200']);
+  const W = 660, PH = 170, pl = 4, pt = 4, pb = 16, H = pt + PH + pb, xr = W - 2;
+  const vals = [close[n - 1]]; keys.forEach(k => (ch[k] || []).forEach(v => { if(v != null) vals.push(v); }));
+  let lo = Math.min(...vals), hi = Math.max(...vals); if(hi === lo) hi = lo + 1;
+  const mg = (hi - lo) * .06; lo -= mg; hi += mg;
+  const x = i => pl + (xr - pl - 2) * i / (n - 1), y = v => pt + PH * (1 - (v - lo) / (hi - lo));
+  const o = [`<svg class="an-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="코스피 그래프">`, `<rect class="an-ch-bg" x="0" y="${pt}" width="${xr}" height="${PH}"/>`];
+  const yearly = n > G_YEARLY;
+  for(let i = 1; i < n; i++){
+    const a = yearly ? ch.dates[i].slice(0, 2) : ch.dates[i].slice(3, 5), b = yearly ? ch.dates[i - 1].slice(0, 2) : ch.dates[i - 1].slice(3, 5);
+    if(a !== b){ const xv = x(i).toFixed(1); o.push(`<line class="an-ch-vl" x1="${xv}" x2="${xv}" y1="${pt}" y2="${pt + PH}"/><text class="an-ch-mo" x="${(x(i) + 2).toFixed(1)}" y="${pt + PH - 3}">${yearly ? "'" + a : parseInt(a, 10)}</text>`); }
+  }
+  keys.slice().reverse().forEach(k => { if(ch[k]) o.push(`<path class="an-ch-${k}" d="${gPath(ch[k], x, y)}"/>`); });
+  o.push(`<text class="an-ch-t" x="${pl}" y="${H - 3}">${ch.dates[0]}</text><text class="an-ch-t" x="${x(n - 1).toFixed(1)}" y="${H - 3}" text-anchor="end">${ch.dates[n - 1]}</text></svg>`);
+  const ly = y(close[n - 1]), lt = close[n - 1].toLocaleString('en-US', { maximumFractionDigits: 0 });
+  const sw = k => `<i class="an-sw an-sw-${k}"></i>`, lg = [`<span class="an-lgi">${sw('close')}종가</span>`];
+  for(let i = 0; i < G_LINES.length; i += 2){ const [la, a] = G_LINES[i], [lb, b] = G_LINES[i + 1]; if(ch[a] || ch[b]) lg.push(`<span class="an-lgi">${sw(a)}${la} ${sw(b)}${lb}</span>`); }
+  lg.push(`<span class="an-lgi">${sw('ma200')}200일</span>`);
+  return `<div class="an-lg">${lg.join('')}</div><div class="an-svgbox">${o.join('')}<span class="an-lastdot" style="left:${(x(n - 1) / W * 100).toFixed(2)}%;top:${(ly / H * 100).toFixed(2)}%"></span>`
+       + `<span class="an-lastlbl" style="left:min(${((x(n - 1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(lt.length * .6 + .2).toFixed(1)}em));top:calc(${(ly / H * 100).toFixed(2)}% - 5px)">${lt}</span></div>`;
+}
+function gLoad(){
+  if(!gDataP) gDataP = fetch('kospi200_detail.json?v=20261014', { cache: 'no-cache' }).then(r => { if(!r.ok) throw new Error('자료 ' + r.status); return r.json(); });
+  return gDataP;
+}
+async function gHtml(key){
+  if(key === 'live'){
+    const e = liveEp; if(!e) return '<div class="gnone">이번 국면 없음</div>';
+    return gSvg(gChartData(e.D, e.C, e.b - 1, e.C.length - 1));          // 아직 회복 전 = 오늘(현재가)까지
+  }
+  const c = (await gLoad()).cases[key];
+  if(!c) return '<div class="gnone">그래프 자료 없음</div>';
+  const D = c.d.map(s => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`);
+  return gSvg(gChartData(D, c.c, D.indexOf(c.from), D.length - 1));
+}
+function gAddButtons(){
+  const rows = [...document.querySelectorAll('tr[data-case]')];
+  if(liveEp && !liveEp.recovered) rows.push(document.getElementById('lvRow'));
+  rows.forEach(tr => {
+    const key = tr.id === 'lvRow' ? 'live' : tr.dataset.case, td = tr.firstElementChild;
+    if(!td || td.querySelector('.gbtn')) return;
+    td.insertAdjacentHTML('beforeend', '<button type="button" class="gbtn" aria-expanded="false">그래프 ▾</button>');
+    td.querySelector('.gbtn').addEventListener('click', async ev => {
+      const btn = ev.currentTarget, open = btn.getAttribute('aria-expanded') === 'true';
+      let gr = tr.nextElementSibling && tr.nextElementSibling.classList.contains('grow') ? tr.nextElementSibling : null;
+      if(open){ if(gr) gr.hidden = true; btn.setAttribute('aria-expanded', 'false'); btn.innerHTML = '그래프 ▾'; return; }
+      if(!gr){ tr.insertAdjacentHTML('afterend', `<tr class="grow"><td colspan="7"><div class="gch"><div class="gnone">불러오는 중…</div></div></td></tr>`); gr = tr.nextElementSibling; }
+      gr.hidden = false; btn.setAttribute('aria-expanded', 'true'); btn.innerHTML = '그래프 ▴';
+      try{ gr.querySelector('.gch').innerHTML = await gHtml(key); }
+      catch(e){ gr.querySelector('.gch').innerHTML = `<div class="gnone">그래프를 불러오지 못함 (${esc(e.message || e)})</div>`; }
+    });
+  });
+}
+
 // 모바일 카드용 라벨: 각 칸에 표 머리글 이름을 붙인다(긴 이름은 줄임)
-const SHORT = { '60주선 도달': '60주선', '이후 추가 하락': '추가 하락' };
+const SHORT = { '전날 200일선 대비위치': '전날 200일선 대비', '최근 200일선 돌파후': '200일선 돌파후' };
 function labelRows(t){
   const heads = [...t.querySelectorAll('thead th')].map(th => th.textContent.trim());
   t.querySelectorAll('tbody tr').forEach(tr => [...tr.children].forEach((td, i) => { if(heads[i]) td.setAttribute('data-label', SHORT[heads[i]] || heads[i]); }));
 }
 document.querySelectorAll('.tbl table').forEach(labelRows);
 archFetch().then(x => { archList = x.list || []; archPaint(); }).catch(() => {});
+gAddButtons();
 applyCooldown();
 loadAll();
 </script>
