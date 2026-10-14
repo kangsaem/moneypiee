@@ -6349,7 +6349,7 @@ function anBarMaProj(dates, c, n, rule, fut, todayVal){
 const AN_CHART_PER = [['3m', '3개월', 63], ['6m', '6개월', 132], ['1y', '1년', 252], ['3y', '3년', 756], ['5y', '5년', 1260]];
 const AN_LONG_DAYS = 300;          // 이보다 긴 기간은 일봉 이평(5·20일)을 그리지 않고 세로선을 연 단위로
 
-function anChartData(dates, c, rs, days){
+function anChartData(dates, c, rs, days, noProj){
   days = days || AN.CHART_DAYS;
   const st = Math.max(0, dates.length - days), long = days > AN_LONG_DAYS;
   const cut = a => a.slice(st).map(v => anOk(v) ? v : null);
@@ -6358,6 +6358,7 @@ function anChartData(dates, c, rs, days){
   const bm = {}, proj = {};
   specs.forEach(([k, n, rule]) => {
     bm[k] = anBarMa(dates, c, n, rule);
+    if(noProj){ proj[k] = null; return; }   // 범위 계산용(점선 경로 불필요, 2026-10-15)
     try{ proj[k] = anBarMaProj(dates, c, n, rule, fut, bm[k][bm[k].length-1]); }catch(e){ proj[k] = null; }
   });
   return {
@@ -6380,7 +6381,7 @@ function anDisp(dates, c){
 }
 
 // 종목 하나의 모든 지표 (market_report.analyze)
-function anAnalyze(bars, code, name){
+function anAnalyze(bars, code, name, light){   // light = 유효 범위 계산용(점선 경로 생략, 신호 결과는 같음)
   const dates = bars.dates, c = bars.close, n = c.length;
   if(n < 30) throw new Error('시세 데이터가 부족');
   const rs = anRsi(c);
@@ -6418,7 +6419,7 @@ function anAnalyze(bars, code, name){
   r.rets = rets;
   r.ret5 = n >= 6 ? (c[n-1] / c[n-6] - 1) * 100 : 0;
   r.maxday = rets.length ? rets.reduce((a, b) => Math.abs(b) > Math.abs(a) ? b : a) : 0;
-  r.chart = anChartData(dates, c, rs);
+  r.chart = anChartData(dates, c, rs, undefined, light);
   let nl = false;                                    // 최근 3일 안에 직전 20일 저가를 깼는가
   for(let i = Math.max(20, n - 3); i < n; i++){
     let m = Infinity;
@@ -6646,27 +6647,78 @@ function anLiveInfo(bars, px, wantTrend, market){
 function anLiveTrend(bars, px, date){
   const b2 = { dates: bars.dates.concat([date]), close: bars.close.concat([px]), high: (bars.high || bars.close).concat([px]),
                low: (bars.low || bars.close).concat([px]), vol: (bars.vol || []).concat([null]) };
-  const r = anAnalyze(b2, 'live', 'live'), ch = r.chart, cl = ch.close, m20 = ch.ma20, mm5 = ch.m5, d = r.disp;
+  return anTrendOk(anAnalyze(b2, 'live', 'live', true));
+}
+function anTrendOk(r){
+  const ch = r.chart, cl = ch.close, m20 = ch.ma20, mm5 = ch.m5, d = r.disp;
   if(cl.length < 10 || m20.slice(-6).some(v => v == null)) return false;
   return !!(r.week.ok && r.week.above && cl.at(-1) >= m20.at(-1) && m20.at(-1) > m20.at(-6)
             && (mm5.at(-1) == null || cl.at(-1) >= mm5.at(-1))
             && r.rsi < r.sig.rsi_hi && (!d || d.cur / d.max * 100 < AN.ADD_DISP_MAX));
 }
+
+// ---- 신호 유효 가격 범위 (2026-10-15, market_report.valid_range 와 같은 계산) ----
+// 마지막 확정 종가까지의 일봉에 '다음 거래일 종가 = P' 한 봉을 붙여 다시 계산했을 때 그 신호가 유지되는 P의 구간.
+//  재검토 = 과열 조건 2개 이상 유지 / 매수·바닥·눌림 = 과열 조건 2개 미만 + (월봉 정배열 또는 P > 10개월선) /
+//  매수·추세 = 추세 5가지 유지(주봉 정배열·20일선 위·20일선 상승·5개월선 위·과열 아님).
+// 기준 종가 ±30% 안에서 찾음(국장 가격제한폭). 2% 간격으로 넓히고 경계는 0.2%까지 이분 탐색.
+// 반환 { lo, hi, loOpen, hiOpen(±30% 끝까지 유효), base } 또는 null(±30% 안에 유효한 가격 없음)
+const AN_VR = { LIM: 0.30, STEP: 0.02, TOL: 0.002 };
+function anNextBizDay(d){
+  const t = new Date(d + 'T00:00:00Z');
+  do { t.setUTCDate(t.getUTCDate() + 1); } while(t.getUTCDay() === 0 || t.getUTCDay() === 6);
+  return t.toISOString().slice(0, 10);
+}
+function anRangeOk(bars, key, p, nd){
+  const b2 = { dates: bars.dates.concat([nd]), close: bars.close.concat([p]), high: (bars.high || bars.close).concat([p]),
+               low: (bars.low || bars.close).concat([p]), vol: (bars.vol || []).concat([null]) };
+  const r = anAnalyze(b2, 'vr', 'vr', true), hot = r.sig.sell_c.length >= 2;
+  if(key === 'sell') return hot;
+  if(key === 'up') return anTrendOk(r);
+  const m10 = r.chart.m10.at(-1);
+  return !hot && ((r.month.ok && r.month.above) || (m10 != null && p > m10));
+}
+function anValidRange(bars, key){
+  const n = bars.close.length, base = bars.close[n - 1];
+  if(!(base > 0) || n < 60) return null;
+  const nd = anNextBizDay(bars.dates[n - 1]);
+  const ok = x => anRangeOk(bars, key, base * (1 + x), nd);
+  let a = null;                                         // 기준(보합)에서 가장 가까운 유효 지점
+  if(ok(0)) a = 0;
+  else for(let k = 1; k <= Math.round(AN_VR.LIM / 0.01) && a == null; k++){
+    if(ok(k * 0.01)) a = k * 0.01; else if(ok(-k * 0.01)) a = -k * 0.01;
+  }
+  if(a == null) return null;
+  const edge = dir => {                                 // dir = -1 아래쪽, +1 위쪽
+    let good = a, bad = null;
+    while(bad == null){
+      const x = Math.max(-AN_VR.LIM, Math.min(AN_VR.LIM, good + dir * AN_VR.STEP));
+      if(x === good) return { x: good, open: true };
+      if(ok(x)) good = x; else bad = x;
+    }
+    while(Math.abs(bad - good) > AN_VR.TOL){ const m = (good + bad) / 2; if(ok(m)) good = m; else bad = m; }
+    return { x: good, open: false };
+  };
+  const L = edge(-1), H = edge(1);
+  return { lo: base * (1 + L.x), hi: base * (1 + H.x), loOpen: L.open, hiOpen: H.open, base, key, asof: bars.dates[n - 1] };
+}
+// 범위 글자: '412,000~430,500' / 위가 열림 '412,000 이상' / 아래가 열림 '430,500 이하' (화폐 기호 없음)
+function anRangeTxt(v){
+  if(!v) return '범위 없음';
+  if(v.key === 'sell' || v.hiOpen) return v.loOpen ? '범위 제한 없음' : `${anPrice(v.lo)} 이상`;
+  if(v.loOpen) return `${anPrice(v.hi)} 이하`;
+  return `${anPrice(v.lo)}~${anPrice(v.hi)}`;
+}
+function anInRange(v, px){ return !!(v && anOk(px) && (v.loOpen || px >= v.lo) && (v.hiOpen || v.key === 'sell' || px <= v.hi)); }
 // 표시용 판정: 오늘 장중에 받은 현재가가 있을 때만 { key, cls(buy|sell|wait), txt, line }
+// 장중 현재가 → 신호 범위 안/밖 (2026-10-15: 옛 '매수 가능·종가 대기·점검' 대신). 오늘 장중에 받은 현재가가 있을 때만
 function anLiveVerdict(r, keys){
   const L = r.live, now = anLiveNow(r.market);
   if(!L || L.date !== now.date || !now.open) return null;
-  const key = keys.includes('sell') ? 'sell' : ['buyb', 'buy', 'up'].find(k => keys.includes(k));
-  if(!key) return null;
-  const up = L.px > L.base, aboveM10 = L.m10 != null && L.px > L.m10;
-  let cls = 'wait', txt = '종가 대기';
-  if(key === 'sell'){ cls = 'sell'; txt = '점검'; }          // 경보 = 자동 매도 아님, 산 이유 점검(2026-10-13)
-  else if((key === 'buyb' || key === 'buy') && !up && (L.mUp || aboveM10)){ cls = 'buy'; txt = '매수 가능'; }
-  else if(key === 'up' && !up && L.trend){ cls = 'buy'; txt = '매수 가능'; }
-  const ck = v => v ? '✓' : '✕';
-  const cond = key === 'buyb' || key === 'buy' ? ` · 월 정 ${ck(L.mUp)} · 10개월선 위 ${ck(aboveM10)}`
-             : key === 'up' && !up && L.trend ? ' · 추세 유지' : '';
-  return { key, cls, txt, line: `장중 ${anPrice(L.px)} (${anS(L.chg, 1)}%)${cond} → ${txt}` };
+  const ks = keys.filter(k => k in AN_LIVE_SIG && r.vr && k in r.vr);
+  if(!ks.length) return null;
+  const parts = ks.map(k => `${AN_LIVE_SIG[k]} ${anRangeTxt(r.vr[k])} ${anInRange(r.vr[k], L.px) ? '안' : '밖'}`);
+  return { line: `장중 ${anPrice(L.px)} (${anS(L.chg, 1)}%) · ${parts.join(' · ')}` };
 }
 
 const AN_CATEGORY = { sell: 'sell', buyb: 'buy', buy: 'buy', up: 'buy', hold: 'watch', caution: 'watch', wait: 'watch', waitdn: 'watch' };
@@ -7525,13 +7577,15 @@ async function runAnalysis(){
           r.hname = h.name;
           try{ r.rs60 = anRelStrength(bars, (await benchP)[spec.market]); }catch(e){ r.rs60 = null; }
           r.review = anReview(r);
+          r.vr = {};                                 // 신호 유효 가격 범위(마지막 확정 종가 기준, 2026-10-15)
+          anDisplayKeys(r.review).filter(k => k in AN_LIVE_SIG).forEach(k => { try{ r.vr[k] = anValidRange(bars, k); }catch(e){} });
           // 장중(국장 09:00~20:00 KST · 미장 09:30~16:00 뉴욕): 매수·매도 칸이 뜬 종목은 현재가도 받아 '놓친 다음 날 장중' 규칙을 판정(anLiveVerdict)
           // 장중이면 모든 종목 현재가를 받아 차트에 붙임(표시만 — 신호는 확정 종가 기준 그대로, 2026-10-13)
           const ln = (spec.market === 'KR' || (spec.market === 'US' && !spec.code.includes('.'))) ? anLiveNow(spec.market) : null;
           if(ln && ln.open){
             const q = spec.market === 'KR' ? await fetchNaverStockPrice(spec.code).catch(() => null) : await anFetchUsLive(spec.code).catch(() => null);
             if(q && q.price > 0){
-              if(anDisplayKeys(r.review).some(k => k in AN_LIVE_SIG)) r.live = anLiveInfo(bars, q.price, anDisplayKeys(r.review).includes('up'), spec.market);
+              if(anDisplayKeys(r.review).some(k => k in AN_LIVE_SIG)) r.live = anLiveInfo(bars, q.price, false, spec.market);   // 현재가만(범위 비교용)
               if(bars.dates[bars.dates.length - 1] < ln.date){
                 try{
                   const d2 = bars.dates.concat([ln.date]), c2 = bars.close.concat([q.price]);
@@ -7852,7 +7906,14 @@ function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
   try{
       const tones = Object.fromEntries(anReviewGroups(r).map(([nm, t]) => [nm, t]));
       const allF = anFlags(r);
-      const gchips = allF.filter(f => tones[f]).map(f => `<span class="an-chip ${CH[tones[f]]}">${anE(f)}</span>`).join('');
+      const lvNow = anLiveVerdict(r, keys);
+      const vrChip = f => {                                   // 신호 칩 바로 옆, 같은 색 범위 칩(장중 범위 밖이면 흐리게)
+        const k = (AN_REVIEW.find(([, nm]) => nm === f) || [])[0];
+        if(!k || !r.vr || !(k in r.vr)) return '';
+        const v = r.vr[k], out = lvNow && !anInRange(v, r.live.px);
+        return `<span class="an-chip an-vr ${CH[tones[f]]}${out || !v ? ' off' : ''}" title="${anE((v ? (v.asof + ' 종가 ' + anPrice(v.base) + ' 기준 ') : '') + '신호가 유지되는 다음 거래일 가격 범위')}">${anE(anRangeTxt(v))}</span>`;
+      };
+      const gchips = allF.filter(f => tones[f]).map(f => `<span class="an-chip ${CH[tones[f]]}">${anE(f)}</span>${vrChip(f)}`).join('');
       const others = allF.filter(f => !tones[f] && f !== '최근골든' && f !== '최근데드');   // 크로스는 추세 줄에
       const rc = r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : '';
       // 근거: 칸 이름(제목 칩과 같음)·기본 근거(반등 신호 / 하락 중·장기 추세 상승)·보유 설명은 빼고, 판단에 보탬이 되는 것만
@@ -7868,9 +7929,8 @@ function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
           limHtml = `<div class="an-limit">매수한도 ${L.pct.toFixed(1)}% / 현재 ${(L.have / ctx.total * 100).toFixed(1)}% / <b>잔여 ${Math.round(L.left).toLocaleString()}원</b></div>`;
         }
       }
-      const lv2 = anLiveVerdict(r, keys);
-      const liveChip = lv2 ? `<span class="an-live ${lv2.cls}" title="${anE(lv2.line)}">${anS(r.live.chg, 1)}% ${lv2.txt}</span>` : '';
-      const liveLine = lv2 ? `<div class="an-liveline">${anE(lv2.line)}</div>` : '';
+      const liveChip = '';                                    // 옛 장중 칩(매수 가능·종가 대기) → 범위 칩으로 대체(2026-10-15)
+      const liveLine = lvNow ? `<div class="an-liveline">${anE(lvNow.line)}</div>` : '';
       return `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${[...new Set(keys.map(k => AN_CATEGORY[k]))].join(' ') || 'none'}">
         <summary>${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b>${anE(r.name)}</b> ${gchips}${liveChip}${opt.right != null ? opt.right : `<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span>`}</summary>
         <div class="an-sbody">${liveLine}${limHtml}${whys}${anMetricsHtml(r, side, lv, others, top && ['sell', 'buy'].includes(AN_CATEGORY[top]))}<div class="an-chwrap" data-an-chart="${i}"></div>
@@ -7968,6 +8028,7 @@ const AN_SIG_DEF = [
   '하락 = 싼 조건 2개 이상 + 아직 하락 중 + 장기 추세도 하락',
   '바닥근접·꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 저점 +30%(고점 -20%) 안일 때 · 참고',
   '굵은 테두리 칸 = 이 매수·재검토 판정에 쓰인 지표',
+  '범위 칩(신호 옆, 같은 색) = 마지막 확정 종가 기준, 다음 거래일 종가가 이 범위면 신호가 유지되는 가격 · 매수 = 과열 전까지·장기 추세(추세 매수는 추세 5가지) 유지 · 재검토 = 과열 조건 2개 이상 유지 · 장중 현재가가 범위 밖이면 흐리게',
   '지수 현금 n% 추천(지수 차트 칩) = 코스피 200일선 아래 + 1년 고점 대비 -10% 이하 → 30% · S&P500 200일선 아래 + 1년 고점 대비 -10% 이하 → 50% · 나스닥 200일선 아래 10거래일 연속 → 50% · 그 시기에 이만큼 현금이 준비돼 있으면 좋다는 뜻',
   '현금 투입(지수 차트 칩) = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복 = 현금화한 몫을 다시 넣을 시기 · 5거래일 동안 표시',
   '추가 매수(지수 차트 칩) = 직전 고점 대비 -15% 이상 빠졌다 200일선 위로 회복 = 투자금만큼(+100%) 추가를 고려할 시기 · 다시 200일선이 깨지면 추가분 회수'
@@ -8527,6 +8588,8 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-ist.up { color:var(--an-up); } .an-ist.dn { color:var(--an-dn); } .an-ist.n { color:#9A9BA1; }
 .an-live { font-size:11.5px; font-weight:500; margin-left:6px; white-space:nowrap; color:#9A9BA1; } .an-live.buy { color:var(--an-up); } .an-live.sell { color:var(--an-dn); }
 .an-liveline { font-size:12px; font-weight:500; margin:2px 0 6px; color:#C9C9C9; }
+.an-chip.an-vr { font-weight:500; }
+.an-chip.an-vr.off { background:transparent; color:#6E6F75; border-color:#4A4B50; font-weight:400; }   /* 장중 범위 밖 = 흐리게 */
 .an-sigdot { position:absolute; width:9px; height:9px; border-radius:50%; transform:translate(-50%,-50%); box-sizing:border-box; border:1.5px solid #1E1F22; cursor:pointer; z-index:1; }
 .an-sigdot.buy { background:var(--an-up, #E87BA4); } .an-sigdot.sell { background:var(--an-dn, #5FB8E0); }
 .an-sigdot::after { content:''; position:absolute; inset:-8px; border-radius:50%; }   /* 손가락으로 누르기 쉽게 */
