@@ -6157,6 +6157,7 @@ const AN = {
   // 신용잔고·고객예탁금은 브라우저(GET 프록시)로 받을 수 없어 GitHub 리포트가 매일 내보내는 파일을 읽음. 실패하면 그 항목은 '-'
   MARKET_JSON: 'https://kangsaem.github.io/moneypier/market.json', CREDIT_TOP: 90,
   PBR_LINK: 'https://www.indexergo.com/series/?frq=D&idxDetail=20206',   // 코스피 PBR(2026-10-14, 전엔 20406 코스피200)
+  PER_LINK: 'https://www.indexergo.com/series/?frq=D&idxDetail=20205',   // 코스피 PER(2026-10-14) · 번호 = 지표 종류(날짜와 무관)
   // v1 (2026-10-10 백테스트로 확정) — market_report.py 와 같은 값
   BOTTOM_DROP: 25, BOTTOM_WIN: 120, BOTTOM_QUIET: 20, TOP_RISE: 50, TOP_WIN: 120, TOP_QUIET: 10, TOP_FAST: true, BOTTOM_FAST: false,
   RS_DAYS: 60, VOL_SPIKE: 2.5,
@@ -7763,7 +7764,7 @@ function anGauge(msig, key, title){
   const rows = g.items.map(([lb, val, st]) => `<li class="${st ? 'on' : st == null ? 'na' : 'off'}"><span class="an-dot"></span><span class="an-gt">${anE(lb)}</span><b>${anE(val)}</b></li>`).join('');
   const pct = g.total ? Math.floor(100 * g.score / g.total) : 0;
   const extra = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
-    ? `<a class="an-glink" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 → <small>과거 대비 싼 구간인지 (indexergo)</small></a>` : '';
+    ? `<div class="an-glink"><a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a><a class="an-gbtn" href="${AN.PER_LINK}" target="_blank" rel="noopener">코스피 PER 확인 →</a><small>과거 대비 싼 구간인지 (indexergo)</small></div>` : '';
   // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
   return `<details class="an-gauge ${key} ${g.cls} s${Math.min(g.score, 3)}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
@@ -8623,8 +8624,9 @@ details.an-gauge.bottom.s2 { background:#4fc3f752 !important; border-color:#4fc3
 details.an-gauge.bottom.s3 { background:#0277bd !important; border-color:#4fc3f7; }
 details.an-gauge.s3, details.an-gauge.s3 .an-gh b, details.an-gauge.s3 li, details.an-gauge.s3 li.off, details.an-gauge.s3 li.na, details.an-gauge.s3 summary::before { color:#ffffff !important; }
 details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#ffffff !important; }
-.an-glink { display:block; margin-top:8px; padding-top:8px; padding-bottom:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text); text-decoration:none; }   /* 아래 여백(2026-10-14) */
-.an-glink small { color:var(--text-dim); }
+.an-glink { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin-top:8px; padding-top:8px; padding-bottom:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text); }   /* 아래 여백(2026-10-14) */
+.an-gbtn { display:inline-flex; align-items:center; height:26px; padding:0 10px; border:1px solid var(--border); border-radius:6px; color:var(--text); text-decoration:none; font-size:12px; white-space:nowrap; }   /* PBR·PER 버튼(2026-10-14) */
+.an-glink small { color:var(--text-dim); flex-basis:100%; }
 .an-dots { margin-left:auto; font-style:normal; letter-spacing:1px; font-size:12px; }
 .an-sg.buy .an-dots { color:var(--an-up); } .an-sg.sell .an-dots { color:var(--an-dn); }
 .an-whys { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
