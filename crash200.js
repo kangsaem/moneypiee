@@ -345,14 +345,19 @@ document.addEventListener('click', ev => {
     if(!bands.some(d => d.open)){ bands.forEach(d => { d.open = true; }); return; }   // 모두 닫혀 있으면 = 전체 열기
     bands.forEach(d => { d.open = false; });
     document.querySelectorAll('.case .cgrid').forEach(g => { g.hidden = true; });
+    document.querySelectorAll('.case[data-case]').forEach(c => { c.classList.add('gclosed'); const t = c.querySelector('.gtog'); if(t) t.setAttribute('aria-expanded', 'false'); });
     document.querySelectorAll('.dbtn').forEach(b => { b.setAttribute('aria-expanded', 'false'); b.textContent = '세부내용 ▾'; });
     return;
   }
-  const t = ev.target.closest('.gtog');
-  if(t){                                                       // 사례 그래프 열기/닫기(제목 왼쪽, 2026-10-15)
-    const cs = t.closest('.case'), open = t.getAttribute('aria-expanded') !== 'true';
-    cs.classList.toggle('gclosed', !open); t.setAttribute('aria-expanded', open ? 'true' : 'false'); t.setAttribute('aria-label', open ? '그래프 닫기' : '그래프 열기');
-    if(open){ const g = cs.querySelector('.gch[data-g]'); if(g) gDraw(g); }
+  const hit = ev.target.closest('.gtog, .dbtn'), cs = hit && hit.closest('.case[data-case]');
+  if(cs){                                                      // 과거 사례: 화살표·세부내용 어느 쪽을 눌러도 그래프·세부내용을 함께 열고 닫음(2026-10-15)
+    const t = cs.querySelector('.gtog'), d = cs.querySelector('.dbtn'), g = cs.querySelector('.cgrid');
+    const open = cs.classList.contains('gclosed') || (g && g.hidden);
+    cs.classList.toggle('gclosed', !open);
+    if(t){ t.setAttribute('aria-expanded', open ? 'true' : 'false'); t.setAttribute('aria-label', open ? '닫기' : '열기'); }
+    if(g) g.hidden = !open;
+    if(d){ d.setAttribute('aria-expanded', open ? 'true' : 'false'); d.textContent = open ? '세부내용 ▴' : '세부내용 ▾'; }
+    if(open){ const gc = cs.querySelector('.gch[data-g]'); if(gc) gDraw(gc); }
     return;
   }
   const b = ev.target.closest('.dbtn'); if(!b) return;
