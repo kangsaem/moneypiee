@@ -196,7 +196,7 @@ tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
 .xpages{grid-column:3;justify-self:end;display:flex;gap:6px}
 @media (max-width:600px){ .xpage .xw{display:none} }
 .xpage{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px solid var(--xc);background:var(--xc);color:#1E1F22;text-decoration:none;white-space:nowrap}   /* 겹쳐 보기 칩을 켠 모양(채움) */
-details.acc[data-band][open]>summary{background:rgba(160,161,166,.14);border-radius:8px 8px 0 0}   /* 열린 그룹 제목 = 회색(투명) */
+details.acc[data-band]>summary{background:rgba(160,161,166,.14);border-radius:8px} details.acc[data-band][open]>summary{border-radius:8px 8px 0 0}   /* 그룹 제목 = 회색(투명), 열고 닫아도 같음(2026-10-15) */
 details.acc[data-band].nowband>summary{background:rgba(232,123,164,.18)}   /* 지금 이탈 중인 구간 = 연분홍(열어도 유지, 2026-10-15) */   /* 지금 이탈 중인 구간(닫힌 상태) = 연분홍 */
 .closeall button{font:inherit;font-size:12px;padding:2px 14px;border-radius:6px;border:1px solid #4A4B50;background:#4A4B50;color:#E8ECF3;cursor:pointer}   /* 반전(2026-10-14) */
 /* 다른 지수 겹쳐 보기(2026-10-14) */
