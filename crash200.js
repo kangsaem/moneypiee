@@ -170,8 +170,9 @@ function skeleton(){
     <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><span class="xpages">${XOTH.map(k => `<a class="xpage" style="--xc:${XC[k]}" href="${k}200.html?${/[?&]embed=1/.test(location.search) ? 'embed=1&' : ''}v=${Math.floor(Date.now() / 60000)}">▶ ${XN[k]}</a>`).join('')}</span><button type="button" id="closeAll"><i class="cchev"></i><span id="closeAllTx">전체 열기</span></button><span class="ca-sp"></span></span></summary>
     <div class="cards"><div class="case" id="lvRow">
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
-      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span>${GLG}</div>
+      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="an-cper" id="lvPer"></span><span class="issue" id="lvIssue"></span></div>
       <div class="cgrid" hidden>${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>
+      <div class="glrow" id="lvGl">${GLG}${XCHIPS}</div>
       <div class="gch" id="lvG"></div>
     </div></div>
   </details>
@@ -468,8 +469,9 @@ async function gParams(key){
            if(pre.length){ D = pre.map(i => L.D[i]).concat(D); C = pre.map(i => L.C[i]).concat(C); off = pre.length; } }catch(err){}
     }
     const b = C.length - 1, a = Math.max(0, b - per[2] + 1);
-    const tabs = `<div class="cper-row"><div class="an-cper">${G_PER.map(([k, nm]) => `<button type="button" data-gper="${k}"${k === per[0] ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>${XCHIPS}</div>`;   // 기간 탭 왼쪽 · 다른 지수 칩 오른쪽 끝
-    return { D, C, a, b, o: e.idle ? { upsAll: true } : { brk: e.b + off, stab: e.recovered ? e.runFromIdx + off : null, upsAll: true }, prefix: tabs };   // 맨 위 그래프는 기간 안 모든 200일선 돌파 점선
+    const per$ = $('lvPer');                                   // 기간 탭 = 세부내용 버튼 오른쪽(2026-10-15), 색상표·다른 지수 칩 = 그래프 바로 위(과거 사례와 같음)
+    if(per$) per$.innerHTML = G_PER.map(([k, nm]) => `<button type="button" data-gper="${k}"${k === per[0] ? ' class="on"' : ''}>${nm}</button>`).join('');
+    return { D, C, a, b, o: e.idle ? { upsAll: true } : { brk: e.b + off, stab: e.recovered ? e.runFromIdx + off : null, upsAll: true }, prefix: '' };   // 맨 위 그래프는 기간 안 모든 200일선 돌파 점선
   }
   const c = DATA.cases.find(x => x.date === key), g = c && c.g;
   if(!g) return null;
@@ -521,7 +523,7 @@ document.addEventListener('click', ev => {                     // 다른 지수 
   const P = GP.get(g); if(P) gRender(g, P);
 });
 document.addEventListener('click', ev => {
-  const bt = ev.target.closest('#lvG [data-gper]'); if(!bt) return;
+  const bt = ev.target.closest('#lvPer [data-gper]'); if(!bt) return;
   gLivePer = bt.dataset.gper; gDraw($('lvG'));
 });
 

@@ -243,3 +243,8 @@ details.acc[data-band]>summary::after{left:14px;right:auto;top:20px}
 /* 열린 탭 = 위쪽 테두리만 밝은 회색 가는 줄(2026-10-15) */
 details.acc[open]{box-shadow:inset 0 1px 0 rgba(255,255,255,.38)}
 .fastx{margin-left:6px;font-size:11.5px;font-weight:600;color:#D4FF3D;white-space:nowrap}   /* 즉시 회복 사례: 영역 채색 대신 연두 글자(2026-10-15) */
+#lvRow .glrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:4px 10px}
+#lvRow .glrow .glg{margin-left:0}
+#lvPer{display:inline-flex;gap:3px} #lvPer button{font:inherit;font-size:11px;height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer}
+#lvPer button.on{background:var(--surface2);color:var(--text);border-color:#C9C9C9}
+#lvRow .ch2 .issue{flex-basis:100%}
