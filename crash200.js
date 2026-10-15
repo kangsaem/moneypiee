@@ -141,11 +141,11 @@ function trackEpisode(D, C, liveChg, L){
                prevGap: (C[i - 1] / ma[i - 1] - 1) * 100, run: 0, fail: 0, recovered: null };
         const w = w60At(i);
         ep.w60b = w ? (C[i] / w - 1) * 100 : null;
-        ep.w60 = w == null ? null : C[i] <= w ? { already: true } : (L && L[i] <= w ? { days: 0, date: D[i] } : null);
+        ep.w60 = w == null ? null : C[i] <= w ? { already: true } : (L && L[i] <= w ? { days: 0, date: D[i], pc: (w / C[i - 1] - 1) * 100 } : null);
       }
       continue;
     }
-    if(!ep.w60 && L && !ep.recovered){ const w = w60At(i); if(w != null && L[i] <= w) ep.w60 = { days: i - ep.b, date: D[i] }; }
+    if(!ep.w60 && L && !ep.recovered){ const w = w60At(i); if(w != null && L[i] <= w) ep.w60 = { days: i - ep.b, date: D[i], pc: (w / C[ep.b - 1] - 1) * 100 }; }
     if(above){ ep.run++; if(ep.run === 1){ ep.runFrom = D[i]; ep.runFromIdx = i; } if(ep.run >= HOLD_DAYS) ep.recovered = ep.runFrom; }
     else { if(ep.run > 0) ep.fail++; ep.run = 0; }
   }
@@ -196,7 +196,7 @@ function render(r, live){
   $('lvL1').textContent = `${CFG.name} ${fmt(r.p)}`;
   $('lvL1c').innerHTML = r.chgPct != null ? tri(r.chgPct, 2) : ''; $('lvL1c').className = cls(r.chgPct);
   $('lvL2').innerHTML = `200일선 ${g200 < 0 ? '아래' : '위'} <span class="${cls(g200)}">${tri(g200, 2)}</span>`;
-  if(ep && ep.w60 && ep.w60.days != null) set('lvW60', `${ep.w60.days}거래일<span class="d">이탈일 ${ep.w60b != null ? tri(ep.w60b) + ' 위' : ''}</span>`);
+  if(ep && ep.w60 && ep.w60.days != null) set('lvW60', `${ep.w60.days ? ep.w60.days + '거래일 뒤' : '이탈일'}<span class="d">${ep.w60.pc != null ? '이탈 전날 대비 ' + tri(ep.w60.pc) : ''}</span>`);
   else if(r.w60 != null){
     const g60 = (r.p / r.w60 - 1) * 100;
     if(g60 <= 0) set('lvW60', `이미 아래<span class="d">60주선 ${tri(g60)}</span>`, 'dim');
@@ -209,7 +209,7 @@ function render(r, live){
     set('lvUp', ep.nowAbove ? `<span class="big">${ep.run}거래일</span><span class="d">40거래일 유지 = 안정</span>` : `–<span class="d">200일선 아래</span>`, ep.nowAbove ? '' : 'dim');
     set('lvFail', `${ep.fail}회`);
     set('lvRec', `–<span class="d">200일선 안정 뒤 계산</span>`, 'dim');
-    $('lvRecChip').innerHTML = `<span class="rchip">진행 중 ${ep.D.length - ep.b}일째</span>`;   // 이탈일 = 1일
+    $('lvRecChip').innerHTML = `<span class="rchip">이탈 후 ${ep.D.length - 1 - ep.b}거래일</span>`;   // 이탈일 = 0(2026-10-15 통일)
     liveEp = ep; gDraw($('lvG'));
     markBand(bandOf(ep.chg));
   }else{
@@ -234,18 +234,18 @@ function cardCells(c){
   const w60 = w.na ? cv(CELL[2], '–<span class="d">60주 자료 부족</span>', 'dim')
             : w.already ? cv(CELL[2], `이미 아래<span class="d">60주선 ${c.w60b != null ? tri(c.w60b) : ''}</span>`, 'dim')
             : w.none ? cv(CELL[2], `미도달<span class="d">60주선 ${c.w60b != null ? tri(c.w60b) + ' 위' : ''}</span>`, 'dim')
-            : cv(CELL[2], `${w.days ? w.days + '거래일' : '당일'}<span class="d">이탈일 ${c.w60b != null ? tri(c.w60b) + ' 위' : ''}</span>`);
+            : cv(CELL[2], `${w.days ? w.days + '거래일 뒤' : '이탈일'}<span class="d">${w.pc != null ? '이탈 전날 대비 ' + tri(w.pc) : ''}</span>`);
   const fast = c.stabDays != null && c.stabDays <= 5;
-  const stab = c.stab ? cv(CELL[3], `<span class="big">${c.stabDays}거래일 후</span>${fast ? '<span class="badge">즉시</span>' : ''}<span class="d">이탈 전날 대비 <span class="${cls(c.stabPct)}">${tri(c.stabPct)}</span></span>`)
+  const stab = c.stab ? cv(CELL[3], `<span class="big">${c.stabDays}거래일 뒤</span>${fast ? '<span class="badge">즉시</span>' : ''}<span class="d">이탈 전날 대비 <span class="${cls(c.stabPct)}">${tri(c.stabPct)}</span></span>`)
                       : cv(CELL[3], '–<span class="d">진행 중</span>', 'dim');
-  const rec = c.rec ? cv(CELL[5], `<span class="big">${c.recN}거래일</span><span class="d">${c.rec} · 이탈일 = 1일</span>`) : cv(CELL[5], '미회복', 'dim');
+  const rec = c.rec ? cv(CELL[5], `<span class="big">${c.recN - 1}거래일 뒤</span><span class="d">${c.rec}</span>`) : cv(CELL[5], '미회복', 'dim');   // recN(이탈일=1) - 1 = 이탈일 0 기준
   return cv(CELL[0], tri(c.prevGap), cls(c.prevGap)) + cv(CELL[1], dropTxt, c.drop < 0 && c.dropDays > 0 && c.date !== BIG ? 'dn' : (c.dropDays > 0 ? '' : 'dim'))
        + w60 + stab + cv(CELL[4], `${c.fails}회`) + rec;
 }
 function card(c){
   const fast = c.stabDays != null && c.stabDays <= 5;
   return `<div class="case${fast ? ' fast' : ''}" data-case="${c.date}">
-  <div class="ch"><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span><span class="rchip">${c.recN ? '지수회복 ' + c.recN + '일' : '지수회복 전'}</span></div>
+  <div class="ch"><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span><span class="rchip">${c.recN ? '지수회복 ' + (c.recN - 1) + '거래일' : '지수회복 전'}</span></div>
   <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}${GLG}${XCHIPS}</div>
   <div class="cgrid" hidden>${cardCells(c)}</div>
   <div class="gch" data-g="${c.date}"></div>
@@ -289,12 +289,12 @@ const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 �
 function renderNotes(cases){
   const li = [G_NOTE];
   li.push(`200일선 안정 = 200일선 위 ${HOLD_DAYS}거래일 유지(그 첫날까지 거래일 수, 아래 줄은 이탈 전날 지수 대비 안정 첫날 지수). 이후 바닥까지 = 이탈일 종가 → 안정 전까지 최저 종가`);
-  li.push('지수회복까지 = 200일선 안정일(포함) 이후 이탈 전날 종가 이상으로 처음 돌아온 날(이탈일 = 1일). 돌파후 재이탈 = 40거래일을 못 버티고 다시 깬 횟수');
+  li.push('지수회복까지 = 200일선 안정일(포함) 이후 이탈 전날 종가 이상으로 처음 돌아온 날. 60주선까지 = 일봉 저가가 60주선에 처음 닿은 날(아래 줄 = 그날 60주선의 이탈 전날 종가 대비). 거래일 수는 모두 이탈일 = 0(다음 날 = 1거래일 뒤). 돌파후 재이탈 = 40거래일을 못 버티고 다시 깬 횟수');
   li.push(`사례 = 안정된 상태에서 처음 200일선을 깬 날(국면당 한 줄, ${DATA.cases[0] ? DATA.cases[0].date.slice(0, 4) : ''}~ ${cases.length}개 국면)`);
   BANDS.forEach(([, nm]) => {
     const l = cases.filter(c => bandOf(c.chg) === nm); if(!l.length) return;
-    const dr = median(l.map(c => c.drop)), st = median(l.map(c => c.stabDays)), rc = median(l.filter(c => c.recN).map(c => c.recN));
-    li.push(`<span class="hl2">${nm} (${l.length}건): 바닥까지 중간값 ${tri(dr)} · 200일선 안정 중간값 ${st}거래일${rc != null ? ` · 지수회복 중간값 ${rc}일` : ''}</span>`);
+    const dr = median(l.map(c => c.drop)), st = median(l.map(c => c.stabDays)), rc = median(l.filter(c => c.recN).map(c => c.recN - 1));
+    li.push(`<span class="hl2">${nm} (${l.length}건): 바닥까지 중간값 ${tri(dr)} · 200일선 안정 중간값 ${st}거래일${rc != null ? ` · 지수회복 중간값 ${rc}거래일` : ''}</span>`);
   });
   $('autoNotes').innerHTML = `<b>요약</b><ul>${li.map(x => `<li>${x}</li>`).join('')}</ul>`;
 }
