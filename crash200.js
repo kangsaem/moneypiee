@@ -467,9 +467,27 @@ async function gLongHistory(){
   return gLongP;
 }
 const XSER = {};
+// 저장 파일(crash200 계산일까지) 뒤의 날짜는 실시간 일봉으로 이어 붙임(2026-10-15) — 국장 = 네이버, 미국 = 야후. 각 시장 마지막 마감까지(미장은 하루 늦은 게 정상)
+const XLIVE = { kospi: { naver: 'KOSPI' }, spx: { yahoo: '^GSPC' }, ndx: { yahoo: '^IXIC' } };
+async function xRecent(k, last){
+  const s = XLIVE[k], out = [];
+  try{
+    if(s.naver){
+      const st = last.replace(/-/g, ''), k2 = kstNow(), en = `${k2.getUTCFullYear()}${pad(k2.getUTCMonth() + 1)}${pad(k2.getUTCDate())}`;
+      const res = await fetchViaProxy(`https://api.finance.naver.com/siseJson.naver?symbol=${s.naver}&requestType=1&startTime=${st}&endTime=${en}&timeframe=day`, 15000);
+      if(res && res.ok) parseNaver(await res.text()).forEach((v, d) => { if(d > last) out.push([d, v.c]); });
+    }else{
+      const res = await fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(s.yahoo)}?range=3mo&interval=1d`, 15000);
+      const r = res && res.ok ? (await res.json()).chart?.result?.[0] : null;
+      const ts = r?.timestamp || [], q = r?.indicators?.quote?.[0] || {};
+      ts.forEach((t, i) => { const c = q.close?.[i], d = nyKey(t * 1000); if(c > 0 && d > last) out.push([d, c]); });
+    }
+  }catch(e){}
+  return out.sort((a, b) => a[0] < b[0] ? -1 : 1);
+}
 function xSeries(k){
   if(!XSER[k]) XSER[k] = fetch(`crash200_series_${k}.json?v=${CFG.v || ''}`, { cache: 'no-cache' }).then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
-    .then(j => { const D = j.d.map(ymd), C = j.c; return { D, C, M: gRoll(C, 200), last: D[D.length - 1] }; })
+    .then(async j => { const D = j.d.map(ymd), C = j.c.slice(); (await xRecent(k, D[D.length - 1])).forEach(([d, c]) => { D.push(d); C.push(c); }); return { D, C, M: gRoll(C, 200), last: D[D.length - 1] }; })
     .catch(e => { delete XSER[k]; throw e; });
   return XSER[k];
 }
