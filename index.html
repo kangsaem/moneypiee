@@ -7822,7 +7822,7 @@ function anGauge(msig, key, title){
   const rows = g.items.map(([lb, val, st]) => `<li class="${st ? 'on' : st == null ? 'na' : 'off'}"><span class="an-dot"></span><span class="an-gt">${anE(lb)}</span><b>${anE(val)}</b></li>`).join('');
   const pct = g.total ? Math.floor(100 * g.score / g.total) : 0;
   const extra = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
-    ? `<div class="an-glink"><a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a><a class="an-gbtn" href="${AN.PER_LINK}" target="_blank" rel="noopener">코스피 PER 확인 →</a></div>` : '';
+    ? `<div class="an-glink"><a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a></div>` : '';
   // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
   return `<details class="an-gauge ${key} ${g.cls} s${Math.min(g.score, 3)}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
@@ -7890,7 +7890,25 @@ function anHeadLine(res){
   return `<div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}</span></div>`;
 }
 
-// 근거 칩 누르기: 풀어쓴 조건으로 바꾸고 5초 뒤(또는 다시 누르면) 원래 글자로
+// 매수·재검토 칩 누르기: 칩 아래 설명창, 20초 뒤(또는 다시 누르거나 다른 곳을 누르면) 닫힘
+let anPopEl = null, anPopFor = null, anPopT = null;
+function anPopClose(){ clearTimeout(anPopT); if(anPopEl) anPopEl.remove(); anPopEl = null; anPopFor = null; }
+document.addEventListener('click', e => {
+  const c = e.target.closest && e.target.closest('.an-sigx');
+  if(!c){ if(anPopEl && !(e.target.closest && e.target.closest('.an-pop'))) anPopClose(); return; }
+  e.preventDefault(); e.stopPropagation();                // 종목 줄(summary)이 접히고 펼쳐지지 않게
+  if(anPopFor === c){ anPopClose(); return; }
+  anPopClose();
+  const el = document.createElement('div');
+  el.className = 'an-pop'; el.textContent = c.dataset.pop;
+  document.body.appendChild(el);
+  const b = c.getBoundingClientRect(), w = Math.min(360, window.innerWidth - 32);
+  el.style.width = w + 'px';
+  el.style.left = Math.max(16, Math.min(b.left + window.scrollX, window.scrollX + window.innerWidth - w - 16)) + 'px';
+  el.style.top = (b.bottom + window.scrollY + 6) + 'px';
+  anPopEl = el; anPopFor = c; anPopT = setTimeout(anPopClose, 20000);
+}, true);
+// 근거 칩 누르기: 풀어쓴 조건(항목마다 줄바꿈)으로 바꾸고 20초 뒤(또는 다시 누르면) 원래 글자로
 document.addEventListener('click', e => {
   const c = e.target.closest && e.target.closest('.an-whyx');
   if(!c) return;
@@ -7898,38 +7916,38 @@ document.addEventListener('click', e => {
   const back = () => { clearTimeout(c._t); c._t = null; c.textContent = c.dataset.short; c.classList.remove('long'); };
   if(c.classList.contains('long')){ back(); return; }
   c.textContent = c.dataset.long; c.classList.add('long');
-  c._t = setTimeout(back, 5000);
+  c._t = setTimeout(back, 20000);
 }, true);
 // 근거 칩을 누르면 보여 줄 풀어쓴 조건(2026-10-15) — 이 종목의 실제 값으로. 맞는 설명이 없으면 null(누를 수 없음)
 function anWhyLong(w, r){
   const sg = r.sig || {}, d = r.disp, j = a => (a || []).join(' · ');
-  const hot = sg.sell_c && sg.sell_c.length ? `과열 조건 ${sg.sell_c.length}개(2개 이상): ${j(sg.sell_c)}` : '';
+  const hot = sg.sell_c && sg.sell_c.length ? `과열 조건 ${sg.sell_c.length}개(2개 이상)\n${sg.sell_c.join('\n')}` : '';
   const rs = anOk(r.rs60) ? `상대강도 60일 ${anS(r.rs60, 1)}%p(종목 수익률 − 지수 수익률${r.rs60 < 0 ? ', 지수보다 약함' : ', 지수보다 강함'})` : '상대강도 없음';
   const dw = `일봉 ${r.day && r.day.ok && r.day.above ? '정' : '역'}·주봉 ${r.week && r.week.ok && r.week.above ? '정' : '역'}`;
   const m10 = r.chart && r.chart.m10 ? r.chart.m10.at(-1) : null;
-  if(w.startsWith('과열 + 꺾임')) return [hot, `꺾임 신호: ${j(sg.sell_t)}`, rs].join(' / ');
-  if(w.startsWith('과열 · 추세 약함')) return [hot, `추세 약함: 일·주봉 정배열 아님(${dw})`, rs].join(' / ');
+  if(w.startsWith('과열 + 꺾임')) return [hot, `꺾임 신호: ${j(sg.sell_t)}`, rs].join('\n');
+  if(w.startsWith('과열 · 추세 약함')) return [hot, `추세 약함: 일·주봉 정배열 아님(${dw})`, rs].join('\n');
   if(w.startsWith('과열 · 추세 강함')) return [hot, `추세 강함: 일·주봉 모두 정배열`,
-    anOk(r.vol5) ? `거래량: 최근 5일 중 최대 ${r.vol5.toFixed(1)}배(직전 20일 평균 대비, ${AN.VOL_SPIKE}배 이상이면 폭증)` : '거래량 자료 없음'].join(' / ');
-  if(w === '싼 조건 3개 모두') return `싼 조건 3개 모두: ${j(sg.buy_c)}`;
-  if(w === '장기 추세 상승') return `장기 추세 상승 = 월봉 정배열(5개월선 > 10개월선) 또는 종가가 10개월선 위 / 월봉 ${r.month && r.month.ok && r.month.above ? '정배열' : '역배열'}`
+    anOk(r.vol5) ? `거래량: 최근 5일 중 최대 ${r.vol5.toFixed(1)}배(직전 20일 평균 대비, ${AN.VOL_SPIKE}배 이상이면 폭증)` : '거래량 자료 없음'].join('\n');
+  if(w === '싼 조건 3개 모두') return `싼 조건 3개 모두\n${(sg.buy_c || []).join('\n')}`;
+  if(w === '장기 추세 상승') return `장기 추세 상승 = 월봉 정배열(5개월선 > 10개월선) 또는 종가가 10개월선 위\n월봉 ${r.month && r.month.ok && r.month.above ? '정배열' : '역배열'}`
     + (m10 != null ? ` · 10개월선 ${anPrice(m10)} (종가 ${anS((r.close / m10 - 1) * 100, 1)}%)` : '');
   if(w === '바닥근접'){
     const b = r.bottom_info || {};
     return `바닥근접 = 1년 고점 대비 25% 이상 빠진 뒤 돌아서는 중(바닥 ${r.bottom}/3)이고 저점 +${AN.NEAR_BOTTOM}% 안`
-      + (b.low ? ` / 저점 ${anPrice(b.low)}${b.ext_date ? ' (' + b.ext_date + ')' : ''} 대비 ${anS((r.close / b.low - 1) * 100, 1)}%` : '');
+      + (b.low ? `\n저점 ${anPrice(b.low)}${b.ext_date ? ' (' + b.ext_date + ')' : ''} 대비 ${anS((r.close / b.low - 1) * 100, 1)}%` : '');
   }
   if(w.startsWith('주봉 정배열 · 20일선 상승')){
     const ch = r.chart || {}, m20 = ch.ma20 || [], m5 = ch.m5 ? ch.m5.at(-1) : null;
-    return `추세: 주봉 정배열(5주선 > 10주선) · 20일선 상승 중(5거래일 전보다 높음)`
+    return `추세: 주봉 정배열(5주선 > 10주선)\n20일선 상승 중(5거래일 전보다 높음)`
       + (m20.length >= 6 && m20.at(-1) != null && m20.at(-6) != null ? ` ${anPrice(m20.at(-6))} → ${anPrice(m20.at(-1))}` : '')
-      + (m5 != null ? ` · 종가가 5개월선(${anPrice(m5)}) 위` : '');
+      + (m5 != null ? `\n종가가 5개월선(${anPrice(m5)}) 위` : '');
   }
-  if(w.startsWith('과열 아님')) return `과열 아님: RSI ${anF(r.rsi, 0)} (${sg.rsi_hi} 미만)`
-    + (d ? ` · 50일 이격도 ${d.cur.toFixed(1)} = 과거 최대 ${d.max.toFixed(1)}의 ${(d.cur / d.max * 100).toFixed(0)}% (${AN.ADD_DISP_MAX}% 미만)` : '');
-  if(w.startsWith('20일선 눌림')) return `20일선 눌림: 최근 5일 중 종가가 20일선 위 ${AN.ADD_TOUCH}% 안까지 내려온 날이 있음 · 오늘 종가는 20일선 위 · ${w.replace(/^20일선 눌림\s*/, '')}`;
-  if(w.startsWith('싼 조건 2개 이상')) return `싼 조건: ${j(sg.buy_c)} / 하락은 멈췄지만(5일 −5% 이하·3일 안 20일 신저가 아님) 반등 신호(5일 안 골든크로스·RSI 반등·골든 임박) 전`;
-  if(w.startsWith('싸지만 아직 하락 중')) return `싼 조건: ${j(sg.buy_c)} / 아직 하락 중(5일 ${anS(r.ret5, 1)}% 또는 3일 안 20일 신저가) / 장기 추세 하락(월봉 역배열 + 종가가 10개월선 아래)`;
+  if(w.startsWith('과열 아님')) return `과열 아님\nRSI ${anF(r.rsi, 0)} (${sg.rsi_hi} 미만)`
+    + (d ? `\n50일 이격도 ${d.cur.toFixed(1)} = 과거 최대 ${d.max.toFixed(1)}의 ${(d.cur / d.max * 100).toFixed(0)}% (${AN.ADD_DISP_MAX}% 미만)` : '');
+  if(w.startsWith('20일선 눌림')) return `20일선 눌림\n최근 5일 중 종가가 20일선 위 ${AN.ADD_TOUCH}% 안까지 내려온 날이 있음\n오늘 종가는 20일선 위\n${w.replace(/^20일선 눌림\s*/, '')}`;
+  if(w.startsWith('싼 조건 2개 이상')) return `싼 조건: ${j(sg.buy_c)}\n하락은 멈춤(5일 −5% 이하·3일 안 20일 신저가 아님)\n반등 신호(5일 안 골든크로스·RSI 반등·골든 임박) 전`;
+  if(w.startsWith('싸지만 아직 하락 중')) return `싼 조건: ${j(sg.buy_c)}\n아직 하락 중(5일 ${anS(r.ret5, 1)}% 또는 3일 안 20일 신저가)\n장기 추세 하락(월봉 역배열 + 종가가 10개월선 아래)`;
   return null;
 }
 
@@ -7959,7 +7977,16 @@ function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
         if(v && v.loOpen && (v.hiOpen || v.key === 'sell')) return '';   // ±30% 안 전부 유효 = 범위 칩 없음(2026-10-15)
         return `<span class="an-chip an-vr ${CH[tones[f]]}${out || !v ? ' off' : ''}" title="${anE((v ? (v.asof + ' 종가 ' + anPrice(v.base) + ' 기준 ') : '') + '신호가 유지되는 다음 거래일 가격 범위')}">${anE(anRangeTxt(v))}</span>`;
       };
-      const gchips = allF.filter(f => tones[f]).map(f => `<span class="an-chip ${CH[tones[f]]}">${anE(f)}</span>${vrChip(f)}`).join('');
+      const sigPop = f => {                                   // 매수·재검토 칩: 누르면 설명창(정의 + 이 종목 근거 + 범위), 20초 뒤 닫힘(2026-10-15)
+        const k = (AN_REVIEW.find(([, nm]) => nm === f) || [])[0];
+        if(!k || !(k in AN_LIVE_SIG) || !rv[k]) return '';
+        const def = (AN_SIG_DEF.find(x => x.startsWith(AN_LIVE_SIG[k] + ' =')) || '').replace(/^[^=]+=\s*/, '');
+        const v = r.vr && r.vr[k];
+        const L = [`${f} = ${def}`, '이 종목: ' + rv[k].why.join(' · ')];
+        if(v) L.push(`유효 범위: ${anRangeTxt(v)} (${v.asof} 종가 ${anPrice(v.base)} 기준, 다음 거래일 종가가 이 안이면 신호 유지)`);
+        return ` an-sigx" data-pop="${anE(L.join('\n'))}`;
+      };
+      const gchips = allF.filter(f => tones[f]).map(f => `<span class="an-chip ${CH[tones[f]]}${sigPop(f)}">${anE(f)}</span>${vrChip(f)}`).join('');
       const others = allF.filter(f => !tones[f] && f !== '최근골든' && f !== '최근데드');   // 크로스는 추세 줄에
       const rc = r.rsi >= r.sig.rsi_hi ? 'hot' : r.rsi <= r.sig.rsi_lo ? 'cold' : '';
       // 근거: 칸 이름(제목 칩과 같음)·기본 근거(반등 신호 / 하락 중·장기 추세 상승)·보유 설명은 빼고, 판단에 보탬이 되는 것만
@@ -8745,7 +8772,9 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 .an-sg.buy .an-dots { color:var(--an-up); } .an-sg.sell .an-dots { color:var(--an-dn); }
 .an-whys { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
 .an-why { font-size:11px; padding:0 7px; border-radius:6px; font-weight:700; border:1px solid currentColor; }   /* 외곽선 = 글자색(2026-10-15) */
-.an-whyx { cursor:pointer; } .an-whyx.long { font-weight:500; white-space:normal; line-height:1.5; }
+.an-sigx { cursor:pointer; }
+.an-pop { position:absolute; z-index:9999; background:#2B2C30; color:var(--text); border:1px solid #4A4B50; border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.55; white-space:pre-line; box-shadow:0 6px 20px rgba(0,0,0,.45); }
+.an-whyx { cursor:pointer; } .an-whyx.long { font-weight:500; white-space:pre-line; line-height:1.5; }
 .an-why.buy, .an-why.up { color:var(--an-up); border-color:var(--an-up); } .an-why.sell { color:var(--an-dn); border-color:var(--an-dn); }
 .an-why.caution { color:var(--an-amber); border-color:var(--an-amber); } .an-why.wait, .an-why.waitdn { color:var(--text-dim); }
 .an-sg.warn { border-left-color:var(--an-amber); background:var(--an-amberbg); } .an-sg.warn h3 { color:var(--an-amber); }
