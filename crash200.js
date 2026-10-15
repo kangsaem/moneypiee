@@ -295,6 +295,25 @@ function renderBands(){
   });
   if(CFG.autoNotes) renderNotes(cases);
 }
+// 요약(2026-10-15 사용자): 맨 위 = 전체, 아래 = 구간별 — 바닥까지(하락률·저점까지 거래일)·지수회복까지 최소·최대·중간값만. 나머지 설명은 아래 '자세히' 접힘
+function renderSummary(cases){
+  const host = CFG.autoNotes ? $('autoNotes') : document.querySelector('.wrap > .note');
+  if(!host || host.dataset.sum) return;
+  host.dataset.sum = '1';
+  const mm = a => a.length ? { min: Math.min(...a), max: Math.max(...a), med: median(a) } : null;
+  const line = (title, l) => {
+    const dr = mm(l.map(c => c.drop)), dd = mm(l.filter(c => c.drop < 0).map(c => c.dropDays)), rc = mm(l.filter(c => c.rec).map(c => c.recN - 1));
+    const un = l.filter(c => !c.rec).length;
+    // 하락률은 '최소' = 가장 작게 빠진 값, '최대' = 가장 크게 빠진 값
+    const drop = dr ? `바닥까지 최소 ${tri(dr.max)} · 최대 ${tri(dr.min)} · 중간 ${tri(dr.med)}` + (dd ? ` <span class="sd">(저점까지 ${dd.min}~${dd.max}거래일 · 중간 ${dd.med})</span>` : '') : '';
+    const rec = rc ? `지수회복까지 최소 ${rc.min} · 최대 ${rc.max} · 중간 ${rc.med}거래일${un ? ` <span class="sd">(미회복 ${un}건)</span>` : ''}` : (un ? `지수회복까지 – <span class="sd">(미회복 ${un}건)</span>` : '');
+    return `<li><b>${title} (${l.length}건)</b><br>${drop}<br>${rec}</li>`;
+  };
+  const by = BANDS.map(([, nm]) => [nm, cases.filter(c => bandOf(c.chg) === nm)]).filter(([, l]) => l.length);
+  const top = `<ul class="sum">${line('전체', cases)}${by.map(([nm, l]) => line(nm, l)).join('')}</ul>`;
+  const old = host.querySelector('ul');
+  host.innerHTML = `<b>요약</b>${top}<details class="nmore"><summary>자세히</summary>${old ? old.outerHTML : ''}</details>`;
+}
 // 그래프 표시 설명(요약 맨 위, 2026-10-14)
 const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">하늘색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라)';
 function renderNotes(cases){
@@ -307,7 +326,7 @@ function renderNotes(cases){
     const dr = median(l.map(c => c.drop)), st = median(l.map(c => c.stabDays)), rc = median(l.filter(c => c.recN).map(c => c.recN - 1));
     li.push(`<span class="hl2">${nm} (${l.length}건): 바닥까지 중간값 ${tri(dr)} · 200일선 안정 중간값 ${st}거래일${rc != null ? ` · 지수회복 중간값 ${rc}거래일` : ''}</span>`);
   });
-  $('autoNotes').innerHTML = `<b>요약</b><ul>${li.map(x => `<li>${x}</li>`).join('')}</ul>`;
+  $('autoNotes').innerHTML = `<b>요약</b><ul>${li.map(x => `<li>${x}</li>`).join('')}</ul>`; delete $('autoNotes').dataset.sum;
 }
 // 세부내용 버튼(날짜 아래·이슈 왼쪽) → 그래프 아래 칸 펼침 / 전체 닫기 = 구간 아코디언·세부내용 모두 닫음(맨 위 현재 지수는 그대로)
 document.addEventListener('click', ev => {
@@ -643,6 +662,7 @@ function applyCooldown(){
   TRACK_FROM = open ? open.date : (DATA.made || '9999');     // 진행 중 사례가 있으면 그 이탈일부터, 없으면 마지막 계산일 이후 새 이탈
   renderBands();
   if(!CFG.autoNotes){ const ul = document.querySelector('.note ul'); if(ul) ul.insertAdjacentHTML('afterbegin', `<li>${G_NOTE}</li>`); }
+  renderSummary(DATA.cases.filter(c => !c.open));
   archFetch().then(x => { archList = x.list || []; archPaint(); archGraphs(); }).catch(() => {});   // 세 지수 모두
   loadAll();
 })();
