@@ -246,7 +246,7 @@ function cardCells(c){
 function card(c){
   const fast = c.stabDays != null && c.stabDays <= 5;
   return `<div class="case gclosed${fast ? ' fast' : ''}" data-case="${c.date}">
-  <div class="ch"><button type="button" class="gtog" aria-expanded="false" aria-label="그래프 열기"><i></i></button><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span>${c.drop < 0 && c.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(c.drop)}</span>` : ''}</div>
+  <div class="ch"><button type="button" class="gtog" aria-expanded="false" aria-label="그래프 열기"><i></i></button><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span>${c.drop < 0 && c.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(c.drop)}</span>` : ''}${fast ? '<span class="fastx">5거래일 내 회복</span>' : ''}</div>
   <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}</div>
   <div class="cgrid" hidden>${cardCells(c)}</div>
   <div class="glrow">${GLG}${XCHIPS}</div>
