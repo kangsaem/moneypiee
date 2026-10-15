@@ -245,8 +245,8 @@ function cardCells(c){
 }
 function card(c){
   const fast = c.stabDays != null && c.stabDays <= 5;
-  return `<div class="case${fast ? ' fast' : ''}" data-case="${c.date}">
-  <div class="ch"><button type="button" class="gtog" aria-expanded="true" aria-label="그래프 닫기"><i></i></button><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span>${c.drop < 0 && c.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(c.drop)}</span>` : ''}</div>
+  return `<div class="case gclosed${fast ? ' fast' : ''}" data-case="${c.date}">
+  <div class="ch"><button type="button" class="gtog" aria-expanded="false" aria-label="그래프 열기"><i></i></button><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span>${c.drop < 0 && c.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(c.drop)}</span>` : ''}</div>
   <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}</div>
   <div class="cgrid" hidden>${cardCells(c)}</div>
   <div class="glrow">${GLG}${XCHIPS}</div>
@@ -281,13 +281,21 @@ function renderBands(){
   $('bands').innerHTML = html;
   if(NOW_BAND) markBand(NOW_BAND);
   document.querySelectorAll('details.acc[data-band]').forEach(d => {
-    const go = () => { if(d.open) d.querySelectorAll('.gch[data-g]').forEach(gDraw); allState(); };
+    const go = () => {                                         // 사례 그룹을 열면 각 사례는 닫힌 채로(그래프·세부내용, 2026-10-15) — 그래프는 열 때 그림
+      if(d.open) d.querySelectorAll('.case[data-case]').forEach(cs => {
+        cs.classList.add('gclosed');
+        const t = cs.querySelector('.gtog'); if(t){ t.setAttribute('aria-expanded', 'false'); t.setAttribute('aria-label', '그래프 열기'); }
+        const g = cs.querySelector('.cgrid'); if(g) g.hidden = true;
+        const b = cs.querySelector('.dbtn'); if(b){ b.setAttribute('aria-expanded', 'false'); b.textContent = '세부내용 ▾'; }
+      });
+      allState();
+    };
     d.addEventListener('toggle', go); go();
   });
   if(CFG.autoNotes) renderNotes(cases);
 }
 // 그래프 표시 설명(요약 맨 위, 2026-10-14)
-const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">하늘색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 어둡게 덮인 영역 = 핵심 구간(이탈 전날 ~ 하늘색 구간 끝)이 3달(63거래일) 미만인 사례를 가운데 맞추려고 좌우에 붙인 기간 · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라)';
+const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">하늘색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라)';
 function renderNotes(cases){
   const li = [G_NOTE];
   li.push(`200일선 안정 = 200일선 위 ${HOLD_DAYS}거래일 유지(그 첫날까지 거래일 수, 아래 줄은 이탈 전날 지수 대비 안정 첫날 지수). 이후 바닥까지 = 이탈일 종가 → 안정 전까지 최저 종가`);
@@ -317,6 +325,7 @@ document.addEventListener('click', ev => {
   if(t){                                                       // 사례 그래프 열기/닫기(제목 왼쪽, 2026-10-15)
     const cs = t.closest('.case'), open = t.getAttribute('aria-expanded') !== 'true';
     cs.classList.toggle('gclosed', !open); t.setAttribute('aria-expanded', open ? 'true' : 'false'); t.setAttribute('aria-label', open ? '그래프 닫기' : '그래프 열기');
+    if(open){ const g = cs.querySelector('.gch[data-g]'); if(g) gDraw(g); }
     return;
   }
   const b = ev.target.closest('.dbtn'); if(!b) return;

@@ -237,7 +237,7 @@ details.acc[data-band]>summary::after{left:14px;right:auto;top:20px}
 .gtog{width:22px;height:22px;margin:0 6px 0 -4px;padding:0;border:0;background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 .gtog i{width:7px;height:7px;border-right:1.5px solid var(--text-dim);border-bottom:1.5px solid var(--text-dim);transform:translateY(2px) rotate(-135deg);transition:transform .15s}
 .case.gclosed .gtog i{transform:translateY(-2px) rotate(45deg)}
-.case .glrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px}
+.case .glrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:4px 10px}   /* 다른 지수 칩 = 200일 색상표 바로 오른쪽 */
 .case .glrow .glg{margin-left:0}
 .case.gclosed .glrow,.case.gclosed .gch{display:none}
 /* 열린 탭 = 위쪽 테두리만 밝은 회색 가는 줄(2026-10-15) */
