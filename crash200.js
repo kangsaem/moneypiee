@@ -172,7 +172,7 @@ function skeleton(){
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
       <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="an-cper" id="lvPer"></span><span class="issue" id="lvIssue"></span></div>
       <div class="cgrid" hidden>${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>
-      <div class="glrow" id="lvGl">${GLG}${XCHIPS}</div>
+      <div class="glrow" id="lvGl">${GLG.replace('종가', '현재가')}${XCHIPS}</div>
       <div class="gch" id="lvG"></div>
     </div></div>
   </details>
@@ -525,7 +525,7 @@ function gRender(el, P){
   });
   el.innerHTML = P.prefix + gSvg(ch);
   if(cardEl) cardEl.querySelectorAll('.xchip').forEach(b => {
-    const k = b.dataset.x, has = X ? xAlign(X[k], dates).some(v => v && v.below) : true;
+    const k = b.dataset.x, has = X ? xAlign(X[k], dates).some(v => v) : true;   // 2026-10-15: 그 기간에 200일선 아래인 날이 없어도 누를 수 있음(선 전체가 연하게) — 자료가 아예 없을 때만 못 누름
     b.disabled = !has; b.classList.toggle('na', !has);
     const pressed = on.includes(k) && has; b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
   });
