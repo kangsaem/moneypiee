@@ -8554,8 +8554,8 @@ function anUpdateViewBtn(){
   const hb = document.getElementById('analysisHistBtn');
   if(!hb) return;
   const on = anState.view === 'history';
-  hb.textContent = on ? '최근종가' : '신호추적';            // 반전 없이 둘 다 연두 테두리·글자
-  hb.title = on ? '최근 종가 기준 신호로' : '지난 신호를 끝날 때까지 따라간 결과';
+  hb.textContent = on ? '최근신호' : '신호추적';            // 반전 없이 둘 다 연두 테두리·글자
+  hb.title = on ? '최근 신호로' : '지난 신호를 끝날 때까지 따라간 결과';
 }
 
 function anButtonHtml(){
