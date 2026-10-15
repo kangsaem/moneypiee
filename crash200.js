@@ -238,14 +238,14 @@ function cardCells(c){
   const fast = c.stabDays != null && c.stabDays <= 5;
   const stab = c.stab ? cv(CELL[3], `<span class="big">${c.stabDays}거래일 뒤</span>${fast ? '<span class="badge">즉시</span>' : ''}<span class="d">이탈 전날 대비 <span class="${cls(c.stabPct)}">${tri(c.stabPct)}</span></span>`)
                       : cv(CELL[3], '–<span class="d">진행 중</span>', 'dim');
-  const rec = c.rec ? cv(CELL[5], `<span class="big">${c.recN - 1}거래일 뒤</span><span class="d">${c.rec}</span>`) : cv(CELL[5], '미회복', 'dim');   // recN(이탈일=1) - 1 = 이탈일 0 기준
+  const rec = c.rec ? cv(CELL[5], `<span class="big rchip">${c.recN - 1}거래일 뒤</span><span class="d">${c.rec}</span>`) : cv(CELL[5], '미회복', 'dim');   // 제목 칩 대신 세부내용에 연두 테두리·글자(2026-10-15)   // recN(이탈일=1) - 1 = 이탈일 0 기준
   return cv(CELL[0], tri(c.prevGap), cls(c.prevGap)) + cv(CELL[1], dropTxt, c.drop < 0 && c.dropDays > 0 && c.date !== BIG ? 'dn' : (c.dropDays > 0 ? '' : 'dim'))
        + w60 + stab + cv(CELL[4], `${c.fails}회`) + rec;
 }
 function card(c){
   const fast = c.stabDays != null && c.stabDays <= 5;
   return `<div class="case${fast ? ' fast' : ''}" data-case="${c.date}">
-  <div class="ch"><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span>${c.drop < 0 && c.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(c.drop)}</span>` : ''}<span class="rchip">${c.recN ? '지수회복 ' + (c.recN - 1) + '거래일' : '지수회복 전'}</span></div>
+  <div class="ch"><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span>${c.drop < 0 && c.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(c.drop)}</span>` : ''}</div>
   <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}${GLG}${XCHIPS}</div>
   <div class="cgrid" hidden>${cardCells(c)}</div>
   <div class="gch" data-g="${c.date}"></div>
