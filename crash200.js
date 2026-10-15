@@ -188,7 +188,8 @@ function render(r, live){
   $('lvTime').textContent = `${r.todayKey}${at && at.length > 11 ? ' · ' + at.slice(11) : ''}${live.tz || ''}`;
   const ep = r.ep && !r.ep.recovered ? r.ep : null, dayChg = ep ? ep.chg : r.chgPct;
   $('lvDate').textContent = ep ? ep.date : r.todayKey;
-  $('lvChg').innerHTML = `<span class="chipv day${dayChg > 0 ? ' up' : ''}">${tri(dayChg, 2)}</span>`;
+  $('lvChg').innerHTML = `<span class="chipv day${dayChg > 0 ? ' up' : ''}">${tri(dayChg, 2)}</span>`
+    + (ep && ep.drop < 0 && ep.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(ep.drop)}</span>` : '');   // 진행 중 국면도 이후 바닥까지(2026-10-15)
   const set = (id, html, c) => { const el = $(id); el.innerHTML = `<span class="k">${LV_LAB[id]}</span>` + html; el.className = 'cv' + (c ? ' ' + c : ''); };
   const prevGap = ep ? ep.prevGap : (r.prevClose / r.maPrev - 1) * 100;
   set('lvPrevGap', tri(prevGap), cls(prevGap));
