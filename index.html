@@ -8832,7 +8832,9 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 .an-mt, .an-mt.arr, .an-mt.role, .an-mt.an-bt, .an-mt.an-tp { font-weight:500 !important; }
 /* 2026-10-11 20:20 화면 정리 */
 .an-stock > summary b { font-weight:500; }
-.an-rfirst .an-hl { color:var(--text); font-weight:inherit; }   /* Logic V1 제목과 같은 색(2026-10-15) */
+.an-rfirst .an-hl { color:var(--text); font-weight:inherit; }
+/* 열린 탭 = 위쪽 테두리만 밝은 회색 가는 줄(2026-10-15, 붕괴 사례와 같음) */
+details.an-idx[open], details.an-gauge[open], details.an-det[open], details.an-rules[open] { box-shadow:inset 0 1px 0 rgba(255,255,255,.38); }   /* Logic V1 제목과 같은 색(2026-10-15) */
 .an-rules { background:var(--surface) !important; } .an-rules + .an-warn { background:#3a3b40 !important; } .an-rfirst { margin-top:2px !important; font-size:12px; }   /* 첫 묶음(위치·규칙)만 조금 크게(사용자 2026-10-13) */
 .an-htabs .an-ftab { width:42px; justify-content:center; padding:0 !important; font-size:11px !important; letter-spacing:-0.5px; white-space:nowrap; }
 .an-ftab.has.t-wh { color:#C9C9C9; border-color:#C9C9C9; } .an-ftab.on.t-wh { background:#C9C9C9; color:var(--bg); border-color:#C9C9C9; }
