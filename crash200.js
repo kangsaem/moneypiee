@@ -170,8 +170,8 @@ function skeleton(){
     <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><span class="xpages">${XOTH.map(k => `<a class="xpage" style="--xc:${XC[k]}" href="${k}200.html?${/[?&]embed=1/.test(location.search) ? 'embed=1&' : ''}v=${Math.floor(Date.now() / 60000)}">▶ ${XN[k]}</a>`).join('')}</span><button type="button" id="closeAll"><i class="cchev"></i><span id="closeAllTx">전체 열기</span></button><span class="ca-sp"></span></span></summary>
     <div class="cards"><div class="case" id="lvRow">
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
-      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="an-cper" id="lvPer"></span><span class="issue" id="lvIssue"></span></div>
-      <div class="cgrid" hidden>${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>
+      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="true">세부내용 ▴</button><span class="an-cper" id="lvPer"></span><span class="issue" id="lvIssue"></span></div>
+      <div class="cgrid">${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>   <!-- 진행 중 국면: 세부내용 열린 채로 시작(2026-10-15) -->
       <div class="glrow" id="lvGl">${GLG.replace('종가', '현재가')}${XCHIPS}</div>
       <div class="gch" id="lvG"></div>
     </div></div>
@@ -344,9 +344,9 @@ document.addEventListener('click', ev => {
     const bands = [...document.querySelectorAll('details.acc[data-band]')];
     if(!bands.some(d => d.open)){ bands.forEach(d => { d.open = true; }); return; }   // 모두 닫혀 있으면 = 전체 열기
     bands.forEach(d => { d.open = false; });
-    document.querySelectorAll('.case .cgrid').forEach(g => { g.hidden = true; });
+    document.querySelectorAll('.case[data-case] .cgrid').forEach(g => { g.hidden = true; });   // 맨 위 진행 중 카드 세부내용은 그대로
     document.querySelectorAll('.case[data-case]').forEach(c => { c.classList.add('gclosed'); const t = c.querySelector('.gtog'); if(t) t.setAttribute('aria-expanded', 'false'); });
-    document.querySelectorAll('.dbtn').forEach(b => { b.setAttribute('aria-expanded', 'false'); b.textContent = '세부내용 ▾'; });
+    document.querySelectorAll('.case[data-case] .dbtn').forEach(b => { b.setAttribute('aria-expanded', 'false'); b.textContent = '세부내용 ▾'; });
     return;
   }
   const hit = ev.target.closest('.gtog, .dbtn'), cs = hit && hit.closest('.case[data-case]');
