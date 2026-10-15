@@ -209,7 +209,7 @@ function render(r, live){
     set('lvUp', ep.nowAbove ? `<span class="big">${ep.run}거래일</span><span class="d">40거래일 유지 = 안정</span>` : `–<span class="d">200일선 아래</span>`, ep.nowAbove ? '' : 'dim');
     set('lvFail', `${ep.fail}회`);
     set('lvRec', `–<span class="d">200일선 안정 뒤 계산</span>`, 'dim');
-    $('lvRecChip').innerHTML = `<span class="rchip">이탈 후 ${ep.D.length - 1 - ep.b}거래일</span>`;   // 이탈일 = 0(2026-10-15 통일)
+    $('lvRecChip').innerHTML = `<span class="rchip live">이탈 후 ${ep.D.length - 1 - ep.b}거래일 진행 중</span>`;   // 이탈일 = 0(2026-10-15 통일)
     liveEp = ep; gDraw($('lvG'));
     markBand(bandOf(ep.chg));
   }else{
@@ -245,7 +245,7 @@ function cardCells(c){
 function card(c){
   const fast = c.stabDays != null && c.stabDays <= 5;
   return `<div class="case${fast ? ' fast' : ''}" data-case="${c.date}">
-  <div class="ch"><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span><span class="rchip">${c.recN ? '지수회복 ' + (c.recN - 1) + '거래일' : '지수회복 전'}</span></div>
+  <div class="ch"><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span>${c.drop < 0 && c.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(c.drop)}</span>` : ''}<span class="rchip">${c.recN ? '지수회복 ' + (c.recN - 1) + '거래일' : '지수회복 전'}</span></div>
   <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}${GLG}${XCHIPS}</div>
   <div class="cgrid" hidden>${cardCells(c)}</div>
   <div class="gch" data-g="${c.date}"></div>

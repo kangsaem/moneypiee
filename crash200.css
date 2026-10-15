@@ -229,3 +229,6 @@ details.acc[data-band]>summary::after{left:14px;right:auto;top:20px}
 .cper-row .an-cper{margin:0}
 .cper-row .xchips{margin-left:auto}
 .case .ch2 .xchips{margin-left:auto}   /* 사례 카드도 다른 지수 칩은 오른쪽 끝 */
+
+.rchip.live{border:none;padding:1px 2px;color:#FF4D4D}   /* 진행 중 국면: 칸 없이 빨간 글자(2026-10-15) */
+.chipv.day.after{margin-left:4px}   /* 과거 사례 제목: 이후 바닥까지 하락률(당일 하락 칩과 같은 모양) */
