@@ -305,13 +305,20 @@ function renderSummary(cases){
     const dr = mm(l.map(c => c.drop)), dd = mm(l.filter(c => c.drop < 0).map(c => c.dropDays)), rc = mm(l.filter(c => c.rec).map(c => c.recN - 1));
     const un = l.filter(c => !c.rec).length;
     // 하락률은 '최소' = 가장 작게 빠진 값, '최대' = 가장 크게 빠진 값
-    const drop = dr ? `바닥까지 최소 ${tri(dr.max)} · 최대 ${tri(dr.min)} · 중간 ${tri(dr.med)}` + (dd ? ` <span class="sd">(저점까지 ${dd.min}~${dd.max}거래일 · 중간 ${dd.med})</span>` : '') : '';
-    const rec = rc ? `지수회복까지 최소 ${rc.min} · 최대 ${rc.max} · 중간 ${rc.med}거래일${un ? ` <span class="sd">(미회복 ${un}건)</span>` : ''}` : (un ? `지수회복까지 – <span class="sd">(미회복 ${un}건)</span>` : '');
-    return `<li><b>${title} (${l.length}건)</b><br>${drop}<br>${rec}</li>`;
+    const D = v => `<span class="sdn">${tri(v)}</span>`, G = v => `<span class="srec">${v}</span>`;   // 하락 = 하락색, 회복 거래일 = 연두
+    const drop = dr ? `바닥까지 최소 ${D(dr.max)} · 최대 ${D(dr.min)} · 중간 ${D(dr.med)}` : '';
+    const rec = rc ? `지수회복까지 최소 ${G(rc.min)} · 최대 ${G(rc.max)} · 중간 ${G(rc.med)}거래일${un ? ` <span class="sd">(미회복 ${un}건)</span>` : ''}` : (un ? `지수회복까지 – <span class="sd">(미회복 ${un}건)</span>` : '');
+    return `<li${title === '전체' ? ' class="sall"' : ''}><b>${title} (${l.length}건)</b><br>${drop}<br>${rec}</li>`;
   };
   const by = BANDS.map(([, nm]) => [nm, cases.filter(c => bandOf(c.chg) === nm)]).filter(([, l]) => l.length);
   const top = `<ul class="sum">${line('전체', cases)}${by.map(([nm, l]) => line(nm, l)).join('')}</ul>`;
   const old = host.querySelector('ul');
+  if(old){                                                     // 자세히: 200일선 안정 → 지수회복까지 → 그래프 설명 → 나머지 순(2026-10-15)
+    const li = [...old.children], pick = re => { const i = li.findIndex(x => re.test(x.textContent)); return i < 0 ? null : li.splice(i, 1)[0]; };
+    const a = pick(/^200일선 안정 =/), b = pick(/^지수회복까지 =/), c = pick(/^그래프:/);
+    if(a) a.innerHTML = a.innerHTML.replace(/^200일선 안정/, '<span class="ssky">200일선 안정</span>');
+    old.replaceChildren(...[a, b, c].filter(Boolean), ...li);
+  }
   host.innerHTML = `<b>요약</b>${top}<details class="nmore"><summary>자세히</summary>${old ? old.outerHTML : ''}</details>`;
 }
 // 그래프 표시 설명(요약 맨 위, 2026-10-14)
