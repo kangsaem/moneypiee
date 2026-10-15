@@ -234,7 +234,6 @@ details.acc[data-band]>summary::after{left:14px;right:auto;top:20px}
 .chipv.day.after{margin-left:4px}   /* 과거 사례 제목: 이후 바닥까지 하락률(당일 하락 칩과 같은 모양) */
 .big.rchip{margin-left:0;font-size:inherit;padding:1px 6px}   /* 세부내용 지수회복까지: 연두 테두리·글자 */
 /* 2026-10-15 사례 카드: 제목 왼쪽 그래프 열기/닫기 · 세부내용 오른쪽 · 색상표·다른 지수 칩 = 그래프 바로 위 */
-.case .ch .dbtn{margin-left:auto}
 .gtog{width:22px;height:22px;margin:0 6px 0 -4px;padding:0;border:0;background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 .gtog i{width:7px;height:7px;border-right:1.5px solid var(--text-dim);border-bottom:1.5px solid var(--text-dim);transform:translateY(2px) rotate(-135deg);transition:transform .15s}
 .case.gclosed .gtog i{transform:translateY(-2px) rotate(45deg)}

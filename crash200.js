@@ -169,8 +169,8 @@ function skeleton(){
   <details class="sec acc live" id="live" open>
     <summary><span class="st lv-st"><span class="lv-lines"><span id="lvL1h"><span id="lvL1">${esc(CFG.name)} –</span><span id="lvL1c"></span></span><span id="lvL2"></span><span class="dim" id="lvTime">불러오는 중…</span></span><span class="lv-btns"><span id="reloadPricesLabel" style="display:none;height:26px;box-sizing:border-box;align-items:center;font-size:11px;line-height:1.3;color:var(--text-dim);"></span><button id="reloadPricesBtn" title="시세 새로고침" aria-label="시세 새로고침" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button></span></span><span class="closeall"><span class="xpages">${XOTH.map(k => `<a class="xpage" style="--xc:${XC[k]}" href="${k}200.html?${/[?&]embed=1/.test(location.search) ? 'embed=1&' : ''}v=${Math.floor(Date.now() / 60000)}">▶ ${XN[k]}</a>`).join('')}</span><button type="button" id="closeAll"><i class="cchev"></i><span id="closeAllTx">전체 열기</span></button><span class="ca-sp"></span></span></summary>
     <div class="cards"><div class="case" id="lvRow">
-      <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span><button type="button" class="dbtn" id="lvDbtn" aria-expanded="false">세부내용 ▾</button></div>
-      <div class="ch2" id="lvCh2" hidden><span class="issue" id="lvIssue"></span>${GLG}</div>
+      <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
+      <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button><span class="issue" id="lvIssue"></span>${GLG}</div>
       <div class="cgrid" hidden>${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>
       <div class="gch" id="lvG"></div>
     </div></div>
@@ -246,8 +246,8 @@ function cardCells(c){
 function card(c){
   const fast = c.stabDays != null && c.stabDays <= 5;
   return `<div class="case${fast ? ' fast' : ''}" data-case="${c.date}">
-  <div class="ch"><button type="button" class="gtog" aria-expanded="true" aria-label="그래프 닫기"><i></i></button><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span>${c.drop < 0 && c.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(c.drop)}</span>` : ''}<button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button></div>
-  <div class="ch2">${issueHtml(c)}</div>
+  <div class="ch"><button type="button" class="gtog" aria-expanded="true" aria-label="그래프 닫기"><i></i></button><span class="date">${c.date}</span><span class="chipv day">${tri(c.chg, 2)}</span>${c.drop < 0 && c.dropDays > 0 ? `<span class="chipv day after">이후 ${tri(c.drop)}</span>` : ''}</div>
+  <div class="ch2"><button type="button" class="dbtn" aria-expanded="false">세부내용 ▾</button>${issueHtml(c)}</div>
   <div class="cgrid" hidden>${cardCells(c)}</div>
   <div class="glrow">${GLG}${XCHIPS}</div>
   <div class="gch" data-g="${c.date}"></div>
