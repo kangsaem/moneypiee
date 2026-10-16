@@ -629,17 +629,20 @@ async function archSave(ep){
   if(!ghTok() || !all.some(e => e.recovered)) return '';
   const cur = await archFetch();
   const todo = all.filter(e => e.recovered && !cur.list.some(c => c.date === e.date));
-  if(!todo.length) return '';
+  // 이미 보관했는데 그때 지수회복 전이었던 사례: 지금 회복했으면 지수회복 값만 채움(2026-10-16)
+  const fill = all.filter(e => e.idxRec && cur.list.some(c => c.date === e.date && !c.idxRec));
+  fill.forEach(e => { const c = cur.list.find(x => x.date === e.date); c.idxRec = e.idxRec; c.idxRecDays = e.idxRecDays; c.idxRecN = e.idxRecN; });
+  if(!todo.length && !fill.length) return '';
   const recs = todo.map(e => ({ date: e.date, issue: '', chg: +e.chg.toFixed(2), prevGap: +e.prevGap.toFixed(1), drop: +e.drop.toFixed(1), dropDays: e.dropDays,
     w60: e.w60 || null, w60b: e.w60b != null ? +e.w60b.toFixed(1) : null, recovered: e.recovered, recDays: e.recDays, fail: e.fail,
     stabPct: e.stabPct != null ? +e.stabPct.toFixed(2) : null, idxRec: e.idxRec, idxRecDays: e.idxRecDays, idxRecN: e.idxRecN, savedAt: new Date().toISOString().slice(0, 10) }));
   const list = cur.list.concat(recs);
-  const body = { message: `${CFG.name} 200일선 붕괴 사례 보관: ${recs.map(c => c.date + ' (회복 ' + c.recovered + ')').join(', ')} [skip ci]`, content: b64enc(JSON.stringify(list, null, 1) + '\n') };
+  const body = { message: `${CFG.name} 200일선 붕괴 사례 보관: ${recs.map(c => c.date + ' (회복 ' + c.recovered + ')').concat(fill.map(e => e.date + ' (지수회복 ' + e.idxRec + ')')).join(', ')} [skip ci]`, content: b64enc(JSON.stringify(list, null, 1) + '\n') };
   if(cur.sha) body.sha = cur.sha;
   const r = await fetch(`https://api.github.com/repos/${ARCH.REPO}/contents/${ARCH.PATH}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + ghTok(), Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if(!r.ok) throw new Error(r.status === 401 || r.status === 403 ? '토큰 권한 부족' : 'GitHub ' + r.status);
   archList = list; archPaint(); archGraphs();
-  return '사례 저장됨';
+  return fill.length && !recs.length ? '사례 지수회복 갱신' : '사례 저장됨';
 }
 
 // ---------- 불러오기·리로드 ----------
