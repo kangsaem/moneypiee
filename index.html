@@ -8138,25 +8138,46 @@ const AN_BT_SUMMARY = [
   '꾸준한 상승장은 V1이 약했음',
   '나스닥 최근 10년 V1 +76% · 보유 +96% vs 지수 +115%',
   'S&P500 1988~ 5년 구간 394개: 그냥 보유 시 최악 -39% · 평균 +58%',
-  '코스피 1995~ 5년 구간 305개: 그냥 보유 시 최악 -42% · 평균 +44%',
-  '배당·세금·환율·추가 자금 이자 제외'
+  '코스피 1995~ 5년 구간 305개: 그냥 보유 시 최악 -42% · 평균 +44%'
 ];
+// 백테스트 표본(2026-10-16 사용자 문구) — Logic V1 제목 오른쪽 '백테스트 표본' 버튼으로 펼침, 아래에 AN_BT_SUMMARY(분홍)
+const AN_BT_SAMPLE = [
+  '지수 그냥 보유(5년 구간): S&P500 1988년 이후 394구간 / 코스피 1995년 이후 305구간 — 매 거래월 시작 5년 구간을 모두 계산',
+  '계좌 랜덤종목 20개 · 최근 10년 내 랜덤 5년: 코스피 300회(시작일 당시 시총 상위 300 중 20종목) · 나스닥 200회(시작일 당시 나스닥100 중 20종목)',
+  '과거 구간 코스피: 1997~2006 시작 9구간 × 9회 = 81회 · 2007~2022 시작 13구간 × 9회 = 117회. 상장폐지 종목 포함 시세(생존 편향 거의 없음)',
+  '과거 구간 미국: S&P500 1998~2010 시작 10구간 × 9회 = 90회. 사라진 종목은 다음 후보로 대체해서 생존 편향이 남음(보유가 유리하게 나옴) · 나스닥 2015~2021 시작 6구간 × 10회 = 60회',
+  '종목 수별: 10·20·30·50종목 × 코스피·나스닥 × 5회',
+  '합계: 20종목 계좌 약 850회, 지수 구간 약 700개',
+  '방법: 회차마다 시작일 당시 목록에서 무작위로 뽑음 · 그날까지의 자료로만 신호 계산 · V1 vs 같은 종목 그냥 보유 vs 지수 · 매수 0.05%·매도 0.25% 반영, 배당·세금·환율 제외',
+  '해석: 코스피 V1과 랜덤종목 보유의 차이는 시작 연도에 따라 +19%p에서 −92%p까지 벌어짐(2020~2021 급등장 시작에서 보유가 크게 앞섬) = 결과는 시작 시점이 좌우'
+];
+const AN_SMP_BTN = '<button type="button" class="an-smpbtn">백테스트 표본</button>';
+// 표본 버튼: 제목 줄 안이라 접힘이 같이 열리고 닫히지 않게 막고, 표본 칸만 열고 닫음(Logic V1이 닫혀 있으면 열면서 표본 표시)
+document.addEventListener('click', e => {
+  const b = e.target.closest('.an-smpbtn'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const box = b.closest('.an-rules, .an-lpop'), det = b.closest('details'), p = box && box.querySelector('.an-smp');
+  if(!p) return;
+  if(det && !det.open){ det.open = true; p.hidden = false; }
+  else p.hidden = !p.hidden;
+  b.classList.toggle('on', !p.hidden);
+}, true);
 // Logic V1 본문: LAB 아래 아코디언과 LAB 첫 클릭 안내창이 같이 씀
 function anLogicBody(){
   const per = [['1', '1년'], ['3', '3년'], ['5', '5년']];
   const lines = arr => arr.map(s => `<span class="an-li">${anE(s).replace(/\{(.*?)\}/g, '<b class="an-hl">$1</b>')}</span>`).join('');   // 항목마다 한 줄씩, {강조}
-  return `<p class="an-rfirst">${lines(AN_POS)}</p>
+  return `<div class="an-smp" hidden><h4>백테스트 표본</h4><p>${lines(AN_BT_SAMPLE)}</p>
+        <h4>백테스트 요약 <small>5년 · 넣은 돈 대비</small></h4><p class="an-pink">${lines(AN_BT_SUMMARY)}</p></div>
+      <p class="an-rfirst">${lines(AN_POS)}</p>
       <h4>백테스트 <small>총수익 · 칩을 누르면 선 켜고 끄기</small></h4>
       <div class="an-btper">${per.map(([k, nm]) => `<button type="button" data-btp="${k}"${k === anBtState.p ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>
       <div class="an-btwrap"></div>
       <h4>주의</h4><p class="an-rnote">${lines(AN_BT_NOTES)}</p>
       <h4>한계</h4><p>${lines(AN_LIMITS)}</p>
-      <details class="an-sub an-rmore"><summary>신호 / 백테스트 요약</summary>
-        <h4>신호</h4><p>${lines(AN_SIG_DEF)}</p>
-        <h4>백테스트 요약 <small>5년 · 넣은 돈 대비</small></h4><p>${lines(AN_BT_SUMMARY)}</p></details>`;
+      <h4>신호</h4><p>${lines(AN_SIG_DEF)}</p>`;
 }
 function anRulesHtml(){
-  return `<details class="an-rules" data-an-key="rules"><summary>Logic V1 <small>2026.10.13</small></summary>
+  return `<details class="an-rules" data-an-key="rules"><summary>Logic V1 <small>2026.10.13</small>${AN_SMP_BTN}</summary>
     <div class="an-rbody">${anLogicBody()}</div></details>`;
 }
 // 그래프 기간·선 켜고 끄기 (box = 아코디언 또는 안내창, isOpen = 지금 보이는지)
@@ -8184,7 +8205,7 @@ function anLogicPopup(opt){
   m.id = 'anLogicModal';
   m.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:center;justify-content:center;padding:16px;';
   m.innerHTML = `<div class="an-lpop">
-      <h3>Logic V1 <small>2026.10.13</small></h3><hr>
+      <h3>Logic V1 <small>2026.10.13</small>${AN_SMP_BTN}</h3><hr>
       <div class="an-rbody">${anLogicBody()}</div>
       ${opt.force ? '' : '<label class="an-lchk"><input type="checkbox" id="anLogicHide"> 다시 보지 않기</label>'}
       <div class="an-lbtn"><button class="btn btn-primary" id="anLogicOk">✓</button></div></div>`;
@@ -8633,6 +8654,10 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-rules > summary { cursor:pointer; padding:8px 10px; font-size:12.5px; font-weight:700; list-style:none; }
 .an-rules > summary::-webkit-details-marker { display:none; } .an-rules > summary::before { content:'▸ '; color:var(--text-dim); } .an-rules[open] > summary::before { content:'▾ '; }
 .an-rules > summary small { color:var(--text-dim); font-weight:500; }
+.an-rules > summary, .an-lpop > h3 { display:flex; align-items:center; gap:6px; }   /* 제목 오른쪽 '백테스트 표본'(2026-10-16) */
+.an-smpbtn { margin-left:auto; height:22px; padding:0 8px; font-size:11px; font-weight:700; border:1px solid #E87BA4; border-radius:6px; background:transparent; color:#E87BA4; cursor:pointer; white-space:nowrap; }
+.an-smpbtn.on { background:#E87BA4; color:#1E1F22; }
+.an-smp { border-left:2px solid #E87BA4; padding-left:8px; margin:4px 0 10px; } .an-smp[hidden] { display:none; } .an-pink, .an-pink .an-li { color:#E87BA4; }
 .an-rbody { padding:0 10px 10px; font-size:10.5px; line-height:1.6; color:var(--text-dim); }
 .an-rbody h4 { margin:10px 0 3px; font-size:12px; color:var(--text); } .an-rbody h4 small { font-weight:400; color:var(--text-dim); font-size:10.5px; }
 .an-rbody p { margin:0; } .an-rnote { margin-top:6px !important; }   /* 내용 글자 = 모든 섹션 10.5px(주의와 같게, 2026-10-13) */
