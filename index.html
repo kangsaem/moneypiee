@@ -7817,12 +7817,34 @@ async function anDrawIdxChart(slot){
   slot.innerHTML = anChartTabs(per) + anSvgChart(ch);
 }
 
+// 공지 파일(#noticeModal)을 그 자리에서 팝업으로(다시 보지 않기 없음, ✓·바깥 누르면 닫힘)
+async function anNoticeOpen(file){
+  try{
+    const res = await fetch(encodeURI(file) + '?_=' + Date.now(), { cache: 'no-store' });
+    if(!res.ok) return;
+    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+    const m = doc.getElementById('noticeModal'); if(!m) return;
+    m.removeAttribute('id'); m.classList.add('an-npop');
+    m.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    const chk = m.querySelector('input[type=checkbox]'); if(chk && chk.closest('label')) chk.closest('label').style.display = 'none';
+    document.body.appendChild(m); m.style.display = 'flex';
+    const close = () => m.remove();
+    m.querySelectorAll('button').forEach(b => b.addEventListener('click', close));
+    m.addEventListener('click', e => { if(e.target === m) close(); });
+  }catch(e){}
+}
+function anEuphoria(btn){
+  anNoticeOpen('notice버핏신데렐라.html');
+  btn.textContent = '주변 모두가 주식을 하고 주변 모두가 돈을 벌고 있는가?';
+}
 function anGauge(msig, key, title){
   const g = msig[key];
   const rows = g.items.map(([lb, val, st]) => `<li class="${st ? 'on' : st == null ? 'na' : 'off'}"><span class="an-dot"></span><span class="an-gt">${anE(lb)}</span><b>${anE(val)}</b></li>`).join('');
   const pct = g.total ? Math.floor(100 * g.score / g.total) : 0;
   const extra = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
-    ? `<div class="an-glink"><a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a></div>` : '';
+    ? `<div class="an-glink"><a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a></div>`
+    : key === 'risk'                                     // 위험 지표: 항상 '유포리아 확인 →' → 버핏 신데렐라 공지 팝업, 누르면 문구가 질문으로 바뀜(2026-10-16)
+    ? `<div class="an-glink"><button type="button" class="an-gbtn an-euph" onclick="anEuphoria(this)">유포리아 확인 →</button></div>` : '';
   // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
   return `<details class="an-gauge ${key} ${g.cls} s${Math.min(g.score, 3)}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
@@ -8804,6 +8826,10 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 .an-glink { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin-top:8px; padding-top:8px; padding-bottom:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text); }   /* 아래 여백(2026-10-14) */
 .an-gbtn { display:inline-flex; align-items:center; height:26px; padding:0 10px; border:1px solid var(--border); border-radius:6px; background:var(--border); color:var(--text); text-decoration:none; font-size:12px; white-space:nowrap; }   /* PBR·PER 버튼(2026-10-14) — 머니파이 팔레트 --border #3D3E43 */
 .an-glink small { color:var(--text-dim); flex-basis:100%; }
+button.an-gbtn { font-family:inherit; cursor:pointer; } .an-euph { height:auto; min-height:26px; white-space:normal; text-align:left; }
+/* 위험·바닥 지표 높이 맞춤(2026-10-16): 둘 다 열렸을 때 같은 높이, 버튼 줄은 맨 아래 */
+.an-gauges:not(:has(details.an-gauge:not([open]))) { align-items:stretch !important; }
+details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge[open] > .an-glink { margin-top:auto; }
 .an-dots { margin-left:auto; font-style:normal; letter-spacing:1px; font-size:12px; }
 .an-sg.buy .an-dots { color:var(--an-up); } .an-sg.sell .an-dots { color:var(--an-dn); }
 .an-whys { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
