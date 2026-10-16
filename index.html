@@ -8826,7 +8826,7 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 .an-glink { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin-top:8px; padding-top:8px; padding-bottom:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text); }   /* 아래 여백(2026-10-14) */
 .an-gbtn { display:inline-flex; align-items:center; height:26px; padding:0 10px; border:1px solid var(--border); border-radius:6px; background:var(--border); color:var(--text); text-decoration:none; font-size:12px; white-space:nowrap; }   /* PBR·PER 버튼(2026-10-14) — 머니파이 팔레트 --border #3D3E43 */
 .an-glink small { color:var(--text-dim); flex-basis:100%; }
-button.an-gbtn { font-family:inherit; cursor:pointer; } .an-euph { height:auto; min-height:26px; padding:4px 10px; line-height:1.3; white-space:normal; text-align:left; align-items:center; box-sizing:border-box; }
+button.an-gbtn { font-family:inherit; cursor:pointer; } .an-euph { height:auto; min-height:26px; padding:4px 10px; line-height:1.3; white-space:normal; text-align:left; align-items:center; box-sizing:border-box;  background:var(--text); color:var(--bg); border-color:var(--text); font-weight:600; }   /* 반전(2026-10-16) */
 /* 위험·바닥 지표 높이 맞춤(2026-10-16): 둘 다 열렸을 때 같은 높이, 버튼 줄은 맨 아래 */
 .an-gauges:not(:has(details.an-gauge:not([open]))) { align-items:stretch !important; }
 details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge[open] > .an-glink { margin-top:auto; }
