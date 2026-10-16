@@ -8151,7 +8151,7 @@ const AN_BT_SAMPLE = [
   '방법: 회차마다 시작일 당시 목록에서 무작위로 뽑음 · 그날까지의 자료로만 신호 계산 · V1 vs 같은 종목 그냥 보유 vs 지수 · 매수 0.05%·매도 0.25% 반영, 배당·세금·환율 제외',
   '해석: 코스피 V1과 랜덤종목 보유의 차이는 시작 연도에 따라 +19%p에서 −92%p까지 벌어짐(2020~2021 급등장 시작에서 보유가 크게 앞섬) = 결과는 시작 시점이 좌우'
 ];
-const AN_SMP_BTN = '<button type="button" class="an-smpbtn">백테스트 표본</button>';
+const AN_SMP_BTN = '<button type="button" class="an-smpbtn">백테스트</button>';
 // 표본 버튼: 제목 줄 안이라 접힘이 같이 열리고 닫히지 않게 막고, 표본 칸만 열고 닫음(Logic V1이 닫혀 있으면 열면서 표본 표시)
 document.addEventListener('click', e => {
   const b = e.target.closest('.an-smpbtn'); if(!b) return;
