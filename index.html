@@ -98,6 +98,12 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
     line-height:20px;      /* 영문만 있는 탭(V1)도 한글 탭과 같은 높이 */
   }
   .tab[data-tab="__analysis__"]{min-width:66px;box-sizing:border-box;text-align:center;}   /* V1: 두 글자 한글 탭과 같은 폭 */
+  /* 2026-10-20: 모든 탭 폭 = '미래1' 탭 폭(--tabw, renderTabs에서 잼). 넘치는 이름은 앞글자만(… 없음) */
+  .tabs .tab{width:min(var(--tabw,74px), calc((100% - 20px) / 6));min-width:0;box-sizing:border-box;padding-left:6px;padding-right:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:clip;}
+  .tabs .tab.acc{padding-top:3px;padding-bottom:3px;font-size:13px;}   /* 계좌 탭(마통 포함) 높이 약 2/3 */
+  .tabs .tab.warn200{color:#F2A65A;}
+  .tabs .tab.warn200 svg{vertical-align:-3px;}
+  .tabs .tab.mng{color:var(--text-dim);}
   .tab.active{background:var(--surface2);border-color:var(--accent-dim);}
   .tab.total{color:var(--accent);}
   .tab-add{
@@ -460,7 +466,7 @@ const CASH_OVERSEAS = '#ADAEB4';
 const CREDIT_USED_COLOR = '#B85450';
 const CREDIT_REMAIN_COLOR = '#7E7F84';
 
-let state = { accounts: [], activeId: null, snapshots: [], domesticAccountFilter: [], overseasAccountFilter: [], historyRange: '6', creditLines: [], watchlist: null };
+let state = { accounts: [], activeId: null, snapshots: [], domesticAccountFilter: [], overseasAccountFilter: [], historyRange: 'ytd', creditLines: [], watchlist: null };
 // 분석탭(관심종목) 전용 가상 계좌. state.accounts에 넣지 않으므로 전체/국내/해외 합산, 월별 저장, 계좌 버튼 등 어디에도 포함되지 않는다.
 const WATCHLIST_ID = '__watch__';
 function emptyWatchlist(){ return { id: WATCHLIST_ID, name: '분석', accountType: '직투', holdings: [] }; }
@@ -5009,46 +5015,58 @@ function trendBarsHTML(snapshots, groupKey, type, title, compact, idPrefix){
 
 function renderTabs(){
   const tabs = document.getElementById('tabs');
+  // 2026-10-20 탭 정리: 1줄 = 계좌(높이 2/3) + 마통(마지막) / 2줄 = 자산·월별·관심·V1·⚠(200일선 붕괴 사례)·관리
+  // 자산 = 옛 전체·국내·해외(안에서 국내/해외 버튼으로 전환, 내부 id는 그대로) · 관리 = 계좌 추가 + 계좌 삭제 · 월별자산 목록은 월별 탭 안 버튼
+  const isAsset = ['__total__', '__domestic__', '__overseas__'].includes(state.activeId);
   let html = state.accounts.map(a => `
-    <div class="tab ${a.id===state.activeId?'active':''}" data-tab="${a.id}">${escapeHTML(a.name)}</div>
+    <div class="tab acc ${a.id===state.activeId?'active':''}" data-tab="${a.id}" title="${escapeHTML(a.name)}">${escapeHTML(a.name)}</div>
   `).join('');
+  html += `<div class="tab acc total ${state.activeId==='__creditLines__'?'active':''}" data-tab="__creditLines__" style="color:#B85450;">마통</div>`;
   html += `<div class="tab-br"></div>`;      // 계좌 탭 줄 / 나머지 탭 줄 나눔(2026-10-13)
-  html += `<div class="tab total ${state.activeId==='__creditLines__'?'active':''}" data-tab="__creditLines__" style="color:#B85450;">마통</div>`;
-  html += `<div class="tab total ${state.activeId==='__domestic__'?'active':''}" data-tab="__domestic__">국내</div>`;
-  html += `<div class="tab total ${state.activeId==='__overseas__'?'active':''}" data-tab="__overseas__">해외</div>`;
-  html += `<div class="tab total ${state.activeId==='__total__'?'active':''}" data-tab="__total__">전체</div>`;
+  html += `<div class="tab total ${isAsset?'active':''}" data-tab="__total__">자산</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
   html += `<div class="tab ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}" style="color:rgba(212,255,61,0.8);">관심</div>`;
   html += `<div class="tab ${state.activeId==='__analysis__'?'active':''}" data-tab="__analysis__" style="color:#D4FF3D;">V1</div>`;
-  html += `<div class="tab-add ${state.activeId==='__snapshots__'?'active':''}" data-tab="__snapshots__">관리</div>`;
-  html += `<div class="tab-add" id="addAccountBtn">+ 계좌 추가</div>`;
-  html += `<div class="tab-add ${state.activeId==='__deleteAccounts__'?'active-dashed':''}" data-tab="__deleteAccounts__">계좌 삭제</div>`;
+  html += `<div class="tab warn200" id="warn200Tab" title="200일선 붕괴 사례"><svg width="18" height="16" viewBox="0 0 18 16" aria-hidden="true"><path d="M9 1.5 17 15H1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 6v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="12.6" r="1" fill="currentColor"/></svg></div>`;
+  html += `<div class="tab mng ${state.activeId==='__deleteAccounts__'?'active':''}" data-tab="__deleteAccounts__">관리</div>`;
   tabs.innerHTML = html;
+  // 탭 폭 = '미래1' 탭(옛 모양: 14px · 좌우 18px)의 폭
+  try{
+    const m = document.createElement('div');
+    m.className = 'tab'; m.textContent = '미래1';
+    m.style.cssText = 'position:absolute;visibility:hidden;width:auto;padding-left:18px;padding-right:18px;';
+    document.body.appendChild(m);
+    const w = Math.ceil(m.getBoundingClientRect().width);
+    m.remove();
+    if(w > 0) tabs.style.setProperty('--tabw', w + 'px');
+  }catch(e){}
+  document.getElementById('warn200Tab').addEventListener('click', e => anK200Open(e, AN_200PAGE.kospi));
 
   tabs.querySelectorAll('[data-tab]').forEach(el => {
-    el.addEventListener('click', () => {
-      state.activeId = el.dataset.tab;
-      accountTableSortMode = null;
-      // 금액순 도넛 정렬(금액순/섹터순/지역순/이름순)은 전체·국내·해외 탭에서 공유·유지한다.
-      // 탭을 이동하면 섹터/지역 아코디언은 닫는다(팝업 DOM은 render()로 어차피 사라지지만,
-      // 내부 상태값도 함께 초기화해야 다른 탭에서 같은 idx로 다시 열 때 꼬이지 않는다).
-      sectorAccordionOpenIdx = null;
-      sectorAccordionOpenLabel = null;
-      regionAccordionOpenIdx = null;
-      rememberedSectorAccordion = null;
-      rememberedRegionAccordion = null;
-      lastClosedSectorPos = null;
-      lastClosedRegionPos = null;
-      pendingSectorAccordionPos = null;
-      pendingRegionAccordionPos = null;
-      const _os = document.getElementById('orphan-sector-slot'); if(_os) _os.innerHTML = '';
-      const _or = document.getElementById('orphan-region-slot'); if(_or) _or.innerHTML = '';
-      // 현금비중 평가액 팝업은 탭 이동 시 닫는다 (닫기 버튼으로만 닫힘, 다른 이벤트로는 유지)
-      cashAmountAccordionOpen = false;
-      render();
-    });
+    el.addEventListener('click', () => switchTab(el.dataset.tab));
   });
-  document.getElementById('addAccountBtn').addEventListener('click', addAccount);
+}
+function switchTab(id){
+  state.activeId = id;
+  if(state.activeId === '__history__') historyListMode = false;   // 월별 탭에 들어오면 그래프부터
+  accountTableSortMode = null;
+  // 금액순 도넛 정렬(금액순/섹터순/지역순/이름순)은 전체·국내·해외 탭에서 공유·유지한다.
+  // 탭을 이동하면 섹터/지역 아코디언은 닫는다(팝업 DOM은 render()로 어차피 사라지지만,
+  // 내부 상태값도 함께 초기화해야 다른 탭에서 같은 idx로 다시 열 때 꼬이지 않는다).
+  sectorAccordionOpenIdx = null;
+  sectorAccordionOpenLabel = null;
+  regionAccordionOpenIdx = null;
+  rememberedSectorAccordion = null;
+  rememberedRegionAccordion = null;
+  lastClosedSectorPos = null;
+  lastClosedRegionPos = null;
+  pendingSectorAccordionPos = null;
+  pendingRegionAccordionPos = null;
+  const _os = document.getElementById('orphan-sector-slot'); if(_os) _os.innerHTML = '';
+  const _or = document.getElementById('orphan-region-slot'); if(_or) _or.innerHTML = '';
+  // 현금비중 평가액 팝업은 탭 이동 시 닫는다 (닫기 버튼으로만 닫힘, 다른 이벤트로는 유지)
+  cashAmountAccordionOpen = false;
+  render();
 }
 
 function buildAccountFilteredSnapshots(snapshots, accountIds){
@@ -5076,7 +5094,12 @@ function renderHistoryPanel(){
   const accountFilteredSnapshots = historyAccountFilter.length > 0
     ? buildAccountFilteredSnapshots(sorted, historyAccountFilter)
     : sorted;
-  const filtered = range === 'all' ? accountFilteredSnapshots : accountFilteredSnapshots.slice(-parseInt(range, 10));
+  // 올해(2026-10-20) = 작년 12월 결산 ~ 올해 12월(아직이면 지금 달까지)
+  const ytdFrom = (new Date().getFullYear() - 1) + '12', ytdTo = new Date().getFullYear() + '12';
+  const filtered = range === 'all' ? accountFilteredSnapshots
+    : range === 'ytd' ? accountFilteredSnapshots.filter(s => { const l = normalizeLabel(s.label); return l >= ytdFrom && l <= ytdTo; })
+    : accountFilteredSnapshots.slice(-parseInt(range, 10));
+  const rk = range === 'ytd' ? '12' : range;           // 그래프 글자 크기·밀도는 12개월과 같게
 
   const points = filtered.map(s => ({
     label: s.label,
@@ -5109,9 +5132,10 @@ function renderHistoryPanel(){
     </div>
   `;
 
-  const rangeOptions = [['3','최근 3개월'],['6','최근 6개월'],['12','최근 12개월'],['24','최근 24개월'],['all','전체']];
+  const rangeOptions = [['ytd','올해'],['3','최근 3개월'],['6','최근 6개월'],['12','최근 12개월'],['24','최근 24개월'],['all','전체']];
   const rangeSelector = `
-    <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      ${historyListBtnHtml()}
       <select id="rangeSelect" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;font-family:inherit;">
         ${rangeOptions.map(([v,l]) => `<option value="${v}" ${v===range?'selected':''}>${l}</option>`).join('')}
       </select>
@@ -5134,11 +5158,11 @@ function renderHistoryPanel(){
     ${rangeSelector}
     <div style="position:relative;">
       <div id="total-memo-slot"></div>
-      <div class="trend-wrap">${lineChartSVG(points, lineSeries, 860, 205, range === '24' ? 'shrink' : (range === 'all' ? 'sparse' : ((range === '6' || range === '12') ? 'small' : 'normal')), range === 'all' || range === '3' || range === '6')}</div>
+      <div class="trend-wrap">${lineChartSVG(points, lineSeries, 860, 205, rk === '24' ? 'shrink' : (rk === 'all' ? 'sparse' : ((rk === '6' || rk === '12') ? 'small' : 'normal')), rk === 'all' || rk === '3' || rk === '6')}</div>
     </div>
-    ${trendBarsHTML(filtered, 'group', 'group', '섹터', range === 'all' || range === '24', 'group')}
-    ${trendBarsHTML(filtered, regionLabelFor, 'region', '지역', range === 'all' || range === '24', 'region')}
-    ${trendBarsHTML(filtered, 'name', 'stock', '종목', range === 'all' || range === '24', 'stock')}
+    ${trendBarsHTML(filtered, 'group', 'group', '섹터', rk === 'all' || rk === '24', 'group')}
+    ${trendBarsHTML(filtered, regionLabelFor, 'region', '지역', rk === 'all' || rk === '24', 'region')}
+    ${trendBarsHTML(filtered, 'name', 'stock', '종목', rk === 'all' || rk === '24', 'stock')}
   `;
   const trendScrollEl = panel.querySelector('.trend-scroll');
   if(trendScrollEl) trendScrollEl.scrollLeft = trendScrollEl.scrollWidth;
@@ -5162,6 +5186,7 @@ function renderHistoryPanel(){
       render();
     });
   });
+  bindHistoryListBtn();
   document.getElementById('rangeSelect').addEventListener('change', (e) => {
     state.historyRange = e.target.value;
     render();
@@ -5346,7 +5371,7 @@ function renderDeleteAccountsPanel(){
   }).join('');
 
   panel.innerHTML = `
-    <div class="account-header"><span class="total-badge">전체 계좌 ${state.accounts.length}개</span></div>
+    <div class="account-header"><span class="total-badge">전체 계좌 ${state.accounts.length}개</span><button class="btn-memo" id="mngAddAccountBtn">+ 계좌 추가</button></div>
     <div style="max-width:460px;">
       ${rows || '<div class="empty">등록된 계좌가 없습니다.</div>'}
     </div>
@@ -5354,6 +5379,7 @@ function renderDeleteAccountsPanel(){
       <button class="reset-link" id="resetBtn" style="color:#D9793D;">전체 데이터 초기화</button>
     </div>
   `;
+  document.getElementById('mngAddAccountBtn').addEventListener('click', addAccount);   // 관리 탭(2026-10-20): 옛 '+ 계좌 추가' 탭
   panel.querySelectorAll('[data-delacc]').forEach(btn => {
     btn.addEventListener('click', () => deleteAccount(btn.dataset.delacc));
   });
@@ -5491,6 +5517,15 @@ function saveSnapshotMemo(snapId){
   if(pos) applyAccordionPos('#snap-memo-slot .floating-acc', pos);
 }
 
+// 월별 탭 안 '월별자산 목록' 버튼(2026-10-20): 누르면 목록(옛 관리 탭), 다시 누르면 그래프
+let historyListMode = false;
+function historyListBtnHtml(){
+  return `<button type="button" class="btn-memo" id="historyListBtn" style="${historyListMode ? '' : 'background:transparent;color:var(--accent);border:1px solid var(--accent);'}">월별자산 목록</button>`;
+}
+function bindHistoryListBtn(){
+  const b = document.getElementById('historyListBtn');
+  if(b) b.addEventListener('click', () => { historyListMode = !historyListMode; render(); });
+}
 function renderSnapshotsPanel(){
   const panel = document.getElementById('panel');
   const manageRows = state.snapshots.slice().reverse().map(s => {
@@ -5509,11 +5544,13 @@ function renderSnapshotsPanel(){
   }).join('');
 
   panel.innerHTML = `
+    <div style="margin-bottom:10px;">${historyListBtnHtml()}</div>
     <div class="account-header"><span class="total-badge">저장된 월별 자산 ${state.snapshots.length}개</span></div>
     <div style="max-width:420px;">
       ${manageRows || '<div class="empty">저장된 데이터가 없습니다.</div>'}
     </div>
   `;
+  bindHistoryListBtn();
   panel.querySelectorAll('[data-delsnap]').forEach(btn => {
     btn.addEventListener('click', () => deleteSnapshot(btn.dataset.delsnap));
   });
@@ -5525,11 +5562,30 @@ function renderSnapshotsPanel(){
   });
 }
 
+// 자산 탭(2026-10-20): 국내/해외 버튼 — 둘 다 켜짐 = 옛 전체, 하나만 = 옛 국내·해외 화면. 둘 다 끌 수는 없음
+function assetRegionBtnsHtml(){
+  const on = { domestic: state.activeId !== '__overseas__', overseas: state.activeId !== '__domestic__' };
+  const b = (k, nm) => `<button type="button" data-asset-rg="${k}" style="border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;${on[k] ? 'background:#9A9BA1;color:#1A1A1A;border:1px solid #9A9BA1;' : 'background:transparent;color:var(--text-dim);border:1px solid var(--border);'}">${nm}</button>`;
+  return `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:14px;">${b('domestic', '국내')}${b('overseas', '해외')}</div>`;
+}
+function assetMemoBtnHtml(){
+  const snap = state.snapshots.find(s => s.label === currentMonthLabel()) || (state.snapshots.length ? state.snapshots[state.snapshots.length-1] : null);
+  return snap ? `<div style="position:absolute;top:0;right:0;"><button class="btn-memo" data-memosnap="${snap.id}">메모</button></div>` : '';
+}
+function bindAssetRegionBtns(panel){
+  panel.querySelectorAll('[data-asset-rg]').forEach(btn => btn.addEventListener('click', () => {
+    const on = { domestic: state.activeId !== '__overseas__', overseas: state.activeId !== '__domestic__' };
+    on[btn.dataset.assetRg] = !on[btn.dataset.assetRg];
+    if(!on.domestic && !on.overseas) return;
+    switchTab(on.domestic && on.overseas ? '__total__' : on.domestic ? '__domestic__' : '__overseas__');
+  }));
+}
+
 function renderPanel(){
   const panel = document.getElementById('panel');
 
   if(state.activeId === '__history__'){
-    renderHistoryPanel();
+    if(historyListMode) renderSnapshotsPanel(); else renderHistoryPanel();
     return;
   }
 
@@ -5607,9 +5663,10 @@ function renderPanel(){
           <button id="reloadPricesBtn" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button>
           <div id="reloadPricesLabel" style="display:none;font-size:11px;line-height:1.4;color:var(--text-dim);"></div>
         </div>
+        ${assetMemoBtnHtml()}
       </div>
       <div class="account-header" style="justify-content:center;flex-direction:column;gap:0;">
-        <div style="position:relative;margin-bottom:14px;"><button type="button" disabled style="background:#9A9BA1;color:#1A1A1A;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:default;pointer-events:none;">${label}</button></div>
+        ${assetRegionBtnsHtml()}
         <span class="total-badge">자산<span class="num">${total.toLocaleString()}원</span></span>
         <span class="total-badge" data-cashbadge="${cashTotal}" style="position:relative;cursor:pointer;margin-top:1px;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPct)};">현금비중<span class="num" style="font-size:24px;color:${cashRatioColor(cashPct)};">${cashPct.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
         <div id="cash-amount-slot"></div>
@@ -5618,8 +5675,8 @@ function renderPanel(){
       ${subTypeBarHtml}
       <div class="charts">
         ${(sectorAccordionShowRegionBar = false, '')}
-        ${noFilterActive ? '' : lockedRegionDonutBlock(region, total === 0 ? [] : holdingsInScopeAllRegions)}
         ${sectorChartBlock(holdings)}
+        ${noFilterActive ? '' : lockedRegionDonutBlock(region, total === 0 ? [] : holdingsInScopeAllRegions)}
         ${stockChartBlockSortable(holdings, false, [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' }
         ], undefined, true)}
@@ -5627,6 +5684,8 @@ function renderPanel(){
     `;
     initAccountBtnScrollAlignment();
     bindSectorAccordionHandlers();
+    bindAssetRegionBtns(panel);
+    panel.querySelectorAll('[data-memosnap]').forEach(btn => btn.addEventListener('click', () => toggleMemoAccordion(btn.dataset.memosnap)));
     const cashBadgeRegion = panel.querySelector('[data-cashbadge]');
     if(cashBadgeRegion) cashBadgeRegion.addEventListener('click', () => toggleCashAmountAccordion(parseFloat(cashBadgeRegion.dataset.cashbadge), cashBadgeRegion));
     bindReloadPricesBtn();
@@ -5712,9 +5771,10 @@ function renderPanel(){
           <button id="reloadPricesBtn" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button>
           <div id="reloadPricesLabel" style="display:none;font-size:11px;line-height:1.4;color:var(--text-dim);"></div>
         </div>
+        ${assetMemoBtnHtml()}
       </div>
       <div class="account-header" style="justify-content:center;flex-direction:column;gap:0;">
-        ${thisMonthSnap ? `<div style="position:relative;margin-bottom:14px;"><button class="btn-memo" data-memosnap="${thisMonthSnap.id}">메모</button></div>` : ''}
+        ${assetRegionBtnsHtml()}
         <span class="total-badge">자산<span class="num">${grandTotal.toLocaleString()}원</span></span>
         <span class="total-badge" data-cashbadge="${cashTotalAll}" data-cash-domestic="${cashDomesticAll}" data-cash-foreign="${cashForeignAll}" style="position:relative;cursor:pointer;margin-top:1px;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPctAll)};">현금비중<span class="num" style="font-size:24px;color:${cashRatioColor(cashPctAll)};">${cashPctAll.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
         <div id="cash-amount-slot"></div>
@@ -5748,6 +5808,7 @@ function renderPanel(){
     initAccountBtnScrollAlignment();
     bindSectorAccordionHandlers();
     bindRegionAccordionHandlers();
+    bindAssetRegionBtns(panel);
     panel.querySelectorAll('[data-memosnap]').forEach(btn => {
       btn.addEventListener('click', () => toggleMemoAccordion(btn.dataset.memosnap));
     });
