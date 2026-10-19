@@ -5605,7 +5605,7 @@ function renderPanel(){
   if(state.activeId === WATCHLIST_ID){
     // 관심 탭(2026-10-14): 관심종목추가 버튼 + 오른쪽 돋보기(V1과 같은 전체 분석) + V1 형식 목록(관심종목만). 합계 없음
     // 2026-10-20: 버튼 줄 위치 = V1 분류 탭 줄과 같게(위 6px · 높이 26px · 아래 8px), 오른쪽 '모두 닫기'(V1과 같은 모양) + 돋보기
-    panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:6px 0 8px;">
+    panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:0 0 8px;">
         <div></div>
         <button class="btn-memo" id="openAddHoldingBtn" style="height:26px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;line-height:1;">관심종목추가</button>
         <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;"><button type="button" class="an-closeall" id="watchCloseAll">모두 닫기</button><button id="watchAnBtn" title="보유+관심 종목 분석(V1과 같음)" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
@@ -8776,7 +8776,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
   --an-tp:#9CAAD4; --an-warn:#F0DA8C; --an-warnbg:rgba(240,218,140,0.12); --an-ok:#4FD1C0; --an-okbg:rgba(79,209,192,0.12);
   --c5:#F472B6; --c20:#F87171; --cw5:#A3E635; --cw10:#22C55E; --cm5:#60A5FA; --cm10:#818CF8; --bignum:1.1rem;
   margin-top:28px; padding-top:18px; border-top:1px solid var(--border); text-align:left; font-size:13px; line-height:1.5; }
-.an.an-tab { margin-top:6px; padding-top:0; border-top:0; }
+.an.an-tab { margin-top:0; padding-top:0; border-top:0; }   /* 2026-10-20: 위 버튼 줄 = 다른 탭 버튼과 같은 높이(옛 6px) */
 .an-empty { color:var(--text-dim); font-size:13px; text-align:center; padding:24px 0; }
 .an-none { color:var(--text-dim); font-size:12px; padding:6px 0; }
 .an-head { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; margin-bottom:10px; }
