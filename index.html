@@ -5375,7 +5375,8 @@ function renderDeleteAccountsPanel(){
   }).join('');
 
   panel.innerHTML = `
-    <div class="account-header"><span class="total-badge">전체 계좌 ${state.accounts.length}개</span><button class="btn-memo" id="mngAddAccountBtn">+ 계좌 추가</button></div>
+    <div style="text-align:center;margin-bottom:12px;"><button class="btn-memo" id="mngAddAccountBtn">계좌 추가</button></div>
+    <div class="account-header"><span class="total-badge">전체 계좌 ${state.accounts.length}개</span></div>
     <div style="max-width:460px;">
       ${rows || '<div class="empty">등록된 계좌가 없습니다.</div>'}
     </div>
