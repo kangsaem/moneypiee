@@ -466,7 +466,7 @@ const CASH_OVERSEAS = '#ADAEB4';
 const CREDIT_USED_COLOR = '#B85450';
 const CREDIT_REMAIN_COLOR = '#7E7F84';
 
-let state = { accounts: [], activeId: null, snapshots: [], domesticAccountFilter: [], overseasAccountFilter: [], historyRange: 'ytd', creditLines: [], watchlist: null };
+let state = { accounts: [], activeId: null, snapshots: [], domesticAccountFilter: [], overseasAccountFilter: [], historyRange: '6', creditLines: [], watchlist: null };
 // 분석탭(관심종목) 전용 가상 계좌. state.accounts에 넣지 않으므로 전체/국내/해외 합산, 월별 저장, 계좌 버튼 등 어디에도 포함되지 않는다.
 const WATCHLIST_ID = '__watch__';
 function emptyWatchlist(){ return { id: WATCHLIST_ID, name: '분석', accountType: '직투', holdings: [] }; }
