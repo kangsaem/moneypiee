@@ -7939,7 +7939,8 @@ function anGauge(msig, key, title){
     : key === 'risk' && g.score >= 1                     // 위험 지표가 하나라도 켜지면 '유포리아 확인 →'(2026-10-16): 1번째 누름 = 질문으로 바뀜, 2번째 = 버핏 팝업 + 원래 문구
     ? `<button type="button" class="an-gbtn an-euph" onclick="anEuphoria(this)">유포리아 확인 →</button>` : '';
   // Fear & Greed(2026-10-20, 시험용으로 늘 표시) — CNN은 다른 사이트 안에 띄울 수 없어 새 창
-  const extra = `<div class="an-glink">${left}<a class="an-gbtn an-fng${key === 'risk' ? ' inv' : ''}" href="${AN_FNG_LINK}" target="_blank" rel="noopener">F&amp;G</a></div>`;
+  // 2026-10-20: 그 지표가 하나도 안 켜졌으면(score 0) F&G 버튼 줄 없음
+  const extra = g.score >= 1 || left ? `<div class="an-glink">${left}${g.score >= 1 ? `<a class="an-gbtn an-fng${key === 'risk' ? ' inv' : ''}" href="${AN_FNG_LINK}" target="_blank" rel="noopener">F&amp;G</a>` : ''}</div>` : '';
   // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
   return `<details class="an-gauge ${key} ${g.cls} s${Math.min(g.score, 3)}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
