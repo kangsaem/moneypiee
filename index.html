@@ -7414,6 +7414,7 @@ async function anHistSave(res){
 // 가상 체결가 = 신호대로 샀다면: 국장 신호일 종가, 미장 다음 날 종가. 손절 = 가상 매수가 대비 종가 -8% 이하가 다음 날도 이어지면 그날 종가.
 const AN_HIST_BUY = ['매수·바닥', '매수·눌림', '매수·추세'];
 const AN_HIST_STOP = 8;
+const AN_HIST_SELL_DAYS = 20;   // 매도 판정(2026-10-20): 체결 뒤 20거래일 안 매수 신호 체결가, 없으면 20거래일째 종가가 매도 체결가보다 낮으면 성공
 // 적중·빗나감·손절 배지: 색 원 안에 ✓/✕ (기기 글꼴과 상관없이 같은 모양)
 const AN_HB = { ok: '<i class="an-hb ok" title="성공" data-hb="성공">✓</i>', bad: '<i class="an-hb bad" title="실패" data-hb="실패">✕</i>',
                 stop: '<i class="an-hb stop" title="손절" data-hb="손절">✕</i>', wait: '<i class="an-hg" title="진행중" data-hb="진행중">⏳</i>' };
@@ -7426,7 +7427,7 @@ function anHbPop(txt, wide, html){
   document.body.appendChild(m);
   setTimeout(() => document.addEventListener('click', close, true), 0);
 }
-const anHistState = { per: '', side: '', status: '', more: 20 };
+const anHistState = { per: '', side: '', status: '', more: 20, year: '' };   // year(2026-10-20): 아래 연도 버튼, 기간 탭과 둘 중 하나
 
 // 감시 기간: 2번 이상 연속 기록에 없으면 '목록에서 빠짐'. { code: [[시작, 끝|null], ...] } 시작 = 빠지기 전 마지막 봉 날짜, 끝 = 돌아온 첫 봉 날짜
 // (history.gaps 와 같음). 그 사이가 '안 본 기간' — 추적은 빠지기 전 마지막 날로 끝내고, 차트엔 회색
@@ -7473,8 +7474,8 @@ function anHistTrack(recs, bars){
     const gone = (gp[x.code] || []).some(g => g[1] == null);          // 지금 목록에서 빠져 있음
     const endDate = gone ? x.last : dates[dates.length - 1];
     const kr = anIsKrCode(x.code);
-    const ex = i => kr ? i : i + 1;                       // 체결 위치
-    let tr = null;
+    const ex = i => i + 1;                                // 체결 위치 = 다음 거래일 종가(국장·미장, 2026-10-20 · 리포트 live.py와 같음)
+    let tr = null, sellQuiet = false;                    // sellQuiet: 20거래일 판정으로 끝난 매도 신호가 이어지는 동안 새 매도 추적을 만들지 않음
     const finish = (i, why) => {
       tr.endI = i; tr.end = dates[i]; tr.why = why; tr.ret = (close[i] / tr.px - 1) * 100; out.push(tr); tr = null;
     };
@@ -7493,7 +7494,13 @@ function anHistTrack(recs, bars){
         continue;
       }
       const s = x.sig.get(dates[i]);
+      if(s && s.cat !== 'sell') sellQuiet = false;
       if(tr && tr.px == null && i === tr.entI) tr.px = close[i];
+      if(tr && tr.side === 'sell' && tr.px != null && i === tr.entI + AN_HIST_SELL_DAYS && !(s && s.cat === 'buy')){
+        for(let k = tr.entI + 1; k <= i; k++){ const r = (close[k] / tr.px - 1) * 100; tr.hi = Math.max(tr.hi, r); tr.lo = Math.min(tr.lo, r); }
+        finish(i, 'd20'); sellQuiet = true;                 // 20거래일째 종가로 판정
+        continue;
+      }
       if(tr && tr.px != null && i > tr.entI){
         const r = (close[i] / tr.px - 1) * 100;
         tr.hi = Math.max(tr.hi, r); tr.lo = Math.min(tr.lo, r);
@@ -7511,7 +7518,7 @@ function anHistTrack(recs, bars){
           finish(j, 'sig');
         } else { tr.why = 'wait'; tr.endI = null; out.push(Object.assign(tr, { end: null, ret: tr.px != null ? (close[Math.min(i, dates.length - 1)] / tr.px - 1) * 100 : null, next: true })); tr = null; }
       }
-      if(!tr) start(s.cat, i, s);
+      if(!tr && !(s.cat === 'sell' && sellQuiet)) start(s.cat, i, s);
       if(tr && tr.px == null && i === tr.entI) tr.px = close[i];
     }
     if(tr){                                                 // 아직 안 끝남: 진행 중 / 목록에서 빠짐
@@ -7524,7 +7531,7 @@ function anHistTrack(recs, bars){
   });
   out.forEach(t => {
     t.days = t.endI != null && t.entI != null ? Math.max(t.endI - t.entI, 0) : null;
-    t.done = t.why === 'sig' || t.why === 'stop';
+    t.done = t.why === 'sig' || t.why === 'stop' || t.why === 'd20';
     t.hit = !t.done ? null : t.side === 'buy' ? t.why !== 'stop' && t.ret > 0 : t.ret < 0;
   });
   return out;
@@ -7542,7 +7549,9 @@ async function anHistRender(){
   const ago = m => { const d = new Date(now); d.setUTCMonth(d.getUTCMonth() - m); return d.toISOString().slice(0, 10); };
   const from = { '3m': ago(3), '1y': ago(12) }[anHistState.per] || '';          // 기간 탭을 다 끄면 전체
   const isOpen = t => t.why === 'open' || t.why === 'wait';
-  const inPer = tracks.filter(t => t.sigDate >= from);
+  const inPer = tracks.filter(t => t.sigDate >= from && (!anHistState.year || String(t.sigDate).startsWith(anHistState.year)));
+  const yNow = now.getUTCFullYear(), years = [];
+  for(let y = 2026; y <= yNow; y++) years.push(String(y));   // 신호 기록 시작 2026 · 해마다 하나씩 늘어남
   const sel = inPer.filter(t => (!anHistState.side || t.side === anHistState.side)
     && (!anHistState.status || (anHistState.status === 'open' ? isOpen(t) : !isOpen(t))));
   const P = v => v == null ? '-' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
@@ -7562,7 +7571,7 @@ async function anHistRender(){
     : t.why === 'stop' ? `<span class="an-hj stop">${AN_HB.stop}손절</span>`
     : t.hit ? `<span class="an-hj ok">${AN_HB.ok}성공</span>` : `<span class="an-hj bad">${AN_HB.bad}실패</span>`;
   // 판정 아래 줄: 끝난 날짜 · 걸린 일수만(판정 글자와 중복 안 함). 진행 중이면 일수만
-  const endTxt = t => t.why === 'sig' || t.why === 'stop' ? anShort(t.end) : t.why === 'gone' ? anShort(t.lastDate) : '';
+  const endTxt = t => t.why === 'sig' || t.why === 'stop' || t.why === 'd20' ? anShort(t.end) : t.why === 'gone' ? anShort(t.lastDate) : '';
   // 휴대폰 폭에 맞게 칸을 두 줄로 묶음: 종목·신호일 / 신호·신호가 / 수익·최고최저 / 판정·끝난 날
   const row = t => `<tr><td class="c"><b title="${anE(t.name)}">${anE(anNm16(t.name))}</b><br><small>${anShort(t.sigDate)}${anOk(t.sigPx) ? ' / ' + anPrice(t.sigPx) : ''}</small></td>
     <td class="c"><span class="an-htag g${AN_HIST_GROUPS.indexOf(t.g)}">${anE(t.g)}</span><br><small>${t.px != null ? anPrice(t.px) : '-'}</small></td>
@@ -7577,7 +7586,9 @@ async function anHistRender(){
     ${anHeadLine(anState.result)}
     ${anHistState.side !== 'sell' ? sumLine('buy') : ''}${anHistState.side !== 'buy' ? sumLine('sell') : ''}
     <div class="an-hwrap"><table class="an-ht an-ht2">${head}${shown.map(row).join('') || '<tr><td class="mut c" colspan="4">아직 없음 — 분석을 돌릴 때마다 쌓입니다</td></tr>'}</table></div>
-    ${list.length > shown.length ? `<button class="an-hmore" id="anHmore">더 보기 (+${Math.min(20, list.length - shown.length)})</button>` : ''}`;
+    ${list.length > shown.length ? `<button class="an-hmore" id="anHmore">더 보기 (+${Math.min(20, list.length - shown.length)})</button>` : ''}
+    <div class="an-hyears" id="anHyears">${years.map(y => `<button class="an-ftab t-wh has${anHistState.year === y ? ' on' : ''}" data-hyear="${y}">${y}</button>`).join('')}</div>
+    <div class="an-hnote">성공 · 매수 = 매도 신호로 끝났을 때 수익 / 매도 = ${AN_HIST_SELL_DAYS}거래일 안에 나온 매수 신호의 체결가, 없으면 ${AN_HIST_SELL_DAYS}거래일째 종가가 매도 체결가보다 낮음 · 체결가 = 신호 다음 거래일 종가 · 손절 = 매수 추적의 끝(따로 판정 안 함)</div>`;
 }
 
 function anHistBind(root){
@@ -7585,6 +7596,15 @@ function anHistBind(root){
   if(flt) flt.addEventListener('click', e => {
     const b = e.target.closest('button'); if(!b) return;
     ['per', 'side', 'status'].forEach(k => { if(b.dataset[k] != null) anHistState[k] = anHistState[k] === b.dataset[k] ? '' : b.dataset[k]; });
+    if(b.dataset.per != null) anHistState.year = '';     // 기간 탭과 연도 버튼은 둘 중 하나
+    anHistState.more = 20;
+    anFillRoot();
+  });
+  const yrs = root.querySelector('#anHyears');
+  if(yrs) yrs.addEventListener('click', e => {
+    const b = e.target.closest('[data-hyear]'); if(!b) return;
+    anHistState.year = anHistState.year === b.dataset.hyear ? '' : b.dataset.hyear;
+    if(anHistState.year) anHistState.per = '';
     anHistState.more = 20;
     anFillRoot();
   });
@@ -8885,6 +8905,8 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-hb { display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; border-radius:50%; font-style:normal; font-size:10px; font-weight:800; line-height:1; color:#fff; margin-right:3px; vertical-align:-2px; }
 .an-hb.ok { background:var(--an-ok); color:#0b2b27; } .an-hb.bad { background:#7d7f86; } .an-hb.stop { background:var(--an-amber); color:#2b1d00; }
 .an-hj.ok, .an-hj.bad, .an-hj.stop { border:none; padding:0 !important; }
+.an-hyears { display:flex; gap:5px; overflow-x:auto; flex-wrap:nowrap; margin-top:12px; padding-bottom:2px; } .an-hyears .an-ftab { flex-shrink:0; }   /* 연도 버튼(2026-10-20) — 많아지면 가로 스크롤 */
+.an-hnote { margin-top:8px; font-size:11px; line-height:1.5; color:var(--text-dim); }
 .an-hmore { display:block; margin:8px auto 0; font:inherit; font-size:12px; padding:5px 16px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
 .an-h2 small { font-weight:400; color:var(--text-dim); }
 .an-ht2 th, .an-ht2 td { padding:5px 4px; } .an-ht2 th { white-space:normal; font-size:10.5px; } .an-ht2 .an-htag { padding:0 4px; font-size:10.5px; } .an-ht2 .an-hj { padding:0 4px; }
