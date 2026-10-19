@@ -104,6 +104,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .tabs .tab.warn200{color:#F2A65A;}
   .tabs .tab.warn200 svg{vertical-align:-3px;}
   .tabs .tab.mng{color:var(--text-dim);}
+  .tabs .tab-fill{flex:1 1 0;align-self:stretch;min-width:20px;cursor:pointer;}   /* 계좌 탭 줄 오른쪽 빈칸 = 계좌 추가 */
   .tab.active{background:var(--surface2);border-color:var(--accent-dim);}
   .tab.total{color:var(--accent);}
   .tab-add{
@@ -5023,6 +5024,7 @@ function renderTabs(){
     <div class="tab acc ${a.id===state.activeId?'active':''}" data-tab="${a.id}" title="${escapeHTML(a.name)}">${escapeHTML(a.name)}</div>
   `).join('');
   html += `<div class="tab acc total ${state.activeId==='__creditLines__'?'active':''}" data-tab="__creditLines__" style="color:#B85450;">마통</div>`;
+  html += `<div class="tab-fill" id="tabFill" title="계좌 추가"></div>`;   // 마통 오른쪽 빈칸 = 계좌 추가(2026-10-20)
   html += `<div class="tab-br"></div>`;      // 계좌 탭 줄 / 나머지 탭 줄 나눔(2026-10-13)
   html += `<div class="tab total ${isAsset?'active':''}" data-tab="__total__">자산</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
@@ -5041,6 +5043,7 @@ function renderTabs(){
     m.remove();
     if(w > 0) tabs.style.setProperty('--tabw', w + 'px');
   }catch(e){}
+  document.getElementById('tabFill').addEventListener('click', addAccount);
   document.getElementById('warn200Tab').addEventListener('click', e => anK200Open(e, AN_200PAGE.kospi));
 
   tabs.querySelectorAll('[data-tab]').forEach(el => {
@@ -5135,11 +5138,11 @@ function renderHistoryPanel(){
 
   const rangeOptions = [['ytd','올해'],['3','최근 3개월'],['6','최근 6개월'],['12','최근 12개월'],['24','최근 24개월'],['all','전체']];
   const rangeSelector = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      ${historyListBtnHtml()}
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:10px;">
+      <div></div>${historyListBtnHtml()}<div style="display:flex;justify-content:flex-end;">
       <select id="rangeSelect" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;font-family:inherit;">
         ${rangeOptions.map(([v,l]) => `<option value="${v}" ${v===range?'selected':''}>${l}</option>`).join('')}
-      </select>
+      </select></div>
     </div>
   `;
 
@@ -5545,7 +5548,7 @@ function renderSnapshotsPanel(){
   }).join('');
 
   panel.innerHTML = `
-    <div style="margin-bottom:10px;">${historyListBtnHtml()}</div>
+    <div style="text-align:center;margin-bottom:10px;">${historyListBtnHtml()}</div>
     <div class="account-header"><span class="total-badge">저장된 월별 자산 ${state.snapshots.length}개</span></div>
     <div style="max-width:420px;">
       ${manageRows || '<div class="empty">저장된 데이터가 없습니다.</div>'}
@@ -8007,6 +8010,7 @@ function anHeadLine(res){
 
 // '장기 추세 아래' 칩 설명(2026-10-20): 범위 계산은 매수에 장기 추세(월봉 정배열 또는 10개월선 위)를 요구 — 신호 정의(반등 경로)는 요구하지 않아 생기는 경우
 const AN_LTD_POP = '장기 추세 하락 중\n월봉 역배열이고 종가가 10개월선 아래라, 다음 거래일 종가가 어떤 가격이어도(±30%) 과열 없이 장기 추세 조건(월봉 정배열 또는 10개월선 위)을 맞출 수 없음.\n매수 신호(싼 조건 + 반등)는 유효하지만 장기 추세는 하락 중.';
+const AN_NEW10_POP = '장기 추세 판단 불가\n상장 10개월이 안 돼 10개월선이 없어서, 장기 추세 조건(월봉 정배열 또는 10개월선 위)을 판단할 수 없음 → 유효 가격 범위를 계산하지 않음.\n매수 신호(싼 조건 + 반등)는 유효 · 추세는 직접 판단.';
 // 매수·재검토 칩 누르기: 칩 아래 설명창, 20초 뒤(또는 다시 누르거나 다른 곳을 누르면) 닫힘
 let anPopEl = null, anPopFor = null, anPopT = null;
 function anPopClose(){ clearTimeout(anPopT); if(anPopEl) anPopEl.remove(); anPopEl = null; anPopFor = null; }
@@ -8102,6 +8106,8 @@ function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
         const v = r.vr[k], out = lvNow && !anInRange(v, r.live.px);
         if(!v){                                               // 범위 없음(2026-10-20): 매수·바닥·눌림 = '장기 추세 아래' 주황 칩, 나머지는 칩 없음
           if(k !== 'buy' && k !== 'buyb') return '';
+          const noM10 = !(r.chart && r.chart.m10 && r.chart.m10.length && r.chart.m10[r.chart.m10.length - 1] != null);
+          if(noM10) return `<span class="an-chip an-new10 an-sigx" data-pop="${anE(AN_NEW10_POP)}">상장 10개월 미만</span>`;   // 10개월선 없음 = 장기 추세 판단 불가(회색, 2026-10-20)
           return `<span class="an-chip an-ltd an-sigx" data-popcls="ltd" data-pop="${anE(AN_LTD_POP)}">장기 추세 아래</span>`;
         }
         if(v && v.loOpen && (v.hiOpen || v.key === 'sell')) return '';   // ±30% 안 전부 유효 = 범위 칩 없음(2026-10-15)
@@ -8243,6 +8249,7 @@ const AN_SIG_DEF = [
   '바닥근접·꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 저점 +30%(고점 -20%) 안일 때 · 참고',
   '굵은 테두리 칸 = 이 매수·매도 판정에 쓰인 지표',
   '범위 칩(신호 옆, 같은 색) = 마지막 확정 종가 기준, 다음 거래일 종가가 이 범위면 신호가 유지되는 가격 · 매수 = 과열 전까지·장기 추세(추세 매수는 추세 5가지) 유지 · 매도 = 과열 조건 2개 이상 유지 · 장중 현재가가 범위 밖이면 흐리게',
+  '상장 10개월 미만(회색 칩, 매수·바닥·눌림 옆) = 10개월선이 없어 장기 추세를 판단할 수 없어 유효 범위를 계산하지 않음 · 추세는 직접 판단',
   '장기 추세 아래(주황 칩, 매수·바닥·눌림 옆) = 월봉 역배열 + 10개월선 아래라 다음 거래일 어떤 가격(±30%)에서도 과열 없이 장기 추세 조건을 맞출 수 없음 · 신호는 유효하지만 장기 추세는 하락 중',
   '지수 현금 n% 추천(지수 차트 칩) = 코스피 200일선 아래 + 1년 고점 대비 -10% 이하 → 30% · S&P500 200일선 아래 + 1년 고점 대비 -10% 이하 → 50% · 나스닥 200일선 아래 10거래일 연속 → 50% · 그 시기에 이만큼 현금이 준비돼 있으면 좋다는 뜻',
   '현금 투입(지수 차트 칩) = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복 = 현금화한 몫을 다시 넣을 시기 · 5거래일 동안 표시',
@@ -8979,7 +8986,8 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 .an-whys { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
 .an-why { font-size:11px; padding:0 7px; border-radius:6px; font-weight:700; border:1px solid currentColor; }   /* 외곽선 = 글자색(2026-10-15) */
 .an-sigx { cursor:pointer; }
-.an-chip.an-ltd { background:transparent; color:#F2A65A; border:1px solid #F2A65A; }   /* 장기 추세 아래(2026-10-20, 주의 = 주황 테두리·글자) */
+.an-chip.an-ltd { background:transparent; color:#F2A65A; border:1px solid #F2A65A; }
+.an-chip.an-new10 { background:transparent; color:#9A9BA1; border:1px solid #6E6F75; }   /* 상장 10개월 미만(2026-10-20, 회색) */   /* 장기 추세 아래(2026-10-20, 주의 = 주황 테두리·글자) */
 .an-pop.ltd::first-line { color:#F2A65A; font-weight:700; }
 .an-pop { position:absolute; z-index:9999; background:#2B2C30; color:var(--text); border:1px solid #4A4B50; border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.55; white-space:pre-line; box-shadow:0 6px 20px rgba(0,0,0,.45); }
 .an-whyx { cursor:pointer; } .an-whyx.long { font-weight:500; white-space:pre-line; line-height:1.5; }
