@@ -5598,13 +5598,17 @@ function renderPanel(){
 
   if(state.activeId === WATCHLIST_ID){
     // 관심 탭(2026-10-14): 관심종목추가 버튼 + 오른쪽 돋보기(V1과 같은 전체 분석) + V1 형식 목록(관심종목만). 합계 없음
-    panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:14px;">
+    // 2026-10-20: 버튼 줄 위치 = V1 분류 탭 줄과 같게(위 6px · 높이 26px · 아래 8px), 오른쪽 '모두 닫기'(V1과 같은 모양) + 돋보기
+    panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:6px 0 8px;">
         <div></div>
         <button class="btn-memo" id="openAddHoldingBtn" style="height:26px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;line-height:1;">관심종목추가</button>
-        <div style="display:flex;justify-content:flex-end;"><button id="watchAnBtn" title="보유+관심 종목 분석(V1과 같음)" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
+        <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;"><button type="button" class="an-closeall" id="watchCloseAll">모두 닫기</button><button id="watchAnBtn" title="보유+관심 종목 분석(V1과 같음)" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></button></div>
       </div>
-      <div id="watchRoot" class="an an-tab an-watch"></div>`;
+      <div id="watchRoot" class="an an-tab an-watch" style="margin-top:0;"></div>`;
+    document.getElementById('watchCloseAll').addEventListener('click', () => {
+      document.querySelectorAll('#watchRoot details[open]').forEach(d => { d.open = false; if(d.dataset.anKey) anState.openKeys.delete(d.dataset.anKey); });
+    });
     document.getElementById('openAddHoldingBtn').addEventListener('click', () => openAddHolding(WATCHLIST_ID));
     document.getElementById('watchAnBtn').addEventListener('click', () => { if(anState.running) return; anState.view = 'report'; runAnalysis(); loadMarketData(true).catch(() => {}); });
     anWatchMount();
@@ -6779,7 +6783,7 @@ function anLiveVerdict(r, keys){
   const ks = keys.filter(k => k in AN_LIVE_SIG && r.vr && k in r.vr);
   if(!ks.length) return null;
   const free = v => v && v.loOpen && (v.hiOpen || v.key === 'sell');
-  const parts = ks.filter(k => !free(r.vr[k])).map(k => `${AN_LIVE_SIG[k]} ${anRangeTxt(r.vr[k])} ${anInRange(r.vr[k], L.px) ? '안' : '밖'}`);
+  const parts = ks.filter(k => r.vr[k] && !free(r.vr[k])).map(k => `${AN_LIVE_SIG[k]} ${anRangeTxt(r.vr[k])} ${anInRange(r.vr[k], L.px) ? '안' : '밖'}`);
   if(!parts.length) return null;
   return { line: `장중 ${anPrice(L.px)} (${anS(L.chg, 1)}%) · ${parts.join(' · ')}` };
 }
@@ -7559,7 +7563,7 @@ async function anHistRender(){
   // 판정 아래 줄: 끝난 날짜 · 걸린 일수만(판정 글자와 중복 안 함). 진행 중이면 일수만
   const endTxt = t => t.why === 'sig' || t.why === 'stop' ? anShort(t.end) : t.why === 'gone' ? anShort(t.lastDate) : '';
   // 휴대폰 폭에 맞게 칸을 두 줄로 묶음: 종목·신호일 / 신호·신호가 / 수익·최고최저 / 판정·끝난 날
-  const row = t => `<tr><td class="c"><b>${anE(t.name)}</b><br><small>${anShort(t.sigDate)}${anOk(t.sigPx) ? ' / ' + anPrice(t.sigPx) : ''}</small></td>
+  const row = t => `<tr><td class="c"><b title="${anE(t.name)}">${anE(anNm16(t.name))}</b><br><small>${anShort(t.sigDate)}${anOk(t.sigPx) ? ' / ' + anPrice(t.sigPx) : ''}</small></td>
     <td class="c"><span class="an-htag g${AN_HIST_GROUPS.indexOf(t.g)}">${anE(t.g)}</span><br><small>${t.px != null ? anPrice(t.px) : '-'}</small></td>
     <td><b class="${U(t.ret)}">${P(t.ret)}</b><br><small><span class="up">${P(t.hi)}</span> / <span class="dn">${P(t.lo)}</span></small></td>
     <td class="c">${judge(t)}<br><small>${[endTxt(t), t.days != null && t.px != null ? t.days + '일' : ''].filter(Boolean).join(' · ')}</small></td></tr>`;
@@ -7894,6 +7898,7 @@ async function anNoticeOpen(file){
     m.addEventListener('click', e => { if(e.target === m) close(); });
   }catch(e){}
 }
+const AN_FNG_LINK = 'https://edition.cnn.com/markets/fear-and-greed';
 function anEuphoria(btn){
   if(btn.dataset.q){ delete btn.dataset.q; btn.textContent = '유포리아 확인 →'; anNoticeOpen('notice버핏신데렐라.html'); }
   else { btn.dataset.q = '1'; btn.textContent = '주변 모두가 주식을 하고 있고, 모두가 돈을 벌고 있는가?'; }
@@ -7902,10 +7907,12 @@ function anGauge(msig, key, title){
   const g = msig[key];
   const rows = g.items.map(([lb, val, st]) => `<li class="${st ? 'on' : st == null ? 'na' : 'off'}"><span class="an-dot"></span><span class="an-gt">${anE(lb)}</span><b>${anE(val)}</b></li>`).join('');
   const pct = g.total ? Math.floor(100 * g.score / g.total) : 0;
-  const extra = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
-    ? `<div class="an-glink"><a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a></div>`
+  const left = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
+    ? `<a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a>`
     : key === 'risk' && g.score >= 1                     // 위험 지표가 하나라도 켜지면 '유포리아 확인 →'(2026-10-16): 1번째 누름 = 질문으로 바뀜, 2번째 = 버핏 팝업 + 원래 문구
-    ? `<div class="an-glink"><button type="button" class="an-gbtn an-euph" onclick="anEuphoria(this)">유포리아 확인 →</button></div>` : '';
+    ? `<button type="button" class="an-gbtn an-euph" onclick="anEuphoria(this)">유포리아 확인 →</button>` : '';
+  // Fear & Greed(2026-10-20, 시험용으로 늘 표시) — CNN은 다른 사이트 안에 띄울 수 없어 새 창
+  const extra = `<div class="an-glink">${left}<a class="an-gbtn an-fng" href="${AN_FNG_LINK}" target="_blank" rel="noopener">Fear &amp; Greed</a></div>`;
   // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
   return `<details class="an-gauge ${key} ${g.cls} s${Math.min(g.score, 3)}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
@@ -7916,7 +7923,7 @@ const AN_LIST_ORDER = ['sell', 'buyb', 'buy', 'up', 'caution', 'wait', 'waitdn',
 const AN_TABS = [['sell', '매도'], ['buy', '매수'], ['watch', '관찰']];     // 탭 = 세 묶음(칸 이름은 종목 칩에)
 const AN_REV_SIDE = { buyb: 'buy', buy: 'buy', up: 'add', sell: 'sell', caution: 'sell', hold: 'buy', wait: 'buy', waitdn: 'buy' };
 
-// 매수 한도: 종목당 상한 = 전체 금융자산 × 5% (2026-10-13, 전엔 min(10%, 150 ÷ 보유 종목 수)). 섹터 '지수'는 제외
+// 매수 한도: 종목당 상한 = 전체 금융자산 × 5% (2026-10-13, 전엔 min(10%, 150 ÷ 보유 종목 수)). 2026-10-20부터 섹터 '지수'도 포함
 const AN_LIMIT = { MAX: 5 };     // 2026-10-13: 종목당 5%(알파 확신 종목만) — 전엔 min(10%, 150 ÷ 보유 종목 수)
 function anIsIndexGroup(h){ return String(h.group || '').trim() === '지수'; }
 function anLimitCtx(){
@@ -7937,7 +7944,7 @@ function anGroupOf(name){
   return '';
 }
 function anBuyLimit(r, ctx){
-  if(!ctx || !(ctx.total > 0) || anIsIndexGroup({ group: anGroupOf(r.hname || r.name) })) return null;
+  if(!ctx || !(ctx.total > 0)) return null;   // 2026-10-20: 섹터 '지수'도 같은 5% 기준으로 계산(여러 지수 ETF는 사용자가 보고 판단)
   const x = ctx.held.get(r.hname || r.name);
   const have = x ? x.value : 0;
   const n = ctx.count + (have > 0 ? 0 : 1);
@@ -7973,6 +7980,8 @@ function anHeadLine(res){
   return `<div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}</span></div>`;
 }
 
+// '장기 추세 아래' 칩 설명(2026-10-20): 범위 계산은 매수에 장기 추세(월봉 정배열 또는 10개월선 위)를 요구 — 신호 정의(반등 경로)는 요구하지 않아 생기는 경우
+const AN_LTD_POP = '장기 추세 하락 중\n월봉 역배열이고 종가가 10개월선 아래라, 다음 거래일 종가가 어떤 가격이어도(±30%) 과열 없이 장기 추세 조건(월봉 정배열 또는 10개월선 위)을 맞출 수 없음.\n매수 신호(싼 조건 + 반등)는 유효하지만 장기 추세는 하락 중.';
 // 매수·재검토 칩 누르기: 칩 아래 설명창, 20초 뒤(또는 다시 누르거나 다른 곳을 누르면) 닫힘
 let anPopEl = null, anPopFor = null, anPopT = null;
 function anPopClose(){ clearTimeout(anPopT); if(anPopEl) anPopEl.remove(); anPopEl = null; anPopFor = null; }
@@ -7983,7 +7992,7 @@ document.addEventListener('click', e => {
   if(anPopFor === c){ anPopClose(); return; }
   anPopClose();
   const el = document.createElement('div');
-  el.className = 'an-pop'; el.textContent = c.dataset.pop;
+  el.className = 'an-pop' + (c.dataset.popcls ? ' ' + c.dataset.popcls : ''); el.textContent = c.dataset.pop;
   document.body.appendChild(el);
   const b = c.getBoundingClientRect(), w = Math.min(360, window.innerWidth - 32);
   el.style.width = w + 'px';
@@ -8052,6 +8061,8 @@ function anNameCmp(a, b){
   const x = String(a || ''), y = String(b || '');
   return cls(x) - cls(y) || x.localeCompare(y, 'ko', { numeric: true, sensitivity: 'base' });
 }
+// 긴 종목명: 16자 + …(2026-10-20, 예 'RISE 삼성전자SK하이닉스채…')
+function anNm16(n){ const a = Array.from(String(n || '')); return a.length > 16 ? a.slice(0, 16).join('') + '…' : a.join(''); }
 // opt.right = 접었을 때 오른쪽 끝(V1 = RSI, 관심 탭 = 삭제 버튼)
 function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
   opt = opt || {};
@@ -8064,6 +8075,10 @@ function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
         const k = (AN_REVIEW.find(([, nm]) => nm === f) || [])[0];
         if(!k || !r.vr || !(k in r.vr)) return '';
         const v = r.vr[k], out = lvNow && !anInRange(v, r.live.px);
+        if(!v){                                               // 범위 없음(2026-10-20): 매수·바닥·눌림 = '장기 추세 아래' 주황 칩, 나머지는 칩 없음
+          if(k !== 'buy' && k !== 'buyb') return '';
+          return `<span class="an-chip an-ltd an-sigx" data-popcls="ltd" data-pop="${anE(AN_LTD_POP)}">장기 추세 아래</span>`;
+        }
         if(v && v.loOpen && (v.hiOpen || v.key === 'sell')) return '';   // ±30% 안 전부 유효 = 범위 칩 없음(2026-10-15)
         return `<span class="an-chip an-vr ${CH[tones[f]]}${out || !v ? ' off' : ''}" title="${anE((v ? (v.asof + ' 종가 ' + anPrice(v.base) + ' 기준 ') : '') + '신호가 유지되는 다음 거래일 가격 범위')}">${anE(anRangeTxt(v))}</span>`;
       };
@@ -8098,7 +8113,7 @@ function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
       const liveChip = '';                                    // 옛 장중 칩(매수 가능·종가 대기) → 범위 칩으로 대체(2026-10-15)
       const liveLine = lvNow ? `<div class="an-liveline">${anE(lvNow.line)}</div>` : '';
       return `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${[...new Set(keys.map(k => AN_CATEGORY[k]))].join(' ') || 'none'}">
-        <summary>${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b>${anE(r.name)}</b> ${gchips}${liveChip}${opt.right != null ? opt.right : `<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span>`}</summary>
+        <summary>${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b title="${anE(r.name)}">${anE(anNm16(r.name))}</b> ${gchips}${liveChip}${opt.right != null ? opt.right : `<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span>`}</summary>
         <div class="an-sbody">${liveLine}${limHtml}${whys}${anMetricsHtml(r, side, lv, others, top && ['sell', 'buy'].includes(AN_CATEGORY[top]))}<div class="an-chwrap" data-an-chart="${i}"></div>
           <details class="an-sub" data-an-key="x:${anE(r.code)}"><summary>세부 보기 <small>${anE(r.code)}</small></summary><pre>${anE(anDetailText(r))}</pre></details></div></details>`;
   }catch(e){ return `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
@@ -8138,7 +8153,10 @@ function anRenderResult(res){
   const tabs = AN_TABS.map(([c, nm]) => `<button class="an-ftab t-${c}${cnt(c) ? ' has' : ' zero'}" data-f="${c}">${nm} <b>${cnt(c)}</b></button>`).join('');
 
   const H = anHeldSets();
-  const listHtml = rows.map(x => anStockHtml(x, ctx, H)).join('');
+  // 신호 없는 종목 = '전체 종목' 접힘(기본 닫힘, 2026-10-20 · V1만)
+  const sigRows = rows.filter(x => x.keys.length), noneRows = rows.filter(x => !x.keys.length);
+  const listHtml = sigRows.map(x => anStockHtml(x, ctx, H)).join('')
+    + (noneRows.length ? `<details class="an-allfold" data-an-key="allfold"${anState.openKeys && anState.openKeys.has('allfold') ? ' open' : ''}><summary>전체 종목 <small>${noneRows.length}</small></summary>${noneRows.map(x => anStockHtml(x, ctx, H)).join('')}</details>` : '');
 
   // 종목 스크리닝은 뺌(2026-10-11) — 분류 탭·종목 칩과 중복
 
@@ -8170,6 +8188,10 @@ const anBtState = { p: '1', off: new Set([1, 2, 3, 4]) };   // 처음: 1년 · V
 // 표시 문구(2026-10-11 정리): 항목 사이 ' / ', 항목 안 '·'. 옛 내부 이름(매수 신호·눌림진행·비중축소·익절검토 등)은 쓰지 않음
 // 2026-10-13 개편(사용자 결정): V1 = 알파를 만드는 로직이 아니라 검토·매수 시점·경보 도구. 매도·전량 → 경보, 매수 한도 = 종목당 5%
 // 2026-10-13 개편(사용자 문구): V1 = 알파를 만드는 로직이 아니라 검토·시점 참고·점검 도구. 매도·전량 → 경보, 매수 한도 = 종목당 5%
+const AN_HEAD = [   // 2026-10-20 사용자 문구(첫 묶음 맨 앞, 빈 줄 하나 띄고 AN_POS)
+  'V1은 규칙 기반 참고 신호이며 투자 판단 책임은 본인에게 있음.',
+  '전일 종가까지만 반영함. 장중 흐름·단타에는 맞지 않음'
+];
 const AN_POS = [     // 2026-10-13 19:10 사용자 문구(위치·규칙 한 묶음, 글자 조금 크게 .an-rfirst)
   '이 로직만으로는 알파를 만들 수 없음',
   '알파는 {종목 선정 · 시장 상승 · 장기 보유} 에서 정해짐',   // {} = Logic V1 제목 색(2026-10-15 사용자)
@@ -8196,6 +8218,7 @@ const AN_SIG_DEF = [
   '바닥근접·꼭지근접 = 1년 고점 대비 25% 이상 빠진(50% 이상 오른) 종목이 돌아서는 중이고 저점 +30%(고점 -20%) 안일 때 · 참고',
   '굵은 테두리 칸 = 이 매수·매도 판정에 쓰인 지표',
   '범위 칩(신호 옆, 같은 색) = 마지막 확정 종가 기준, 다음 거래일 종가가 이 범위면 신호가 유지되는 가격 · 매수 = 과열 전까지·장기 추세(추세 매수는 추세 5가지) 유지 · 매도 = 과열 조건 2개 이상 유지 · 장중 현재가가 범위 밖이면 흐리게',
+  '장기 추세 아래(주황 칩, 매수·바닥·눌림 옆) = 월봉 역배열 + 10개월선 아래라 다음 거래일 어떤 가격(±30%)에서도 과열 없이 장기 추세 조건을 맞출 수 없음 · 신호는 유효하지만 장기 추세는 하락 중',
   '지수 현금 n% 추천(지수 차트 칩) = 코스피 200일선 아래 + 1년 고점 대비 -10% 이하 → 30% · S&P500 200일선 아래 + 1년 고점 대비 -10% 이하 → 50% · 나스닥 200일선 아래 10거래일 연속 → 50% · 그 시기에 이만큼 현금이 준비돼 있으면 좋다는 뜻',
   '현금 투입(지수 차트 칩) = 현금화 조건이 걸렸던 하락 뒤 200일선 위로 회복 = 현금화한 몫을 다시 넣을 시기 · 5거래일 동안 표시',
   '추가 매수(지수 차트 칩) = 직전 고점 대비 -15% 이상 빠졌다 200일선 위로 회복 = 투자금만큼(+100%) 추가를 고려할 시기 · 다시 200일선이 깨지면 추가분 회수'
@@ -8210,11 +8233,9 @@ const AN_BT_NOTES = [
 ];
 const AN_LIMITS = [
   '무작위 종목으로 시험한 백테스트에서 V1을 매매 규칙으로 쓰면 지수나 보유를 꾸준히 이기지 못했음',
-  '전일 종가 기준 신호라 장중 흐름·단타에는 맞지 않음',
   '시장 바닥 지표는 처음 켜진 날이 너무 이를 때가 많음 = 참고만',
-  '과거 성과가 미래를 보장하지 않음',
-  '모든 매수·매도에 대한 책임은 사용자 본인에게 있음'
-];
+  '과거 성과가 미래를 보장하지 않음'
+];   // 2026-10-20: 단타·책임 두 줄은 AN_HEAD로
 // 하단 접힘: 신호 정의 + 백테스트 요약(2026-10-13 지수·무작위 시험, moneypier results)
 const AN_BT_SUMMARY = [
   '긴 하락장(IMF·IT 거품 붕괴·금융위기)이 낀 기간은 V1이 강했음',
@@ -8252,11 +8273,13 @@ function anLogicBody(){
   const lines = arr => arr.map(s => `<span class="an-li">${anE(s).replace(/\{(.*?)\}/g, '<b class="an-hl">$1</b>')}</span>`).join('');   // 항목마다 한 줄씩, {강조}
   return `<div class="an-smp" hidden><h4>백테스트 표본</h4><p>${lines(AN_BT_SAMPLE)}</p>
         <h4>백테스트 요약 <small>5년 · 넣은 돈 대비</small></h4><p class="an-pink">${lines(AN_BT_SUMMARY)}</p></div>
+      <p class="an-rfirst an-rhead">${lines(AN_HEAD)}</p>
       <p class="an-rfirst">${lines(AN_POS)}</p>
+      <details class="an-btfold"><summary>제작자의 현재 23개 종목으로 백테스트 하는 경우</summary>
       <h4>백테스트 <small>총수익 · 칩을 누르면 선 켜고 끄기</small></h4>
       <div class="an-btper">${per.map(([k, nm]) => `<button type="button" data-btp="${k}"${k === anBtState.p ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>
       <div class="an-btwrap"></div>
-      <h4>주의</h4><p class="an-rnote">${lines(AN_BT_NOTES)}</p>
+      <h4>주의</h4><p class="an-rnote">${lines(AN_BT_NOTES)}</p></details>
       <h4>한계</h4><p>${lines(AN_LIMITS)}</p>
       <h4>신호</h4><p>${lines(AN_SIG_DEF)}</p>`;
 }
@@ -8267,7 +8290,9 @@ function anRulesHtml(){
 // 그래프 기간·선 켜고 끄기 (box = 아코디언 또는 안내창, isOpen = 지금 보이는지)
 function anBtWire(box, isOpen){
   const wrap = box.querySelector('.an-btwrap');
-  const draw = () => { if(isOpen()) anBtDraw(wrap); };
+  const fold = () => box.querySelector('.an-btfold');                 // 2026-10-20: 그래프·주의는 접힘 안 — 펼쳤을 때만 그림
+  const draw = () => { const f = fold(); if(isOpen() && (!f || f.open)) anBtDraw(wrap); };
+  box.addEventListener('toggle', e => { if(e.target.classList && e.target.classList.contains('an-btfold') && e.target.open) draw(); }, true);
   box.addEventListener('click', e => {
     const p = e.target.closest('[data-btp]'), c = e.target.closest('[data-bti]');
     if(p){ anBtState.p = p.dataset.btp; box.querySelectorAll('[data-btp]').forEach(b => b.classList.toggle('on', b === p)); draw(); }
@@ -8437,6 +8462,7 @@ function anBindRoot(root){
     anState.filter = f;
     if(ft) ft.querySelectorAll('.an-ftab').forEach(b => b.classList.toggle('on', b.dataset.f === f));
     root.querySelectorAll('.an-stock').forEach(d => { d.style.display = !f || d.dataset.f.split(' ').includes(f) ? '' : 'none'; });
+    root.querySelectorAll('.an-allfold').forEach(d => { d.style.display = f ? 'none' : ''; });   // 분류 탭을 고르면 '전체 종목' 접힘은 숨김
     root.querySelectorAll('.an-gauges, .an-idxacc').forEach(el => { el.style.display = f ? 'none' : ''; });   // 탭을 고르면 시장 지표·지수는 숨김, 다 끄면 다시 보임
   };
   if(ft) ft.addEventListener('click', e => {
@@ -8888,6 +8914,8 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 .an-glink { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin-top:8px; padding-top:8px; padding-bottom:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text); }   /* 아래 여백(2026-10-14) */
 .an-gbtn { display:inline-flex; align-items:center; height:26px; padding:0 10px; border:1px solid var(--border); border-radius:6px; background:var(--border); color:var(--text); text-decoration:none; font-size:12px; white-space:nowrap; }   /* PBR·PER 버튼(2026-10-14) — 머니파이 팔레트 --border #3D3E43 */
 .an-glink small { color:var(--text-dim); flex-basis:100%; }
+.an-glink .an-fng { margin-left:auto; }   /* Fear & Greed = 오른쪽 끝(2026-10-20) */
+.an-idx > summary { background:#3A3B40; border-radius:7px; } .an-idx[open] > summary { border-radius:7px 7px 0 0; }   /* 지수 제목바 더 밝은 회색(2026-10-20, 옛 --surface #28292D) */
 button.an-gbtn { font-family:inherit; cursor:pointer; } .an-euph { height:auto; min-height:26px; padding:4px 10px; line-height:1.3; white-space:normal; text-align:left; align-items:center; box-sizing:border-box;  background:var(--text); color:var(--bg); border-color:var(--text); font-weight:600; }   /* 반전(2026-10-16) */
 /* 위험·바닥 지표 높이 맞춤(2026-10-16): 둘 다 열렸을 때 같은 높이, 버튼 줄은 맨 아래 */
 .an-gauges:not(:has(details.an-gauge:not([open]))) { align-items:stretch !important; }
@@ -8897,6 +8925,8 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 .an-whys { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
 .an-why { font-size:11px; padding:0 7px; border-radius:6px; font-weight:700; border:1px solid currentColor; }   /* 외곽선 = 글자색(2026-10-15) */
 .an-sigx { cursor:pointer; }
+.an-chip.an-ltd { background:transparent; color:#F2A65A; border:1px solid #F2A65A; }   /* 장기 추세 아래(2026-10-20, 주의 = 주황 테두리·글자) */
+.an-pop.ltd::first-line { color:#F2A65A; font-weight:700; }
 .an-pop { position:absolute; z-index:9999; background:#2B2C30; color:var(--text); border:1px solid #4A4B50; border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.55; white-space:pre-line; box-shadow:0 6px 20px rgba(0,0,0,.45); }
 .an-whyx { cursor:pointer; } .an-whyx.long { font-weight:500; white-space:pre-line; line-height:1.5; }
 .an-why.buy, .an-why.up { color:var(--an-up); border-color:var(--an-up); } .an-why.sell { color:var(--an-dn); border-color:var(--an-dn); }
@@ -8950,6 +8980,9 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 .an-hbpop > div { width:120px; height:120px; border-radius:14px; background:#EDEDED; color:#333333; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
 /* 신호 없는 종목은 이름을 회색으로(신호 있는 종목은 그대로) */
 .an-stock[data-f="none"] > summary b { color:#9A9BA1; }
+.an-allfold > summary { cursor:pointer; list-style:none; padding:9px 10px; font-size:13px; font-weight:700; color:var(--text-dim); background:var(--surface); border-bottom:1px solid var(--bg); }
+.an-allfold > summary::-webkit-details-marker { display:none; } .an-allfold > summary small { font-weight:500; margin-left:4px; }
+.an-allfold > summary::after { content:'▾'; float:right; } .an-allfold[open] > summary::after { content:'▴'; }
 /* 종목 칸 안 글자는 굵기 변화 없이 모두 500(칸 이름 칩·근거·한도·지표·차트 범례 포함) */
 .an-stock, .an-stock * { font-weight:500 !important; }
 .an-stock .an-sub pre { font-weight:400 !important; color:#C9C9C9 !important; }   /* 세부 보기 글: 한 단계 가늘고 밝은 회색(빽빽한 글이라 무거워 보임) */
@@ -8958,6 +8991,8 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 /* 2026-10-11 20:20 화면 정리 */
 .an-stock > summary b { font-weight:500; }
 .an-rfirst .an-hl { color:var(--text); font-weight:inherit; }
+.an-rhead { margin-bottom:12px !important; }   /* AN_HEAD 두 줄 뒤 빈 줄 하나(2026-10-20) */
+.an-btfold { margin-top:10px; } .an-btfold > summary { cursor:pointer; list-style:none; font-size:12px; font-weight:700; color:var(--text); padding:4px 0; } .an-btfold > summary::-webkit-details-marker { display:none; } .an-btfold > summary::after { content:' ▾'; color:var(--text-dim); } .an-btfold[open] > summary::after { content:' ▴'; }   /* 2026-10-20 백테스트 그래프·주의 접힘 */
 /* 열린 탭 = 위쪽 테두리만 밝은 회색 가는 줄(2026-10-15, 붕괴 사례와 같음) */
 details.an-idx[open], details.an-gauge[open], details.an-det[open], details.an-rules[open] { box-shadow:inset 0 1px 0 rgba(255,255,255,.38); }   /* Logic V1 제목과 같은 색(2026-10-15) */
 .an-rules { background:var(--surface) !important; } .an-rules + .an-warn { background:#3a3b40 !important; } .an-rfirst { margin-top:2px !important; font-size:12px; }   /* 첫 묶음(위치·규칙)만 조금 크게(사용자 2026-10-13) */
