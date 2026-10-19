@@ -1190,6 +1190,7 @@ async function loadMarketData(forceRefresh){
   renderMarketTicker();
   try{ localStorage.setItem(MARKET_CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: dataMap })); }catch(e){}
   loadMarketIndicatorBars();
+  if(state.activeId === '__analysis__') try{ anRefreshMarket(); }catch(e){}   // 상단 시세 갱신 때 V1 시장 지표도(2026-10-20)
 }
 const ACCOUNT_TYPES = ['연금','DC','IRP','ISA','직투'];
 
@@ -7676,6 +7677,7 @@ async function runAnalysis(){
     const msig = anMarketSignals(snap, results);
     const result = { at: Date.now(), isUS, results, snap, msig, failed, unresolved, stale, todayPatched, todayMissing, krToday: anKrToday() };
     anState.result = result;
+    anMktAt = Date.now();                        // 방금 시장 지표도 받았으니 1분 동안 다시 계산 안 함
     anState.html = null;
     await anDB.set('lastResult', result);
     try{ await anHistSave(result); }catch(e){}          // 신호 기록(히스토리)에 오늘 칸 저장
@@ -7977,7 +7979,9 @@ function anHeadLine(res){
     const ok = t ? krRes.filter(r => r.last === t).length : 0;
     todayTxt = t ? (ok === krRes.length ? ' · 국장 오늘 종가(20:00) 반영' : ` · 국장 오늘 종가 ${ok}/${krRes.length} (나머지 어제 시세)`) : '';   // 장중·장 전에는 표시 안 함(실시간으로 바뀌는 부분이 있어 '어제 종가 기준'은 오해 소지, 2026-10-14)
   }
-  return `<div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}</span></div>`;
+  let mkTxt = '';
+  if(res.mktAt && res.mktAt - res.at > 60000){ const m = new Date(res.mktAt + 9 * 3600e3); mkTxt = ` · 시장 지표 ${anPad(m.getUTCMonth()+1)}-${anPad(m.getUTCDate())} ${anPad(m.getUTCHours())}:${anPad(m.getUTCMinutes())}`; }
+  return `<div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}${mkTxt}</span></div>`;
 }
 
 // '장기 추세 아래' 칩 설명(2026-10-20): 범위 계산은 매수에 장기 추세(월봉 정배열 또는 10개월선 위)를 요구 — 신호 정의(반등 경로)는 요구하지 않아 생기는 경우
@@ -8676,6 +8680,31 @@ function anUpdateProgress(){
 }
 
 // 분석 탭 패널이 그려질 때마다 호출
+// 시장 지표만 다시 계산(2026-10-20): 지수·VIX·금리 → 위험·바닥 지표·지수 칸. 종목 분석은 마지막 돋보기 결과 그대로
+// (위험·바닥 지표 중 '내 종목 …' 두 항목은 종목 분석 값이라 마지막 돋보기 기준). V1 탭을 열 때·상단 시세 갱신 때, 1분에 한 번까지
+let anMktBusy = false, anMktAt = 0;
+async function anRefreshMarket(){
+  const res = anState.result;
+  if(!res || anState.running || anMktBusy || Date.now() - anMktAt < 60000) return;
+  anMktBusy = true;
+  try{
+    const snap = await anMarketSnapshot(res.isUS);
+    if(anState.result !== res || anState.running) return;  // 그 사이 새 분석이 돌았으면 버림
+    if(!snap.credit && res.snap && res.snap.credit){ snap.credit = res.snap.credit; snap.credit_time = res.snap.credit_time; }
+    const fail = k => !snap[k] && res.snap && res.snap[k];
+    ['ks', 'vix', 'y10'].forEach(k => { if(fail(k)) snap[k] = res.snap[k]; });          // 받기 실패한 지표는 이전 값 유지
+    Object.keys((res.snap && res.snap.idx) || {}).forEach(k => { if(!snap.idx[k]) snap.idx[k] = res.snap.idx[k]; });
+    res.snap = snap;
+    res.msig = anMarketSignals(snap, res.results || []);
+    res.mktAt = Date.now();
+    anMktAt = Date.now();
+    anState.html = null;
+    try{ await anDB.set('lastResult', res); }catch(e){}
+    if(state.activeId === '__analysis__' && anState.view === 'report') anFillRoot();
+  }catch(e){}
+  finally{ anMktBusy = false; }
+}
+
 function anMount(){
   const btn = document.getElementById('analysisBtn');
   if(btn) btn.addEventListener('click', () => { anState.view = 'report'; runAnalysis(); loadMarketData(true).catch(() => {}); });   // 돋보기 = 분석 + 맨 위 지수·경제지표 탭도 새로
@@ -8687,9 +8716,11 @@ function anMount(){
       anState.loaded = true;
       if(res && !anState.result){ anState.result = res; anState.html = null; }
       anFillRoot();
+      anRefreshMarket();
     });
   }
   anFillRoot();
+  anRefreshMarket();                                      // V1 탭을 열 때 시장 지표 다시 계산(2026-10-20)
 }
 
 function anUpdateViewBtn(){
