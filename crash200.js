@@ -172,6 +172,7 @@ function skeleton(){
       <div class="ch"><span class="date" id="lvDate">–</span><span id="lvChg"></span><span id="lvRecChip"></span></div>
       <div class="ch2" id="lvCh2" hidden><button type="button" class="dbtn" aria-expanded="true">세부내용 ▴</button><span class="an-cper" id="lvPer"></span><span class="issue" id="lvIssue"></span></div>
       <div class="cgrid">${LV_IDS.map(id => cv(LV_LAB[id], '–', 'dim', id)).join('')}</div>   <!-- 진행 중 국면: 세부내용 열린 채로 시작(2026-10-15) -->
+      <div class="lvstat" id="lvStat" hidden></div>
       <div class="glrow" id="lvGl">${GLG.replace('종가', '현재가')}${XCHIPS}</div>
       <div class="gch" id="lvG"></div>
     </div></div>
@@ -198,6 +199,7 @@ function render(r, live){
   $('lvL1').textContent = `${CFG.name} ${fmt(r.p)}`;
   $('lvL1c').innerHTML = r.chgPct != null ? tri(r.chgPct, 2) : ''; $('lvL1c').className = cls(r.chgPct);
   $('lvL2').innerHTML = `200일선 ${g200 < 0 ? '아래' : '위'} <span class="${cls(g200)}">${tri(g200, 2)}</span>`;
+  LIVE_G200 = g200; statLine();
   if(ep && ep.w60 && ep.w60.days != null) set('lvW60', `${ep.w60.days ? ep.w60.days + '거래일 뒤' : '이탈일'}<span class="d">${ep.w60.pc != null ? '이탈 전날 대비 ' + tri(ep.w60.pc) : ''}</span>`);
   else if(r.w60 != null){
     const g60 = (r.p / r.w60 - 1) * 100;
@@ -219,6 +221,57 @@ function render(r, live){
     liveEp = { idle: true, D: r.D, C: r.C }; $('lvRecChip').innerHTML = ''; gDraw($('lvG'));
     markBand(null);
   }
+}
+
+// ---------- 붕괴 통계(2026-10-20 사용자 B안): 맨 위 카드 한 줄(①) + 요약 아래 '통계' 접힘(①②③) — 자료 crash200_stats.json(moneypier crash200_stats.py) ----------
+let STATS = null, LIVE_G200 = null;
+const SN = { kospi: '코스피', spx: 'S&P500', ndx: '나스닥' };
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+function statLine(){
+  const el = $('lvStat'), P = STATS && STATS.prev && STATS.prev[CFG.key];
+  if(!el || !P || LIVE_G200 == null) return;
+  const g = LIVE_G200;
+  let h = `<span>지금 200일선 ${g < 0 ? '아래' : '위'} <b class="${cls(g)}">${tri(g)}</b> · 과거 이탈 전날 중간 <b>${tri(P.med)}</b> <span class="sd">(${tri(P.min)}~${tri(P.max)}, ${P.n}건)</span></span>`;
+  const X = [1, 2, 3].find(x => g > 0 && g <= x);
+  if(X){
+    const near = STATS.near[CFG.key] || [], a = near.find(r => r.x === X && r.h === 1), b = near.find(r => r.x === X && r.h === 5);
+    if(a && b) h += `<span>200일선 위 ${X}% 이내였던 날 → 다음 날 <b>${pct(a.brk, a.brk + a.hold)}%</b> · 5거래일 안 <b>${pct(b.brk, b.brk + b.hold)}%</b> 200일선 아래로</span>`;
+  }
+  el.innerHTML = h; el.hidden = false;
+}
+function statFold(){
+  if(!STATS || $('stat200')) return;
+  const host = CFG.autoNotes ? $('autoNotes') : document.querySelector('.wrap > .note');
+  if(!host) return;
+  const P = STATS.prev, K = CFG.key;
+  const r1 = Object.keys(SN).filter(k => P[k]).map(k => `<tr${k === K ? ' class="me"' : ''}><td>${SN[k]}</td><td>${P[k].n}건</td><td>${tri(P[k].med)}</td><td>${tri(P[k].min)}</td><td>${tri(P[k].max)}</td></tr>`).join('');
+  const near = STATS.near[K] || [];
+  const cell = (x, hh) => { const r = near.find(v => v.x === x && v.h === hh); return r ? `<b>${pct(r.brk, r.brk + r.hold)}%</b> <span class="sd">${r.brk}/${r.brk + r.hold}일</span>` : '–'; };
+  const r2 = [1, 2, 3].map(x => `<tr><td>${x}% 이내</td><td>${cell(x, 1)}</td><td>${cell(x, 5)}</td></tr>`).join('');
+  const fl = (STATS.follow || []).filter(f => f.a === K || f.b === K).map(f => `<li><b>${SN[f.a]} → ${SN[f.b]}</b> ${f.n}건 · ${SN[f.b]} 이미 국면 중 ${f.already} <span class="sd">(20거래일 이내 시작 ${f.al20} · 그 전 ${f.alOld})</span> · 이후 5거래일 안 ${f.d5} · 20일 안 ${f.d20} · 60일 안 ${f.d60} · 60일 안 없음 ${f.none}${f.med != null ? ` <span class="sd">(따라간 경우 중간 ${f.med}거래일)</span>` : ''}</li>`).join('');
+  host.insertAdjacentHTML('afterend', `<details class="sec acc stat200" id="stat200"><summary><span class="st">통계 · 200일선 위치와 붕괴</span><span class="meta">1996년 이후 · 계산일 ${ymd(STATS.asof)}</span></summary>
+  <div class="note">
+    <b>① 이탈 전날 종가의 200일선 대비 위치</b>
+    <table class="stt"><tr><th>지수</th><th>사례</th><th>중간</th><th>최소</th><th>최대</th></tr>${r1}</table>
+    <b>② 종가가 200일선 위 X% 이내인 날 → 200일선 아래로 깨진 비율 (${SN[K]})</b>
+    <table class="stt"><tr><th>200일선 위</th><th>다음 날</th><th>5거래일 안</th></tr>${r2}</table>
+    <b>③ 한 시장이 국면 이탈한 뒤 다른 시장</b>
+    <ul>${fl}</ul>
+    <ul class="sd">
+      <li>①③ 사례 = 붕괴 사례 페이지의 국면(안정 40거래일 기준), 진행 중 사례는 ①에서 뺌. 표본 지수별 22~26건</li>
+      <li>② = 날짜 단위(하루라도 종가가 200일선 아래면 '깨짐', 돌파 후 재붕괴 포함) — 날짜가 서로 겹쳐 독립 표본이 아니고, 국면 기준보다 넓은 정의</li>
+      <li>③ = 어느 쪽 200일선이 먼저 깨졌나(순서)이지 누가 위기를 일으켰나(원인)가 아님. 예: 2000년 닷컴은 코스피가 먼저 깨졌지만 진원은 미국. 미장은 같은 날짜라도 코스피 마감 뒤라 코스피 이탈 당일 미장 이탈 = 이후 1거래일</li>
+      <li>'이미 국면 중'은 다른 시장이 그보다 먼저 이탈해 아직 안정 전인 경우 — 20거래일 이내 시작이면 가까운 연동, 그 전이면 이미 오래 아래</li>
+    </ul>
+  </div></details>`);
+}
+async function statLoad(){
+  try{
+    const r = await fetch(`crash200_stats.json?v=${CFG.v || ''}`, { cache: 'no-cache' });
+    if(!r.ok) return;
+    STATS = await r.json();
+    statFold(); statLine();
+  }catch(e){}
 }
 
 // ---------- 사례 카드 ----------
@@ -696,6 +749,7 @@ function applyCooldown(){
   renderBands();
   if(!CFG.autoNotes){ const ul = document.querySelector('.note ul'); if(ul) ul.insertAdjacentHTML('afterbegin', `<li>${G_NOTE}</li>`); }
   renderSummary(DATA.cases.filter(c => !c.open));
+  statLoad();
   archFetch().then(x => { archList = x.list || []; archPaint(); archGraphs(); }).catch(() => {});   // 세 지수 모두
   loadAll();
 })();
