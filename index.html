@@ -5576,8 +5576,9 @@ function assetMemoBtnHtml(){
 function bindAssetRegionBtns(panel){
   panel.querySelectorAll('[data-asset-rg]').forEach(btn => btn.addEventListener('click', () => {
     const on = { domestic: state.activeId !== '__overseas__', overseas: state.activeId !== '__domestic__' };
-    on[btn.dataset.assetRg] = !on[btn.dataset.assetRg];
-    if(!on.domestic && !on.overseas) return;
+    const k = btn.dataset.assetRg, o = k === 'domestic' ? 'overseas' : 'domestic';
+    if(on[k] && !on[o]){ on[k] = false; on[o] = true; }   // 하나만 켜진 상태에서 그 버튼 = 다른 쪽으로 바꿈(2026-10-20)
+    else on[k] = !on[k];                                   // 둘 다 켜짐 → 누른 쪽 끔 / 꺼진 쪽 → 켬
     switchTab(on.domestic && on.overseas ? '__total__' : on.domestic ? '__domestic__' : '__overseas__');
   }));
 }
@@ -7934,7 +7935,7 @@ function anGauge(msig, key, title){
     : key === 'risk' && g.score >= 1                     // 위험 지표가 하나라도 켜지면 '유포리아 확인 →'(2026-10-16): 1번째 누름 = 질문으로 바뀜, 2번째 = 버핏 팝업 + 원래 문구
     ? `<button type="button" class="an-gbtn an-euph" onclick="anEuphoria(this)">유포리아 확인 →</button>` : '';
   // Fear & Greed(2026-10-20, 시험용으로 늘 표시) — CNN은 다른 사이트 안에 띄울 수 없어 새 창
-  const extra = `<div class="an-glink">${left}<a class="an-gbtn an-fng" href="${AN_FNG_LINK}" target="_blank" rel="noopener">Fear &amp; Greed</a></div>`;
+  const extra = `<div class="an-glink">${left}<a class="an-gbtn an-fng${key === 'risk' ? ' inv' : ''}" href="${AN_FNG_LINK}" target="_blank" rel="noopener">F&amp;G</a></div>`;
   // 접힘 아코디언: 제목줄에 점수, 펼치면 막대·항목
   return `<details class="an-gauge ${key} ${g.cls} s${Math.min(g.score, 3)}" data-an-key="g:${key}"><summary class="an-gh"><span>${title}</span><b>${g.score}/${g.total} · ${anE(g.label)}</b></summary>
     <div class="an-bar"><i style="width:${pct}%"></i></div><ul>${rows}</ul>${extra}</details>`;
@@ -8967,7 +8968,7 @@ details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#f
 .an-glink { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin-top:8px; padding-top:8px; padding-bottom:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text); }   /* 아래 여백(2026-10-14) */
 .an-gbtn { display:inline-flex; align-items:center; height:26px; padding:0 10px; border:1px solid var(--border); border-radius:6px; background:var(--border); color:var(--text); text-decoration:none; font-size:12px; white-space:nowrap; }   /* PBR·PER 버튼(2026-10-14) — 머니파이 팔레트 --border #3D3E43 */
 .an-glink small { color:var(--text-dim); flex-basis:100%; }
-.an-glink .an-fng { margin-left:auto; }   /* Fear & Greed = 오른쪽 끝(2026-10-20) */
+.an-glink .an-fng { margin-left:auto; } .an-glink .an-fng.inv { background:var(--text); color:var(--bg); border-color:var(--text); font-weight:600; }   /* 위험 지표 쪽 = 반전(유포리아 버튼과 같음) */   /* Fear & Greed = 오른쪽 끝(2026-10-20) */
 .an-idx > summary { background:#3A3B40; border-radius:7px; } .an-idx[open] > summary { border-radius:7px 7px 0 0; }   /* 지수 제목바 더 밝은 회색(2026-10-20, 옛 --surface #28292D) */
 button.an-gbtn { font-family:inherit; cursor:pointer; } .an-euph { height:auto; min-height:26px; padding:4px 10px; line-height:1.3; white-space:normal; text-align:left; align-items:center; box-sizing:border-box;  background:var(--text); color:var(--bg); border-color:var(--text); font-weight:600; }   /* 반전(2026-10-16) */
 /* 위험·바닥 지표 높이 맞춤(2026-10-16): 둘 다 열렸을 때 같은 높이, 버튼 줄은 맨 아래 */
