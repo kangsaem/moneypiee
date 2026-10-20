@@ -178,7 +178,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   @media(max-width:640px){.stock-donut-center-label{font-size:16px;}}
   .mkt-card{
     /* PC: 남는 폭을 카드들이 나눠 가져 한 줄을 꽉 채움 / 모바일: 최소 폭 유지 + 가로 스크롤 */
-    flex:1 0 96px;min-width:96px;   /* 2026-10-20: 카드 사이 8→4px, 줄인 만큼 카드 폭 +4px(모바일), PC는 원래대로 남는 폭을 나눠 가짐 */
+    flex:1 0 108px;min-width:108px;   /* 2026-10-20 VIX 카드 뺀 자리(100px)를 8장에 나눔: 96→108px */   /* 2026-10-20: 카드 사이 8→4px, 줄인 만큼 카드 폭 +4px(모바일), PC는 원래대로 남는 폭을 나눠 가짐 */
     background:var(--surface);border:1px solid var(--border);border-radius:8px;
     padding:6px 8px 7px;
     box-sizing:border-box;
@@ -486,7 +486,7 @@ const MARKET_SYMBOLS = [
   { key:'kosdaq', symbol:'^KQ11', name:'코스닥' },
   { key:'sp500', symbol:'^GSPC', name:'S&P500' },
   { key:'nasdaq', symbol:'^IXIC', name:'나스닥' },
-  { key:'vix', symbol:'^VIX', name:'VIX' },
+  // VIX 카드는 뺌(2026-10-20 사용자, V1 위험·바닥 지표는 따로 받음)
   { key:'us10y', symbol:'^TNX', name:'미국채10년' },
   { key:'usdkrw', symbol:'KRW=X', name:'달러환율' },
   { key:'wti', symbol:'CL=F', name:'WTI' },
