@@ -8046,9 +8046,7 @@ function anHeadLine(res){
     const ok = t ? krRes.filter(r => r.last === t).length : 0;
     todayTxt = t ? (ok === krRes.length ? ' · 국장 오늘 종가(20:00) 반영' : ` · 국장 오늘 종가 ${ok}/${krRes.length} (나머지 어제 시세)`) : '';   // 장중·장 전에는 표시 안 함(실시간으로 바뀌는 부분이 있어 '어제 종가 기준'은 오해 소지, 2026-10-14)
   }
-  let mkTxt = '';
-  if(res.mktAt && res.mktAt - res.at > 60000){ const m = new Date(res.mktAt + 9 * 3600e3); mkTxt = ` · 시장 지표 ${anPad(m.getUTCMonth()+1)}-${anPad(m.getUTCDate())} ${anPad(m.getUTCHours())}:${anPad(m.getUTCMinutes())}`; }
-  return `<div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}${mkTxt}</span></div>`;
+  return `<div class="an-head"><span>분석 ${stamp} · 종목 ${results.length}개${todayTxt}</span></div>`;   // '시장 지표 시각' 표시는 삭제(2026-10-20 사용자)
 }
 
 // '장기 추세 아래' 칩 설명(2026-10-20): 범위 계산은 매수에 장기 추세(월봉 정배열 또는 10개월선 위)를 요구 — 신호 정의(반등 경로)는 요구하지 않아 생기는 경우
