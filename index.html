@@ -8989,7 +8989,10 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 .an-why { font-size:11px; padding:0 7px; border-radius:6px; font-weight:700; border:1px solid currentColor; }   /* 외곽선 = 글자색(2026-10-15) */
 .an-sigx { cursor:pointer; }
 .an-chip.an-ltd { background:transparent; color:#F2A65A; border:1px solid #F2A65A; }
-.an-chip.an-new10 { background:transparent; color:#9A9BA1; border:1px solid #6E6F75; }   /* 상장 10개월 미만(2026-10-20, 회색) */   /* 장기 추세 아래(2026-10-20, 주의 = 주황 테두리·글자) */
+.an-chip.an-new10 { background:transparent; color:#9A9BA1; border:1px solid #6E6F75; }
+/* 칩 글자 위아래 가운데(2026-10-20): 칸 높이를 정하고 flex로 가운데 */
+.an-chip, .an-why:not(.long), .an-mt, .an-ist, .an-htag { display:inline-flex !important; align-items:center; justify-content:center; box-sizing:border-box; line-height:1 !important; vertical-align:middle; padding-top:0 !important; padding-bottom:1px !important; }   /* 한글이 아래로 처져 보여 아래 1px *
+.an-chip, .an-why:not(.long) { height:19px; } .an-mt { height:21px; } .an-ist { height:20px; } .an-htag { height:19px; }   /* 상장 10개월 미만(2026-10-20, 회색) */   /* 장기 추세 아래(2026-10-20, 주의 = 주황 테두리·글자) */
 .an-pop.ltd::first-line { color:#F2A65A; font-weight:700; }
 .an-pop { position:absolute; z-index:9999; background:#2B2C30; color:var(--text); border:1px solid #4A4B50; border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.55; white-space:pre-line; box-shadow:0 6px 20px rgba(0,0,0,.45); }
 .an-whyx { cursor:pointer; } .an-whyx.long { font-weight:500; white-space:pre-line; line-height:1.5; }
