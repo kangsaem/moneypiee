@@ -1031,7 +1031,7 @@ function renderMarketTicker(){
         <div class="mkt-name" style="display:flex;justify-content:space-between;align-items:baseline;"><span>${cfg.name}</span><span style="color:var(--text-dim);">${MARKET_RANGE_LABEL[range]}</span></div>
         <div class="mkt-value">${formatMarketValue(cfg.key, d.price)}</div>
         <div class="mkt-change" style="color:var(--text-dim);font-size:9px;font-weight:500;">개장 전</div>
-        <div style="height:27px;margin-top:4px;border-top:1px dashed var(--border);"></div>
+        <div style="height:36px;margin-top:4px;border-top:1px dashed var(--border);"></div>
       </div>`;
     }
 
@@ -1053,8 +1053,8 @@ function renderMarketTicker(){
     if(range === '1d'){
       const baseline = d.prevClose;
       chart = (d.intradayPoints && d.intradayPoints.length >= 2)
-        ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 80, 27, baseline, useFixedAxis)
-        : sparklineSVG(d.closes || [], 80, 27, baseline);
+        ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 80, 36, baseline, useFixedAxis)
+        : sparklineSVG(d.closes || [], 80, 36, baseline);
     } else {
       periodCloses = (marketRangeChart[cfg.key] && marketRangeChart[cfg.key][range]) || null;
       if(!periodCloses){
@@ -1063,10 +1063,10 @@ function renderMarketTicker(){
           <div class="mkt-name" style="display:flex;justify-content:space-between;align-items:baseline;"><span>${cfg.name}</span><span style="color:var(--text-dim);">${MARKET_RANGE_LABEL[range]}</span></div>
           <div class="mkt-value">${formatMarketValue(cfg.key, d.price)}</div>
           <div class="mkt-change" style="color:var(--text-dim);font-size:9px;">불러오는 중...</div>
-          <div style="height:27px;margin-top:4px;"></div>
+          <div style="height:36px;margin-top:4px;"></div>
         </div>`;
       }
-      chart = sparklineSVG(periodCloses, 80, 27, periodCloses[0]);
+      chart = sparklineSVG(periodCloses, 80, 36, periodCloses[0]);
     }
 
     const change = computePeriodChange(d, range, periodCloses);
