@@ -7308,7 +7308,7 @@ function anKrToday(){
 }
 
 // 폭락장 (market_report.crash_info): 지수 고점 -20% / VIX 30 / 바닥 지표 2개 — 하나라도 켜지면 표시만(돈 쓰는 방식은 본인 판단)
-const AN_CRASH = { DD: -20, VIX: 30, BOTTOM: 2, IDX: [['kospi', '코스피'], ['spx', 'S&P500'], ['ndx', '나스닥']] };
+const AN_CRASH = { DD: -20, VIX: 30, BOTTOM: 2, IDX: [['kospi', '코스피'], ['ndx', '나스닥'], ['spx', 'S&P500']] };   // 표시 순서 나스닥 → S&P500(2026-10-20)
 function anCrash(snap, msig){
   const why = [];
   AN_CRASH.IDX.forEach(([k, nm]) => { const v = (snap.idx || {})[k]; if(v && anOk(v.from_high) && v.from_high <= AN_CRASH.DD) why.push(`${nm} 고점 ${v.from_high.toFixed(0)}%`); });
@@ -8185,7 +8185,8 @@ function anRenderResult(res){
   // 폭락장 배너는 뺌(2026-10-11) — 시장 바닥 지표를 보고 직접 판단
 
   // 지수 4개 아코디언: 모두 닫힌 채로 시작(사용자 2026-10-13 20:57, 전엔 07~17시 코스피·그 외 나스닥 펼침). 그 뒤엔 사용자가 열고 닫은 그대로
-  const idxHtml = [['kospi', 'KR'], ['kosdaq', 'KR'], ['spx', 'US'], ['ndx', 'US']].map(([k, mk]) => {
+  const idxHtml = [['kospi', 'KR'], ['kosdaq', 'KR'], ['ndx', 'US'], ['spx', 'US']].map(   // 2026-10-20: 나스닥 → S&P500(상단 경제지표와 같은 순서)
+    ([k, mk]) => {
     const v = idx[k];
     if(!v) return '';
     v.key = k;                                             // 지수 차트 기간 버튼이 씀
