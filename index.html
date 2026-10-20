@@ -5710,9 +5710,9 @@ function renderPanel(){
 
     panel.innerHTML = `
       <div style="position:relative;">
-        <div style="position:absolute;top:0;right:0;display:flex;align-items:center;gap:8px;z-index:1;">   <!-- 2026-10-20: 리로드 = 오른쪽 끝, 메모는 그 왼쪽 -->
+        <div style="position:absolute;top:0;left:0;z-index:1;">${assetMemoBtnHtml()}</div>   <!-- 2026-10-20: 메모 = 왼쪽 끝 -->
+        <div style="position:absolute;top:0;right:0;display:flex;align-items:center;gap:8px;z-index:1;">   <!-- 리로드 = 오른쪽 끝 -->
           <div id="reloadPricesLabel" style="display:none;font-size:11px;line-height:1.4;color:var(--text-dim);"></div>
-          ${assetMemoBtnHtml()}
           <button id="reloadPricesBtn" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button>
         </div>
       </div>
@@ -5818,9 +5818,9 @@ function renderPanel(){
 
     panel.innerHTML = `
       <div style="position:relative;">
-        <div style="position:absolute;top:0;right:0;display:flex;align-items:center;gap:8px;z-index:1;">   <!-- 2026-10-20: 리로드 = 오른쪽 끝, 메모는 그 왼쪽 -->
+        <div style="position:absolute;top:0;left:0;z-index:1;">${assetMemoBtnHtml()}</div>   <!-- 2026-10-20: 메모 = 왼쪽 끝 -->
+        <div style="position:absolute;top:0;right:0;display:flex;align-items:center;gap:8px;z-index:1;">   <!-- 리로드 = 오른쪽 끝 -->
           <div id="reloadPricesLabel" style="display:none;font-size:11px;line-height:1.4;color:var(--text-dim);"></div>
-          ${assetMemoBtnHtml()}
           <button id="reloadPricesBtn" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button>
         </div>
       </div>
