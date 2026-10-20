@@ -5408,7 +5408,7 @@ function renderDeleteAccountsPanel(){
   }).join('');
 
   panel.innerHTML = `
-    <div style="text-align:center;margin-bottom:12px;"><button class="btn-memo" id="mngAddAccountBtn" style="height:26px;padding:0 12px;font-size:12px;">계좌추가</button></div>
+    <div style="text-align:center;margin-bottom:12px;"><button class="btn-memo" id="mngAddAccountBtn" style="height:26px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;line-height:1;">계좌추가</button></div>
     <div class="account-header"><span class="total-badge">전체 계좌 ${state.accounts.length}개</span></div>
     <div style="max-width:460px;">
       ${rows || '<div class="empty">등록된 계좌가 없습니다.</div>'}
@@ -5558,7 +5558,7 @@ function saveSnapshotMemo(snapId){
 // 월별 탭 안 '월별자산 목록' 버튼(2026-10-20): 누르면 목록(옛 관리 탭), 다시 누르면 그래프
 let historyListMode = false;
 function historyListBtnHtml(){
-  return `<button type="button" class="btn-memo" id="historyListBtn" style="height:26px;padding:0 12px;font-size:12px;">${historyListMode ? '월별그래프' : '월별자산목록'}</button>`;   // 하늘색 채움, 목록일 때 '월별그래프'(2026-10-20)
+  return `<button type="button" class="btn-memo" id="historyListBtn" style="height:26px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;line-height:1;">${historyListMode ? '월별그래프' : '월별자산목록'}</button>`;   // 하늘색 채움, 목록일 때 '월별그래프'(2026-10-20)
 }
 function bindHistoryListBtn(){
   const b = document.getElementById('historyListBtn');
@@ -5616,7 +5616,7 @@ function assetRegionBtnsHtml(){
 }
 function assetMemoBtnHtml(){
   const snap = state.snapshots.find(s => s.label === currentMonthLabel()) || (state.snapshots.length ? state.snapshots[state.snapshots.length-1] : null);
-  return snap ? `<button class="btn-memo" data-memosnap="${snap.id}" style="height:26px;padding:0 12px;font-size:12px;">메모</button>` : '';
+  return snap ? `<button class="btn-memo" data-memosnap="${snap.id}" style="height:26px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;line-height:1;">메모</button>` : '';
 }
 function bindAssetRegionBtns(panel){
   panel.querySelectorAll('[data-asset-rg]').forEach(btn => btn.addEventListener('click', () => {
