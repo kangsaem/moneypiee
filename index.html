@@ -101,7 +101,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   /* 2026-10-20: 모든 탭 폭 = '미래1' 탭 폭(--tabw, renderTabs에서 잼). 넘치는 이름은 앞글자만(… 없음) */
   .tabs .tab{width:min(var(--tabw,74px), calc((100% - 20px) / 6));min-width:0;box-sizing:border-box;padding-left:6px;padding-right:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:clip;}
   .tabs .tab.acc{padding-top:3px;padding-bottom:3px;font-size:13px;}   /* 계좌 탭(마통 포함) 높이 약 2/3 */
-  .tabs .tab.warn200{color:#F2A65A;}
+  .tabs .tab.warn200{color:#F2A65A;} .tabs .tab.warn200.calm{color:#6E6F75;}   /* 모든 지수 200일선 위 = 회색 */
   .tabs .tab.warn200 svg{vertical-align:-3px;}
   .tabs .tab.mng{color:var(--text-dim);}
   .tabs .tab-fill{flex:1 1 0;align-self:stretch;min-width:20px;cursor:pointer;}   /* 계좌 탭 줄 오른쪽 빈칸 = 계좌 추가 */
@@ -5044,11 +5044,31 @@ function renderTabs(){
     if(w > 0) tabs.style.setProperty('--tabw', w + 'px');
   }catch(e){}
   document.getElementById('tabFill').addEventListener('click', addAccount);
+  warnTabPaint();
   document.getElementById('warn200Tab').addEventListener('click', e => anK200Open(e, AN_200PAGE.kospi));
 
   tabs.querySelectorAll('[data-tab]').forEach(el => {
     el.addEventListener('click', () => switchTab(el.dataset.tab));
   });
+}
+// ⚠ 탭 색(2026-10-20): 코스피·S&P500·나스닥이 모두 200일선 위면 회색, 하나라도 아래(또는 아직 모름)면 주황. 마지막 V1 결과의 지수 값(현재가 반영) 기준
+let warnTabLoaded = false;
+function warnTabAllAbove(){
+  const idx = anState.result && anState.result.snap && anState.result.snap.idx;
+  if(!idx) return null;
+  const ks = ['kospi', 'spx', 'ndx'];
+  if(!ks.every(k => idx[k] && idx[k].chart && idx[k].chart.ma200)) return null;
+  return ks.every(k => { const c = idx[k].chart, m = c.ma200[c.ma200.length - 1], px = c.close[c.close.length - 1]; return anOk(m) && anOk(px) && px >= m; });
+}
+function warnTabPaint(){
+  const t = document.getElementById('warn200Tab'); if(!t) return;
+  if(!anState.result && !warnTabLoaded){
+    warnTabLoaded = true;
+    anDB.get('lastResult').then(res => { if(res && !anState.result){ anState.result = res; anState.html = null; } warnTabPaint(); }).catch(() => {});
+  }
+  const ok = warnTabAllAbove();
+  t.classList.toggle('calm', ok === true);
+  t.title = ok === true ? '200일선 붕괴 사례 · 코스피·S&P500·나스닥 모두 200일선 위' : '200일선 붕괴 사례';
 }
 function switchTab(id){
   state.activeId = id;
@@ -8626,7 +8646,8 @@ function anGhPaint(){
 }
 
 function anFillRoot(){
-  try{ anWatchFill(); }catch(e){}                       // 관심 탭이 열려 있으면 같이 갱신
+  try{ anWatchFill(); }catch(e){}
+  try{ warnTabPaint(); }catch(e){}                       // 관심 탭이 열려 있으면 같이 갱신
   const root = document.getElementById('analysisRoot');
   if(!root) return;
   // 분석 ↔ 히스토리 전환 때 화면이 위로 당겨지지 않게: 탭 줄이 화면에서 같은 높이에 있도록 다시 맞춤
