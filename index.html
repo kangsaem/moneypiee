@@ -5570,7 +5570,7 @@ function renderSnapshotsPanel(){
 // 자산 탭(2026-10-20): 국내/해외 버튼 — 둘 다 켜짐 = 옛 전체, 하나만 = 옛 국내·해외 화면. 둘 다 끌 수는 없음
 function assetRegionBtnsHtml(){
   const on = { domestic: state.activeId !== '__overseas__', overseas: state.activeId !== '__domestic__' };
-  const b = (k, nm) => `<button type="button" data-asset-rg="${k}" style="border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;${on[k] ? 'background:#9A9BA1;color:#1A1A1A;border:1px solid #9A9BA1;' : 'background:transparent;color:var(--text-dim);border:1px solid var(--border);'}">${nm}</button>`;
+  const b = (k, nm) => `<button type="button" data-asset-rg="${k}" style="border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;${on[k] ? 'background:#C9C9C9;color:#1A1A1A;border:1px solid #C9C9C9;' : 'background:transparent;color:var(--text-dim);border:1px solid var(--border);'}">${nm}</button>`;
   return `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:14px;">${b('domestic', '국내')}${b('overseas', '해외')}</div>`;
 }
 function assetMemoBtnHtml(){
