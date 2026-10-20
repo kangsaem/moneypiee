@@ -104,7 +104,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .tabs .tab.warn200{color:#F2A65A;} .tabs .tab.warn200.calm{color:#6E6F75;}   /* 모든 지수 200일선 위 = 회색 */
   .tabs .tab.warn200 svg{vertical-align:-3px;}
   .tabs .tab.mng{color:var(--text-dim);}
-  .tabs .tab-fill{flex:1 1 0;align-self:stretch;min-width:20px;cursor:pointer;}   /* 계좌 탭 줄 오른쪽 빈칸 = 계좌 추가 */
+  .tabs .tab-fill{flex:1 1 0;align-self:stretch;min-width:22px;cursor:pointer;color:#6E6F75;font-size:16px;font-weight:600;line-height:1;display:flex;align-items:center;padding-left:8px;}   /* 계좌 탭 줄 오른쪽 빈칸 = 계좌 추가 */
   .tab.active{background:var(--surface2);border-color:var(--accent-dim);}
   .tab.total{color:var(--accent);}
   .tab-add{
@@ -1031,7 +1031,7 @@ function renderMarketTicker(){
         <div class="mkt-name" style="display:flex;justify-content:space-between;align-items:baseline;"><span>${cfg.name}</span><span style="color:var(--text-dim);">${MARKET_RANGE_LABEL[range]}</span></div>
         <div class="mkt-value">${formatMarketValue(cfg.key, d.price)}</div>
         <div class="mkt-change" style="color:var(--text-dim);font-size:9px;font-weight:500;">개장 전</div>
-        <div style="height:18px;margin-top:4px;border-top:1px dashed var(--border);"></div>
+        <div style="height:27px;margin-top:4px;border-top:1px dashed var(--border);"></div>
       </div>`;
     }
 
@@ -1053,8 +1053,8 @@ function renderMarketTicker(){
     if(range === '1d'){
       const baseline = d.prevClose;
       chart = (d.intradayPoints && d.intradayPoints.length >= 2)
-        ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 80, 18, baseline, useFixedAxis)
-        : sparklineSVG(d.closes || [], 80, 18, baseline);
+        ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 80, 27, baseline, useFixedAxis)
+        : sparklineSVG(d.closes || [], 80, 27, baseline);
     } else {
       periodCloses = (marketRangeChart[cfg.key] && marketRangeChart[cfg.key][range]) || null;
       if(!periodCloses){
@@ -1063,10 +1063,10 @@ function renderMarketTicker(){
           <div class="mkt-name" style="display:flex;justify-content:space-between;align-items:baseline;"><span>${cfg.name}</span><span style="color:var(--text-dim);">${MARKET_RANGE_LABEL[range]}</span></div>
           <div class="mkt-value">${formatMarketValue(cfg.key, d.price)}</div>
           <div class="mkt-change" style="color:var(--text-dim);font-size:9px;">불러오는 중...</div>
-          <div style="height:18px;margin-top:4px;"></div>
+          <div style="height:27px;margin-top:4px;"></div>
         </div>`;
       }
-      chart = sparklineSVG(periodCloses, 80, 18, periodCloses[0]);
+      chart = sparklineSVG(periodCloses, 80, 27, periodCloses[0]);
     }
 
     const change = computePeriodChange(d, range, periodCloses);
@@ -5024,7 +5024,7 @@ function renderTabs(){
     <div class="tab acc ${a.id===state.activeId?'active':''}" data-tab="${a.id}" title="${escapeHTML(a.name)}">${escapeHTML(a.name)}</div>
   `).join('');
   html += `<div class="tab acc total ${state.activeId==='__creditLines__'?'active':''}" data-tab="__creditLines__" style="color:#B85450;">마통</div>`;
-  html += `<div class="tab-fill" id="tabFill" title="계좌 추가"></div>`;   // 마통 오른쪽 빈칸 = 계좌 추가(2026-10-20)
+  html += `<div class="tab-fill" id="tabFill" title="계좌 추가">+</div>`;   // 회색 '+'(2026-10-20), 다음 줄로 밀리면 숨김(tabFillFit)   // 마통 오른쪽 빈칸 = 계좌 추가(2026-10-20)
   html += `<div class="tab-br"></div>`;      // 계좌 탭 줄 / 나머지 탭 줄 나눔(2026-10-13)
   html += `<div class="tab total ${isAsset?'active':''}" data-tab="__total__">자산</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
@@ -5044,6 +5044,7 @@ function renderTabs(){
     if(w > 0) tabs.style.setProperty('--tabw', w + 'px');
   }catch(e){}
   document.getElementById('tabFill').addEventListener('click', addAccount);
+  tabFillFit();
   warnTabPaint();
   document.getElementById('warn200Tab').addEventListener('click', e => anK200Open(e, AN_200PAGE.kospi));
 
@@ -5051,6 +5052,14 @@ function renderTabs(){
     el.addEventListener('click', () => switchTab(el.dataset.tab));
   });
 }
+// 마통 오른쪽 '+': 마통과 같은 줄에 못 들어가면 숨김
+function tabFillFit(){
+  const f = document.getElementById('tabFill'), m = document.querySelector('.tabs [data-tab="__creditLines__"]');
+  if(!f || !m) return;
+  f.style.visibility = ''; f.style.display = '';
+  if(f.getBoundingClientRect().top > m.getBoundingClientRect().top + 4) f.style.display = 'none';
+}
+window.addEventListener('resize', () => { try{ tabFillFit(); }catch(e){} });
 // ⚠ 탭 색(2026-10-20): 코스피·S&P500·나스닥이 모두 200일선 위면 회색, 하나라도 아래(또는 아직 모름)면 주황. 마지막 V1 결과의 지수 값(현재가 반영) 기준
 let warnTabLoaded = false;
 function warnTabAllAbove(){
@@ -5071,6 +5080,7 @@ function warnTabPaint(){
   t.title = ok === true ? '200일선 붕괴 사례 · 코스피·S&P500·나스닥 모두 200일선 위' : '200일선 붕괴 사례';
 }
 function switchTab(id){
+  if(id !== state.activeId && id === '__total__' && !['__domestic__', '__overseas__'].includes(state.activeId)) assetRgOn = { domestic: true, overseas: true };   // 자산 탭에 새로 들어오면 둘 다 켜짐
   state.activeId = id;
   if(state.activeId === '__history__') historyListMode = false;   // 월별 탭에 들어오면 그래프부터
   accountTableSortMode = null;
@@ -5588,8 +5598,16 @@ function renderSnapshotsPanel(){
 }
 
 // 자산 탭(2026-10-20): 국내/해외 버튼 — 둘 다 켜짐 = 옛 전체, 하나만 = 옛 국내·해외 화면. 둘 다 끌 수는 없음
+// 2026-10-20 2차: 둘 다 켜짐으로 시작 · 누르면 그 버튼만 켜고 끔(밀림 없음) · 둘 다 꺼지면 둘 다 켜진 것과 같이 전체 자산
+let assetRgOn = { domestic: true, overseas: true };
+function assetRgSync(){                                  // 탭 이동 등으로 activeId가 바뀌었으면 버튼 상태를 맞춤
+  if(state.activeId === '__domestic__') assetRgOn = { domestic: true, overseas: false };
+  else if(state.activeId === '__overseas__') assetRgOn = { domestic: false, overseas: true };
+  else if(assetRgOn.domestic !== assetRgOn.overseas) assetRgOn = { domestic: true, overseas: true };
+}
 function assetRegionBtnsHtml(){
-  const on = { domestic: state.activeId !== '__overseas__', overseas: state.activeId !== '__domestic__' };
+  assetRgSync();
+  const on = assetRgOn;
   const b = (k, nm) => `<button type="button" data-asset-rg="${k}" style="border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;${on[k] ? 'background:#C9C9C9;color:#1A1A1A;border:1px solid #C9C9C9;' : 'background:transparent;color:var(--text-dim);border:1px solid var(--border);'}">${nm}</button>`;
   return `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:14px;">${b('domestic', '국내')}${b('overseas', '해외')}</div>`;
 }
@@ -5599,11 +5617,11 @@ function assetMemoBtnHtml(){
 }
 function bindAssetRegionBtns(panel){
   panel.querySelectorAll('[data-asset-rg]').forEach(btn => btn.addEventListener('click', () => {
-    const on = { domestic: state.activeId !== '__overseas__', overseas: state.activeId !== '__domestic__' };
-    const k = btn.dataset.assetRg, o = k === 'domestic' ? 'overseas' : 'domestic';
-    if(on[k] && !on[o]){ on[k] = false; on[o] = true; }   // 하나만 켜진 상태에서 그 버튼 = 다른 쪽으로 바꿈(2026-10-20)
-    else on[k] = !on[k];                                   // 둘 다 켜짐 → 누른 쪽 끔 / 꺼진 쪽 → 켬
-    switchTab(on.domestic && on.overseas ? '__total__' : on.domestic ? '__domestic__' : '__overseas__');
+    const k = btn.dataset.assetRg;
+    assetRgOn = { ...assetRgOn, [k]: !assetRgOn[k] };
+    const on = assetRgOn, keep = { ...on };
+    switchTab(on.domestic === on.overseas ? '__total__' : on.domestic ? '__domestic__' : '__overseas__');
+    assetRgOn = keep; render();                            // 둘 다 꺼짐도 유지(switchTab 뒤 상태 복구)
   }));
 }
 
@@ -8887,7 +8905,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-sw-w5 { background:var(--cw5); } .an-sw-w10 { background:var(--cw10); } .an-sw-m5 { background:var(--cm5); } .an-sw-m10 { background:var(--cm10); }
 .an-svgbox { position:relative; }
 .an-ist { font-size:11px; font-weight:500; line-height:1; padding:3px 6px; border-radius:6px; border:1px solid currentColor; margin-left:6px; white-space:nowrap; }
-.an-istf { border:1px solid transparent; color:#1E1F22 !important; font-weight:600; text-decoration:none; cursor:pointer; } .an-istf.cash { background:#F2A65A; } .an-istf.back, .an-istf.inj { background:#F2A65A; }   /* 지수 칩은 모두 주황(2026-10-13) */
+.an-istf { border:1px solid transparent; background-clip:padding-box; color:#1E1F22 !important; font-weight:500; text-decoration:none; cursor:pointer; } .an-istf.cash { background:#F2A65A; } .an-istf.back, .an-istf.inj { background:#F2A65A; }   /* 지수 칩은 모두 주황(2026-10-13) */
 #anK200 { display:none; position:fixed; inset:0; z-index:9000; background:#1E1F22; flex-direction:column; } #anK200.on { display:flex; } #anK200 iframe { flex:1; width:100%; border:0; background:#1E1F22; } #anK200 .k2-bar { flex-shrink:0; padding:10px 16px 4px; padding-top:max(10px, env(safe-area-inset-top)); } #anK200 .k2-back { display:inline-flex; align-items:center; gap:7px; background:none; border:0; padding:4px 0; font-size:18px; color:#E8ECF3; cursor:pointer; font-family:inherit; } #anK200 .k2-back b { font-weight:700; } html.k2-lock, html.k2-lock body { overflow:hidden; }
 .an-w200 { display:inline-flex; align-items:center; justify-content:center; height:20px; gap:3px; margin:0 0 0 6px; font-size:12px; font-weight:600; white-space:nowrap; color:#F5B942; text-decoration:none; flex-shrink:0; vertical-align:middle; } .an-w200 svg { width:17px; height:17px; } .an-w200.ok { color:#4CD07D; } @media (max-width:600px){ .an-w200 .lf { display:none; } }   /* 코스피 200일선 경고(아이콘만, 지수 이름 옆) → 붕괴 사례 */ .an-idx summary .an-in { white-space:nowrap; flex-shrink:0; } .an-barslot { display:inline-flex; align-items:center; }
 .an-ist.up { color:var(--an-up); } .an-ist.dn { color:var(--an-dn); } .an-ist.n { color:#9A9BA1; }
