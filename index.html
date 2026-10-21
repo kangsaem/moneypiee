@@ -7070,7 +7070,7 @@ function anIndexCash(key, b){
 }
 
 // 200일선 근접 표시(2026-10-21 사용자): 지수 종가(현재가 반영)가 200일선 '위' 가까이 있으면 이름 옆 '200일선'
-//  near = 아주 밝은 회색 · close = 주의 표시 + 연두(#D4FF3D). 아래(이탈)는 표시 안 함(기존 ⚠·현금 칩 몫)
+//  near = 아주 밝은 회색 · close = 주의 표시 + 연두(#D4FF3D). 위치 = 주황 ⚠ 자리(상태·현금 칩 뒤), 주황 ⚠(이탈·회복 확인)가 있으면 주황 우선(표시 안 함)
 const AN_NEAR200 = { kospi: { near: 5.6, close: 1.2 }, spx: { near: 2.5, close: 1.1 }, ndx: { near: 5.0, close: 2.0 } };
 function anNear200Chip(k, v){
   const R = AN_NEAR200[k], ch = v && v.chart;
@@ -8227,8 +8227,8 @@ function anRenderResult(res){
     if(v.chart && AN_200PAGE[k]) v.chart.k200 = AN_200PAGE[k];   // 범례 '200일 ›' 링크(저장된 옛 결과에도 바로 적용)
     const px = v.live ? v.live.price : v.close, chg = v.live && anOk(v.live.chg) ? v.live.chg : v.chg;   // 현재가(받았으면), 없으면 마지막 종가
     const ud = chg > 0 ? 'up' : chg < 0 ? 'dn' : '';
-    return `<details class="an-idx" data-an-key="i:${k}"${anState.openKeys.has('i:' + k) ? ' open' : ''}><summary><span class="an-in">${anE(v.name)}</span>${anNear200Chip(k, v)}
-      <b class="${ud}">${px.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(chg, 2)}%</span>${anIndexStateChip(v)}${v.w200 ? `<a class="an-w200${v.w200.ok ? ' ok' : ''}" href="kospi200.html" title="코스피 ${anE(v.w200.lab)} · 과거 붕괴 사례" aria-label="코스피 ${anE(v.w200.lab)} · 과거 붕괴 사례" onclick="event.stopPropagation(); return anK200Open(event)">${v.w200.ok ? '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 8.3l2.1 2.1L11.2 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6.2v3.6M8 11.4v.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'}<span class="lf">${anE(v.w200.lab)}</span></a>` : ''}
+    return `<details class="an-idx" data-an-key="i:${k}"${anState.openKeys.has('i:' + k) ? ' open' : ''}><summary><span class="an-in">${anE(v.name)}</span>
+      <b class="${ud}">${px.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(chg, 2)}%</span>${anIndexStateChip(v)}${v.w200 && !v.w200.ok ? '' : anNear200Chip(k, v)}${v.w200 ? `<a class="an-w200${v.w200.ok ? ' ok' : ''}" href="kospi200.html" title="코스피 ${anE(v.w200.lab)} · 과거 붕괴 사례" aria-label="코스피 ${anE(v.w200.lab)} · 과거 붕괴 사례" onclick="event.stopPropagation(); return anK200Open(event)">${v.w200.ok ? '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 8.3l2.1 2.1L11.2 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 15 14H1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 6.2v3.6M8 11.4v.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'}<span class="lf">${anE(v.w200.lab)}</span></a>` : ''}
       ${anOk(v.from_high) ? `<small>고점 ${anF(v.from_high, 1)}%</small>` : ''}</summary>${anIndexChart(v, true)}</details>`;
   }).join('');
 
