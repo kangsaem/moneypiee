@@ -241,7 +241,7 @@ function statLine(){
 }
 function statFold(){
   if(!STATS || $('stat200')) return;
-  const host = CFG.autoNotes ? $('autoNotes') : document.querySelector('.wrap > .note');
+  const host = $('live');                                    // 2026-10-20: 맨 위 현재 지수 카드(그래프) 바로 아래
   if(!host) return;
   const P = STATS.prev, K = CFG.key;
   const r1 = Object.keys(SN).filter(k => P[k]).map(k => `<tr${k === K ? ' class="me"' : ''}><td>${SN[k]}</td><td>${P[k].n}건</td><td>${tri(P[k].med)}</td><td>${tri(P[k].min)}</td><td>${tri(P[k].max)}</td></tr>`).join('');

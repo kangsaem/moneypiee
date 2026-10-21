@@ -261,3 +261,6 @@ details.acc[open]{box-shadow:inset 0 1px 0 rgba(255,255,255,.38)}
 .lvstat{display:flex;flex-direction:column;gap:2px;margin:6px 0 2px;font-size:12px;line-height:1.5;color:var(--sub)} .lvstat b{color:var(--text);font-weight:600} .lvstat b.up,.lvstat b.up .pc{color:var(--up)} .lvstat b.dn,.lvstat b.dn .pc{color:var(--dn)} .lvstat .sd{color:var(--text-dim)}
 .stat200{margin-top:10px} .stat200 .note{margin:0;border-radius:0 0 8px 8px} .stat200 .sd{color:var(--text-dim);font-size:.92em} .stat200 ul{margin:0;padding-left:18px} .stat200 li{margin-bottom:4px;line-height:1.55}
 .stt{border-collapse:collapse;width:100%;min-width:0;table-layout:auto;font-size:12.5px;margin-bottom:6px} .stt th{width:auto!important;padding:4px 6px;font-size:11.5px} .stt th,.stt td{padding:4px 6px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap} .stt th:first-child,.stt td:first-child{text-align:left} .stt th{color:var(--text-dim);font-weight:500} .stt tr.me td{color:var(--text);font-weight:600}
+/* 통계 제목 바 = 주황(2026-10-21) */
+.stat200>summary{background:#F2A65A;color:#1E1F22;border-radius:8px 8px 0 0} .stat200:not([open])>summary{border-radius:8px}
+.stat200>summary .st{color:#1E1F22} .stat200>summary .meta{color:#4A3A28} .stat200>summary::after{border-color:#1E1F22}
