@@ -249,7 +249,7 @@ function statFold(){
   const cell = (x, hh) => { const r = near.find(v => v.x === x && v.h === hh); return r ? `<b>${pct(r.brk, r.brk + r.hold)}%</b> <span class="sd">${r.brk}/${r.brk + r.hold}일</span>` : '–'; };
   const r2 = [1, 2, 3].map(x => `<tr><td>${x}% 이내</td><td>${cell(x, 1)}</td><td>${cell(x, 5)}</td></tr>`).join('');
   const fl = (STATS.follow || []).filter(f => f.a === K || f.b === K).map(f => `<li><b>${SN[f.a]} → ${SN[f.b]}</b> ${f.n}건 · ${SN[f.b]} 이미 국면 중 ${f.already} <span class="sd">(20거래일 이내 시작 ${f.al20} · 그 전 ${f.alOld})</span> · 이후 5거래일 안 ${f.d5} · 20일 안 ${f.d20} · 60일 안 ${f.d60} · 60일 안 없음 ${f.none}${f.med != null ? ` <span class="sd">(따라간 경우 중간 ${f.med}거래일)</span>` : ''}</li>`).join('');
-  host.insertAdjacentHTML('afterend', `<details class="sec acc stat200" id="stat200"><summary><span class="st">통계 · 200일선 위치와 붕괴</span><span class="meta">1996년 이후 · 계산일 ${ymd(STATS.asof)}</span></summary>
+  host.insertAdjacentHTML('afterend', `<details class="sec acc stat200" id="stat200"><summary><span class="st">200일선 위치와 붕괴</span><span class="meta">1996년 이후 · 계산일 ${ymd(STATS.asof)}</span></summary>
   <div class="note">
     <b>① 이탈 전날 종가의 200일선 대비 위치</b>
     <table class="stt"><tr><th>지수</th><th>사례</th><th>중간</th><th>최소</th><th>최대</th></tr>${r1}</table>
