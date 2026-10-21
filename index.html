@@ -826,7 +826,9 @@ async function fetchNaverIndex(naverCode){
   if(!row) return null;
   const price = parseFloat(String(row.closePrice).replace(/,/g, ''));
   const changePct = parseFloat(String(row.fluctuationsRatio).replace(/,/g, ''));
-  return { price, changePct };
+  const diff = parseFloat(String(row.compareToPreviousClosePrice).replace(/,/g, ''));
+  const prevClose = isFinite(diff) && isFinite(price) ? price - diff : (isFinite(changePct) ? price / (1 + changePct / 100) : null);   // 전일 종가(2026-10-21)
+  return { price, changePct, prevClose };
 }
 // 국내 개별 종목 시세를 네이버에서 가져온다. h.symbol(네이버 6자리 코드)로 조회.
 // 네이버가 야후보다 국내종목 커버리지/정확도가 좋아서, 국내종목은 이 함수를 먼저 시도하고
@@ -1113,6 +1115,7 @@ async function setMarketRange(key, targetRange){
           if(naver && naver.price != null){
             data.price = naver.price;
             data.naverChangePct = naver.changePct;
+            if(anOk(naver.prevClose)) data.prevClose = naver.prevClose;   // 1일 기준선 = 네이버 전일 종가
           }
         }
         marketData[key] = data;
@@ -1177,13 +1180,16 @@ async function loadMarketData(forceRefresh){
     }
     // 코스피/코스닥은 네이버 실시간 시세로 가격·등락률을 덮어쓴다 (야후는 20분 지연).
     if(value){
+      // 1일 그래프 기준선도 네이버 전일 종가로(2026-10-21: 야후 ^KQ11 previousClose가 하루 늦게 남아 있어 기준선이 위로 가고 파랗게 그려짐)
       if(cfg.key === 'kospi' && naverKospi && naverKospi.price != null){
         value.price = naverKospi.price;
         value.naverChangePct = naverKospi.changePct;
+        if(anOk(naverKospi.prevClose)) value.prevClose = naverKospi.prevClose;
       }
       if(cfg.key === 'kosdaq' && naverKosdaq && naverKosdaq.price != null){
         value.price = naverKosdaq.price;
         value.naverChangePct = naverKosdaq.changePct;
+        if(anOk(naverKosdaq.prevClose)) value.prevClose = naverKosdaq.prevClose;
       }
     }
     dataMap[cfg.key] = value;
