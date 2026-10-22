@@ -9,24 +9,22 @@ const $ = id => document.getElementById(id);
 
 // ---------- 공용 ----------
 const PROXY_PRIMARY = 'https://moneypie-proxy.y0n2.workers.dev/?url=';
-const PROXY_SECONDARY = 'https://moneypie-proxy2-1091905448059.asia-northeast3.run.app/?url=';
 function fetchWithTimeout(url, opts, ms){
   const c = new AbortController(); const t = setTimeout(() => c.abort(), ms || 4000);
   return fetch(url, { ...opts, signal: c.signal }).finally(() => clearTimeout(t));
 }
+// 2026-10-22: 예비 Cloud Run 프록시 뺌(index.html과 같음). 429·네트워크 오류면 한 번 더.
 async function fetchViaProxy(targetUrl, timeoutMs, retries){
   timeoutMs = timeoutMs || 7000; retries = retries != null ? retries : 1;
-  let res = null;
-  try{
-    for(let a = 0; a <= retries; a++){
-      res = await fetchWithTimeout(PROXY_PRIMARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs);
-      if(res.status !== 429) break;
-      if(a < retries) await new Promise(r => setTimeout(r, 1500));
-    }
-  }catch(e){ res = null; }
-  if(res && res.ok) return res;
-  try{ return await fetchWithTimeout(PROXY_SECONDARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs); }
-  catch(e){ if(res) return res; throw e; }
+  let res = null, err = null;
+  for(let a = 0; a <= retries; a++){
+    try{ res = await fetchWithTimeout(PROXY_PRIMARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs); err = null; }
+    catch(e){ res = null; err = e; }
+    if(res && res.status !== 429) break;
+    if(a < retries) await new Promise(r => setTimeout(r, 1500));
+  }
+  if(!res) throw err || new Error('프록시 응답 없음');
+  return res;
 }
 const num = v => { const x = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isFinite(x) ? x : null; };
 const pad = n => String(n).padStart(2, '0');

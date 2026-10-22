@@ -777,36 +777,22 @@ function fetchWithTimeout(url, opts, ms){
 }
 
 // 외부 API(야후, 네이버 등)를 프록시로 호출하는 공용 헬퍼.
-// 1차: Cloudflare Worker. 여기서 429(요청 과다)를 받으면 잠깐 쉬었다가 한 번 더 재시도.
-// 그래도 실패하면(429 계속 or 네트워크 에러) 2차: Google Cloud Run 프록시(다른 IP 대역)로 우회.
+// Cloudflare Worker(허용 사이트·머니파이 도메인만 중계). 429(요청 과다)나 네트워크 오류면 잠깐 쉬었다가 한 번 더 재시도.
+// 2026-10-22: 예비 Google Cloud Run 프록시는 뺌(보안 점검 — 사용 흔적 거의 없음, 체험판 12-02 만료).
 const PROXY_PRIMARY = 'https://moneypie-proxy.y0n2.workers.dev/?url=';
-const PROXY_SECONDARY = 'https://moneypie-proxy2-1091905448059.asia-northeast3.run.app/?url=';
 
 async function fetchViaProxy(targetUrl, timeoutMs, retries){
   timeoutMs = timeoutMs || 7000;
   retries = retries != null ? retries : 1;
-
-  // 1차: Cloudflare Worker (429면 재시도)
-  let res = null;
-  try{
-    for(let attempt = 0; attempt <= retries; attempt++){
-      res = await fetchWithTimeout(PROXY_PRIMARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs);
-      if(res.status !== 429) break;
-      if(attempt < retries) await new Promise(r => setTimeout(r, 1500));
-    }
-  }catch(e){ res = null; }
-
-  if(res && res.ok) return res;
-
-  // 2차: Google Cloud Run 프록시로 우회 (Cloudflare가 완전히 막혔거나 네트워크 에러인 경우)
-  try{
-    const res2 = await fetchWithTimeout(PROXY_SECONDARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs);
-    if(res2.ok) return res2;
-    return res2; // 2차도 실패했지만, 그 응답을 그대로 반환해서 호출부가 status를 보고 처리하게 함
-  }catch(e){
-    if(res) return res; // 2차가 네트워크 에러로 완전히 실패하면, 그나마 있는 1차 결과라도 반환
-    throw e;
+  let res = null, err = null;
+  for(let attempt = 0; attempt <= retries; attempt++){
+    try{ res = await fetchWithTimeout(PROXY_PRIMARY + encodeURIComponent(targetUrl), { cache: 'no-store' }, timeoutMs); err = null; }
+    catch(e){ res = null; err = e; }
+    if(res && res.status !== 429) break;
+    if(attempt < retries) await new Promise(r => setTimeout(r, 1500));
   }
+  if(!res) throw err || new Error('프록시 응답 없음');
+  return res; // 실패 응답도 그대로 반환 → 호출부가 status를 보고 처리
 }
 // 이전 이름으로 부르던 곳들과의 호환을 위한 별칭
 const fetchYahooProxied = fetchViaProxy;

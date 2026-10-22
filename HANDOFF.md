@@ -1139,3 +1139,10 @@
 - 2026-10-21 12:30 상단 코스닥 1일 그래프 기준선 오류 수정: 야후 ^KQ11 meta.previousClose가 이틀 전 종가(808.89)로 남아 있었음(네이버 전일 종가 781.97, moneypier kq_probe.py 확인 — ^KS11은 정상). → 코스피·코스닥 1일 기준선 = 네이버 전일 종가(fetchNaverIndex prevClose = closePrice − compareToPreviousClosePrice). 등락률은 원래 네이버라 맞았음.
 - 12:55 붕괴 사례 '통계' 접힘 위치 = 맨 위 현재 지수 카드(그래프) 바로 아래(구간 목록 위), 제목 바 주황(#F2A65A·어두운 글자). 세 페이지 v=20261021a.
 - 13:05 붕괴 사례 통계 제목 '200일선 위치와 붕괴'('통계' 뺌), 제목 바 밝은 회색 #C9C9C9(맨 위 현재 지수 제목 바와 같음). v=20261021b.
+
+## 2026-10-22 보안 점검 — 프록시 허용 목록(사용자 ㄱㄱ)
+- 점검 결과(상의 완료): ① 프록시 2개가 누구에게나 아무 주소나 중계(열린 프록시) ② GitHub 토큰(mp-gh-token)·계좌 데이터가 광고 스크립트(카카오 AdFit·구글 AdSense)와 같은 페이지 ③ 같은 도메인에 옛 index 사본·mayhem 페이지(unpkg lucide@latest) ④ 공개 저장소(종목·기록 노출) ⑤ SRI 없음·xlsx 0.18.5. 이번엔 ①만 처리, ②~⑤ 대기.
+- Cloudflare 프록시 새 코드 = `cloudflare/proxy-worker.js`(대시보드 moneypie-proxy에 붙여 넣어 배포 — Cloudflare 연결 도구엔 배포 기능 없음). 허용: query1.finance.yahoo.com /v8/finance/chart/ · polling.finance.naver.com /api/realtime/domestic/ · api.finance.naver.com /siseJson.naver · m.stock.naver.com /front-api/search/autoComplete, 출처 www.moneypie.kr·moneypie.kr, GET만, 리다이렉트도 목록 안만. 옛 앱(kangsaem.github.io/moneypie)은 안 씀(사용자) → 허용 안 함.
+  새 대상 사이트·경로를 쓰는 기능을 추가하면 ALLOW에도 넣어야 함(안 넣으면 403).
+- 시험: 함수 단위 34건 + 화면 흐름(첫 화면·시세 갱신·검색·V1 분석·붕괴 사례 3페이지·lab-bt 시세 함수) 프록시 요청 173건 중 막힘 0. 시세는 가짜 데이터(시험 환경에서 야후·네이버 접속 불가).
+- Cloud Run 예비 프록시(moneypie-proxy2…run.app, 구글 클라우드 프로젝트 moneypie-proxy, 2026-09-05 추가): 크레딧 사용 ₩2 = 거의 안 쓰임, 무료 체험판(업그레이드 안 함) 2026-12-02 만료 → index.html·crash200.js에서 뺌(429·네트워크 오류면 Cloudflare 한 번 더 재시도), 서비스 삭제는 안 함(사용자: 무방). 업그레이드 버튼 누르지 말 것. 세 페이지 crash200.js v=20261022a.
