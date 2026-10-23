@@ -3,184 +3,151 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#1E293B">
 <title>강사 근무 기록</title>
 <style>
 :root{
-  --sky:#38bdf8; --emerald:#10b981; --grad:linear-gradient(120deg,#38bdf8 0%,#10b981 100%);
-  --deep:#0f4c5c; --accent:#0891b2; --text:#1e293b; --sub:#64748b; --line:#e2e8f0;
-  --ok:#10b981; --warn:#f59e0b; --r:10px; --spring:cubic-bezier(.34,1.56,.64,1);
-  color-scheme: light;
+  --bg:#1E293B; --card:#F1F4F8; --box:#AEB8C5; --accent:#1BAAB0; --safe:#F59E0B; --pink:#EC4899;
+  --text:#1E293B; --sub:#64748B; --line:#D5DCE4; --ok:#10B981; --warn:#F59E0B; --r:10px;
+  color-scheme: dark;
 }
 *{box-sizing:border-box}
-html{background:#e3f5fc}
+html,body{background:var(--bg)}
 body{margin:0;min-height:100vh;color:var(--text);
-  background:linear-gradient(170deg,#e0f4fd 0%,#dff6f1 55%,#d9f3e8 100%) fixed;
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
   font-size:15px;-webkit-tap-highlight-color:transparent}
-.top{background:#fff;border-bottom:1px solid var(--line);position:relative}
-.top::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--grad)}
-.top h1{max-width:520px;margin:0 auto;padding:14px 16px 12px;font-size:19px;color:var(--deep);letter-spacing:-.3px}
-.wrap{max-width:520px;margin:0 auto;padding:12px 16px 160px}
-.banner{background:#fff8e6;border:1px solid #fbdc9b;color:#8a5a00;border-radius:var(--r);padding:8px 10px;font-size:13px;margin-bottom:10px}
-.card{background:#fff;border:1px solid #d7edf2;border-radius:var(--r);padding:12px;margin-bottom:10px;box-shadow:0 1px 2px rgba(15,76,92,.05)}
+.wrap{max-width:520px;margin:0 auto;padding:12px 16px 110px}
+.banner{background:#3b2f12;border:1px solid #7c5a10;color:#fcd68a;border-radius:var(--r);padding:8px 10px;font-size:13px;margin-bottom:10px}
+.card{background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:10px}
 .row{display:flex;gap:8px;align-items:center}
 .sub{color:var(--sub);font-size:13px}
 input{font:inherit;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:#fff;width:100%;color:var(--text)}
-button{font:inherit;border:1px solid var(--line);background:#fff;border-radius:var(--r);padding:10px 12px;cursor:pointer;color:var(--text);white-space:nowrap}
-button:disabled{opacity:.45}
-button.primary{background:var(--grad);border-color:transparent;color:#fff;font-weight:700}
+button{font:inherit;border:1px solid var(--line);background:var(--card);border-radius:var(--r);padding:10px 12px;cursor:pointer;color:var(--text);white-space:nowrap}
+button:disabled{opacity:.4;cursor:default}
+button.acc{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+button.pink{background:var(--pink);border-color:var(--pink);color:#fff;font-weight:700}
 button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:13px;text-decoration:underline}
 
 /* 이름 */
-.me{font-size:17px;font-weight:700;color:var(--deep)}
+.me{font-size:17px;font-weight:700}
 .namelist{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.namelist button{padding:8px 14px}
-
-/* 날짜 */
-.dbarw{overflow:hidden}
-.dbarw.gone{opacity:0}
-.datebar{display:flex;align-items:center;justify-content:space-between;gap:8px;transition:transform .38s var(--spring)}
-.dbarw.gone .datebar{transform:translateY(-70%)}
-.datebar .nav{width:44px;flex:none}
-.datelabel{position:relative;flex:1;text-align:center;font-weight:700;font-size:17px;padding:8px 0;color:var(--deep)}
-.datelabel input{position:absolute;inset:0;opacity:0;width:100%;height:100%;padding:0;border:none}
-.dview{overflow:hidden;margin-top:10px}
-.strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.strip button{padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px}
-.strip button b{font-size:15px}
-.sel{border-color:transparent!important;background:var(--grad)!important;color:#fff!important}
-.sel .sun,.sel b{color:#fff!important}
-.dot{width:6px;height:6px;border-radius:2px;background:transparent}
-.dot.sent{background:var(--ok)} .dot.unsent{background:var(--warn)}
-.sel .dot.sent,.sel .dot.unsent{background:#fff}
-.sun{color:#e11d48}
-.calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.calhead b{font-size:15px;color:var(--deep)}
-.calhead button{padding:6px 12px}
-.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
-.calgrid .wd{font-size:12px;color:var(--sub);padding:4px 0}
-.calgrid button{padding:6px 0 4px;display:flex;flex-direction:column;align-items:center;gap:2px;border-color:transparent;font-size:14px}
-.calgrid button.today{border-color:#bae6fd}
-.caltoggle{display:block;margin:6px auto 0;border:none;background:none;color:var(--accent);font-size:13px;font-weight:700;padding:4px 10px}
+.namelist button{background:#fff;padding:8px 14px}
 
 /* 업무 버튼 */
-.palette{position:sticky;top:0;z-index:5;background:rgba(232,247,250,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:8px 0;margin:0 -16px 10px;padding-left:16px;padding-right:16px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border-radius:var(--r);padding:8px 14px;font-weight:700;border:1.5px solid var(--c);color:var(--c);background:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{padding:8px 14px;font-weight:700;border:1.5px solid var(--c);color:var(--c);background:var(--card)}
 .chip.on{background:var(--c);color:#fff}
-.chip.add{border-style:dashed;border-color:var(--sub);color:var(--sub);font-weight:500}
+.chip.add{border:1.5px dashed #94A3B8;color:#CBD5E1;background:transparent;font-weight:500}
 
-/* 시간표 */
-.hwin{height:346px;overflow:hidden;position:relative;touch-action:pan-x}   /* 7칸 × 50px - 4px */
-.hours{display:flex;flex-direction:column;gap:4px;will-change:transform}
-.hour{display:flex;justify-content:space-between;align-items:center;padding:0 12px;height:46px;flex:none;text-align:left;width:100%}
-.hour .t{font-variant-numeric:tabular-nums;color:var(--sub)}
-.hour.filled{border-color:var(--c);background:var(--bg-c)}
-.hour.filled .t{color:var(--text)}
-.hour .task{font-weight:700;color:var(--c)}
-.hour .empty{color:#cbd5e1}
-.hnav{display:flex;align-items:center;gap:8px;margin:6px 0}
-.hnav button{flex:none;width:120px;padding:7px 0;font-size:14px;color:var(--accent);font-weight:600}
-.hnav.first{margin-top:0}
-.more{font-size:12px;color:var(--warn);font-weight:700}
-.locked{position:relative}
-.locked::after{content:"이름을 먼저 선택하세요";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,.88);font-weight:700;color:var(--sub);border-radius:var(--r)}
+/* 날짜·시간 상자 */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:10px}
+.box{background:var(--box);border-radius:var(--r);padding:6px;height:clamp(320px,calc(100vh - 330px),540px);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;position:relative}
+.box::-webkit-scrollbar{display:none}
+.list{display:flex;flex-direction:column;gap:4px}
+.dc,.hc{display:flex;justify-content:space-between;align-items:center;width:100%;height:46px;flex:none;padding:0 10px;
+  background:var(--card);border:1.5px solid transparent;text-align:left;font-variant-numeric:tabular-nums}
+.dc.blank{opacity:.5}
+.dc .d{font-weight:600}
+.dc .d small{font-weight:500;color:var(--sub);margin-left:3px}
+.dc .r{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--sub)}
+.dc.sun .d{color:#E11D48}
+.dc.today .d::after{content:"오늘";font-size:11px;font-weight:700;color:var(--accent);margin-left:5px}
+.dc.sel{background:var(--accent);opacity:1}
+.dc.sel .d,.dc.sel .d small,.dc.sel .r,.dc.sel.today .d::after{color:#fff}
+.dot{width:7px;height:7px;border-radius:2px;background:transparent;display:inline-block}
+.dot.sent{background:var(--ok)} .dot.unsent{background:var(--warn)}
+.dc.sel .dot.sent,.dc.sel .dot.unsent{outline:1.5px solid #fff}
+.hc .t{color:var(--sub);font-size:14px}
+.hc .k{font-weight:700;color:#fff}
+.hc.filled{background:var(--c);border-color:var(--c)}
+.hc.filled .t{color:#fff}
+.hc .e{color:#B8C2CE}
+.box.locked::after{content:"이름을 먼저 선택하세요";position:sticky;bottom:40%;display:block;text-align:center;font-weight:700;color:var(--text);
+  background:rgba(241,244,248,.92);padding:10px;border-radius:var(--r)}
 
 /* 표 */
-.ctitle{font-weight:700;color:var(--deep);margin:0 2px 8px;display:flex;justify-content:space-between;align-items:baseline}
+.ctitle{font-weight:700;margin:0 2px 8px;display:flex;justify-content:space-between;align-items:baseline}
 .ctitle span{font-weight:500;font-size:13px;color:var(--sub)}
 .tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .tbl th{font-size:12px;color:var(--sub);font-weight:500;text-align:right;padding:4px 6px}
 .tbl td{text-align:right;padding:8px 6px;border-top:1px solid var(--line)}
 .tbl td:first-child,.tbl th:first-child{text-align:left}
 .tbl td:first-child{font-weight:600}
-.tbl .tot td{font-weight:800;border-top:1.5px solid var(--deep);color:var(--deep)}
-.tbl .subt td{font-weight:700;background:#f0fbfd;color:var(--accent)}
-.tbl tr[data-d]{cursor:pointer}
-.tbl tr.cur td{background:#ecfeff}
-.tbl .zero{color:#cbd5e1}
+.tbl .tot td{font-weight:800;border-top:1.5px solid var(--text)}
+.zero{color:#B8C2CE}
 .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
-.detail{overflow:hidden}
-.empty-note{color:var(--sub);text-align:center;padding:14px 0;font-size:14px}
 
 /* 전송 바 */
-.sendbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:10;box-shadow:0 -2px 10px rgba(15,76,92,.06)}
-.sendbar .in{max-width:520px;margin:0 auto}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;flex:1}
-.seg button{padding:9px 0}
-.seg button.on{background:var(--grad);border-color:transparent;color:#fff;font-weight:700}
-.sendinfo{font-size:12px;color:var(--sub);margin:6px 2px 0}
+.sendbar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid #334155;padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:10}
+.sendbar .in{max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.seg{display:flex;gap:6px}
+.seg button{width:64px;padding:9px 0}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+#send{width:96px}
+.sendinfo{max-width:520px;margin:6px auto 0;font-size:12px;color:#94A3B8}
 
-/* 모달, 토스트 */
-.modal{position:fixed;inset:0;background:rgba(15,40,50,.35);display:none;align-items:flex-end;justify-content:center;z-index:20}
+/* 팝업 */
+.modal{position:fixed;inset:0;background:rgba(10,16,28,.6);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
 .modal.show{display:flex}
-.modal .box{background:#fff;width:100%;max-width:520px;border-radius:var(--r) var(--r) 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
-.modal h3{margin:0 0 10px;font-size:16px;color:var(--deep)}
-.toast{position:fixed;left:50%;bottom:130px;transform:translateX(-50%);background:var(--deep);color:#fff;padding:10px 14px;border-radius:var(--r);font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;max-width:90%;text-align:center}
+.modal .box2{background:var(--card);width:100%;max-width:480px;border-radius:var(--r);overflow:hidden;max-height:86vh;display:flex;flex-direction:column}
+.mhead{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.mhead b{font-size:16px}
+.mhead span{font-size:13px;color:var(--sub);margin-left:6px;font-weight:500}
+.mclose{border:none;background:none;font-size:22px;line-height:1;padding:4px 8px;color:var(--sub)}
+.mbody{padding:12px 14px 14px;overflow-y:auto}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;padding:0 14px 14px}
+
+/* 상세: 시간표, 주간, 달력 */
+.tl{display:grid;grid-template-columns:repeat(17,1fr);gap:1px;height:14px;margin-top:4px}
+.tl i{background:#DCE2E9;border-radius:2px}
+.wk{display:flex;flex-direction:column;gap:6px}
+.wk button{display:block;width:100%;text-align:left;background:#fff;padding:8px 10px}
+.wk .top{display:flex;justify-content:space-between;font-size:14px}
+.wk .top b{font-variant-numeric:tabular-nums}
+.wk button.blank{opacity:.5}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.cal .wd{font-size:12px;color:var(--sub);padding:2px 0}
+.cal button{padding:6px 0;background:#fff;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:14px;border-color:transparent}
+.cal button small{font-size:11px;color:var(--accent);font-weight:700;min-height:14px}
+.cal button.blank{opacity:.5}
+.cal button.sel{border-color:var(--accent)}
+.hrs{display:flex;flex-direction:column;gap:3px}
+.hrs div{display:flex;justify-content:space-between;padding:7px 10px;border-radius:8px;background:#fff;font-size:14px}
+.hrs div.f{background:var(--c);color:#fff;font-weight:700}
+.msum{margin-top:10px;font-size:13px;color:var(--sub);line-height:1.6}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#0F172A;color:#fff;border:1px solid #334155;padding:10px 14px;border-radius:var(--r);font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;max-width:90%;text-align:center}
 .toast.show{opacity:1}
-@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
 </style>
 </head>
 <body>
-<div class="top"><h1>강사 근무 기록</h1></div>
 <div class="wrap">
   <div id="demo" class="banner" hidden>미리보기 모드입니다. 구글 시트가 연결되지 않아 이 휴대폰에만 저장됩니다.</div>
-
   <div class="card" id="who"></div>
-
-  <div class="card">
-    <div class="dbarw" id="dbarw">
-      <div class="datebar">
-        <button class="nav" id="prev" aria-label="이전 날">◀</button>
-        <label class="datelabel"><span id="dateText"></span><input type="date" id="datePick"></label>
-        <button class="nav" id="next" aria-label="다음 날">▶</button>
-      </div>
-    </div>
-    <div class="dview" id="dview"></div>
-    <button class="caltoggle" id="calToggle"></button>
+  <div class="chips" id="chips"></div>
+  <div class="cols">
+    <div class="box" id="dateBox"><div class="list" id="dates"></div></div>
+    <div class="box" id="hourBox"><div class="list" id="hours"></div></div>
   </div>
-
-  <div class="palette" id="palette">
-    <div class="sub" style="margin:0 2px 6px">업무를 고른 뒤 시간을 누르세요. 같은 업무를 다시 누르면 지워집니다.</div>
-    <div class="chips" id="chips"></div>
-  </div>
-
-  <div class="card" id="hourCard">
-    <div class="hnav first"><button id="hUp">▲ 이전 시간</button><span class="more" id="moreUp"></span></div>
-    <div class="hwin" id="hwin"><div class="hours" id="hours"></div></div>
-    <div class="hnav"><button id="hDown">▼ 다음 시간</button><span class="more" id="moreDown"></span></div>
-    <div style="text-align:right;margin-top:2px"><button class="link" id="clearDay">이 날 전체 지우기</button></div>
-  </div>
-
   <div class="card">
     <div class="ctitle">합계<span>단위: 시간</span></div>
     <div id="sum"></div>
   </div>
-
-  <div class="card" id="detailCard">
-    <div class="ctitle" id="detailTitle"></div>
-    <div class="detail" id="detail"></div>
-  </div>
 </div>
 
-<div class="sendbar"><div class="in">
-  <div class="row">
-    <div class="seg" id="seg">
-      <button data-r="day">하루</button><button data-r="week">주간</button><button data-r="month">월간</button>
-    </div>
-    <button class="primary" id="send">전송</button>
+<div class="sendbar">
+  <div class="in">
+    <div class="seg" id="seg"><button data-r="day">하루</button><button data-r="week">주간</button><button data-r="month">월간</button></div>
+    <button class="pink" id="send">전송</button>
   </div>
   <div class="sendinfo" id="sendInfo"></div>
-</div></div>
+</div>
 
-<div class="modal" id="modal"><div class="box">
-  <h3 id="mTitle"></h3>
-  <input id="mInput" maxlength="20" autocomplete="off">
-  <div class="row" style="margin-top:10px;justify-content:flex-end">
-    <button id="mCancel">취소</button><button class="primary" id="mOk">확인</button>
-  </div>
+<!-- 공용 팝업 -->
+<div class="modal" id="modal"><div class="box2">
+  <div class="mhead"><div><b id="mTitle"></b><span id="mSub"></span></div><button class="mclose" id="mClose" aria-label="닫기">×</button></div>
+  <div class="mbody" id="mBody"></div>
+  <div class="mfoot" id="mFoot"></div>
 </div></div>
 <div class="toast" id="toast"></div>
 
@@ -191,11 +158,8 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwcJtdVOKsU-J8i84wsH
 const DEMO = !SCRIPT_URL;
 const HOURS = Array.from({length:17}, (_, i) => 6 + i);          // 06:00 ~ 23:00
 const DAYS = ['일','월','화','수','목','금','토'];
-const COLORS = ['#0ea5e9','#f59e0b','#10b981','#8b5cf6','#ec4899','#14b8a6','#6366f1','#64748b'];
+const COLORS = ['#1BAAB0','#F59E0B','#8B5CF6','#6366F1','#10B981','#0EA5E9','#D946EF','#64748B'];
 const LS = 'kangsa_work_v1';
-const REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-const SPRING = 'cubic-bezier(.34,1.56,.64,1)';     // 끝에서 살짝 튕김
-const DUR = 380;                                    // 펼침·접힘 시간(ms)
 
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2, '0');
@@ -207,17 +171,25 @@ function weekStart(d){ const x = new Date(d); x.setDate(x.getDate() - (x.getDay(
 function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-function defaults(){ return {name:'', drafts:{}, sent:{}, names:[], tasks:['강습','안전'], range:'week'}; }
+function defaults(){ return {name:'', drafts:{}, sent:{}, names:[], tasks:['강습','안전']}; }
 let S = (() => { try { const v = JSON.parse(localStorage.getItem(LS)); if (v) return Object.assign(defaults(), v); } catch(e){} return defaults(); })();
-function save(){ try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e){} }
+function save(){ try { const {range, ...rest} = S; localStorage.setItem(LS, JSON.stringify(rest)); } catch(e){} }
+S.range = null;        // 하루/주간/월간: 열 때마다 선택 없음
 
-let cur = new Date(); cur.setHours(0,0,0,0);
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+let cur = new Date(TODAY);
 let brush = S.tasks[0] || null;
-let calOpen = false, calMonth = new Date(cur.getFullYear(), cur.getMonth(), 1);
+// 날짜 목록: 3개월 전 1일 ~ 다음 달 말일
+const DATE_LIST = (() => {
+  const out = [], d = new Date(TODAY.getFullYear(), TODAY.getMonth() - 3, 1), end = new Date(TODAY.getFullYear(), TODAY.getMonth() + 2, 0);
+  while (d <= end) { out.push(ymd(d)); d.setDate(d.getDate() + 1); }
+  return out;
+})();
 
 const color = t => COLORS[Math.max(0, S.tasks.indexOf(t)) % COLORS.length];
 const myDrafts = () => S.drafts[S.name] || {};
 const dayData = date => myDrafts()[date];
+const filledCount = date => Object.keys(dayData(date) || {}).length;
 const canon = day => JSON.stringify(Object.keys(day || {}).sort().map(k => [k, day[k]]));
 
 function status(date){
@@ -240,23 +212,47 @@ function rangeText(r){
   if (r === 'week') { const s = weekStart(cur); return `${md(s)} – ${md(addDays(s, 6))}`; }
   return `${cur.getFullYear()}년 ${cur.getMonth()+1}월`;
 }
+const RNAME = {day:'하루', week:'주간', month:'월간'};
 function sum(dates){
   const by = {}; let total = 0;
   dates.forEach(dt => Object.values(dayData(dt) || {}).forEach(t => { by[t] = (by[t]||0) + 1; total++; }));
   return {total, by};
 }
-// 표에 보일 업무: 기본 2개 + 실제 쓰인 업무
 function usedTasks(sums){
   const u = S.tasks.filter((t, i) => i < 2 || sums.some(s => s.by[t]));
   sums.forEach(s => Object.keys(s.by).forEach(t => { if (!u.includes(t)) u.push(t); }));
   return u;
 }
 const num = n => n ? n : `<span class="zero">0</span>`;
-const sw = t => `<span class="sw" style="background:${color(t)}"></span>${esc(t)}`;
+const sumLine = s => Object.keys(s.by).sort((a,b) => S.tasks.indexOf(a) - S.tasks.indexOf(b)).map(t => `${esc(t)} ${s.by[t]}`).join(' · ');
 
 // ── 그리기 ──
-function render(){
-  // 이름
+function dateCard(k){
+  const d = parse(k), n = filledCount(k), c = ['dc'];
+  if (!n) c.push('blank');
+  if (k === ymd(cur)) c.push('sel');
+  if (k === ymd(TODAY)) c.push('today');
+  if (d.getDay() === 0) c.push('sun');
+  const st = S.name ? status(k) : 'none';
+  return `<button class="${c.join(' ')}" data-d="${k}"><span class="d">${d.getMonth()+1}/${d.getDate()}<small>${DAYS[d.getDay()]}</small></span><span class="r">${n ? n + 'h' : ''}<span class="dot ${st}"></span></span></button>`;
+}
+function renderDates(){ $('dates').innerHTML = DATE_LIST.map(dateCard).join(''); }
+function refreshDate(k){
+  const el = $('dates').querySelector(`[data-d="${k}"]`);
+  if (el) el.outerHTML = dateCard(k);
+}
+function renderHours(){
+  const day = dayData(ymd(cur)) || {};
+  $('hours').innerHTML = HOURS.map(h => {
+    const k = hourLabel(h), t = day[k];
+    return t
+      ? `<button class="hc filled" style="--c:${color(t)}" data-h="${k}"><span class="t">${pad(h)}–${pad(h+1)}</span><span class="k">${esc(t)}</span></button>`
+      : `<button class="hc" data-h="${k}"><span class="t">${pad(h)}–${pad(h+1)}</span><span class="e">—</span></button>`;
+  }).join('');
+  $('hourBox').classList.toggle('locked', !S.name);
+  $('dateBox').classList.toggle('locked', false);
+}
+function renderWho(){
   if (S.name) {
     $('who').innerHTML = `<div class="row" style="justify-content:space-between"><div class="me">${esc(S.name)} 님</div><button class="link" id="unlink">이름 변경</button></div>`;
   } else {
@@ -264,200 +260,130 @@ function render(){
     $('who').innerHTML = `<div class="ctitle" style="margin-bottom:2px">이 휴대폰에서 사용할 이름을 고르세요</div>
       <div class="sub">한 번 고르면 이 휴대폰은 그 이름으로만 기록합니다.</div>
       <div class="namelist">${names.map(n => `<button data-n="${esc(n)}">${esc(n)}</button>`).join('') || '<span class="sub">등록된 이름이 없습니다.</span>'}</div>
-      <button class="primary" id="btnReg" style="width:100%">+ 새 이름 등록</button>`;
+      <button class="acc" id="btnReg" style="width:100%">+ 새 이름 등록</button>`;
   }
-
-  // 날짜
-  const today = ymd(new Date());
-  $('dateText').textContent = `${cur.getMonth()+1}월 ${cur.getDate()}일 (${DAYS[cur.getDay()]})` + (ymd(cur) === today ? ' · 오늘' : '');
-  $('datePick').value = ymd(cur);
-  $('dview').innerHTML = dviewHTML();
-  $('calToggle').textContent = calOpen ? '주간으로 접기 ▴' : '달력 보기 ▾';
-
-  // 업무 버튼
+}
+function renderChips(){
   if (!S.tasks.includes(brush)) brush = S.tasks[0] || null;
   $('chips').innerHTML = S.tasks.map(t =>
     `<button class="chip ${t === brush ? 'on' : ''}" style="--c:${color(t)}" data-t="${esc(t)}">${esc(t)}</button>`
   ).join('') + `<button class="chip add" id="addTask">+ 추가</button>`;
-
-  // 시간표
-  const day = dayData(ymd(cur)) || {};
-  $('hwin').className = 'hwin' + (S.name ? '' : ' locked');
-  $('hours').innerHTML = HOURS.map(h => {
-    const k = hourLabel(h), t = day[k];
-    return t
-      ? `<button class="hour filled" style="--c:${color(t)};--bg-c:${color(t)}14" data-h="${k}"><span class="t">${k}</span><span class="task">${esc(t)}</span></button>`
-      : `<button class="hour" data-h="${k}"><span class="t">${k}</span><span class="empty">—</span></button>`;
-  }).join('');
-  updateHnav();
-
-  // 합계
+}
+function renderSum(){
   const cols = [sum(rangeDates('day')), sum(rangeDates('week')), sum(rangeDates('month'))];
   const used = usedTasks(cols);
-  $('sum').innerHTML = `<table class="tbl"><thead><tr><th></th><th>이 날</th><th>이번 주</th><th>이번 달</th></tr></thead><tbody>` +
-    used.map(t => `<tr><td>${sw(t)}</td>${cols.map(c => `<td>${num(c.by[t])}</td>`).join('')}</tr>`).join('') +
+  $('sum').innerHTML = `<table class="tbl"><thead><tr><th></th><th>${md(cur)}</th><th>그 주</th><th>${cur.getMonth()+1}월</th></tr></thead><tbody>` +
+    used.map(t => `<tr><td><span class="sw" style="background:${color(t)}"></span>${esc(t)}</td>${cols.map(c => `<td>${num(c.by[t])}</td>`).join('')}</tr>`).join('') +
     `<tr class="tot"><td>합계</td>${cols.map(c => `<td>${c.total}</td>`).join('')}</tr></tbody></table>`;
-
-  // 상세
-  $('detailTitle').innerHTML = `${{day:'하루',week:'주간',month:'월간'}[S.range]} 상세<span>${rangeText(S.range)}</span>`;
-  $('detail').innerHTML = detailHTML();
-
-  // 전송 바
+}
+function renderBar(){
   document.querySelectorAll('#seg button').forEach(b => b.classList.toggle('on', b.dataset.r === S.range));
+  $('send').disabled = !S.name || !S.range;
+  if (!S.name) return $('sendInfo').textContent = '이름을 선택하세요';
+  if (!S.range) return $('sendInfo').textContent = '하루 · 주간 · 월간 중 하나를 고르면 전송할 수 있습니다';
   const ds = rangeDates(S.range).filter(d => dayData(d) !== undefined);
   const unsent = ds.filter(d => status(d) === 'unsent').length;
-  const s = sum(ds);
-  $('sendInfo').textContent = S.name
-    ? `${rangeText(S.range)} · 기록 ${ds.length}일 ${s.total}시간` + (unsent ? ` · 미전송 ${unsent}일` : ds.length ? ' · 모두 전송됨' : '')
-    : '이름을 선택하세요';
-  $('send').disabled = !S.name;
+  $('sendInfo').textContent = `${RNAME[S.range]} ${rangeText(S.range)} · 기록 ${ds.length}일 ${sum(ds).total}시간` + (unsent ? ` · 미전송 ${unsent}일` : ds.length ? ' · 모두 전송됨' : '');
 }
+function renderAll(){ renderWho(); renderChips(); renderDates(); renderHours(); renderSum(); renderBar(); }
 
-function dviewHTML(){
-  const cell = (d, extra) => {
-    const k = ymd(d), c = [];
-    if (k === ymd(cur)) c.push('sel');
-    if (k === ymd(new Date())) c.push('today');
-    return `<button data-d="${k}" class="${c.join(' ')}">${extra || ''}<b class="${d.getDay() === 0 ? 'sun' : ''}">${d.getDate()}</b><span class="dot ${S.name ? status(k) : ''}"></span></button>`;
-  };
-  if (!calOpen) {
-    const ws = weekStart(cur);
-    return `<div class="strip">` + [...Array(7)].map((_, i) => {
-      const d = addDays(ws, i);
-      return cell(d, `<span class="${d.getDay() === 0 ? 'sun' : ''}">${DAYS[d.getDay()]}</span>`);
-    }).join('') + `</div>`;
-  }
-  const first = calMonth, start = weekStart(first);
-  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
-  const weeks = Math.ceil(((first.getDay() + 6) % 7 + last.getDate()) / 7);
-  let cells = ['월','화','수','목','금','토','일'].map(w => `<div class="wd ${w === '일' ? 'sun' : ''}">${w}</div>`).join('');
-  for (let i = 0; i < weeks * 7; i++) {
-    const d = addDays(start, i);
-    cells += d.getMonth() === first.getMonth() ? cell(d) : '<div></div>';
-  }
-  return `<div class="calhead"><button data-m="-1">◀</button><b>${first.getFullYear()}년 ${first.getMonth()+1}월</b><button data-m="1">▶</button></div><div class="calgrid">${cells}</div>`;
+// 상자 안에서 원하는 카드가 보이게 스크롤
+function scrollIn(box, el, smooth){
+  if (!el) return;
+  const top = el.offsetTop - box.clientHeight / 2 + el.offsetHeight / 2;
+  box.scrollTo({top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto'});
 }
-
-function detailHTML(){
-  if (!S.name) return `<div class="empty-note">이름을 먼저 선택하세요.</div>`;
-  if (S.range === 'day') {
-    const day = dayData(ymd(cur)) || {};
-    const ks = Object.keys(day).sort();
-    if (!ks.length) return `<div class="empty-note">이 날 기록이 없습니다.</div>`;
-    return `<table class="tbl"><thead><tr><th>시간</th><th>업무</th></tr></thead><tbody>` +
-      ks.map(k => `<tr><td>${k}</td><td style="color:${color(day[k])};font-weight:700">${esc(day[k])}</td></tr>`).join('') +
-      `<tr class="tot"><td>합계</td><td>${ks.length}시간</td></tr></tbody></table>`;
-  }
-  const dates = rangeDates(S.range);
-  const rowsDates = S.range === 'week' ? dates : dates.filter(d => Object.keys(dayData(d) || {}).length || status(d) === 'unsent');
-  if (!rowsDates.length) return `<div class="empty-note">이번 달 기록이 없습니다.</div>`;
-  const used = usedTasks(rowsDates.map(d => sum([d])));
-  const head = `<thead><tr><th>날짜</th>${used.map(t => `<th>${esc(t)}</th>`).join('')}<th>합계</th><th></th></tr></thead>`;
-  const line = d => {
-    const s = sum([d]);
-    return `<tr data-d="${d}" class="${d === ymd(cur) ? 'cur' : ''}"><td class="${parse(d).getDay() === 0 ? 'sun' : ''}">${md(parse(d))}</td>${used.map(t => `<td>${num(s.by[t])}</td>`).join('')}<td><b>${num(s.total)}</b></td><td><span class="dot ${status(d)}" style="display:inline-block"></span></td></tr>`;
-  };
-  const totals = (ds, cls, label) => {
-    const s = sum(ds);
-    return `<tr class="${cls}"><td>${label}</td>${used.map(t => `<td>${s.by[t] || 0}</td>`).join('')}<td>${s.total}</td><td></td></tr>`;
-  };
-  let body = '';
-  if (S.range === 'week') body = rowsDates.map(line).join('');
-  else {
-    const groups = {};
-    rowsDates.forEach(d => { const w = ymd(weekStart(parse(d))); (groups[w] = groups[w] || []).push(d); });
-    Object.keys(groups).sort().forEach(w => {
-      body += groups[w].map(line).join('') + totals(groups[w], 'subt', `${md(parse(w)).replace(/\(.\)/, '')} 주 소계`);
-    });
-  }
-  return `<table class="tbl">${head}<tbody>${body}${totals(dates, 'tot', '합계')}</tbody></table>
-    <div class="sub" style="margin-top:6px">날짜를 누르면 그 날로 이동합니다. 점: <span class="dot sent" style="display:inline-block"></span> 전송됨 · <span class="dot unsent" style="display:inline-block"></span> 미전송</div>`;
-}
-
-// ── 움직임 ──
-// 내용을 바꾸면서 높이를 스프링으로 늘이거나 줄임
-function morph(el, change){
-  const from = el.offsetHeight;
-  change(); render();
-  if (REDUCE) return;
-  const to = el.scrollHeight;
-  if (from === to) return;
-  el.style.transition = 'none'; el.style.height = from + 'px';
-  el.offsetHeight;
-  el.style.transition = `height ${DUR}ms ${SPRING}`;
-  el.style.height = to + 'px';
-  clearTimeout(el._t); el._t = setTimeout(() => { el.style.transition = ''; el.style.height = ''; }, DUR + 40);
-}
-// 날짜 줄: 위로 튕기며 사라지거나 내려옴
-function showDbar(show){
-  const w = $('dbarw');
-  const from = w.offsetHeight, to = show ? w.scrollHeight : 0;
-  w.classList.toggle('gone', !show);
-  if (REDUCE) { w.style.height = show ? '' : '0px'; return; }
-  w.style.transition = 'none'; w.style.height = from + 'px';
-  w.offsetHeight;
-  w.style.transition = `height ${DUR}ms ${SPRING}, opacity ${DUR * .6}ms`;
-  w.style.height = to + 'px';
-  clearTimeout(w._t); w._t = setTimeout(() => { w.style.transition = ''; if (show) w.style.height = ''; }, DUR + 40);
-}
-// 화면 스크롤: 빠르게 이동 후 살짝 튕김
-function springScroll(el){
-  const offset = $('palette').offsetHeight + 8;
-  let y = el.getBoundingClientRect().top + scrollY - offset;
-  y = Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight));
-  if (REDUCE) return scrollTo(0, y);
-  const s = scrollY, d = y - s, T = 340, t0 = performance.now(), c1 = 1.2, c3 = c1 + 1;
-  const ease = t => 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-  (function step(now){ const t = Math.min(1, (now - t0) / T); scrollTo(0, s + d * ease(t)); if (t < 1) requestAnimationFrame(step); })(t0);
-}
-
-// ── 시간표: 7칸 창 ──
-const PAGES = [0, 7, 10];   // 06–13, 13–20, 16–23
-const STEP = 50;            // 칸 높이 46 + 간격 4
-let hp = 0;
-function pageOf(i){ return i < 7 ? 0 : i < 14 ? 1 : 2; }
-function setHourPage(p, animate){
-  hp = Math.max(0, Math.min(PAGES.length - 1, p));
-  const el = $('hours');
-  el.style.transition = (animate && !REDUCE) ? `transform 300ms cubic-bezier(.5,0,.25,1.3)` : 'none';
-  el.style.transform = `translateY(${-PAGES[hp] * STEP}px)`;
-  updateHnav();
-}
-function updateHnav(){
-  const day = dayData(ymd(cur)) || {}, top = PAGES[hp];
-  let up = 0, down = 0;
-  HOURS.forEach((h, i) => { if (day[hourLabel(h)]) { if (i < top) up++; else if (i >= top + 7) down++; } });
-  $('hUp').disabled = hp === 0; $('hDown').disabled = hp === PAGES.length - 1;
-  $('moreUp').textContent = up ? `위 ${up}칸 입력됨` : '';
-  $('moreDown').textContent = down ? `아래 ${down}칸 입력됨` : '';
-}
-function autoPage(){
+function focusHours(smooth){
   const day = dayData(ymd(cur)) || {};
-  const firstFilled = HOURS.findIndex(h => day[hourLabel(h)]);
-  if (firstFilled >= 0) return pageOf(firstFilled);
-  if (ymd(cur) === ymd(new Date())) return pageOf(Math.max(0, Math.min(16, new Date().getHours() - 6)));
-  return 0;
+  let i = HOURS.findIndex(h => day[hourLabel(h)]);
+  if (i < 0) i = ymd(cur) === ymd(TODAY) ? Math.max(0, Math.min(16, new Date().getHours() - 6)) : 0;
+  const el = $('hours').children[i];
+  if (i === 0) $('hourBox').scrollTo({top:0, behavior: smooth ? 'smooth' : 'auto'});
+  else $('hourBox').scrollTo({top: Math.max(0, el.offsetTop - 6), behavior: smooth ? 'smooth' : 'auto'});
 }
-function goDate(d){
-  cur = d; calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
-  render(); setHourPage(autoPage(), false);
+function selectDate(k, opts = {}){
+  const prev = ymd(cur);
+  cur = parse(k);
+  refreshDate(prev); refreshDate(k);
+  renderHours(); renderSum(); renderBar();
+  if (opts.center) scrollIn($('dateBox'), $('dates').querySelector(`[data-d="${k}"]`), opts.smooth);
+  focusHours(true);
 }
 
-// ── 공통 ──
-let toastTimer;
-function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200); }
-function ask(title, placeholder){
+// ── 팝업 ──
+let onClose = null;
+function openModal(title, sub, body, foot){
+  $('mTitle').textContent = title; $('mSub').textContent = sub || '';
+  $('mBody').innerHTML = body; $('mFoot').innerHTML = foot || '';
+  $('mFoot').style.display = foot ? '' : 'none';
+  $('modal').classList.add('show');
+}
+function closeModal(v){ $('modal').classList.remove('show'); const f = onClose; onClose = null; if (f) f(v); }
+$('mClose').onclick = () => closeModal(null);
+$('modal').onclick = e => { if (e.target === $('modal')) closeModal(null); };
+
+function confirmBox(title, msg, okLabel, okClass){
   return new Promise(res => {
-    $('mTitle').textContent = title; $('mInput').value = ''; $('mInput').placeholder = placeholder;
-    $('modal').classList.add('show'); setTimeout(() => $('mInput').focus(), 50);
-    const done = v => { $('modal').classList.remove('show'); $('mOk').onclick = $('mCancel').onclick = $('mInput').onkeydown = null; res(v); };
-    $('mOk').onclick = () => done($('mInput').value.trim());
-    $('mCancel').onclick = () => done(null);
-    $('mInput').onkeydown = e => { if (e.key === 'Enter') done($('mInput').value.trim()); };
+    onClose = res;
+    openModal(title, '', `<div style="white-space:pre-line;line-height:1.6">${msg}</div>`,
+      `<button id="mNo">취소</button><button class="${okClass || 'acc'}" id="mYes">${okLabel || '확인'}</button>`);
+    $('mNo').onclick = () => closeModal(false);
+    $('mYes').onclick = () => closeModal(true);
+  });
+}
+function askBox(title, placeholder){
+  return new Promise(res => {
+    onClose = res;
+    openModal(title, '', `<input id="mInput" maxlength="20" autocomplete="off" placeholder="${esc(placeholder)}">`,
+      `<button id="mNo">취소</button><button class="acc" id="mYes">확인</button>`);
+    const inp = $('mInput'); setTimeout(() => inp.focus(), 50);
+    $('mNo').onclick = () => closeModal(null);
+    $('mYes').onclick = () => closeModal(inp.value.trim());
+    inp.onkeydown = e => { if (e.key === 'Enter') closeModal(inp.value.trim()); };
   });
 }
 
-// 서버 통신 (미리보기 모드에서는 휴대폰 안에서만 처리)
+// 하루/주간/월간 상세
+function timeline(k){
+  const day = dayData(k) || {};
+  return `<div class="tl">${HOURS.map(h => { const t = day[hourLabel(h)]; return `<i style="${t ? 'background:' + color(t) : ''}"></i>`; }).join('')}</div>`;
+}
+function showDetail(){
+  const r = S.range, dates = rangeDates(r), s = sum(dates);
+  let body = '';
+  if (r === 'day') {
+    const day = dayData(ymd(cur)) || {};
+    body = `<div class="hrs">${HOURS.map(h => { const k = hourLabel(h), t = day[k];
+      return t ? `<div class="f" style="--c:${color(t)}"><span>${k}</span><span>${esc(t)}</span></div>` : `<div style="opacity:.5"><span>${k}</span><span>—</span></div>`; }).join('')}</div>`;
+  } else if (r === 'week') {
+    body = `<div class="wk">${dates.map(k => { const d = parse(k), n = filledCount(k);
+      return `<button data-go="${k}" class="${n ? '' : 'blank'}"><div class="top"><span style="${d.getDay() === 0 ? 'color:#E11D48' : ''}">${md(d)} <span class="dot ${status(k)}"></span></span><b>${n}시간</b></div>
+        <div class="sub" style="font-size:12px">${sumLine(sum([k])) || '기록 없음'}</div>${timeline(k)}</button>`; }).join('')}</div>
+      <div class="sub" style="margin-top:6px">막대: 06시 ~ 23시</div>`;
+  } else {
+    const first = parse(dates[0]), start = weekStart(first);
+    const weeks = Math.ceil(((first.getDay() + 6) % 7 + dates.length) / 7);
+    let cells = ['월','화','수','목','금','토','일'].map(w => `<div class="wd" style="${w === '일' ? 'color:#E11D48' : ''}">${w}</div>`).join('');
+    for (let i = 0; i < weeks * 7; i++) {
+      const d = addDays(start, i), k = ymd(d);
+      if (d.getMonth() !== first.getMonth()) { cells += '<div></div>'; continue; }
+      const n = filledCount(k);
+      cells += `<button data-go="${k}" class="${n ? '' : 'blank'} ${k === ymd(cur) ? 'sel' : ''}"><span style="${d.getDay() === 0 ? 'color:#E11D48' : ''}">${d.getDate()}</span><small>${n ? n + 'h' : ''}</small><span class="dot ${status(k)}"></span></button>`;
+    }
+    body = `<div class="cal">${cells}</div>`;
+  }
+  const unsent = dates.filter(d => status(d) === 'unsent').length;
+  body += `<div class="msum"><b style="color:var(--text)">합계 ${s.total}시간</b>${sumLine(s) ? ' · ' + sumLine(s) : ''}${unsent ? ` · 미전송 ${unsent}일` : ''}<br>
+    ${r === 'day' ? '' : '날짜를 누르면 그 날의 시간표로 이동합니다. '}<span class="dot sent"></span> 전송됨 · <span class="dot unsent"></span> 미전송</div>`;
+  openModal(`${RNAME[r]} 상세`, rangeText(r), body);
+}
+$('mBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if (!b) return;
+  closeModal(null);
+  selectDate(b.dataset.go, {center:true, smooth:true});
+});
+
+// ── 서버 통신 ──
 async function api(action, payload){
   if (DEMO) {
     if (action === 'register' && !S.names.includes(payload.name)) S.names.push(payload.name);
@@ -479,99 +405,73 @@ async function loadLists(){
     }
   } catch(e) { toast('명단을 불러오지 못했습니다. 저장된 목록을 사용합니다.'); }
 }
+let toastTimer;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400); }
 
 // ── 이벤트 ──
-function claim(n){
-  if (!confirm(`이 휴대폰을 '${n}' 이름으로 사용할까요?`)) return;
-  S.name = n; save(); render(); setHourPage(autoPage(), false);
+async function claim(n){
+  if (!await confirmBox('이름 선택', `이 휴대폰을 '${esc(n)}' 이름으로 사용할까요?`)) return;
+  S.name = n; save(); renderAll(); focusHours(false);
 }
 $('who').onclick = async e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.n) return claim(b.dataset.n);
   if (b.id === 'unlink') {
-    if (!confirm(`이 휴대폰의 '${S.name}' 연결을 해제할까요?\n작성한 기록은 남아 있고, 같은 이름을 다시 고르면 보입니다.`)) return;
-    S.name = ''; save(); render(); return;
+    if (!await confirmBox('이름 변경', `이 휴대폰의 '${esc(S.name)}' 연결을 해제할까요?\n작성한 기록은 남아 있고, 같은 이름을 다시 고르면 보입니다.`, '해제')) return;
+    S.name = ''; S.range = null; save(); renderAll(); return;
   }
   if (b.id === 'btnReg') {
-    const n = await ask('새 이름 등록', '예: 홍길동');
+    const n = await askBox('새 이름 등록', '예: 홍길동');
     if (!n) return;
     if (S.names.includes(n)) return claim(n);
     try {
       const j = await api('register', {name:n});
       if (!j.ok) return toast(j.error || '등록하지 못했습니다.');
-      S.names = j.names; save(); render(); toast(`${n} 등록 완료`); claim(n);
+      S.names = j.names; save(); renderWho(); toast(`${n} 등록 완료`); claim(n);
     } catch(e) { toast('연결에 실패했습니다. 잠시 후 다시 시도하세요.'); }
   }
-};
-
-$('prev').onclick = () => goDate(addDays(cur, -1));
-$('next').onclick = () => goDate(addDays(cur, 1));
-$('datePick').onchange = e => { if (e.target.value) goDate(parse(e.target.value)); };
-$('dview').onclick = e => {
-  const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.m) return morph($('dview'), () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + Number(b.dataset.m), 1); });
-  const d = parse(b.dataset.d);
-  if (calOpen) { showDbar(true); morph($('dview'), () => { calOpen = false; cur = d; }); }
-  goDate(d);
-};
-$('calToggle').onclick = () => {
-  showDbar(calOpen);
-  morph($('dview'), () => { calOpen = !calOpen; calMonth = new Date(cur.getFullYear(), cur.getMonth(), 1); });
 };
 
 $('chips').onclick = async e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.id === 'addTask') {
-    const t = await ask('업무 추가', '예: 행정');
+    const t = await askBox('업무 추가', '예: 행정');
     if (!t) return;
-    if (S.tasks.includes(t)) { brush = t; return render(); }
+    if (S.tasks.includes(t)) { brush = t; return renderChips(); }
     try {
       const j = await api('addTask', {task:t});
       if (!j.ok) return toast(j.error || '추가하지 못했습니다.');
-      S.tasks = j.tasks; brush = t; save(); render(); toast(`'${t}' 추가 완료`);
+      S.tasks = j.tasks; brush = t; save(); renderChips(); renderHours(); renderSum(); toast(`'${t}' 추가 완료`);
     } catch(e) { toast('연결에 실패했습니다. 잠시 후 다시 시도하세요.'); }
     return;
   }
-  brush = b.dataset.t; render();
+  brush = b.dataset.t; renderChips();
 };
 
+$('dates').onclick = e => { const b = e.target.closest('[data-d]'); if (b) selectDate(b.dataset.d); };
+
 $('hours').onclick = e => {
-  const b = e.target.closest('button'); if (!b || !S.name) return;
+  const b = e.target.closest('button'); if (!b) return;
+  if (!S.name) return toast('이름을 먼저 선택하세요.');
   if (!brush) return toast('업무를 먼저 고르세요.');
   const date = ymd(cur), k = b.dataset.h;
   const d = S.drafts[S.name] || (S.drafts[S.name] = {});
   const day = d[date] || (d[date] = {});
   if (day[k] === brush) delete day[k]; else day[k] = brush;
-  save(); render();
-};
-$('hUp').onclick = () => setHourPage(hp - 1, true);
-$('hDown').onclick = () => setHourPage(hp + 1, true);
-let ty = null, swiped = false;
-$('hwin').addEventListener('touchstart', e => { ty = e.touches[0].clientY; swiped = false; }, {passive:true});
-$('hwin').addEventListener('touchend', e => {
-  if (ty === null) return;
-  const dy = e.changedTouches[0].clientY - ty; ty = null;
-  if (Math.abs(dy) > 40) { swiped = true; setHourPage(hp + (dy < 0 ? 1 : -1), true); }
-});
-$('hwin').addEventListener('click', e => { if (swiped) { e.stopPropagation(); e.preventDefault(); swiped = false; } }, true);
-$('clearDay').onclick = () => {
-  if (!S.name || !Object.keys(dayData(ymd(cur)) || {}).length) return;
-  if (!confirm('이 날 기록을 모두 지울까요? 전송하면 시트에서도 지워집니다.')) return;
-  S.drafts[S.name][ymd(cur)] = {}; save(); render(); updateHnav();
+  save();
+  const top = $('hourBox').scrollTop;
+  renderHours(); $('hourBox').scrollTop = top;
+  refreshDate(date); renderSum(); renderBar();
 };
 
 $('seg').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
-  morph($('detail'), () => { S.range = b.dataset.r; save(); });
-  springScroll($('detailCard'));
-};
-$('detail').onclick = e => {
-  const tr = e.target.closest('tr[data-d]'); if (!tr) return;
-  goDate(parse(tr.dataset.d)); springScroll($('hourCard'));
+  if (!S.name) return toast('이름을 먼저 선택하세요.');
+  S.range = b.dataset.r; renderBar(); showDetail();
 };
 
 $('send').onclick = async () => {
-  if (!S.name) return toast('이름을 선택하세요.');
+  if (!S.name || !S.range) return;
   const dates = rangeDates(S.range).filter(d => dayData(d) !== undefined);
   if (!dates.length) return toast('보낼 기록이 없습니다.');
   const entries = [];
@@ -582,21 +482,25 @@ $('send').onclick = async () => {
       week: ymd(weekStart(dd)), month: date.slice(0, 7)
     }));
   });
-  if (!confirm(`${S.name} · ${rangeText(S.range)}\n${dates.length}일 ${entries.length}시간을 전송할까요?\n같은 날짜의 이전 기록은 새 기록으로 바뀝니다.`)) return;
+  const ok = await confirmBox('전송', `${esc(S.name)} · ${RNAME[S.range]} ${rangeText(S.range)}\n${dates.length}일 ${entries.length}시간을 전송하시겠습니까?\n같은 날짜의 이전 기록은 새 기록으로 바뀝니다.`, '전송', 'pink');
+  if (!ok) return;
   const btn = $('send'); btn.disabled = true; btn.textContent = '전송 중';
   try {
     const j = await api('submit', {name:S.name, dates, entries});
     if (!j.ok) throw new Error(j.error || '전송 실패');
     const sent = S.sent[S.name] || (S.sent[S.name] = {});
     dates.forEach(d => sent[d] = canon(dayData(d)));
-    save(); toast(DEMO ? `미리보기: ${entries.length}시간 전송된 것으로 표시했습니다.` : '전송 완료');
+    S.range = null; save();
+    toast(DEMO ? `미리보기: ${entries.length}시간 전송된 것으로 표시했습니다.` : '전송 완료');
   } catch(e) { toast('전송하지 못했습니다. ' + (e.message || '')); }
-  btn.textContent = '전송'; render();
+  btn.textContent = '전송'; renderDates(); renderBar();
+  scrollIn($('dateBox'), $('dates').querySelector(`[data-d="${ymd(cur)}"]`), false);
 };
 
-render();
-setHourPage(autoPage(), false);
-loadLists().then(() => { render(); setHourPage(autoPage(), false); });
+renderAll();
+scrollIn($('dateBox'), $('dates').querySelector(`[data-d="${ymd(cur)}"]`), false);
+focusHours(false);
+loadLists().then(() => { renderWho(); renderChips(); renderHours(); renderSum(); renderBar(); });
 </script>
 </body>
 </html>
