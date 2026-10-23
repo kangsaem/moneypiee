@@ -69,6 +69,12 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .hc.filled{background:var(--c);border-color:var(--c)}
 .hc.filled .t{color:#fff}
 .hc .e{color:#B8C2CE}
+.hc{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:pan-y}
+.hc .tw{display:flex;flex-direction:column;align-items:flex-start;min-width:0;line-height:1.15}
+.hc .m{font-size:11px;color:#fff;opacity:.92;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.hc .m::before{content:"✎ "}
+.hrs .mm{display:block;font-size:12px;font-weight:500;opacity:.9}
+textarea{font:inherit;width:100%;min-height:72px;padding:10px;border:1px solid var(--line);border-radius:var(--r);resize:none;color:var(--text);background:#fff}
 .box.locked::after{content:"이름을 먼저 선택하세요";position:sticky;bottom:40%;display:block;text-align:center;font-weight:700;color:var(--text);
   background:rgba(241,244,248,.92);padding:10px;border-radius:var(--r)}
 
@@ -139,7 +145,7 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .toprow.solo > .card{width:100%}
 .toprow.solo .swim{display:none}
 .swim{position:absolute;inset:0;border-radius:var(--r);overflow:hidden;background:#243247}
-.swim svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.swim svg{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:.5}
 .swim .j{transform-origin:0 0}                       /* 관절: 각 그룹의 원점을 중심으로 회전 */
 .swim .uA,.swim .uB{animation:upper 1.3s linear infinite}
 .swim .suA,.swim .suB{animation:ushort 1.3s linear infinite}
@@ -272,7 +278,7 @@ function weekStart(d){ const x = new Date(d); x.setDate(x.getDate() - (x.getDay(
 function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-function defaults(){ return {name:'', myNames:[], drafts:{}, sent:{}, names:[], tasks:['강습','안전']}; }
+function defaults(){ return {name:'', myNames:[], drafts:{}, memos:{}, sent:{}, names:[], tasks:['강습','안전']}; }
 let S = (() => { try { const v = JSON.parse(localStorage.getItem(LS)); if (v) return Object.assign(defaults(), v); } catch(e){} return defaults(); })();
 function save(){ try { const {range, ...rest} = S; localStorage.setItem(LS, JSON.stringify(rest)); } catch(e){} }
 if (S.name && !S.myNames.includes(S.name)) S.myNames.push(S.name);
@@ -292,13 +298,20 @@ const color = t => COLORS[Math.max(0, S.tasks.indexOf(t)) % COLORS.length];
 const myDrafts = () => S.drafts[S.name] || {};
 const dayData = date => myDrafts()[date];
 const filledCount = date => Object.keys(dayData(date) || {}).length;
-const canon = day => JSON.stringify(Object.keys(day || {}).sort().map(k => [k, day[k]]));
+const memoOf = (date, k) => ((S.memos[S.name] || {})[date] || {})[k] || '';
+function setMemo(date, k, text){
+  const m = S.memos[S.name] || (S.memos[S.name] = {});
+  const d = m[date] || (m[date] = {});
+  if (text) d[k] = text; else delete d[k];
+}
+const canonD = date => { const day = dayData(date) || {};
+  return JSON.stringify(Object.keys(day).sort().map(k => memoOf(date, k) ? [k, day[k], memoOf(date, k)] : [k, day[k]])); };
 
 function status(date){
   const day = dayData(date);
   if (day === undefined) return 'none';
   const snap = (S.sent[S.name] || {})[date];
-  if (snap === canon(day)) return 'sent';
+  if (snap === canonD(date)) return 'sent';
   if (!Object.keys(day).length && snap === undefined) return 'none';
   return 'unsent';
 }
@@ -354,7 +367,7 @@ function renderHours(){
   $('hours').innerHTML = HOURS.map(h => {
     const k = hourLabel(h), t = day[k];
     return t
-      ? `<button class="hc filled" style="--c:${color(t)}" data-h="${k}"><span class="t">${pad(h)}~${pad(h+1)}<small>시</small></span><span class="k">${esc(t)}</span></button>`
+      ? `<button class="hc filled" style="--c:${color(t)}" data-h="${k}"><span class="tw"><span class="t">${pad(h)}~${pad(h+1)}<small>시</small></span>${memoOf(ymd(cur), k) ? `<span class="m">${esc(memoOf(ymd(cur), k))}</span>` : ''}</span><span class="k">${esc(t)}</span></button>`
       : `<button class="hc" data-h="${k}"><span class="t">${pad(h)}~${pad(h+1)}<small>시</small></span><span class="e">—</span></button>`;
   }).join('');
   $('hourBox').classList.toggle('locked', !S.name);
@@ -427,11 +440,12 @@ function openModal(title, sub, body, foot){
   $('mTitle').textContent = title; $('mSub').textContent = sub || '';
   $('mBody').innerHTML = body; $('mFoot').innerHTML = foot || '';
   $('mFoot').style.display = foot ? '' : 'none';
-  $('modal').classList.add('show');
+  $('modal').classList.add('show'); openedAt = Date.now();
 }
 function closeModal(v){ $('modal').classList.remove('show'); const f = onClose; onClose = null; if (f) f(v); }
 $('mClose').onclick = () => closeModal(null);
-$('modal').onclick = e => { if (e.target === $('modal')) closeModal(null); };
+let openedAt = 0;
+$('modal').onclick = e => { if (e.target === $('modal') && Date.now() - openedAt > 450) closeModal(null); };   // 꾹 누르고 뗄 때 바로 닫히지 않게
 
 function confirmBox(title, msg, okLabel, okClass){
   return new Promise(res => {
@@ -466,7 +480,8 @@ function showDetail(){
     const day = dayData(ymd(cur)) || {};
     body = `<div class="hrs">${HOURS.map(h => { const k = hourLabel(h), t = day[k];
       const lb = `${pad(h)}~${pad(h+1)}<small>시</small>`;
-      return t ? `<div class="f" style="--c:${color(t)}"><span>${lb}</span><span>${esc(t)}</span></div>` : `<div style="opacity:.5"><span>${lb}</span><span>—</span></div>`; }).join('')}</div>`;
+      const mm = memoOf(ymd(cur), k);
+      return t ? `<div class="f" style="--c:${color(t)}"><span>${lb}${mm ? `<span class="mm">✎ ${esc(mm)}</span>` : ''}</span><span>${esc(t)}</span></div>` : `<div style="opacity:.5"><span>${lb}</span><span>—</span></div>`; }).join('')}</div>`;
   } else if (r === 'week') {
     body = `<div class="wk">${dates.map(k => { const d = parse(k), n = filledCount(k);
       return `<button data-go="${k}" class="${n ? '' : 'blank'}"><div class="top"><span style="${d.getDay() === 0 ? 'color:#E11D48' : ''}">${md(d)} <span class="dot ${status(k)}"></span></span><b>${n}시간</b></div>
@@ -563,18 +578,65 @@ $('chips').onclick = async e => {
 
 $('dates').onclick = e => { const b = e.target.closest('[data-d]'); if (b) selectDate(b.dataset.d); };
 
-$('hours').onclick = e => {
-  const b = e.target.closest('button'); if (!b) return;
-  if (!S.name) return toast('이름을 먼저 선택하세요.');
-  if (!brush) return toast('업무를 먼저 고르세요.');
-  const date = ymd(cur), k = b.dataset.h;
-  const d = S.drafts[S.name] || (S.drafts[S.name] = {});
-  const day = d[date] || (d[date] = {});
-  if (day[k] === brush) delete day[k]; else day[k] = brush;
-  save();
+function redrawHours(date){
   const top = $('hourBox').scrollTop;
   renderHours(); $('hourBox').scrollTop = top;
   refreshDate(date); renderSum(); renderBar();
+}
+// 비고(메모) 팝업
+async function openMemo(k){
+  const date = ymd(cur), t = (dayData(date) || {})[k];
+  if (!t) return toast('업무를 먼저 입력하세요.');
+  const [h1, h2] = k.split('-').map(x => x.slice(0, 2));
+  const old = memoOf(date, k);
+  const v = await new Promise(res => {
+    onClose = res;
+    openModal('비고', `${md(cur)} ${h1}~${h2}시 · ${t}`,
+      `<textarea id="memoIn" maxlength="30" placeholder="예: 강수영 샘 대직">${esc(old)}</textarea><div class="sub" style="text-align:right;margin-top:4px"><span id="memoN">${old.length}</span>/30</div>`,
+      `${old ? '<button id="mDel">삭제</button>' : ''}<button id="mNo">취소</button><button class="acc" id="mYes">저장</button>`);
+    const inp = $('memoIn'); setTimeout(() => { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }, 50);
+    inp.oninput = () => $('memoN').textContent = inp.value.length;
+    $('mNo').onclick = () => closeModal(null);
+    $('mYes').onclick = () => closeModal(inp.value.trim().replace(/\s+/g, ' '));
+    if ($('mDel')) $('mDel').onclick = () => closeModal('');
+  });
+  if (v === null || v === old) return;
+  setMemo(date, k, v); save(); redrawHours(date);
+  toast(v ? '비고를 저장했습니다.' : '비고를 지웠습니다.');
+}
+
+let pressT = null, pressXY = null, longFired = false, lastTap = {k:null, t:0, before:undefined};
+$('hours').addEventListener('pointerdown', e => {
+  const b = e.target.closest('.hc'); if (!b || !S.name) return;
+  longFired = false; pressXY = [e.clientX, e.clientY];
+  clearTimeout(pressT);
+  pressT = setTimeout(() => { longFired = true; if (navigator.vibrate) navigator.vibrate(15); openMemo(b.dataset.h); }, 500);
+});
+['pointerup','pointercancel','pointerleave'].forEach(ev => $('hours').addEventListener(ev, () => clearTimeout(pressT)));
+$('hours').addEventListener('pointermove', e => {
+  if (pressXY && Math.hypot(e.clientX - pressXY[0], e.clientY - pressXY[1]) > 8) clearTimeout(pressT);   // 스크롤이면 취소
+});
+$('hours').addEventListener('contextmenu', e => { if (e.target.closest('.hc')) e.preventDefault(); });
+
+$('hours').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (longFired) { longFired = false; return; }             // 꾹 누르기 뒤의 클릭은 무시
+  if (!S.name) return toast('이름을 먼저 선택하세요.');
+  const date = ymd(cur), k = b.dataset.h, now = Date.now();
+  const d = S.drafts[S.name] || (S.drafts[S.name] = {});
+  const day = d[date] || (d[date] = {});
+  // 더블클릭: 첫 클릭으로 바뀐 것을 되돌리고 비고 열기
+  if (lastTap.k === k && lastTap.date === date && now - lastTap.t < 320) {
+    if (lastTap.before === undefined) delete day[k]; else day[k] = lastTap.before;
+    if (lastTap.memo) setMemo(date, k, lastTap.memo);
+    lastTap = {k:null, t:0};
+    save(); redrawHours(date); return openMemo(k);
+  }
+  if (!brush) return toast('업무를 먼저 고르세요.');
+  lastTap = {k, date, t: now, before: day[k], memo: memoOf(date, k)};
+  if (day[k] === brush) { delete day[k]; setMemo(date, k, ''); }   // 업무를 지우면 비고도 지움
+  else day[k] = brush;
+  save(); redrawHours(date);
 };
 
 $('seg').onclick = e => {
@@ -592,7 +654,7 @@ $('send').onclick = async () => {
   dates.forEach(date => {
     const dd = parse(date);
     Object.keys(dayData(date)).sort().forEach(hour => entries.push({
-      date, day: DAYS[dd.getDay()], hour, task: dayData(date)[hour],
+      date, day: DAYS[dd.getDay()], hour, task: dayData(date)[hour], memo: memoOf(date, hour),
       week: ymd(weekStart(dd)), month: date.slice(0, 7)
     }));
   });
@@ -603,7 +665,7 @@ $('send').onclick = async () => {
     const j = await api('submit', {name:S.name, dates, entries});
     if (!j.ok) throw new Error(j.error || '전송 실패');
     const sent = S.sent[S.name] || (S.sent[S.name] = {});
-    dates.forEach(d => sent[d] = canon(dayData(d)));
+    dates.forEach(d => sent[d] = canonD(d));
     S.range = null; save();
     toast(DEMO ? `미리보기: ${entries.length}시간 전송된 것으로 표시했습니다.` : '전송 완료');
   } catch(e) { toast('전송하지 못했습니다. ' + (e.message || '')); }
