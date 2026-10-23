@@ -133,11 +133,12 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
   .sendbar{position:static;background:transparent;padding:0 16px 12px}
 }
 /* 이름 칸 + 수영 애니메이션 */
-.toprow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:10px}
-.toprow > .card{margin-bottom:0}
-.toprow.solo{grid-template-columns:minmax(0,1fr)}
+.toprow{position:relative;margin-bottom:10px;padding-bottom:16px}   /* 아래 16px: 이름 칸 밑으로 이어지는 물 */
+.toprow > .card{position:relative;z-index:1;margin-bottom:0;width:calc(50% - 4px)}
+.toprow.solo{padding-bottom:0}
+.toprow.solo > .card{width:100%}
 .toprow.solo .swim{display:none}
-.swim{border-radius:var(--r);overflow:hidden;background:#243247;min-height:48px;position:relative}
+.swim{position:absolute;inset:0;border-radius:var(--r);overflow:hidden;background:#243247}
 .swim svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .swim .j{transform-origin:0 0}                       /* 관절: 각 그룹의 원점을 중심으로 회전 */
 .swim .uA,.swim .uB{animation:upper 1.3s linear infinite}
@@ -180,10 +181,10 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
   <div id="demo" class="banner" hidden>미리보기 모드입니다. 구글 시트가 연결되지 않아 이 휴대폰에만 저장됩니다.</div>
   <div class="toprow" id="toprow">
     <div class="card" id="who"></div>
-    <div class="swim" aria-hidden="true"><svg viewBox="40 22 240 56" preserveAspectRatio="xMidYMid slice" role="img" aria-label="자유형으로 수영하는 남자">
+    <div class="swim" aria-hidden="true"><svg viewBox="-200 14 480 72" preserveAspectRatio="xMaxYMid slice" role="img" aria-label="자유형으로 수영하는 남자">
   <defs>
-    <clipPath id="swClip"><rect width="300" height="100" rx="12"/></clipPath>
-    <path id="swWave" d="M0 48 q15 -5 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V100 H0 Z"/>
+    <clipPath id="swClip"><rect x="-300" width="600" height="100"/></clipPath>
+    <path id="swWave" d="M-300 48 q15 -5 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V100 H-300 Z"/>
     <g id="upper"><path d="M-1 -3.9 C7 -4.6 15 -3.7 22 -2.7 L22 2.7 C15 3.5 7 4.3 -1 3.9 Z"/><circle cx="22" cy="0" r="2.7"/></g>
     <g id="fore">
       <path d="M0 -2.7 C7 -3 13 -2.4 18 -1.9 L18 1.9 C13 2.4 7 3 0 2.7 Z"/>
