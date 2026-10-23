@@ -16,9 +16,10 @@ html,body{background:var(--bg)}
 body{margin:0;min-height:100vh;color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
   font-size:15px;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:520px;margin:0 auto;padding:12px 16px;min-height:calc(100vh - var(--sb,90px));min-height:calc(100dvh - var(--sb,90px));
-  display:flex;flex-direction:column;justify-content:center}   /* 남는 여백을 위아래로 반씩 */
+.wrap{max-width:520px;margin:0 auto;padding:12px 16px 0;min-height:calc(100vh - var(--sb,90px));min-height:calc(100dvh - var(--sb,90px));
+  display:flex;flex-direction:column;justify-content:flex-end}   /* 내용을 아래 구분줄 쪽으로 붙임 */
 body{padding-bottom:var(--sb,90px)}
+.wrap > .card:last-child{margin-bottom:11px}   /* 구분줄 위아래 간격 맞춤 */
 .banner{background:#3b2f12;border:1px solid #7c5a10;color:#fcd68a;border-radius:var(--r);padding:8px 10px;font-size:13px;margin-bottom:10px}
 .card{background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:10px}
 .row{display:flex;gap:8px;align-items:center}
@@ -58,7 +59,7 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .dc.sel{background:var(--accent);opacity:1}
 .dc.sel .d,.dc.sel .d small,.dc.sel .r,.dc.sel.today .d::after{color:#fff}
 .dot{width:7px;height:7px;border-radius:2px;background:transparent;display:inline-block}
-.dot.sent{background:var(--ok)} .dot.unsent{background:var(--warn)}
+.dot.sent{background:var(--ok)} .dot.unsent{background:var(--pink)}
 .dc.sel .dot.sent,.dc.sel .dot.unsent{outline:1.5px solid #fff}
 .hc .t{color:var(--sub);font-size:14px}
 .hc .t small,.hrs small{font-size:11px;margin-left:1px;opacity:.85}
@@ -83,7 +84,7 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
 
 /* 전송 바 */
-.sendbar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid #334155;padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:10}
+.sendbar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid #94A3B8;padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:10}
 .sendbar .in{max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .seg{display:flex;gap:6px}
 .seg button{width:64px;padding:9px 0}
@@ -504,6 +505,7 @@ $('send').onclick = async () => {
 
 function fitBar(){ document.documentElement.style.setProperty('--sb', document.querySelector('.sendbar').offsetHeight + 'px'); }
 addEventListener('resize', fitBar); fitBar();
+if (window.ResizeObserver) new ResizeObserver(fitBar).observe(document.querySelector('.sendbar'));
 renderAll();
 scrollIn($('dateBox'), $('dates').querySelector(`[data-d="${ymd(cur)}"]`), false);
 focusHours(false);
