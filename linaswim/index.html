@@ -125,9 +125,17 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .msum{margin-top:10px;font-size:13px;color:var(--sub);line-height:1.6}
 .toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#0F172A;color:#fff;border:1px solid #334155;padding:10px 14px;border-radius:var(--r);font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;max-width:90%;text-align:center}
 .toast.show{opacity:1}
+/* PC·태블릿 가로: 휴대폰 크기 패널을 화면 가운데에 */
+@media (min-width:768px){
+  body{padding:32px 0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+  .app{width:520px;background:#243247;border:1px solid #33435c;border-radius:16px;padding:8px 0 0}
+  .wrap{min-height:0;padding:12px 16px 0}
+  .sendbar{position:static;background:transparent;padding:0 16px 12px}
+}
 </style>
 </head>
 <body>
+<div class="app">
 <div class="wrap">
   <div id="demo" class="banner" hidden>미리보기 모드입니다. 구글 시트가 연결되지 않아 이 휴대폰에만 저장됩니다.</div>
   <div class="card" id="who"></div>
@@ -149,6 +157,7 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
   </div>
   <div class="sendinfo" id="sendInfo"></div>
 </div>
+</div><!-- /app -->
 
 <!-- 공용 팝업 -->
 <div class="modal" id="modal"><div class="box2">
