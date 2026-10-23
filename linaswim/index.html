@@ -469,6 +469,7 @@ $('hours').onclick = e => {
 $('seg').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   if (!S.name) return toast('이름을 먼저 선택하세요.');
+  if (S.range === b.dataset.r) { S.range = null; return renderBar(); }   // 다시 누르면 해제
   S.range = b.dataset.r; renderBar(); showDetail();
 };
 
