@@ -216,6 +216,12 @@ function status(date){
   if (!Object.keys(day).length && snap === undefined) return 'none';
   return 'unsent';
 }
+// 보낼 날짜: 기록이 있는 날 + (비운 날 중) 이 휴대폰에서 전에 전송한 적이 있는 날만
+function sendable(d){
+  const day = dayData(d);
+  if (day === undefined) return false;
+  return Object.keys(day).length > 0 || (S.sent[S.name] || {})[d] !== undefined;
+}
 function rangeDates(r){
   if (r === 'day') return [ymd(cur)];
   if (r === 'week') { const s = weekStart(cur); return [...Array(7)].map((_, i) => ymd(addDays(s, i))); }
@@ -297,7 +303,7 @@ function renderBar(){
   $('send').disabled = !S.name || !S.range;
   if (!S.name) return $('sendInfo').textContent = '이름을 선택하세요';
   if (!S.range) return $('sendInfo').textContent = '하루 · 주간 · 월간 중 하나를 고르면 전송할 수 있습니다';
-  const ds = rangeDates(S.range).filter(d => dayData(d) !== undefined);
+  const ds = rangeDates(S.range).filter(sendable);
   const unsent = ds.filter(d => status(d) === 'unsent').length;
   $('sendInfo').textContent = `${RNAME[S.range]} ${rangeText(S.range)} · 기록 ${ds.length}일 ${sum(ds).total}시간` + (unsent ? ` · 미전송 ${unsent}일` : ds.length ? ' · 모두 전송됨' : '');
 }
@@ -490,7 +496,7 @@ $('seg').onclick = e => {
 
 $('send').onclick = async () => {
   if (!S.name || !S.range) return;
-  const dates = rangeDates(S.range).filter(d => dayData(d) !== undefined);
+  const dates = rangeDates(S.range).filter(sendable);
   if (!dates.length) return toast('보낼 기록이 없습니다.');
   const entries = [];
   dates.forEach(date => {
