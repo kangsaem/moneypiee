@@ -31,13 +31,23 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .datebar .nav{width:44px;flex:none}
 .datelabel{position:relative;flex:1;text-align:center;font-weight:700;font-size:17px;padding:8px 0}
 .datelabel input{position:absolute;inset:0;opacity:0;width:100%;height:100%;padding:0;border:none}
-.strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
+.dview{overflow:hidden;margin-top:10px}
+.strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .strip button{padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;border-radius:8px}
 .strip button b{font-size:15px}
 .strip button.sel{border-color:var(--accent);background:#eef3fd}
-.strip .dot{width:6px;height:6px;border-radius:50%;background:transparent}
+.dot{width:6px;height:6px;border-radius:50%;background:transparent}
 .dot.sent{background:var(--ok)} .dot.unsent{background:var(--warn)}
-.strip .sun{color:#d63333}
+.sun{color:#d63333}
+.calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.calhead b{font-size:15px}
+.calhead button{padding:6px 12px}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.calgrid .wd{font-size:12px;color:var(--sub);padding:4px 0}
+.calgrid button{padding:6px 0 4px;display:flex;flex-direction:column;align-items:center;gap:2px;border-color:transparent;font-size:14px}
+.calgrid button.today{border-color:var(--line)}
+.calgrid button.sel{border-color:var(--accent);background:#eef3fd;font-weight:700}
+.caltoggle{display:block;margin:6px auto 0;border:none;background:none;color:var(--accent);font-size:13px;font-weight:600;padding:4px 10px}
 
 /* 업무 팔레트 */
 .palette{position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0 8px}
@@ -47,8 +57,14 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .chip.add{border-style:dashed;border-color:var(--sub);color:var(--sub);font-weight:500}
 
 /* 시간표 */
-.hours{display:flex;flex-direction:column;gap:4px}
-.hour{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;border-radius:8px;text-align:left;width:100%}
+.hwin{height:346px;overflow:hidden;position:relative;touch-action:pan-x}   /* 7칸 × 50px - 4px */
+.hours{display:flex;flex-direction:column;gap:4px;will-change:transform}
+.hour{display:flex;justify-content:space-between;align-items:center;padding:0 12px;height:46px;flex:none;border-radius:8px;text-align:left;width:100%}
+.hnav{display:flex;align-items:center;gap:8px;margin:6px 0}
+.hnav button{flex:none;width:120px;padding:7px 0;font-size:14px}
+.hnav .more{font-size:12px;color:var(--warn);font-weight:600}
+.hnav.top{margin-top:0}
+@media (prefers-reduced-motion: reduce){ .hours,.dview{transition:none!important} }
 .hour .t{font-variant-numeric:tabular-nums;color:var(--sub)}
 .hour.filled{border-color:var(--c);background:var(--bg-c)}
 .hour.filled .t{color:var(--text)}
@@ -100,7 +116,8 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
       <label class="datelabel"><span id="dateText"></span><input type="date" id="datePick"></label>
       <button class="nav" id="next" aria-label="다음 날">▶</button>
     </div>
-    <div class="strip" id="strip"></div>
+    <div class="dview" id="dview"></div>
+    <button class="caltoggle" id="calToggle"></button>
   </div>
 
   <div class="palette">
@@ -109,8 +126,10 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
   </div>
 
   <div class="card">
-    <div class="hours" id="hours"></div>
-    <div style="text-align:right;margin-top:6px"><button class="link" id="clearDay">이 날 전체 지우기</button></div>
+    <div class="hnav top"><button id="hUp">▲ 이전 시간</button><span class="more" id="moreUp"></span></div>
+    <div class="hwin" id="hwin"><div class="hours" id="hours"></div></div>
+    <div class="hnav"><button id="hDown">▼ 다음 시간</button><span class="more" id="moreDown"></span></div>
+    <div style="text-align:right;margin-top:2px"><button class="link" id="clearDay">이 날 전체 지우기</button></div>
   </div>
 
   <div class="card">
@@ -210,13 +229,8 @@ function render(){
   const today = ymd(new Date());
   $('dateText').textContent = `${cur.getMonth()+1}월 ${cur.getDate()}일 (${DAYS[cur.getDay()]})` + (ymd(cur) === today ? ' · 오늘' : '');
   $('datePick').value = ymd(cur);
-  const ws = weekStart(cur);
-  $('strip').innerHTML = [...Array(7)].map((_, i) => {
-    const d = addDays(ws, i), k = ymd(d);
-    return `<button data-d="${k}" class="${k === ymd(cur) ? 'sel' : ''}">
-      <span class="${d.getDay() === 0 ? 'sun' : ''}">${DAYS[d.getDay()]}</span><b>${d.getDate()}</b>
-      <span class="dot ${S.name ? status(k) : ''}"></span></button>`;
-  }).join('');
+  $('dview').innerHTML = dviewHTML();
+  $('calToggle').textContent = calOpen ? '주간으로 접기 ▴' : '달력 보기 ▾';
 
   // 업무 버튼
   if (!S.tasks.includes(brush)) brush = S.tasks[0] || null;
@@ -233,6 +247,7 @@ function render(){
       ? `<button class="hour filled" style="--c:${color(t)};--bg-c:${color(t)}14" data-h="${k}"><span class="t">${k}</span><span class="task">${esc(t)}</span></button>`
       : `<button class="hour" data-h="${k}"><span class="t">${k}</span><span class="empty">—</span></button>`;
   }).join('');
+  updateHnav();
 
   // 합계
   const cols = [sum(rangeDates('day')), sum(rangeDates('week')), sum(rangeDates('month'))];
@@ -251,6 +266,82 @@ function render(){
     ? `${rangeText(S.range)} · 기록 ${ds.length}일 ${s.total}시간` + (unsent ? ` · 미전송 ${unsent}일` : ds.length ? ' · 모두 전송됨' : '')
     : '이름을 선택하세요';
   $('send').disabled = !S.name;
+}
+
+// ── 날짜 보기: 주간 띠 ↔ 월 달력 ──
+const REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SPRING = 'cubic-bezier(.34,1.56,.64,1)';          // 끝에서 살짝 튕김 (띠용)
+let calOpen = false, calMonth = new Date(cur.getFullYear(), cur.getMonth(), 1);
+
+function dayCell(d, cls){
+  const k = ymd(d), c = [cls];
+  if (k === ymd(cur)) c.push('sel');
+  if (k === ymd(new Date())) c.push('today');
+  return `<button data-d="${k}" class="${c.join(' ')}"><b class="${d.getDay() === 0 ? 'sun' : ''}">${d.getDate()}</b><span class="dot ${S.name ? status(k) : ''}"></span></button>`;
+}
+function dviewHTML(){
+  if (!calOpen) {
+    const ws = weekStart(cur);
+    return `<div class="strip">` + [...Array(7)].map((_, i) => {
+      const d = addDays(ws, i), k = ymd(d);
+      return `<button data-d="${k}" class="${k === ymd(cur) ? 'sel' : ''}">
+        <span class="${d.getDay() === 0 ? 'sun' : ''}">${DAYS[d.getDay()]}</span><b>${d.getDate()}</b>
+        <span class="dot ${S.name ? status(k) : ''}"></span></button>`;
+    }).join('') + `</div>`;
+  }
+  const first = calMonth, start = weekStart(first);
+  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
+  const weeks = Math.ceil(((first.getDay() + 6) % 7 + last.getDate()) / 7);
+  let cells = ['월','화','수','목','금','토','일'].map(w => `<div class="wd ${w === '일' ? 'sun' : ''}">${w}</div>`).join('');
+  for (let i = 0; i < weeks * 7; i++) {
+    const d = addDays(start, i);
+    cells += d.getMonth() === first.getMonth() ? dayCell(d, '') : '<div></div>';
+  }
+  return `<div class="calhead"><button data-m="-1">◀</button><b>${first.getFullYear()}년 ${first.getMonth()+1}월</b><button data-m="1">▶</button></div><div class="calgrid">${cells}</div>`;
+}
+// 내용을 바꾸면서 높이를 스프링으로 늘이거나 줄임
+function morphDview(change){
+  const box = $('dview'), from = box.offsetHeight;
+  change(); render();
+  if (REDUCE) return;
+  const to = box.scrollHeight;
+  box.style.transition = 'none'; box.style.height = from + 'px';
+  box.offsetHeight;   // 강제 리플로우
+  box.style.transition = `height .6s ${SPRING}`;
+  box.style.height = to + 'px';
+  clearTimeout(box._t); box._t = setTimeout(() => { box.style.transition = ''; box.style.height = ''; }, 650);
+}
+
+// ── 시간표: 7칸 창 ──
+const PAGES = [0, 7, 10];   // 06–13, 13–20, 16–23
+const STEP = 50;            // 칸 높이 46 + 간격 4
+let hp = 0;
+function pageOf(i){ return i < 7 ? 0 : i < 14 ? 1 : 2; }
+function setHourPage(p, animate){
+  hp = Math.max(0, Math.min(PAGES.length - 1, p));
+  const el = $('hours');
+  el.style.transition = (animate && !REDUCE) ? `transform .55s cubic-bezier(.55,0,.25,1.35)` : 'none';
+  el.style.transform = `translateY(${-PAGES[hp] * STEP}px)`;
+  updateHnav();
+}
+function updateHnav(){
+  const day = dayData(ymd(cur)) || {}, top = PAGES[hp];
+  let up = 0, down = 0;
+  HOURS.forEach((h, i) => { if (day[hourLabel(h)]) { if (i < top) up++; else if (i >= top + 7) down++; } });
+  $('hUp').disabled = hp === 0; $('hDown').disabled = hp === PAGES.length - 1;
+  $('moreUp').textContent = up ? `위 ${up}칸 입력됨` : '';
+  $('moreDown').textContent = down ? `아래 ${down}칸 입력됨` : '';
+}
+function autoPage(){
+  const day = dayData(ymd(cur)) || {};
+  const firstFilled = HOURS.findIndex(h => day[hourLabel(h)]);
+  if (firstFilled >= 0) return pageOf(firstFilled);
+  if (ymd(cur) === ymd(new Date())) return pageOf(Math.max(0, Math.min(16, new Date().getHours() - 6)));
+  return 0;
+}
+function goDate(d){
+  cur = d; calMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+  render(); setHourPage(autoPage(), false);
 }
 
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -299,10 +390,28 @@ $('btnReg').onclick = async () => {
     S.names = j.names; S.name = n; save(); render(); toast(`${n} 등록 완료`);
   } catch(e) { toast('연결에 실패했습니다. 잠시 후 다시 시도하세요.'); }
 };
-$('prev').onclick = () => { cur = addDays(cur, -1); render(); };
-$('next').onclick = () => { cur = addDays(cur, 1); render(); };
-$('datePick').onchange = e => { if (e.target.value) { cur = parse(e.target.value); render(); } };
-$('strip').onclick = e => { const b = e.target.closest('button'); if (b) { cur = parse(b.dataset.d); render(); } };
+$('prev').onclick = () => goDate(addDays(cur, -1));
+$('next').onclick = () => goDate(addDays(cur, 1));
+$('datePick').onchange = e => { if (e.target.value) goDate(parse(e.target.value)); };
+$('dview').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.m) return morphDview(() => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + Number(b.dataset.m), 1); });
+  const d = parse(b.dataset.d);
+  if (calOpen) morphDview(() => { calOpen = false; cur = d; });
+  goDate(d);
+};
+$('calToggle').onclick = () => morphDview(() => { calOpen = !calOpen; calMonth = new Date(cur.getFullYear(), cur.getMonth(), 1); });
+
+$('hUp').onclick = () => setHourPage(hp - 1, true);
+$('hDown').onclick = () => setHourPage(hp + 1, true);
+let ty = null, swiped = false;
+$('hwin').addEventListener('touchstart', e => { ty = e.touches[0].clientY; swiped = false; }, {passive:true});
+$('hwin').addEventListener('touchend', e => {
+  if (ty === null) return;
+  const dy = e.changedTouches[0].clientY - ty; ty = null;
+  if (Math.abs(dy) > 40) { swiped = true; setHourPage(hp + (dy < 0 ? 1 : -1), true); }
+});
+$('hwin').addEventListener('click', e => { if (swiped) { e.stopPropagation(); e.preventDefault(); swiped = false; } }, true);
 
 $('chips').onclick = async e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -363,6 +472,7 @@ $('send').onclick = async () => {
 
 loadLists().then(render);
 render();
+setHourPage(autoPage(), false);
 </script>
 </body>
 </html>
