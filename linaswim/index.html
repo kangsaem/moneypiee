@@ -59,7 +59,8 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .dc.sel{background:var(--accent);opacity:1}
 .dc.sel .d,.dc.sel .d small,.dc.sel .r,.dc.sel.today .d::after{color:#fff}
 .dot{width:7px;height:7px;border-radius:2px;background:transparent;display:inline-block}
-.dot.sent{background:var(--ok)} .dot.unsent{background:var(--pink)}
+.dot.unsent{background:var(--pink)}
+.dot.sent{width:16px;height:16px;border-radius:50%;background:var(--ok) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.3l2.6 2.6L12 5.5' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% no-repeat;vertical-align:middle}   /* 전송됨: 초록 원 + 흰 체크 */
 .dc.sel .dot.sent,.dc.sel .dot.unsent{outline:1.5px solid #fff}
 .hc .t{color:var(--sub);font-size:14px}
 .hc .t small,.hrs small{font-size:11px;margin-left:1px;opacity:.85}
@@ -84,7 +85,8 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
 
 /* 전송 바 */
-.sendbar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid #94A3B8;padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:10}
+.sendbar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);padding:0 16px calc(10px + env(safe-area-inset-bottom));z-index:10}
+.sendbar .line{max-width:520px;margin:0 auto 10px;border-top:1px solid #94A3B8}   /* 버튼 폭만큼만 */
 .sendbar .in{max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .seg{display:flex;gap:6px}
 .seg button{width:64px;padding:9px 0}
@@ -140,6 +142,7 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 </div>
 
 <div class="sendbar">
+  <div class="line"></div>
   <div class="in">
     <div class="seg" id="seg"><button data-r="day">하루</button><button data-r="week">주간</button><button data-r="month">월간</button></div>
     <button class="pink" id="send">전송</button>
