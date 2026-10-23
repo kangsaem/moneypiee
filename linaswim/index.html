@@ -187,9 +187,10 @@ function weekStart(d){ const x = new Date(d); x.setDate(x.getDate() - (x.getDay(
 function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-function defaults(){ return {name:'', drafts:{}, sent:{}, names:[], tasks:['강습','안전']}; }
+function defaults(){ return {name:'', myNames:[], drafts:{}, sent:{}, names:[], tasks:['강습','안전']}; }
 let S = (() => { try { const v = JSON.parse(localStorage.getItem(LS)); if (v) return Object.assign(defaults(), v); } catch(e){} return defaults(); })();
 function save(){ try { const {range, ...rest} = S; localStorage.setItem(LS, JSON.stringify(rest)); } catch(e){} }
+if (S.name && !S.myNames.includes(S.name)) S.myNames.push(S.name);
 S.range = null;        // 하루/주간/월간: 열 때마다 선택 없음
 
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
@@ -278,11 +279,13 @@ function renderWho(){
   if (S.name) {
     $('who').innerHTML = `<div class="row" style="justify-content:space-between"><div class="me">${esc(S.name)} 님</div><button class="link" id="unlink">이름 변경</button></div>`;
   } else {
-    const names = [...S.names].sort((a,b) => a.localeCompare(b, 'ko'));
-    $('who').innerHTML = `<div class="ctitle" style="margin-bottom:2px">이 휴대폰에서 사용할 이름을 고르세요</div>
-      <div class="sub">한 번 고르면 이 휴대폰은 그 이름으로만 기록합니다.</div>
-      <div class="namelist">${names.map(n => `<button data-n="${esc(n)}">${esc(n)}</button>`).join('') || '<span class="sub">등록된 이름이 없습니다.</span>'}</div>
-      <button class="acc" id="btnReg" style="width:100%">+ 새 이름 등록</button>`;
+    // 이 휴대폰에서 쓴 적 있는 이름만 버튼으로 보여주고, 나머지는 직접 입력
+    const mine = (S.myNames || []).filter(n => S.names.includes(n));
+    $('who').innerHTML = `<div class="ctitle" style="margin-bottom:2px">이 휴대폰에서 사용할 이름</div>
+      <div class="sub">한 번 정하면 이 휴대폰은 그 이름으로만 기록합니다.</div>
+      ${mine.length ? `<div class="namelist">${mine.map(n => `<button data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+      <div class="row" style="margin-top:8px"><input id="nameIn" maxlength="20" autocomplete="off" placeholder="이름 입력 (예: 홍길동)"><button class="acc" id="nameGo">확인</button></div>`;
+    $('nameIn').onkeydown = e => { if (e.key === 'Enter') $('nameGo').click(); };
   }
 }
 function renderChips(){
@@ -434,7 +437,7 @@ function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add(
 // ── 이벤트 ──
 async function claim(n){
   if (!await confirmBox('이름 선택', `이 휴대폰을 '${esc(n)}' 이름으로 사용할까요?`)) return;
-  S.name = n; save(); renderAll(); focusHours(false);
+  S.name = n; S.myNames = [...new Set([...(S.myNames || []), n])]; save(); renderAll(); focusHours(false);
 }
 $('who').onclick = async e => {
   const b = e.target.closest('button'); if (!b) return;
@@ -443,14 +446,15 @@ $('who').onclick = async e => {
     if (!await confirmBox('이름 변경', `이 휴대폰의 '${esc(S.name)}' 연결을 해제할까요?\n작성한 기록은 남아 있고, 같은 이름을 다시 고르면 보입니다.`, '해제')) return;
     S.name = ''; S.range = null; save(); renderAll(); return;
   }
-  if (b.id === 'btnReg') {
-    const n = await askBox('새 이름 등록', '예: 홍길동');
-    if (!n) return;
+  if (b.id === 'nameGo') {
+    const n = $('nameIn').value.trim().replace(/\s+/g, ' ');
+    if (!n) return toast('이름을 입력하세요.');
     if (S.names.includes(n)) return claim(n);
+    if (!await confirmBox('새 이름 등록', `'${esc(n)}'은(는) 아직 명단에 없습니다.\n새 이름으로 등록할까요?\n이미 등록했다면 띄어쓰기와 철자를 확인하세요.`, '등록')) return;
     try {
       const j = await api('register', {name:n});
       if (!j.ok) return toast(j.error || '등록하지 못했습니다.');
-      S.names = j.names; save(); renderWho(); toast(`${n} 등록 완료`); claim(n);
+      S.names = j.names; save(); toast(`${n} 등록 완료`); claim(n);
     } catch(e) { toast('연결에 실패했습니다. 잠시 후 다시 시도하세요.'); }
   }
 };
