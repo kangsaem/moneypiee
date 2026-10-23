@@ -26,6 +26,7 @@
   - 원리: 다시 보지 않기 = 파일 내용 SHA-256을 localStorage(notice.html → moneypie_notice_html_dismissed_hash)에 저장 → 내용이 한 글자라도 바뀌면 다시 뜸.
   - 자동 팝업은 notice.html뿐. notice.png(moneypie_notice_dismissed_hash, 그림 파일)는 주석을 넣을 수 없어 대상 아님(다시 띄우려면 그림을 바꿔 올려야 함).
   - Logic V1 안내창·종목추가 가이드·매뉴얼·환영창은 '봤음' 표시만 저장 → 이 명령으로 다시 뜨지 않음.
+  - 그림 공지(notice.png)·Logic V1 안내창은 대상에서 빼도 됨(사용자 2026-10-23) → 따로 다시 띄우는 기능 만들지 않음.
 
 ## 무엇을 하는 프로젝트인가
 - 저장소: `kangsaem/moneypier` (루트에 파일 업로드, 워크플로는 `.github/workflows/daily.yml`)
