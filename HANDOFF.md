@@ -17,6 +17,16 @@
 - 실전 기록(live.py, 2026-10-12~) = V1대로 사고판 결과 → V2 수정 때 근거. 단 사용자가 고른 종목 범위 안의 기록(무작위 시험과 다름, 표본 작음).
 - '최적' 같은 표현은 사용자의 뜻(예: 보유를 가장 가깝게 따라간 종목 수 20~30개 = V1에 최적화된 개수)을 따름.
 
+## ★ 사용자 명령어 (머니파이, 이 말이 나오면 확인 없이 바로 실행)
+- **'공지 리프레시'** (2026-10-23 정함): '다시 보지 않기'를 누른 사람에게도 공지가 다시 뜨게 함.
+  1. moneypiee 루트의 notice.html + notice-*.html + notice버핏신데렐라.html(이름이 notice로 시작하는 .html 전부)
+  2. 각 파일 맨 끝(`</html>` 뒤)의 주석 `<!-- 수정 YYYY-MM-DD -->`를 오늘 날짜(KST)로 바꿈. 없으면 새로 넣음. 화면에는 안 보임.
+     같은 날 두 번째부터는 날짜가 같아 내용이 안 바뀜 → `<!-- 수정 YYYY-MM-DD HH:MM -->`처럼 시각까지 넣음.
+  3. main에 커밋·푸시('공지 리프레시 YYYY-MM-DD'), 이 파일 아래 기록에 한 줄. Pages 반영 1~2분.
+  - 원리: 다시 보지 않기 = 파일 내용 SHA-256을 localStorage(notice.html → moneypie_notice_html_dismissed_hash)에 저장 → 내용이 한 글자라도 바뀌면 다시 뜸.
+  - 자동 팝업은 notice.html뿐. notice.png(moneypie_notice_dismissed_hash, 그림 파일)는 주석을 넣을 수 없어 대상 아님(다시 띄우려면 그림을 바꿔 올려야 함).
+  - Logic V1 안내창·종목추가 가이드·매뉴얼·환영창은 '봤음' 표시만 저장 → 이 명령으로 다시 뜨지 않음.
+
 ## 무엇을 하는 프로젝트인가
 - 저장소: `kangsaem/moneypier` (루트에 파일 업로드, 워크플로는 `.github/workflows/daily.yml`)
 - 내 보유종목(머니파이 localStorage)을 `tickers.json`으로 동기화(북마클릿) → GitHub Actions가 하루 2번
@@ -1158,3 +1168,4 @@
 - 09:50 공지 다시 보이게(사용자): notice.html + notice-*.html·notice버핏신데렐라.html 18개 맨 끝(</html> 뒤)에 화면에 안 보이는 주석 `<!-- 수정 2026-10-23 -->`.
   '다시 보지 않기'는 파일 내용 SHA-256을 저장(moneypie_notice_html_dismissed_hash)하므로 내용이 바뀌면 이미 끈 사람에게도 다시 뜸. 다시 띄우려면 이 날짜만 바꾸면 됨.
   자동 팝업으로 뜨는 건 notice.html(·notice.png)뿐, notice-*.html은 칩·버튼으로 여는 공지(anNoticeOpen, 다시 보지 않기 없음) — 나중에 notice.html로 복사해 쓸 때 날짜가 같이 따라감.
+- 09:55 '공지 리프레시' 명령 정함(맨 위 '★ 사용자 명령어' 참고). 첫 실행 = 09:50 작업(수정 2026-10-23).
