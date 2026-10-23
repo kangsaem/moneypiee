@@ -175,6 +175,8 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .donut-wrap-xxl{width:208px;height:208px;margin:0 auto;}
   @media(max-width:640px){.donut-wrap-xxl{width:299px;height:299px;}}
   .stock-donut-center-label{font-size:11px;}
+  /* 섹터·지역 팝업(모바일): 화면 높이 80%까지, 넘치면 안에서 스크롤 */
+  @media(max-width:640px){.floating-acc.chart-acc{max-height:80vh;display:flex;flex-direction:column;} .floating-acc.chart-acc .acc-header{flex-shrink:0;} .floating-acc.chart-acc .acc-body{overflow-y:auto;min-height:0;flex:1 1 auto;}}
   @media(max-width:640px){.stock-donut-center-label{font-size:16px;}}
   .mkt-card{
     /* PC: 남는 폭을 카드들이 나눠 가져 한 줄을 꽉 채움 / 모바일: 최소 폭 유지 + 가로 스크롤 */
@@ -2780,9 +2782,11 @@ function sortStockData(data, mode){
 
 // 팝업 아코디언을 화면 스크롤에 영향받지 않도록 fixed로 배치할 때 쓰는 초기 좌표.
 // triggerEl이 있으면 그 바로 아래에, 없으면 화면 중앙에 둔다.
+// 모바일(폭 640px 이하): 섹터·지역 팝업은 항상 화면 중앙(fixed라 스크롤해도 그 자리)
+function isMobileChartAcc(){ return window.innerWidth <= 640; }
 function fixedAccordionStyleNear(triggerEl, width){
   width = width || 240;
-  if(triggerEl){
+  if(triggerEl && !isMobileChartAcc()){
     const rect = triggerEl.getBoundingClientRect();
     let top = rect.bottom + 4;
     let left = rect.left + rect.width/2 - width/2;
@@ -3274,6 +3278,60 @@ let sectorAccordionOpenIdx = null;
 let sectorAccordionOrdered = [];
 let sectorAccordionShowRegionBar = true;
 
+// 섹터·지역 팝업 비중 기준: 'in' = 섹터(지역) 안에서 / 'total' = 지금 탭 전체자산(현금 포함) 대비.
+// 팝업을 탭하면 전환, 다른 섹터로 넘겨도 유지, 팝업을 닫거나 탭을 옮기면 'in'으로.
+let sectorAccPctMode = 'in';
+let regionAccPctMode = 'in';
+function accPctModeText(kind, mode){
+  return mode === 'total' ? '전체 대비' : (kind === 'sector' ? '섹터 내' : '지역 내');
+}
+function accPctModeLabelHTML(kind, mode){
+  return `<span data-pct-mode-label style="font-size:10px;color:#777777;display:flex;align-items:center;padding-left:4px;white-space:nowrap;">${accPctModeText(kind, mode)}</span>`;
+}
+function accPctRowsHTML(rowsIn, rowsTotal, mode){
+  return `<div data-pct-rows="in"${mode === 'in' ? '' : ' style="display:none;"'}>${rowsIn}</div><div data-pct-rows="total"${mode === 'total' ? '' : ' style="display:none;"'}>${rowsTotal}</div>`;
+}
+function applyAccPctMode(accEl, kind, mode){
+  if(!accEl) return;
+  accEl.querySelectorAll('[data-pct-rows]').forEach(r => { r.style.display = (r.dataset.pctRows === mode) ? '' : 'none'; });
+  const lab = accEl.querySelector('[data-pct-mode-label]');
+  if(lab) lab.textContent = accPctModeText(kind, mode);
+}
+// 끌기와 구분: 누른 곳에서 8px 안에서 떼면 탭. 버튼(×)은 제외. 목록 스크롤(pointercancel)도 제외.
+function bindAccPctToggle(accEl, kind){
+  if(!accEl || !accEl.querySelector('[data-pct-rows]')) return;
+  let sx = null, sy = null;
+  accEl.addEventListener('pointerdown', (e) => {
+    if(e.target.closest('[data-acc-close],button,textarea,input,select,a')){ sx = null; return; }
+    sx = e.clientX; sy = e.clientY;
+  });
+  accEl.addEventListener('pointercancel', () => { sx = null; });
+  accEl.addEventListener('pointerup', (e) => {
+    if(sx === null) return;
+    const moved = Math.hypot(e.clientX - sx, e.clientY - sy);
+    sx = null;
+    if(moved > 8) return;
+    if(kind === 'sector'){
+      sectorAccPctMode = sectorAccPctMode === 'in' ? 'total' : 'in';
+      applyAccPctMode(accEl, kind, sectorAccPctMode);
+    } else {
+      regionAccPctMode = regionAccPctMode === 'in' ? 'total' : 'in';
+      applyAccPctMode(accEl, kind, regionAccPctMode);
+    }
+  });
+}
+// 모바일: 옮긴 위치가 화면 밖이면 안으로 당김
+function clampChartAccIntoView(accEl){
+  if(!accEl || !isMobileChartAcc()) return;
+  if(accEl.style.transform && accEl.style.transform !== 'none') return;
+  const r = accEl.getBoundingClientRect();
+  let left = r.left, top = r.top;
+  left = Math.max(8, Math.min(left, window.innerWidth - r.width - 8));
+  top = Math.max(8, Math.min(top, window.innerHeight - r.height - 8));
+  if(left !== r.left) accEl.style.left = left + 'px';
+  if(top !== r.top) accEl.style.top = top + 'px';
+}
+
 function accordionRowHTML(label, pct){
   const name = label === '현금' ? '현금' : escapeHTML(label);
   return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0;font-size:12px;color:#333333;border-bottom:1px solid #C9C9C9;min-width:0;">
@@ -3529,6 +3587,7 @@ function closeOrphanSectorAccordion(){
   sectorAccordionOpenLabel = null;
   sectorAccordionOpenIdx = null;
   rememberedSectorAccordion = null;
+  sectorAccPctMode = 'in';
 }
 function closeOrphanRegionAccordion(){
   lastClosedRegionPos = captureCurrentRegionPos() || lastClosedRegionPos;
@@ -3536,6 +3595,7 @@ function closeOrphanRegionAccordion(){
   if(slot) slot.innerHTML = '';
   regionAccordionOpenIdx = null;
   rememberedRegionAccordion = null;
+  regionAccPctMode = 'in';
 }
 
 // 필터 결과에 해당 섹터가 없을 때, 닫지 않고 "해당 섹터 없음" 팝업을 같은 위치에 유지
@@ -3549,7 +3609,7 @@ function showOrphanSectorAccordion(label, pos){
     ? `position:fixed;left:${pos.left};top:${pos.top};transform:none;margin:0;`
     : 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);';
   const z = (pos && pos.zIndex) ? pos.zIndex : (++accordionZIndexCounter);
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${z};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc chart-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${z};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
       <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">0</span>
@@ -3583,7 +3643,7 @@ function showOrphanRegionAccordion(label, pos){
     ? `position:fixed;left:${pos.left};top:${pos.top};transform:none;margin:0;`
     : 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);';
   const z = (pos && pos.zIndex) ? pos.zIndex : (++accordionZIndexCounter);
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${z};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc chart-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${z};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
       <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">0</span>
@@ -3612,13 +3672,19 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
     ? `<div style="margin-bottom:8px;"><div style="border-radius:4px;overflow:hidden;position:relative;">${greenBarWithLabelHTML(regionBreakdown, 220, 14)}</div></div>`
     : '';
   const breakdown = reorderCashFirst(computeWeights(holdings, 'name'));
-  const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
+  const sectorGrandTotal = _.sumBy(sectorAccordionHoldings, 'amount');
+  const rows = breakdown.length
+    ? accPctRowsHTML(
+        breakdown.map(d => accordionRowHTML(d.label, d.pct)).join(''),
+        breakdown.map(d => accordionRowHTML(d.label, sectorGrandTotal ? d.amount / sectorGrandTotal * 100 : 0)).join(''),
+        sectorAccPctMode)
+    : '';
   const sectorTotalAmount = _.sumBy(holdings, 'amount');
   const sectorFixedPos = fixedAccordionStyleNear(triggerEl, 240);
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${sectorFixedPos}z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc chart-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${sectorFixedPos}z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
       <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
-      <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">${sectorTotalAmount.toLocaleString()}</span>
+      <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">${sectorTotalAmount.toLocaleString()}</span>${rows ? accPctModeLabelHTML('sector', sectorAccPctMode) : ''}
       <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
     <div class="acc-body" style="padding:8px 12px;">
@@ -3630,6 +3696,7 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
   const orphanSec = document.getElementById('orphan-sector-slot');
   if(orphanSec) orphanSec.innerHTML = '';
   makeAccordionDraggable(slot.querySelector('.floating-acc'));
+  bindAccPctToggle(slot.querySelector('.floating-acc'), 'sector');
   const closeBtn = slot.querySelector('[data-acc-close]');
   if(closeBtn) closeBtn.addEventListener('click', () => triggerEl.click());
   sectorAccordionOpenIdx = idx;
@@ -3637,15 +3704,19 @@ function renderSectorBreakdown(label, slot, triggerEl, idx){
   // 이전에 같은 섹터를 열어 둔 위치가 있으면 그곳으로 복원
   // pending이 있으면(전환) 무조건 그 위치. 없으면 같은 라벨의 기억 위치만 사용(최초 오픈은 트리거 근처)
   // pending(전환) > 최근 닫힌 위치 > 같은 라벨 기억 위치. 모두 없으면 클릭 목록 근처(초기 HTML)
-  const sectorPosToApply = pendingSectorAccordionPos
-    || lastClosedSectorPos
-    || (rememberedSectorAccordion && rememberedSectorAccordion.label === label && rememberedSectorAccordion.pos)
-    || null;
+  // 모바일: 새로 열 때는 항상 중앙(닫힌 위치·기억 위치 안 씀), 열린 채 넘길 때만 지금 위치 유지
+  const sectorPosToApply = isMobileChartAcc()
+    ? (pendingSectorAccordionPos || null)
+    : (pendingSectorAccordionPos
+      || lastClosedSectorPos
+      || (rememberedSectorAccordion && rememberedSectorAccordion.label === label && rememberedSectorAccordion.pos)
+      || null);
   pendingSectorAccordionPos = null;
   if(sectorPosToApply){
     applyAccordionPos(`#sector-slot-${idx} .floating-acc`, sectorPosToApply);
     rememberedSectorAccordion = { label, pos: sectorPosToApply };
   }
+  clampChartAccIntoView(slot.querySelector('.floating-acc'));
   rememberOpenSectorPos(label);
   highlightChartSlice(triggerEl, idx, 'decorative-sector');
   const centerLabelEl2 = document.getElementById('sector-center-label');
@@ -3678,6 +3749,7 @@ function bindSectorAccordionHandlers(){
         sectorAccordionOpenLabel = null;
         rememberedSectorAccordion = null;
         pendingSectorAccordionPos = null;
+        sectorAccPctMode = 'in';
         clearChartHighlight(el, 'decorative-sector');
         const centerLabelEl = document.getElementById('sector-center-label');
         if(centerLabelEl) centerLabelEl.textContent = '섹터';
@@ -3768,6 +3840,7 @@ function lockedRegionDonutBlock(region, holdings){
   lockedRegionAccordionCashLabel = cashLabel;
   lockedRegionAccordionRegionLabel = region === 'domestic' ? '국내투자' : '해외투자';
   lockedRegionAccordionPlainLabel = label;
+  lockedRegionAccordionGrandTotal = grandTotalRaw;
   lockedRegionAccordionCashAmount = region === 'domestic' ? quad.krwCash : quad.foreignCash;
   lockedRegionAccordionInvestAmount = region === 'domestic' ? quad.domesticInvest : quad.overseasInvest;
   const legendHtml = `<div class="legend">${legendData.map(d => {
@@ -3790,6 +3863,7 @@ function toggleLockedRegionAccordion(){
     lockedRegionAccordionOpen = false;
     rememberedRegionAccordion = null;
     pendingRegionAccordionPos = null;
+    regionAccPctMode = 'in';
     return;
   }
   // 중복 방지: orphan 지역 팝업이 있으면 제거 (국내/해외는 locked 하나만)
@@ -3801,27 +3875,32 @@ function toggleLockedRegionAccordion(){
     const sum = lockedRegionAccordionCashAmount + lockedRegionAccordionInvestAmount;
     const cashPct = lockedRegionAccordionCashAmount / sum * 100;
     const investPct = lockedRegionAccordionInvestAmount / sum * 100;
-    bodyHtml = [
-      accordionRowHTML(lockedRegionAccordionCashLabel, cashPct),
-      accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)
-    ].join('');
+    const g = lockedRegionAccordionGrandTotal || sum;
+    bodyHtml = accPctRowsHTML(
+      [accordionRowHTML(lockedRegionAccordionCashLabel, cashPct),
+       accordionRowHTML(lockedRegionAccordionRegionLabel, investPct)].join(''),
+      [accordionRowHTML(lockedRegionAccordionCashLabel, lockedRegionAccordionCashAmount / g * 100),
+       accordionRowHTML(lockedRegionAccordionRegionLabel, lockedRegionAccordionInvestAmount / g * 100)].join(''),
+      regionAccPctMode);
   } else {
     bodyHtml = '<div class="empty" style="padding:12px 0;text-align:center;color:#777777;font-size:13px;">해당 지역 없음</div>';
   }
   const lockedTrigger = document.querySelector('[data-locked-region-toggle]');
   const lockedFixedPos = fixedAccordionStyleNear(lockedTrigger, 220);
   // 전환/필터 시 위치 유지
-  const posToApply = pendingRegionAccordionPos
-    || lastClosedRegionPos
-    || (rememberedRegionAccordion && rememberedRegionAccordion.label === lockedRegionAccordionPlainLabel && rememberedRegionAccordion.pos)
-    || null;
+  const posToApply = isMobileChartAcc()
+    ? (pendingRegionAccordionPos || null)
+    : (pendingRegionAccordionPos
+      || lastClosedRegionPos
+      || (rememberedRegionAccordion && rememberedRegionAccordion.label === lockedRegionAccordionPlainLabel && rememberedRegionAccordion.pos)
+      || null);
   pendingRegionAccordionPos = null;
   const posStyle = posToApply
     ? `position:fixed;left:${posToApply.left};top:${posToApply.top};transform:none;margin:0;`
     : lockedFixedPos;
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:220px;${posStyle}z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc chart-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:220px;${posStyle}z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
-      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(lockedRegionAccordionPlainLabel)}</span>
+      <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(lockedRegionAccordionPlainLabel)}</span>${hasData ? accPctModeLabelHTML('region', regionAccPctMode) : ''}
       <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
     </div>
     <div class="acc-body" style="padding:8px 12px;">
@@ -3832,6 +3911,8 @@ function toggleLockedRegionAccordion(){
   if(posToApply){
     applyAccordionPos('#locked-region-slot .floating-acc', posToApply);
   }
+  bindAccPctToggle(slot.querySelector('.floating-acc'), 'region');
+  clampChartAccIntoView(slot.querySelector('.floating-acc'));
   const lockedRegionCloseBtn = slot.querySelector('[data-acc-close]');
   if(lockedRegionCloseBtn) lockedRegionCloseBtn.addEventListener('click', () => toggleLockedRegionAccordion());
   lockedRegionAccordionOpen = true;
@@ -3910,6 +3991,7 @@ function bindRegionAccordionHandlers(){
         regionAccordionOpenIdx = null;
         rememberedRegionAccordion = null;
         pendingRegionAccordionPos = null;
+        regionAccPctMode = 'in';
         clearRegionGroupHighlight(el);
         const centerLabelEl = document.getElementById('region-center-label');
         if(centerLabelEl) centerLabelEl.textContent = '지역';
@@ -3930,13 +4012,19 @@ function bindRegionAccordionHandlers(){
       const cashLabel = group === 'domestic' ? '원화' : '외화';
       const relabeledHoldings = holdings.map(h => isCashHolding(h) ? { ...h, group: cashLabel } : h);
       const breakdown = reorderCashFirst(computeWeights(relabeledHoldings, 'group'));
-      const rows = breakdown.map(d => accordionRowHTML(d.label, d.pct)).join('');
+      const regionGrandTotal = _.sumBy(regionAccordionHoldings, 'amount');
+      const rows = breakdown.length
+        ? accPctRowsHTML(
+            breakdown.map(d => accordionRowHTML(d.label, d.pct)).join(''),
+            breakdown.map(d => accordionRowHTML(d.label, regionGrandTotal ? d.amount / regionGrandTotal * 100 : 0)).join(''),
+            regionAccPctMode)
+        : '';
       const regionTotalAmount = _.sumBy(holdings, 'amount');
       const regionFixedPos = fixedAccordionStyleNear(el, 240);
-      slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${regionFixedPos}z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+      slot.innerHTML = `<div class="floating-acc chart-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${regionFixedPos}z-index:${++accordionZIndexCounter};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
         <div class="acc-header" style="background:#C9C9C9;padding:0 0 0 12px;display:flex;align-items:stretch;height:26px;">
           <span style="font-size:13px;font-weight:700;color:#333333;display:flex;align-items:center;">${escapeHTML(label)}</span>
-          <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">${regionTotalAmount.toLocaleString()}</span>
+          <span class="num" style="font-size:11px;color:#555555;display:flex;align-items:center;justify-content:center;flex:1;">${regionTotalAmount.toLocaleString()}</span>${rows ? accPctModeLabelHTML('region', regionAccPctMode) : ''}
           <span class="drag-grip-icon" style="margin-left:auto;padding:0 8px;color:#999999;font-size:13px;letter-spacing:-2px;user-select:none;pointer-events:none;display:flex;align-items:center;">⠿</span><button data-acc-close style="width:26px;height:100%;background:#E87BA4;border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&times;</button>
         </div>
         <div class="acc-body" style="padding:8px 12px;">
@@ -3944,21 +4032,25 @@ function bindRegionAccordionHandlers(){
         </div>
       </div>`;
       makeAccordionDraggable(slot.querySelector('.floating-acc'));
+      bindAccPctToggle(slot.querySelector('.floating-acc'), 'region');
       const regionCloseBtn = slot.querySelector('[data-acc-close]');
       if(regionCloseBtn) regionCloseBtn.addEventListener('click', () => el.click());
       regionAccordionOpenIdx = idx;
       highlightRegionGroup(el, group);
       const centerLabelEl2 = document.getElementById('region-center-label');
       if(centerLabelEl2) centerLabelEl2.textContent = label;
-      const regionPosToApply = pendingRegionAccordionPos
-        || lastClosedRegionPos
-        || (rememberedRegionAccordion && rememberedRegionAccordion.label === label && rememberedRegionAccordion.pos)
-        || null;
+      const regionPosToApply = isMobileChartAcc()
+        ? (pendingRegionAccordionPos || null)
+        : (pendingRegionAccordionPos
+          || lastClosedRegionPos
+          || (rememberedRegionAccordion && rememberedRegionAccordion.label === label && rememberedRegionAccordion.pos)
+          || null);
       pendingRegionAccordionPos = null;
       if(regionPosToApply){
         applyAccordionPos(`#region-slot-${idx} .floating-acc`, regionPosToApply);
         rememberedRegionAccordion = { label, pos: regionPosToApply };
       }
+      clampChartAccIntoView(slot.querySelector('.floating-acc'));
       rememberOpenRegionPos(label);
     });
   });
@@ -4843,6 +4935,7 @@ let lockedRegionAccordionCashLabel = '원화';
 let lockedRegionAccordionRegionLabel = '국내';
 let lockedRegionAccordionPlainLabel = '국내';
 let lockedRegionAccordionCashAmount = 0;
+let lockedRegionAccordionGrandTotal = 0; // 지역 팝업 '전체 대비' 분모(현금 포함 전체)
 let lockedRegionAccordionInvestAmount = 0;
 
 function openTrendAccordionRow(rowId){
@@ -5091,6 +5184,8 @@ function switchTab(id){
   lastClosedRegionPos = null;
   pendingSectorAccordionPos = null;
   pendingRegionAccordionPos = null;
+  sectorAccPctMode = 'in';
+  regionAccPctMode = 'in';
   const _os = document.getElementById('orphan-sector-slot'); if(_os) _os.innerHTML = '';
   const _or = document.getElementById('orphan-region-slot'); if(_or) _or.innerHTML = '';
   // 현금비중 평가액 팝업은 탭 이동 시 닫는다 (닫기 버튼으로만 닫힘, 다른 이벤트로는 유지)
@@ -5494,7 +5589,7 @@ function renderMemoBox(snapId, zIndexOverride){
   const memoIdx = sortedSnapsMemo.findIndex(s => s.id === snapId);
   const canPrevMemo = memoIdx > 0;
   const canNextMemo = memoIdx >= 0 && memoIdx < sortedSnapsMemo.length - 1;
-  slot.innerHTML = `<div class="floating-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${zIndex};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
+  slot.innerHTML = `<div class="floating-acc chart-acc" style="background:#EDEDED;color:#333333;border-radius:6px;text-align:left;box-sizing:border-box;width:240px;${posStyle}z-index:${zIndex};box-shadow:0 4px 12px rgba(0,0,0,0.4);cursor:grab;overflow:hidden;">
     <div class="acc-header" style="background:#C9C9C9;display:flex;align-items:stretch;height:26px;flex-shrink:0;cursor:grab;">
       <button data-memonav="-1" ${canPrevMemo?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canPrevMemo?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canPrevMemo?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">‹</button>
       <button data-memonav="1" ${canNextMemo?'':'disabled'} style="width:26px;height:100%;background:#4FC3F7;opacity:${canNextMemo?1:0};border:none;border-radius:0;color:#EDEDED;font-size:15px;font-weight:700;line-height:1;cursor:${canNextMemo?'pointer':'default'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">›</button>
