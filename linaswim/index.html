@@ -41,7 +41,7 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 
 /* 날짜·시간 상자 */
 .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:10px}
-.box{background:var(--box);border-radius:var(--r);padding:6px;height:clamp(320px,calc(100vh - 330px),540px);
+.box{background:var(--box);border-radius:var(--r);padding:6px;height:308px;   /* 카드 6칸: 46×6 + 4×5 + 여백 12 */
   overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none;position:relative}
 .box::-webkit-scrollbar{display:none}
 .list{display:flex;flex-direction:column;gap:4px}
@@ -59,6 +59,8 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
 .dot.sent{background:var(--ok)} .dot.unsent{background:var(--warn)}
 .dc.sel .dot.sent,.dc.sel .dot.unsent{outline:1.5px solid #fff}
 .hc .t{color:var(--sub);font-size:14px}
+.hc .t small,.hrs small{font-size:11px;margin-left:1px;opacity:.85}
+.tbl .tot td:first-child{padding-left:20px}
 .hc .k{font-weight:700;color:#fff}
 .hc.filled{background:var(--c);border-color:var(--c)}
 .hc.filled .t{color:#fff}
@@ -130,7 +132,6 @@ button.link{border:none;background:none;color:var(--sub);padding:4px;font-size:1
     <div class="box" id="hourBox"><div class="list" id="hours"></div></div>
   </div>
   <div class="card">
-    <div class="ctitle">합계<span>단위: 시간</span></div>
     <div id="sum"></div>
   </div>
 </div>
@@ -246,8 +247,8 @@ function renderHours(){
   $('hours').innerHTML = HOURS.map(h => {
     const k = hourLabel(h), t = day[k];
     return t
-      ? `<button class="hc filled" style="--c:${color(t)}" data-h="${k}"><span class="t">${pad(h)}–${pad(h+1)}</span><span class="k">${esc(t)}</span></button>`
-      : `<button class="hc" data-h="${k}"><span class="t">${pad(h)}–${pad(h+1)}</span><span class="e">—</span></button>`;
+      ? `<button class="hc filled" style="--c:${color(t)}" data-h="${k}"><span class="t">${pad(h)}~${pad(h+1)}<small>시</small></span><span class="k">${esc(t)}</span></button>`
+      : `<button class="hc" data-h="${k}"><span class="t">${pad(h)}~${pad(h+1)}<small>시</small></span><span class="e">—</span></button>`;
   }).join('');
   $('hourBox').classList.toggle('locked', !S.name);
   $('dateBox').classList.toggle('locked', false);
@@ -354,7 +355,8 @@ function showDetail(){
   if (r === 'day') {
     const day = dayData(ymd(cur)) || {};
     body = `<div class="hrs">${HOURS.map(h => { const k = hourLabel(h), t = day[k];
-      return t ? `<div class="f" style="--c:${color(t)}"><span>${k}</span><span>${esc(t)}</span></div>` : `<div style="opacity:.5"><span>${k}</span><span>—</span></div>`; }).join('')}</div>`;
+      const lb = `${pad(h)}~${pad(h+1)}<small>시</small>`;
+      return t ? `<div class="f" style="--c:${color(t)}"><span>${lb}</span><span>${esc(t)}</span></div>` : `<div style="opacity:.5"><span>${lb}</span><span>—</span></div>`; }).join('')}</div>`;
   } else if (r === 'week') {
     body = `<div class="wk">${dates.map(k => { const d = parse(k), n = filledCount(k);
       return `<button data-go="${k}" class="${n ? '' : 'blank'}"><div class="top"><span style="${d.getDay() === 0 ? 'color:#E11D48' : ''}">${md(d)} <span class="dot ${status(k)}"></span></span><b>${n}시간</b></div>
