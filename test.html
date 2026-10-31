@@ -280,10 +280,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
 <body>
 <div style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">머니파이 MONEY PIE — 여러 증권사에 흩어진 연금저축·IRP·ISA·직투 계좌를 한곳에 모아 섹터·지역·계좌유형별로 보여주는 무료 도구예요. 로그인도, 증권사 연동도 없어서 안전해요.</div>
 <div class="wrap">
-  <div id="marketTicker" style="display:flex;gap:4px;overflow-x:auto;padding:2px 0 10px;margin-bottom:12px;border-bottom:1px solid var(--border);">
-    <div style="color:var(--text-dim);font-size:12px;padding:10px 0;">시장 지표 불러오는 중...</div>
-  </div>
-  <header>
+  <header style="margin-bottom:12px;padding-bottom:12px;">
     <div>
       <h1><img id="hardReloadIcon" src="apple-touch-icon_old.png" alt="새로고침" title="새로고침" style="height:1.2em;width:1.2em;display:inline-block;vertical-align:bottom;border-radius:6px;margin-right:6px;cursor:pointer;"><span style="font-size:1.05em;display:inline-block;vertical-align:bottom;">머니파이</span> <span style="display:inline-block;vertical-align:bottom;margin-left:2px;color:#444444;"><span style="opacity:0.2;">M</span><span style="opacity:0.3;">O</span><span style="opacity:0.4;">N</span><span style="opacity:0.5;">E</span><span style="opacity:0.6;">Y</span> <span style="opacity:0.7;">P</span><span style="opacity:0.7;">I</span><span style="opacity:0.7;">E</span></span></h1>
     </div>
@@ -298,6 +295,10 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
       <button class="btn btn-primary" id="snapshotBtn">이번달 자산 저장</button>
     </div></div>
   </header>
+  <!-- 2026-10-31: 경제지표 = 로고·제목 아래(전엔 맨 위) -->
+  <div id="marketTicker" style="display:flex;gap:4px;overflow-x:auto;padding:2px 0 10px;margin-bottom:16px;border-bottom:1px solid var(--border);">
+    <div style="color:var(--text-dim);font-size:12px;padding:10px 0;">시장 지표 불러오는 중...</div>
+  </div>
   <div id="tabs" class="tabs"></div>
   <div id="panel" class="panel"></div>
   <div id="trend-accordion-root"></div>
