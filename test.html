@@ -5807,7 +5807,8 @@ function renderPanel0(){
       </div>
       <div id="watchRoot" class="an an-tab an-watch" style="margin-top:0;"></div>`;
     document.getElementById('watchCloseAll').addEventListener('click', () => {
-      document.querySelectorAll('#watchRoot details[open]').forEach(d => { d.open = false; if(d.dataset.anKey) anState.openKeys.delete(d.dataset.anKey); });
+      [...document.querySelectorAll('#watchRoot details[open]')].reverse().forEach(d => { d.open = false; if(d.dataset.anKey) anState.openKeys.delete(d.dataset.anKey); });
+      try{ anWatchFill(); }catch(e){}                                  // 새로 그려서 빈 자리가 남지 않게(2026-10-31)
     });
     document.getElementById('openAddHoldingBtn').addEventListener('click', () => openAddHolding(WATCHLIST_ID));
     document.getElementById('watchAnBtn').addEventListener('click', () => { if(anState.running) return; anState.view = 'report'; runAnalysis(); loadMarketData(true).catch(() => {}); });
@@ -8774,7 +8775,13 @@ function anBindRoot(root){
   });
   root.querySelectorAll('[data-an-ichart]').forEach(sl => { if((anState.idxPer[sl.dataset.anIchart] || '6m') !== '6m') anDrawIdxChart(sl); });   // 다시 그려도 고른 기간 유지
   const ca = root.querySelector('#anCloseAll');                 // 열린 아코디언(종목·지수·지표·Logic V1) 한 번에 닫기
-  if(ca) ca.addEventListener('click', () => { root.querySelectorAll('details[open]').forEach(d => { d.open = false; }); anState.openKeys.clear(); });
+  // 2026-10-31 오류 수정(빈 공간이 남음): 안쪽부터 닫고, 목록을 새로 그려서 닫힌 자리(차트·지표)가 남지 않게
+  if(ca) ca.addEventListener('click', () => {
+    [...root.querySelectorAll('details[open]')].reverse().forEach(d => { d.open = false; });
+    anState.openKeys.clear();
+    anState.html = null;
+    anFillRoot();
+  });
   const ft = root.querySelector('#anFtabs');
   const applyF = f => {
     anState.filter = f;
@@ -9308,6 +9315,9 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 /* Logic V1 글자 통일(2026-10-31 사용자): 본문 = 모두 12px(위 묶음·한계·신호·주의·표본), 제목·접힘 제목 = 12px 굵게 */
 .an-rbody, .an-lpop .an-rbody, .an-rbody .an-rfirst, .an-rbody .an-rnote, .an-rbody h4 small { font-size:12px !important; }
 .an-rbody h4, .an-btfold > summary, .an-sigfold > summary { font-size:12px !important; font-weight:700; color:var(--text); }
+/* 탭 위쪽 버튼 높이 26px·곡률 6px 통일(2026-10-31): 자산 국내·해외, 월별 계좌·유형 칩·기간 선택 */
+[data-asset-rg], [data-history-acc], [data-history-acc-type] { height:26px !important; padding-top:0 !important; padding-bottom:0 !important; box-sizing:border-box; display:inline-flex !important; align-items:center; justify-content:center; line-height:1 !important; border-radius:6px !important; }
+#rangeSelect { height:26px !important; padding-top:0 !important; padding-bottom:0 !important; box-sizing:border-box; border-radius:6px !important; }
 .an-sigfold { margin-top:10px; } .an-sigfold > summary { cursor:pointer; list-style:none; padding:4px 0; } .an-sigfold > summary::-webkit-details-marker { display:none; }
 .an-sigfold > summary::after { content:' ▾'; color:var(--text-dim); } .an-sigfold[open] > summary::after { content:' ▴'; }
 .an-obsfold.flat > summary { display:none; }
