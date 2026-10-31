@@ -56,7 +56,7 @@ SHIM = r"""<!--TEST:BEGIN-->
 })();
 </script>
 <style>
-#mpTestBand{ position:sticky; top:0; z-index:5000; background:#D4FF3D; color:#111; font:600 12px/1.2 sans-serif;
+#mpTestBand{ position:relative; z-index:5000; background:#D4FF3D; color:#111; font:600 12px/1.2 sans-serif;
   padding:6px 10px; display:flex; align-items:center; gap:8px; justify-content:center; }
 #mpTestBand button{ font:inherit; font-weight:500; background:#111; color:#D4FF3D; border:0; border-radius:4px; padding:3px 8px; }
 </style>
