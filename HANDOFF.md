@@ -1205,3 +1205,4 @@
 - 20:43(사용자): json저장·json로드 바탕 = 탭(패널) 바탕색 var(--surface2)(검은색 대신), 글자·테두리 #C9C9C9.
 - 20:45(사용자): 로고·제목(header) = 맨 위(광고 아래), 경제지표 카드(#marketTicker) = 그 아래·탭 위로 이동. header 아래 여백 24→12px, 경제지표 아래 12→16px.
 - 20:47(사용자): 제목 아래 가로줄 삭제(header border-bottom none), 제목~경제지표 간격 좁힘(margin 6px·padding 0).
+- 20:50(사용자): 가로줄 = 제목과 경제지표 사이(header 기본 border, margin·padding 8px), 경제지표 아래 가로줄 삭제·탭과 간격 8px(padding 아래 4px).
