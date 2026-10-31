@@ -5255,6 +5255,26 @@ window.addEventListener('resize', () => { try{ tabFillFit(); }catch(e){} });
 // 곡선 = 처음 빠르게 열리다 끝에서 느려짐(감속, easeOutQuint). 움직임 줄이기 설정이면 안 함.
 const MP_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const mpNoMotion = () => { try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } };
+// 모두 닫기 애니메이션(2026-11-01): 바깥쪽 열린 접힘들이 동시에 제목 높이까지 빠르게 줄어든 뒤 done()
+function mpCloseAllAnim(root, done){
+  if(!root || mpNoMotion()) return done();
+  const top = [...root.querySelectorAll('details[open]')].filter(d => !(d.parentElement && d.parentElement.closest('details[open]') && root.contains(d.parentElement.closest('details[open]'))));
+  const vis = top.filter(d => d.offsetParent);
+  if(!vis.length) return done();
+  let left = vis.length, maxDur = 0;
+  const fin = () => { if(--left === 0) done(); };
+  vis.forEach(d => {
+    const sm = d.querySelector(':scope > summary');
+    const h0 = d.getBoundingClientRect().height, hs = (sm ? sm.getBoundingClientRect().height : 0) + (h0 - d.clientHeight);
+    if(h0 - hs < 2) return fin();
+    const dur = Math.round(Math.min(260, 160 + (h0 - hs) * 0.08)); maxDur = Math.max(maxDur, dur);
+    d.style.overflow = 'hidden';
+    try{
+      const a = d.animate([{ height: h0 + 'px' }, { height: hs + 'px' }], { duration: dur, easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' });
+      a.onfinish = () => { d.style.overflow = ''; fin(); requestAnimationFrame(() => a.cancel()); };
+    }catch(e){ d.style.overflow = ''; fin(); }
+  });
+}
 // ① V1·관심 탭 안 모든 접힘(details): 제목을 눌러 열 때 높이가 아래로 자라며 열림
 document.addEventListener('click', e => {
   const sm = e.target.closest && e.target.closest('summary');
@@ -5924,10 +5944,10 @@ function renderPanel0(){
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></button></div>
       </div>
       <div id="watchRoot" class="an an-tab an-watch" style="margin-top:0;"></div>`;
-    document.getElementById('watchCloseAll').addEventListener('click', () => {
+    document.getElementById('watchCloseAll').addEventListener('click', () => mpCloseAllAnim(document.getElementById('watchRoot'), () => {
       [...document.querySelectorAll('#watchRoot details[open]')].reverse().forEach(d => { d.open = false; if(d.dataset.anKey) anState.openKeys.delete(d.dataset.anKey); });
       try{ anWatchFill(); }catch(e){}                                  // 새로 그려서 빈 자리가 남지 않게(2026-10-31)
-    });
+    }));
     document.getElementById('openAddHoldingBtn').addEventListener('click', () => openAddHolding(WATCHLIST_ID));
     document.getElementById('watchAnBtn').addEventListener('click', () => { if(anState.running) return; anState.view = 'report'; runAnalysis(); loadMarketData(true).catch(() => {}); });
     anWatchMount();
@@ -8894,12 +8914,12 @@ function anBindRoot(root){
   root.querySelectorAll('[data-an-ichart]').forEach(sl => { if((anState.idxPer[sl.dataset.anIchart] || '6m') !== '6m') anDrawIdxChart(sl); });   // 다시 그려도 고른 기간 유지
   const ca = root.querySelector('#anCloseAll');                 // 열린 아코디언(종목·지수·지표·Logic V1) 한 번에 닫기
   // 2026-10-31 오류 수정(빈 공간이 남음): 안쪽부터 닫고, 목록을 새로 그려서 닫힌 자리(차트·지표)가 남지 않게
-  if(ca) ca.addEventListener('click', () => {
+  if(ca) ca.addEventListener('click', () => mpCloseAllAnim(root, () => {   // 닫기 애니메이션(제목 클릭 닫기와 같음) 뒤 실제로 닫고 새로 그림(2026-11-01)
     [...root.querySelectorAll('details[open]')].reverse().forEach(d => { d.open = false; });
     anState.openKeys.clear();
     anState.html = null;
     anFillRoot();
-  });
+  }));
   const ft = root.querySelector('#anFtabs');
   const applyF = f => {
     anState.filter = f;
