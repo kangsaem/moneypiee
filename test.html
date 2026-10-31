@@ -5195,10 +5195,10 @@ function renderTabs(){
   if(tfAdd) tfAdd.addEventListener('click', addAccount);
   const setFold = v => {
     accTabsFolded = v; renderTabs();
-    if(!v){                                                  // 펼칠 때: 계좌 탭이 왼쪽부터 차례로 나옴(감속 곡선, 2026-11-01)
-      document.querySelectorAll('#tabs .tab.acc, #tabs .tab-fill').forEach((el, i) => {
-        try{ el.animate([{ opacity: 0, transform: 'translateX(-10px) scaleY(0.6)' }, { opacity: 1, transform: 'none' }],
-                        { duration: 320, delay: i * 35, easing: MP_EASE, fill: 'backwards' }); }catch(e){}
+    if(!v && !mpNoMotion()){                                 // 펼칠 때: 계좌 탭 줄이 한꺼번에 위에서 아래로 펼쳐짐(감속 곡선, 2026-11-01)
+      document.querySelectorAll('#tabs .tab.acc, #tabs .tab-fill').forEach(el => {
+        try{ el.animate([{ clipPath: 'inset(0 0 100% 0)', opacity: 0.4 }, { clipPath: 'inset(0 0 0 0)', opacity: 1 }],
+                        { duration: 340, easing: MP_EASE }); }catch(e){}
       });
     }
   };
