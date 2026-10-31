@@ -5251,10 +5251,14 @@ document.addEventListener('click', e => {
   };
   if(p && p.then) Promise.race([p, new Promise(r => setTimeout(r, 300))]).then(() => requestAnimationFrame(go)); else go();
 });
-// ② 계좌·자산 탭 팝업(.floating-acc, 머리줄 .acc-header 있는 것): 머리줄이 먼저 나타나고 몸통이 아래로 펼쳐짐(clip-path라 자리 안 움직임)
-//    팝업 안에서 다른 섹터로 넘기는 등 다시 그릴 때(같은 순간에 옛 팝업이 지워짐)는 애니메이션 안 함
+// ② 계좌·자산·월별 탭 팝업(.floating-acc 중 .acc-header 있는 것): 머리줄이 먼저 나타나고 몸통이 아래로 펼쳐짐(clip-path라 자리 안 움직임)
+//    새로 생긴 팝업만(머리줄 글자로 구분): 도넛·막대를 눌러 다른 섹터를 열면 옛 팝업은 닫히고 새 팝업이 애니메이션으로 열림(2026-11-01).
+//    같은 팝업을 다시 그리는 경우(패널 다시 그리기)와 팝업 안 버튼으로 넘기는 경우는 애니메이션 안 함.
 (() => {
-  const onTab = () => { try{ return ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) || state.accounts.some(a => a.id === state.activeId); }catch(e){ return false; } };
+  const onTab = () => { try{ return ['__total__', '__domestic__', '__overseas__', '__history__'].includes(state.activeId) || state.accounts.some(a => a.id === state.activeId); }catch(e){ return false; } };
+  const idOf = acc => { const hd = acc.querySelector(':scope > .acc-header'); if(!hd) return null; const f = hd.querySelector('span') || hd; return (f.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) + '|' + (acc.closest('[id]') ? acc.closest('[id]').id : ''); };   // 머리줄 첫 글자(섹터·종목 이름) + 자리
+  let seen = new Set(), inAccAt = 0;
+  document.addEventListener('pointerdown', e => { if(e.target.closest && e.target.closest('.floating-acc')) inAccAt = Date.now(); }, true);
   const run = acc => {
     const hd = acc.querySelector(':scope > .acc-header');
     if(!hd) return;
@@ -5270,14 +5274,16 @@ document.addEventListener('click', e => {
     }catch(e){}
   };
   const mo = new MutationObserver(list => {
-    if(mpNoMotion() || !onTab()) return;
-    let removed = false; const added = [];
-    list.forEach(m => {
-      m.removedNodes.forEach(n => { if(n.nodeType === 1 && (n.classList.contains('floating-acc') || n.querySelector && n.querySelector('.floating-acc'))) removed = true; });
-      m.addedNodes.forEach(n => { if(n.nodeType !== 1) return; if(n.classList.contains('floating-acc')) added.push(n); else if(n.querySelectorAll) added.push(...n.querySelectorAll('.floating-acc')); });
-    });
-    if(removed || !added.length) return;
-    added.forEach(run);
+    const now = new Set();
+    document.querySelectorAll('.floating-acc').forEach(acc => { const id = idOf(acc); if(id) now.add(id); });
+    const prev = seen; seen = now;
+    if(mpNoMotion() || !onTab() || Date.now() - inAccAt < 700) return;
+    const added = [];
+    list.forEach(m => m.addedNodes.forEach(n => {
+      if(n.nodeType !== 1) return;
+      if(n.classList.contains('floating-acc')) added.push(n); else if(n.querySelectorAll) added.push(...n.querySelectorAll('.floating-acc'));
+    }));
+    added.forEach(acc => { const id = idOf(acc); if(id && !prev.has(id) && document.body.contains(acc)) run(acc); });
   });
   const start = () => mo.observe(document.body, { childList: true, subtree: true });
   if(document.body) start(); else document.addEventListener('DOMContentLoaded', start);
