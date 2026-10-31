@@ -149,7 +149,10 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .tabs .tab.warn200{color:#F2A65A;} .tabs .tab.warn200.calm{color:#6E6F75;}   /* 모든 지수 200일선 위 = 회색 */
   .tabs .tab.warn200 svg{vertical-align:-3px;}
   .tabs .tab.mng{color:var(--text-dim);}
-  .tabs .tab-fill{flex:1 1 0;align-self:stretch;min-width:22px;cursor:pointer;color:#6E6F75;font-size:20px;font-weight:600;line-height:1;display:flex;align-items:center;padding-left:8px;}   /* 계좌 탭 줄 오른쪽 빈칸 = 계좌 추가 */
+  .tabs .tab-fill{flex:1 1 0;align-self:stretch;min-width:22px;color:#6E6F75;font-size:20px;font-weight:600;line-height:1;display:flex;align-items:center;padding-left:8px;}
+  .tabs .tab-fill .tf-add{cursor:pointer;align-self:stretch;display:flex;align-items:center;flex:1 1 auto;}
+  .tabs .tab-fill .tf-fold{cursor:pointer;margin-left:auto;font-size:13px;padding:4px 4px 4px 10px;color:#9A9BA1;}   /* 계좌 탭 줄 접기(2026-10-31) */
+  .tabs .tab.acc-unfold{width:auto !important;min-width:0;padding-left:12px;padding-right:12px;color:var(--text-dim);}   /* 계좌 탭 줄 오른쪽 빈칸 = 계좌 추가 */
   .tab.active{background:var(--surface2);border-color:var(--accent-dim);}
   .tab.total{color:var(--accent);}
   .tab-add{
@@ -5156,11 +5159,19 @@ function renderTabs(){
   // 2026-10-20 탭 정리: 1줄 = 계좌(높이 2/3) + 마통(마지막) / 2줄 = 자산·월별·관심·V1·⚠(200일선 붕괴 사례)·관리
   // 자산 = 옛 전체·국내·해외(안에서 국내/해외 버튼으로 전환, 내부 id는 그대로) · 관리 = 계좌 추가 + 계좌 삭제 · 월별자산 목록은 월별 탭 안 버튼
   const isAsset = ['__total__', '__domestic__', '__overseas__'].includes(state.activeId);
-  let html = state.accounts.map(a => `
+  // 계좌 탭 줄 접기(2026-10-31): 접으면 '계좌 n ▾' 한 칸만(누르면 펼침), 펼치면 오른쪽 끝 '▴'. 이 기기에 기억(mp-acc-fold)
+  let accFold = false; try{ accFold = localStorage.getItem('mp-acc-fold') === '1'; }catch(e){}
+  let html = '';
+  if(accFold){
+    const onAcc = state.accounts.some(a => a.id === state.activeId) || state.activeId === '__creditLines__';
+    html += `<div class="tab acc acc-unfold${onAcc ? ' active' : ''}" id="tabUnfold" title="계좌 탭 펼치기">계좌 ${state.accounts.length} ▾</div>`;
+  } else {
+  html += state.accounts.map(a => `
     <div class="tab acc ${a.id===state.activeId?'active':''}" data-tab="${a.id}" title="${escapeHTML(a.name)}">${escapeHTML(a.name)}</div>
   `).join('');
   html += `<div class="tab acc total ${state.activeId==='__creditLines__'?'active':''}" data-tab="__creditLines__" style="color:#B85450;">마통</div>`;
-  html += `<div class="tab-fill" id="tabFill" title="계좌 추가">+</div>`;   // 회색 '+'(2026-10-20), 다음 줄로 밀리면 숨김(tabFillFit)   // 마통 오른쪽 빈칸 = 계좌 추가(2026-10-20)
+  html += `<div class="tab-fill" id="tabFill"><span class="tf-add" title="계좌 추가">+</span><span class="tf-fold" id="tabFold" title="계좌 탭 접기">▴</span></div>`;
+  }   // 회색 '+'(2026-10-20), 다음 줄로 밀리면 숨김(tabFillFit)   // 마통 오른쪽 빈칸 = 계좌 추가(2026-10-20)
   html += `<div class="tab-br"></div>`;      // 계좌 탭 줄 / 나머지 탭 줄 나눔(2026-10-13)
   html += `<div class="tab total ${isAsset?'active':''}" data-tab="__total__">자산</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
@@ -5179,7 +5190,11 @@ function renderTabs(){
     m.remove();
     if(w > 0) tabs.style.setProperty('--tabw', w + 'px');
   }catch(e){}
-  document.getElementById('tabFill').addEventListener('click', addAccount);
+  const tfAdd = tabs.querySelector('.tf-add'), tFold = document.getElementById('tabFold'), tUn = document.getElementById('tabUnfold');
+  if(tfAdd) tfAdd.addEventListener('click', addAccount);
+  const setFold = v => { try{ v ? localStorage.setItem('mp-acc-fold', '1') : localStorage.removeItem('mp-acc-fold'); }catch(e){} renderTabs(); };
+  if(tFold) tFold.addEventListener('click', e => { e.stopPropagation(); setFold(true); });
+  if(tUn) tUn.addEventListener('click', () => setFold(false));
   tabFillFit();
   warnTabPaint();
   document.getElementById('warn200Tab').addEventListener('click', e => anK200Open(e, AN_200PAGE.kospi));
@@ -5192,8 +5207,9 @@ function renderTabs(){
 function tabFillFit(){
   const f = document.getElementById('tabFill'), m = document.querySelector('.tabs [data-tab="__creditLines__"]');
   if(!f || !m) return;
-  f.style.visibility = ''; f.style.display = '';
-  if(f.getBoundingClientRect().top > m.getBoundingClientRect().top + 4) f.style.display = 'none';
+  const add = f.querySelector('.tf-add');
+  f.style.visibility = ''; f.style.display = ''; if(add) add.style.display = '';
+  if(f.getBoundingClientRect().top > m.getBoundingClientRect().top + 4){ if(add) add.style.display = 'none'; else f.style.display = 'none'; }   // 다음 줄로 밀리면 '+'만 숨기고 접기 버튼은 남김
 }
 window.addEventListener('resize', () => { try{ tabFillFit(); }catch(e){} });
 // ⚠ 탭 색(2026-10-20): 코스피·S&P500·나스닥이 모두 200일선 위면 회색, 하나라도 아래(또는 아직 모름)면 주황. 마지막 V1 결과의 지수 값(현재가 반영) 기준
