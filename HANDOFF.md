@@ -1207,3 +1207,4 @@
 - 20:47(사용자): 제목 아래 가로줄 삭제(header border-bottom none), 제목~경제지표 간격 좁힘(margin 6px·padding 0).
 - 20:50(사용자): 가로줄 = 제목과 경제지표 사이(header 기본 border, margin·padding 8px), 경제지표 아래 가로줄 삭제·탭과 간격 8px(padding 아래 4px).
 - 20:53(사용자): 관리 탭 계좌추가 = json·엑셀 버튼과 같은 줄 왼쪽 끝(placeHeaderBtns가 #mngAddAccountBtn을 버튼 묶음 맨 앞으로 옮김, margin-right:auto로 나머지 4개는 오른쪽). 탭을 떠날 때 묶음에서 버림(다시 그릴 때 새로 생김). 400px 이하는 간격·여백 줄여 한 줄(360px 확인).
+- 20:59(사용자): 관리 탭 한 줄 배치 = json저장·json로드 왼쪽 · 계좌추가 가운데(margin auto) · 엑셀저장·엑셀로드 오른쪽(CSS order). 393·360px 한 줄 확인.
