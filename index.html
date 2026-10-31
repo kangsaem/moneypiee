@@ -5148,8 +5148,45 @@ function renderTabs(){
   }catch(e){}
   const tfAdd = tabs.querySelector('.tf-add'), tFold = document.getElementById('tabFold'), tUn = document.getElementById('tabUnfold');
   if(tfAdd) tfAdd.addEventListener('click', addAccount);
-  const setFold = v => { accTabsFolded = v; renderTabs(); };
-  if(tFold) tFold.addEventListener('click', e => { e.stopPropagation(); setFold(true); });
+  const setFold = v => {
+    accTabsFolded = v; renderTabs();
+    if(!v && !mpNoMotion()){                                 // 펼칠 때: 계좌 탭 묶음 전체가 위에서 아래로 한 번에 펼쳐짐 — 두 줄이면 윗줄부터(2026-11-01)
+      const els = [...document.querySelectorAll('#tabs .tab.acc, #tabs .tab-fill')].filter(el => el.offsetParent);
+      if(els.length){
+        const rs = els.map(el => el.getBoundingClientRect());
+        const top = Math.min(...rs.map(r => r.top)), bot = Math.max(...rs.map(r => r.bottom)), H = bot - top;
+        const rows = new Set(rs.map(r => Math.round(r.top))).size;
+        const dur = 420 + 180 * (rows - 1), t0 = performance.now();   // 600 → 420ms(2026-11-01 사용자 '조금 더 빠르게')
+        const ease = t => 1 - Math.pow(1 - t, 4);              // 처음 빠르게 → 끝에서 느려짐
+        const step = now => {
+          const p = Math.min(1, (now - t0) / dur), y = top + H * ease(p);
+          els.forEach((el, i) => { const r = rs[i], vis = Math.max(0, Math.min(r.height, y - r.top));
+            el.style.clipPath = vis >= r.height ? '' : `inset(0 0 ${r.height - vis}px 0)`; });
+          if(p < 1) requestAnimationFrame(step); else els.forEach(el => { el.style.clipPath = ''; });
+        };
+        els.forEach(el => { el.style.clipPath = 'inset(0 0 100% 0)'; });
+        requestAnimationFrame(step);
+      }
+    }
+  };
+  // 접기(2026-11-01): 아래에서 위로 빠르게 걷힌 뒤(점점 빨라짐) 접힌 칸으로 바뀜. 두 줄이면 아랫줄부터
+  const foldAnim = () => {
+    const els = [...document.querySelectorAll('#tabs .tab.acc, #tabs .tab-fill')].filter(el => el.offsetParent);
+    if(!els.length || mpNoMotion()) return setFold(true);
+    const rs = els.map(el => el.getBoundingClientRect());
+    const top = Math.min(...rs.map(r => r.top)), bot = Math.max(...rs.map(r => r.bottom)), H = bot - top;
+    const rows = new Set(rs.map(r => Math.round(r.top))).size;
+    const dur = 200 + 90 * (rows - 1), t0 = performance.now();
+    const ease = t => t * t * t;                                // 처음 느리게 → 점점 빨라짐
+    const step = now => {
+      const p = Math.min(1, (now - t0) / dur), y = bot - H * ease(p);
+      els.forEach((el, i) => { const r = rs[i], vis = Math.max(0, Math.min(r.height, y - r.top));
+        el.style.clipPath = `inset(0 0 ${r.height - vis}px 0)`; });
+      if(p < 1) requestAnimationFrame(step); else setFold(true);
+    };
+    requestAnimationFrame(step);
+  };
+  if(tFold) tFold.addEventListener('click', e => { e.stopPropagation(); foldAnim(); });
   if(tUn) tUn.addEventListener('click', () => setFold(false));
   tabFillFit();
   warnTabPaint();
@@ -5168,6 +5205,107 @@ function tabFillFit(){
   if(f.getBoundingClientRect().top > m.getBoundingClientRect().top + 4){ if(add) add.style.display = 'none'; else f.style.display = 'none'; }   // 다음 줄로 밀리면 '+'만 숨기고 접기 버튼은 남김
 }
 window.addEventListener('resize', () => { try{ tabFillFit(); }catch(e){} });
+
+// ------------------------------------------------------------------ 열림 애니메이션(2026-11-01 사용자) — 열 때만, 닫기는 바로
+// 곡선 = 처음 빠르게 열리다 끝에서 느려짐(감속, easeOutQuint). 움직임 줄이기 설정이면 안 함.
+const MP_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const mpNoMotion = () => { try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } };
+// 모두 닫기 애니메이션(2026-11-01): 바깥쪽 열린 접힘들이 동시에 제목 높이까지 빠르게 줄어든 뒤 done()
+function mpCloseAllAnim(root, done){
+  if(!root || mpNoMotion()) return done();
+  const top = [...root.querySelectorAll('details[open]')].filter(d => !(d.parentElement && d.parentElement.closest('details[open]') && root.contains(d.parentElement.closest('details[open]'))));
+  const vis = top.filter(d => d.offsetParent);
+  if(!vis.length) return done();
+  let left = vis.length, maxDur = 0;
+  const fin = () => { if(--left === 0) done(); };
+  vis.forEach(d => {
+    const sm = d.querySelector(':scope > summary');
+    const h0 = d.getBoundingClientRect().height, hs = (sm ? sm.getBoundingClientRect().height : 0) + (h0 - d.clientHeight);
+    if(h0 - hs < 2) return fin();
+    const dur = Math.round(Math.min(260, 160 + (h0 - hs) * 0.08)); maxDur = Math.max(maxDur, dur);
+    d.style.overflow = 'hidden';
+    try{
+      const a = d.animate([{ height: h0 + 'px' }, { height: hs + 'px' }], { duration: dur, easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' });
+      a.onfinish = () => { d.style.overflow = ''; fin(); requestAnimationFrame(() => a.cancel()); };
+    }catch(e){ d.style.overflow = ''; fin(); }
+  });
+}
+// ① V1·관심 탭 안 모든 접힘(details): 제목을 눌러 열 때 높이가 아래로 자라며 열림
+document.addEventListener('click', e => {
+  const sm = e.target.closest && e.target.closest('summary');
+  if(!sm || e.defaultPrevented || mpNoMotion()) return;          // 칩 설명창 등(먼저 preventDefault)은 그대로
+  const d = sm.parentElement;
+  if(!d || d.tagName !== 'DETAILS' || !d.closest('#analysisRoot, #watchRoot')) return;
+  if(e.target.closest('a, button, input, select') && e.target.closest('a, button, input, select') !== sm) return;
+  if(d.open){                                                     // 닫기(2026-11-01): 빠르게(160~260ms), 점점 빨라지며 제목 높이까지 줄어든 뒤 닫힘
+    if(d.dataset.closing) { e.preventDefault(); return; }
+    e.preventDefault();
+    const h0 = d.getBoundingClientRect().height, hs = sm.getBoundingClientRect().height + (h0 - d.clientHeight);
+    if(h0 - hs < 2){ d.open = false; return; }
+    d.dataset.closing = '1'; d.style.overflow = 'hidden';
+    const end = () => { d.open = false; d.style.overflow = ''; delete d.dataset.closing; };
+    try{
+      const a = d.animate([{ height: h0 + 'px' }, { height: hs + 'px' }], { duration: Math.round(Math.min(260, 160 + (h0 - hs) * 0.08)), easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' });
+      a.onfinish = () => { end(); a.cancel(); };
+      a.oncancel = () => { if(d.dataset.closing) end(); };
+    }catch(err){ end(); }
+    return;
+  }
+  e.preventDefault();
+  const h0 = d.getBoundingClientRect().height;
+  d.style.height = h0 + 'px'; d.style.overflow = 'hidden';       // 다 그려질 때까지 닫힌 높이로 잡아 둠
+  d.open = true;
+  const slot = d.querySelector('[data-an-chart]');                // 종목 차트(비동기)는 먼저 그린 뒤 그 높이까지 열림(최대 0.3초 기다림)
+  let p = null;
+  if(slot && !slot.dataset.drawn && anState.result && slot.closest('details') === d){ slot.dataset.drawn = '1'; try{ p = anDrawChartSlot(slot); }catch(err){} }
+  const go = () => {
+    const h1 = d.scrollHeight;
+    const done = () => { d.style.height = ''; d.style.overflow = ''; };
+    if(h1 - h0 < 2) return done();
+    try{
+      const a = d.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: Math.round(Math.min(480, 220 + (h1 - h0) * 0.2)), easing: MP_EASE });
+      a.onfinish = a.oncancel = done;
+    }catch(err){ done(); }
+  };
+  if(p && p.then) Promise.race([p, new Promise(r => setTimeout(r, 300))]).then(() => requestAnimationFrame(go)); else go();
+});
+// ② 계좌·자산·월별 탭 팝업(.floating-acc 중 .acc-header 있는 것): 머리줄이 먼저 나타나고 몸통이 아래로 펼쳐짐(clip-path라 자리 안 움직임)
+//    새로 생긴 팝업만(머리줄 글자로 구분): 도넛·막대를 눌러 다른 섹터를 열면 옛 팝업은 닫히고 새 팝업이 애니메이션으로 열림(2026-11-01).
+//    같은 팝업을 다시 그리는 경우(패널 다시 그리기)와 팝업 안 버튼으로 넘기는 경우는 애니메이션 안 함.
+(() => {
+  const onTab = () => { try{ return ['__total__', '__domestic__', '__overseas__', '__history__'].includes(state.activeId) || state.accounts.some(a => a.id === state.activeId); }catch(e){ return false; } };
+  const idOf = acc => { const hd = acc.querySelector(':scope > .acc-header'); if(!hd) return null; const f = hd.querySelector('span') || hd; return (f.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) + '|' + (acc.closest('[id]') ? acc.closest('[id]').id : ''); };   // 머리줄 첫 글자(섹터·종목 이름) + 자리
+  let seen = new Set(), inAccAt = 0;
+  document.addEventListener('pointerdown', e => { if(e.target.closest && e.target.closest('.floating-acc')) inAccAt = Date.now(); }, true);
+  const run = acc => {
+    const hd = acc.querySelector(':scope > .acc-header');
+    if(!hd) return;
+    const H = acc.getBoundingClientRect().height, h = hd.getBoundingClientRect().height;
+    if(!(H > h + 2)) return;
+    const cut = Math.max(0, H - h);
+    try{
+      acc.animate([
+        { clipPath: `inset(0 0 ${cut}px 0 round 6px)`, opacity: 0, offset: 0 },
+        { clipPath: `inset(0 0 ${cut}px 0 round 6px)`, opacity: 1, offset: 0.22, easing: MP_EASE },
+        { clipPath: 'inset(0 0 0 0 round 6px)', opacity: 1, offset: 1 }
+      ], { duration: Math.round(Math.min(560, 300 + cut * 0.35)), easing: 'linear' });
+    }catch(e){}
+  };
+  const mo = new MutationObserver(list => {
+    const now = new Set();
+    document.querySelectorAll('.floating-acc').forEach(acc => { const id = idOf(acc); if(id) now.add(id); });
+    const prev = seen; seen = now;
+    if(mpNoMotion() || !onTab() || Date.now() - inAccAt < 700) return;
+    const added = [];
+    list.forEach(m => m.addedNodes.forEach(n => {
+      if(n.nodeType !== 1) return;
+      if(n.classList.contains('floating-acc')) added.push(n); else if(n.querySelectorAll) added.push(...n.querySelectorAll('.floating-acc'));
+    }));
+    added.forEach(acc => { const id = idOf(acc); if(id && !prev.has(id) && document.body.contains(acc)) run(acc); });
+  });
+  const start = () => mo.observe(document.body, { childList: true, subtree: true });
+  if(document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
 // ⚠ 탭 색(2026-10-20): 코스피·S&P500·나스닥이 모두 200일선 위면 회색, 하나라도 아래(또는 아직 모름)면 주황. 마지막 V1 결과의 지수 값(현재가 반영) 기준
 let warnTabLoaded = false;
 function warnTabAllAbove(){
@@ -5761,10 +5899,10 @@ function renderPanel0(){
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></button></div>
       </div>
       <div id="watchRoot" class="an an-tab an-watch" style="margin-top:0;"></div>`;
-    document.getElementById('watchCloseAll').addEventListener('click', () => {
+    document.getElementById('watchCloseAll').addEventListener('click', () => mpCloseAllAnim(document.getElementById('watchRoot'), () => {
       [...document.querySelectorAll('#watchRoot details[open]')].reverse().forEach(d => { d.open = false; if(d.dataset.anKey) anState.openKeys.delete(d.dataset.anKey); });
       try{ anWatchFill(); }catch(e){}                                  // 새로 그려서 빈 자리가 남지 않게(2026-10-31)
-    });
+    }));
     document.getElementById('openAddHoldingBtn').addEventListener('click', () => openAddHolding(WATCHLIST_ID));
     document.getElementById('watchAnBtn').addEventListener('click', () => { if(anState.running) return; anState.view = 'report'; runAnalysis(); loadMarketData(true).catch(() => {}); });
     anWatchMount();
@@ -8731,12 +8869,12 @@ function anBindRoot(root){
   root.querySelectorAll('[data-an-ichart]').forEach(sl => { if((anState.idxPer[sl.dataset.anIchart] || '6m') !== '6m') anDrawIdxChart(sl); });   // 다시 그려도 고른 기간 유지
   const ca = root.querySelector('#anCloseAll');                 // 열린 아코디언(종목·지수·지표·Logic V1) 한 번에 닫기
   // 2026-10-31 오류 수정(빈 공간이 남음): 안쪽부터 닫고, 목록을 새로 그려서 닫힌 자리(차트·지표)가 남지 않게
-  if(ca) ca.addEventListener('click', () => {
+  if(ca) ca.addEventListener('click', () => mpCloseAllAnim(root, () => {   // 닫기 애니메이션(제목 클릭 닫기와 같음) 뒤 실제로 닫고 새로 그림(2026-11-01)
     [...root.querySelectorAll('details[open]')].reverse().forEach(d => { d.open = false; });
     anState.openKeys.clear();
     anState.html = null;
     anFillRoot();
-  });
+  }));
   const ft = root.querySelector('#anFtabs');
   const applyF = f => {
     anState.filter = f;
