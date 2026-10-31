@@ -289,8 +289,8 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
     </div>
     <span id="bkChip" class="bk-chip" style="display:none;"></span>   <!-- 백업 n일 전(2026-10-31) -->
     <div id="hdrBtnsHome"><div id="hdrBtns" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">   <!-- 2026-10-31: 관리 탭 안에서만 보임(placeHeaderBtns) -->
-      <button class="btn" id="exportBtn">데이터저장</button>
-      <button class="btn" id="importBtn">데이터로드</button>
+      <button class="btn" id="exportBtn">json저장</button>
+      <button class="btn" id="importBtn">json로드</button>
       <input type="file" id="importFile" accept="application/json" style="display:none;">
       <button class="btn" id="exportXlsxBtn" style="background:#217346;color:rgba(255,255,255,0.75);border-color:#217346;font-weight:400;">엑셀저장</button>
       <button class="btn" id="importXlsxBtn">엑셀로드</button>
@@ -303,7 +303,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   <div id="trend-accordion-root"></div>
   <div style="margin:24px 0 12px;">
     <p style="font-size:11px;color:var(--text-dim);line-height:1.5;margin:0;">
-      이 앱은 사용 중인 기기의 브라우저 안에서만 작동하며 어떤 데이터도 외부로 전송되지 않습니다. 브라우저 캐시나 방문 기록을 삭제하면 데이터가 사라질 수 있으니 <span class="inline-export-link" style="background:var(--text-dim);color:var(--bg);padding:1px 5px;border-radius:3px;font-weight:700;cursor:pointer;">데이터저장</span>로 백업하시기 바랍니다. 저장한 데이터를 데이터 불러오기로 불러오면 다른 기기에서도 이어서 쓸 수 있습니다.<a href="mailto:kangsaem@gmail.com" style="margin-left:4px;font-size:12px;color:var(--text-dim);text-decoration:none;">&copy; kangsaem@gmail.com</a>
+      이 앱은 사용 중인 기기의 브라우저 안에서만 작동하며 어떤 데이터도 외부로 전송되지 않습니다. 브라우저 캐시나 방문 기록을 삭제하면 데이터가 사라질 수 있으니 <span class="inline-export-link" style="background:var(--text-dim);color:var(--bg);padding:1px 5px;border-radius:3px;font-weight:700;cursor:pointer;">json저장</span>로 백업하시기 바랍니다. 저장한 데이터를 데이터 불러오기로 불러오면 다른 기기에서도 이어서 쓸 수 있습니다.<a href="mailto:kangsaem@gmail.com" style="margin-left:4px;font-size:12px;color:var(--text-dim);text-decoration:none;">&copy; kangsaem@gmail.com</a>
     </p>
   </div>
 </div>
@@ -9275,7 +9275,8 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 #hdrBtns.in-mng #snapshotBtn { display:none; }   /* 이번달 자산 저장 = 자산·월별 탭에만(2026-10-31) */
 #hdrBtns.in-mng { flex-wrap:nowrap !important; gap:6px !important; }
 #hdrBtns.in-mng .btn { height:26px; padding:0 10px; font-size:12px; line-height:1; display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; border-radius:6px; }   /* 2026-10-31: 다른 탭 버튼과 같은 크기, 한 줄 */
-#hdrBtns.in-mng #exportBtn, #hdrBtns.in-mng #importBtn, #hdrBtns.in-mng #importXlsxBtn { background:#C9C9C9; color:#1A1A1A; border:1px solid #C9C9C9; font-weight:700; }   /* 자산 탭 국내·해외(켜짐)와 같은 색 */
+#hdrBtns.in-mng #importXlsxBtn { background:#C9C9C9; color:#1A1A1A; border:1px solid #C9C9C9; font-weight:700; }   /* 자산 탭 국내·해외(켜짐)와 같은 색 */
+#hdrBtns.in-mng #exportBtn, #hdrBtns.in-mng #importBtn { background:#1A1A1A; color:#C9C9C9; border:1px solid #C9C9C9; font-weight:700; }   /* json저장·json로드 = 반전(2026-10-31) */
 #hdrBtns.in-mng #exportXlsxBtn { margin-left:12px; }   /* 데이터 두 개 | 엑셀 두 개 사이 간격 */
 #hdrBtns.in-mng { justify-content:center; margin:0 0 14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
 .snap-mini { height:26px; padding:0 10px; font-size:12px; display:inline-flex; align-items:center; justify-content:center; line-height:1; background:transparent !important; color:#4FC3F7 !important; border:1px solid #4FC3F7 !important; }
