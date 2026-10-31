@@ -1170,3 +1170,22 @@
   '다시 보지 않기'는 파일 내용 SHA-256을 저장(moneypie_notice_html_dismissed_hash)하므로 내용이 바뀌면 이미 끈 사람에게도 다시 뜸. 다시 띄우려면 이 날짜만 바꾸면 됨.
   자동 팝업으로 뜨는 건 notice.html(·notice.png)뿐, notice-*.html은 칩·버튼으로 여는 공지(anNoticeOpen, 다시 보지 않기 없음) — 나중에 notice.html로 복사해 쓸 때 날짜가 같이 따라감.
 - 09:55 '공지 리프레시' 명령 정함(맨 위 '★ 사용자 명령어' 참고). 첫 실행 = 09:50 작업(수정 2026-10-23).
+
+## 2026-10-31 18:45 테스트 페이지 + 묶음 1·2·3(사용자 ㄱㄱ) — 실기기 확인 대기
+- **테스트 페이지 `www.moneypie.kr/test.html`** = 다음 변경의 작업본. `test_page.py`로 만듦/반영:
+  `python test_page.py make`(index → test) · `python test_page.py promote`(test → index, 테스트 블록 빼고 광고 되살림, 왕복 일치 확인함).
+  메인과 다른 곳: `<!--TEST:BEGIN-->~<!--TEST:END-->`(localStorage 키 앞 'test:' · 처음 열 때 메인 데이터 1회 복사(GitHub 토큰 제외) · TEST 띠 + '메인 데이터 다시 복사' · noindex) + 광고 2곳 주석 처리.
+  코드 안 분기 = `window.MP_TEST`: IndexedDB 'moneypie-analysis-test'(없는 키는 메인 DB에서 읽기만) · anGhToken() = '' (종목 동기화 안 함).
+  **주의:** 메인 index.html을 따로 고치면 test.html과 어긋남 → 메인을 고칠 땐 test.html에도 같이 넣거나, promote 뒤 make로 다시 맞출 것.
+- 묶음 1(test.html만): V1 추적(anTrkLoad = anHistTrack 결과를 종목별로, 결과마다 1회 계산 후 다시 그림)
+  · 접힌 줄 칩: '손절 대기 1/2'(주황, 진행 중 매수 추적의 마지막 종가 ≤ 체결가 −8% 첫날) / '손절'(파랑 채움, 마지막 봉에서 손절) / '손절 n일 전'·'손절 2회·20일'(회색, 새 매수 신호이고 20거래일 안 손절). 누르면 설명창.
+  · 펼친 줄: 'V1 추적 · 칸 날짜 체결 x · 손절선 y (−8%) · 지금 z%'(체결 전이면 '다음 거래일 종가에 체결'). 실제 계좌 평단 아님.
+  · 신호추적 손절 줄: '20일 뒤 ±x% 맞음/틀림'(손절 뒤 20거래일째 종가 < 손절일 종가 = 맞음), 아직이면 '판정 n/20일'. 설명 줄 갱신.
+  · '분석 …' 줄 아래 '오늘 할 일 · 매수 n 잔여 한도 합 x원 · 매도 n · 손절 대기 n · 손절 n'.
+  · 검증: 실제 history 32개로 anHistTrack 손절 4건(−8.08·−10.03·−13.83·−10.93) = live.py track과 같음.
+- 묶음 2(test.html만): 맨 위 데이터 버튼 5개 → 관리 탭 맨 위(같은 버튼 노드를 옮김, placeHeaderBtns·renderPanel 감쌈), 제목 아래 '백업 n일 전/백업 기록 없음'(30일↑, 누르면 관리 탭, 기록 = exportData 때 mp-last-export),
+  월별 탭 왼쪽 '이번달 저장' 버튼 · 펼친 종목의 지표 칩 2줄 = '지표 ▾' 접힘(an-mfold) · Logic V1 신호 정의 = '신호 · 칩 설명' 접힘(문구 그대로) ·
+  관찰(보유·순항/조정·매수보류 등)만인 종목 = '관찰 n' 접힘(관찰 탭 누르면 펼쳐서 제목 없이) · 신호추적 판정 글자 480px 이하 숨김(아이콘만) ·
+  신호추적 위 '실전 기록 26.10.12~ · n거래일 V1 실전 · 내 종목 보유 · 코스피 · 나스닥 ›'(kangsaem.github.io/moneypier/live.json 직접, 30분 캐시, 누르면 live.html).
+- 묶음 3 머니파이 쪽(**메인 index.html에 반영함**): tickers.json 동기화에 관심종목(계좌에 없음) `"watch": true` — anGhLocal(anHeldSets로 판단), 보유↔관심 바뀜도 '달라요'(보유·관심 n)로 올림. 첫 동기화 때 관심종목 수만큼 '보유·관심 바뀜'이 한 번 뜨는 게 정상.
+- 시험: Playwright 가짜 시세(390px) — 저장 분리(test: 키만 씀, 메인 키 그대로) · 칩·줄·접힘·탭 이동 확인. 실제 아이폰 화면은 사용자 확인 필요. 확인되면 `promote` → index.html 커밋.

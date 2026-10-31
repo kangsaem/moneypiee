@@ -8697,7 +8697,11 @@ function anGhCode(h){
 }
 function anGhLocal(){
   const seen = new Set();                                  // 같은 코드는 하나만(보유 쪽이 먼저, 2026-10-14)
-  return anCollectTargets().map(h => ({ code: anGhCode(h), name: h.name })).filter(x => !x.code || (seen.has(x.code) ? false : (seen.add(x.code), true)));
+  const H = anHeldSets();                                  // watch = 계좌에 없는 관심종목(2026-10-31, 리포트 실전 비교는 보유 종목만)
+  return anCollectTargets().map(h => {
+    const code = anGhCode(h), w = !(H.names.has(h.name) || (h.symbol && H.codes.has(String(h.symbol))) || (h.yahooSymbol && H.codes.has(h.yahooSymbol)));
+    return w ? { code, name: h.name, watch: true } : { code, name: h.name };
+  }).filter(x => !x.code || (seen.has(x.code) ? false : (seen.add(x.code), true)));
 }
 async function anGhFetch(tok){
   const r = await fetch(`https://api.github.com/repos/${AN_GH.REPO}/contents/${AN_GH.PATH}?t=${Date.now()}`,
@@ -8715,7 +8719,9 @@ async function anGhCheck(){
     const loc = anGhLocal();
     const rn = new Set(rem.list.map(x => x.name)), ln = new Set(loc.map(x => x.name));
     const add = loc.filter(x => !rn.has(x.name)), del = rem.list.filter(x => !ln.has(x.name));
-    anGh.diff = add.length || del.length ? { add, del, rem, loc } : null;
+    const lw = new Map(loc.map(x => [x.name, !!x.watch]));
+    const chg = rem.list.filter(x => lw.has(x.name) && lw.get(x.name) !== !!x.watch);   // 보유 ↔ 관심 바뀜(2026-10-31)
+    anGh.diff = add.length || del.length || chg.length ? { add, del, chg, rem, loc } : null;
     anGh.err = '';
   }catch(e){ anGh.diff = null; anGh.err = e && e.message ? e.message : String(e); }
   anGhPaint();
@@ -8726,8 +8732,11 @@ async function anGhUpload(){
   anGh.busy = true;
   try{
     const ln = new Set(d.loc.map(x => x.name));
-    const list = d.rem.list.filter(x => ln.has(x.name)).concat(d.add);       // 그대로인 종목은 GitHub 쪽 코드 그대로
-    const body = { message: `종목 목록 갱신 (머니파이: 추가 ${d.add.length} · 빠짐 ${d.del.length}) [skip ci]`,
+    const lw = new Map(d.loc.map(x => [x.name, !!x.watch]));
+    const list = d.rem.list.filter(x => ln.has(x.name)).map(x => {                // 그대로인 종목은 GitHub 쪽 코드 그대로, 보유/관심 표시만 지금 것으로
+      const y = { code: x.code, name: x.name }; if(lw.get(x.name)) y.watch = true; return y;
+    }).concat(d.add);
+    const body = { message: `종목 목록 갱신 (머니파이: 추가 ${d.add.length} · 빠짐 ${d.del.length}${(d.chg || []).length ? ' · 보유/관심 ' + d.chg.length : ''}) [skip ci]`,
                    content: anGhB64enc(JSON.stringify(list, null, 1) + '\n') };
     if(d.rem.sha) body.sha = d.rem.sha;
     const r = await fetch(`https://api.github.com/repos/${AN_GH.REPO}/contents/${AN_GH.PATH}`,
@@ -8745,7 +8754,7 @@ function anGhPaint(){
   if(!el){ el = document.createElement('div'); el.id = 'anGhBar'; const top = root.querySelector('#anFtabs'); top ? top.after(el) : root.prepend(el); }
   const tok = anGhToken();
   let h = '';
-  if(tok && anGh.diff) h += `<div class="an-ghs">GitHub 리포트 목록과 달라요 · 추가 ${anGh.diff.add.length} / 빠짐 ${anGh.diff.del.length}<button type="button" id="anGhGo">확인</button></div>`;
+  if(tok && anGh.diff) h += `<div class="an-ghs">GitHub 리포트 목록과 달라요 · 추가 ${anGh.diff.add.length} / 빠짐 ${anGh.diff.del.length}${(anGh.diff.chg || []).length ? ' / 보유·관심 ' + anGh.diff.chg.length : ''}<button type="button" id="anGhGo">확인</button></div>`;
   if(tok && anGh.err) h += `<div class="an-ghs err">GitHub 목록 확인 실패: ${anE(anGh.err)}</div>`;
   if(anGhSetupMode()) h += `<div class="an-ghs set"><b>GitHub 토큰</b> <small>${tok ? '이 기기에 저장됨' : '없음'} · 이 기기에만 저장(백업 파일에 안 들어감)</small>
     <div class="an-ghrow"><input type="password" id="anGhTok" placeholder="github_pat_..." autocomplete="off"><button type="button" id="anGhSave">저장</button>${tok ? '<button type="button" id="anGhDel">삭제</button>' : ''}</div></div>`;
@@ -8754,7 +8763,7 @@ function anGhPaint(){
   if(go) go.addEventListener('click', () => {
     const d = anGh.diff; if(!d) return;
     const L = a => a.length ? a.map(x => anE(x.name)).join(', ') : '없음';
-    showConfirmModal(`GitHub 리포트 종목 목록을 바꿀까요?\n\n<b>추가 ${d.add.length}</b>: ${L(d.add)}\n<b>빠짐 ${d.del.length}</b>: ${L(d.del)}\n\n빠진 종목은 실전 기록 가상 계좌에서 마지막 기록일 종가에 매도로 처리돼요.`,
+    showConfirmModal(`GitHub 리포트 종목 목록을 바꿀까요?\n\n<b>추가 ${d.add.length}</b>: ${L(d.add)}\n<b>빠짐 ${d.del.length}</b>: ${L(d.del)}${(d.chg || []).length ? `\n<b>보유·관심 바뀜 ${d.chg.length}</b>: ${L(d.chg)}` : ''}\n\n빠진 종목은 실전 기록 가상 계좌에서 마지막 기록일 종가에 매도로 처리돼요.`,
       '올리기', '#4FC3F7', anGhUpload);
   });
   const sv = el.querySelector('#anGhSave');
