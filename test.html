@@ -6145,6 +6145,7 @@ const BK_KEY = 'mp-last-export', BK_DAYS = 30;
 let hdrBtnsEl = null;                                   // 버튼 묶음 참조(패널을 다시 그리면 문서에서 떨어지므로 직접 들고 있음)
 function hdrBtnsHome(){                                  // 패널을 다시 그리기 전에 버튼 묶음을 원래 자리로(2026-10-31 오류 수정: 자산 → 관리 때 사라짐)
   const box = hdrBtnsEl || (hdrBtnsEl = document.getElementById('hdrBtns')), home = document.getElementById('hdrBtnsHome');
+  if(box) box.querySelectorAll('#mngAddAccountBtn').forEach(b => b.remove());   // 관리 탭에서 옮겨 온 계좌추가는 패널과 같이 버림(다시 그릴 때 새로 생김)
   if(box && home && box.parentNode !== home){ box.classList.remove('in-mng'); home.appendChild(box); }
 }
 function placeHeaderBtns(){
@@ -6153,6 +6154,8 @@ function placeHeaderBtns(){
   if(state.activeId === '__deleteAccounts__'){
     box.classList.add('in-mng');
     panel.insertBefore(box, panel.firstChild);
+    const add = panel.querySelector('#mngAddAccountBtn');   // 계좌추가 = 같은 줄 왼쪽 끝(2026-10-31)
+    if(add && add.parentNode !== box){ const w = add.parentNode; box.insertBefore(add, box.firstChild); if(w && w !== panel && !w.children.length) w.remove(); }
   } else if(box.parentNode !== home){ box.classList.remove('in-mng'); home.appendChild(box); }
   home.style.display = 'none';
   const chip = document.getElementById('bkChip');
@@ -9278,8 +9281,10 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 #hdrBtns.in-mng .btn { height:26px; padding:0 10px; font-size:12px; line-height:1; display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; border-radius:6px; }   /* 2026-10-31: 다른 탭 버튼과 같은 크기, 한 줄 */
 #hdrBtns.in-mng #importXlsxBtn { background:#C9C9C9; color:#1A1A1A; border:1px solid #C9C9C9; font-weight:700; }   /* 자산 탭 국내·해외(켜짐)와 같은 색 */
 #hdrBtns.in-mng #exportBtn, #hdrBtns.in-mng #importBtn { background:var(--surface2); color:#C9C9C9; border:1px solid #C9C9C9; font-weight:700; }   /* json저장·json로드 = 반전(2026-10-31) */
-#hdrBtns.in-mng #exportXlsxBtn { margin-left:12px; }   /* 데이터 두 개 | 엑셀 두 개 사이 간격 */
-#hdrBtns.in-mng { justify-content:center; margin:0 0 14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+#hdrBtns.in-mng #exportXlsxBtn { margin-left:12px; }
+#hdrBtns.in-mng #mngAddAccountBtn { margin-right:auto; padding:0 10px; }   /* 계좌추가 = 왼쪽 끝, 나머지는 오른쪽으로 */
+@media (max-width:400px){ #hdrBtns.in-mng { gap:4px !important; } #hdrBtns.in-mng .btn, #hdrBtns.in-mng #mngAddAccountBtn { padding:0 6px; } #hdrBtns.in-mng #exportXlsxBtn { margin-left:6px; } }   /* 좁은 화면에서도 한 줄 */   /* 데이터 두 개 | 엑셀 두 개 사이 간격 */
+#hdrBtns.in-mng { justify-content:flex-start; margin:0 0 14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
 .snap-mini { height:26px; padding:0 10px; font-size:12px; display:inline-flex; align-items:center; justify-content:center; line-height:1; background:transparent !important; color:#4FC3F7 !important; border:1px solid #4FC3F7 !important; }
 .an-mfold { margin-top:2px; } .an-mfold > summary { cursor:pointer; list-style:none; font-size:11.5px; color:var(--text-dim); padding:3px 0; }
 .an-mfold > summary::-webkit-details-marker { display:none; } .an-mfold > summary::after { content:' ▾'; } .an-mfold[open] > summary::after { content:' ▴'; }

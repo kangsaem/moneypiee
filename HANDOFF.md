@@ -1206,3 +1206,4 @@
 - 20:45(사용자): 로고·제목(header) = 맨 위(광고 아래), 경제지표 카드(#marketTicker) = 그 아래·탭 위로 이동. header 아래 여백 24→12px, 경제지표 아래 12→16px.
 - 20:47(사용자): 제목 아래 가로줄 삭제(header border-bottom none), 제목~경제지표 간격 좁힘(margin 6px·padding 0).
 - 20:50(사용자): 가로줄 = 제목과 경제지표 사이(header 기본 border, margin·padding 8px), 경제지표 아래 가로줄 삭제·탭과 간격 8px(padding 아래 4px).
+- 20:53(사용자): 관리 탭 계좌추가 = json·엑셀 버튼과 같은 줄 왼쪽 끝(placeHeaderBtns가 #mngAddAccountBtn을 버튼 묶음 맨 앞으로 옮김, margin-right:auto로 나머지 4개는 오른쪽). 탭을 떠날 때 묶음에서 버림(다시 그릴 때 새로 생김). 400px 이하는 간격·여백 줄여 한 줄(360px 확인).
