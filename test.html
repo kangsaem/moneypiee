@@ -5746,7 +5746,7 @@ function assetRegionBtnsHtml(){
   assetRgSync();
   const on = assetRgOn;
   const b = (k, nm) => `<button type="button" data-asset-rg="${k}" style="border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;${on[k] ? 'background:#C9C9C9;color:#1A1A1A;border:1px solid #C9C9C9;' : 'background:transparent;color:var(--text-dim);border:1px solid var(--border);'}">${nm}</button>`;
-  return `<div style="display:flex;gap:6px;justify-content:center;margin-bottom:14px;">${b('domestic', '국내')}${b('overseas', '해외')}</div>`;
+  return `<div style="display:flex;gap:6px;justify-content:center;align-items:center;margin-bottom:14px;">${assetMemoBtnHtml()}${b('domestic', '국내')}${b('overseas', '해외')}</div>`;   // 2026-10-31: 메모 = 국내·해외 왼쪽
 }
 function assetMemoBtnHtml(){
   const snap = state.snapshots.find(s => s.label === currentMonthLabel()) || (state.snapshots.length ? state.snapshots[state.snapshots.length-1] : null);
@@ -5847,7 +5847,7 @@ function renderPanel0(){
       <div style="position:relative;">
         <div style="position:absolute;top:0;left:0;z-index:1;">${snapBtnHtml()}</div>   <!-- 2026-10-31: 왼쪽 끝 = 이번달 저장(메모와 자리 교환) -->
         <div style="position:absolute;top:0;right:0;display:flex;align-items:center;gap:8px;z-index:1;">   <!-- 리로드 = 오른쪽 끝 -->
-          <div id="reloadPricesLabel" style="display:none;font-size:11px;line-height:1.4;color:var(--text-dim);"></div>${assetMemoBtnHtml()}
+          <div id="reloadPricesLabel" style="display:none;font-size:11px;line-height:1.4;color:var(--text-dim);"></div>
           <button id="reloadPricesBtn" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button>
         </div>
       </div>
@@ -5955,7 +5955,7 @@ function renderPanel0(){
       <div style="position:relative;">
         <div style="position:absolute;top:0;left:0;z-index:1;">${snapBtnHtml()}</div>   <!-- 2026-10-31: 왼쪽 끝 = 이번달 저장(메모와 자리 교환) -->
         <div style="position:absolute;top:0;right:0;display:flex;align-items:center;gap:8px;z-index:1;">   <!-- 리로드 = 오른쪽 끝 -->
-          <div id="reloadPricesLabel" style="display:none;font-size:11px;line-height:1.4;color:var(--text-dim);"></div>${assetMemoBtnHtml()}
+          <div id="reloadPricesLabel" style="display:none;font-size:11px;line-height:1.4;color:var(--text-dim);"></div>
           <button id="reloadPricesBtn" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;">↻</button>
         </div>
       </div>
@@ -9275,6 +9275,8 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 #hdrBtns.in-mng #snapshotBtn { display:none; }   /* 이번달 자산 저장 = 자산·월별 탭에만(2026-10-31) */
 #hdrBtns.in-mng { flex-wrap:nowrap !important; gap:6px !important; }
 #hdrBtns.in-mng .btn { height:26px; padding:0 10px; font-size:12px; line-height:1; display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; border-radius:6px; }   /* 2026-10-31: 다른 탭 버튼과 같은 크기, 한 줄 */
+#hdrBtns.in-mng #exportBtn, #hdrBtns.in-mng #importBtn, #hdrBtns.in-mng #importXlsxBtn { background:#C9C9C9; color:#1A1A1A; border:1px solid #C9C9C9; font-weight:700; }   /* 자산 탭 국내·해외(켜짐)와 같은 색 */
+#hdrBtns.in-mng #exportXlsxBtn { margin-left:12px; }   /* 데이터 두 개 | 엑셀 두 개 사이 간격 */
 #hdrBtns.in-mng { justify-content:center; margin:0 0 14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
 .snap-mini { height:26px; padding:0 10px; font-size:12px; display:inline-flex; align-items:center; justify-content:center; line-height:1; background:transparent !important; color:#4FC3F7 !important; border:1px solid #4FC3F7 !important; }
 .an-mfold { margin-top:2px; } .an-mfold > summary { cursor:pointer; list-style:none; font-size:11.5px; color:var(--text-dim); padding:3px 0; }
