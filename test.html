@@ -5195,11 +5195,23 @@ function renderTabs(){
   if(tfAdd) tfAdd.addEventListener('click', addAccount);
   const setFold = v => {
     accTabsFolded = v; renderTabs();
-    if(!v && !mpNoMotion()){                                 // 펼칠 때: 계좌 탭 줄이 한꺼번에 위에서 아래로 펼쳐짐(감속 곡선, 2026-11-01)
-      document.querySelectorAll('#tabs .tab.acc, #tabs .tab-fill').forEach(el => {
-        try{ el.animate([{ clipPath: 'inset(0 0 100% 0)', opacity: 0.4 }, { clipPath: 'inset(0 0 0 0)', opacity: 1 }],
-                        { duration: 600, easing: MP_EASE }); }catch(e){}   // 340 → 600ms(2026-11-01 사용자 '빠름')
-      });
+    if(!v && !mpNoMotion()){                                 // 펼칠 때: 계좌 탭 묶음 전체가 위에서 아래로 한 번에 펼쳐짐 — 두 줄이면 윗줄부터(2026-11-01)
+      const els = [...document.querySelectorAll('#tabs .tab.acc, #tabs .tab-fill')].filter(el => el.offsetParent);
+      if(els.length){
+        const rs = els.map(el => el.getBoundingClientRect());
+        const top = Math.min(...rs.map(r => r.top)), bot = Math.max(...rs.map(r => r.bottom)), H = bot - top;
+        const rows = new Set(rs.map(r => Math.round(r.top))).size;
+        const dur = 600 + 250 * (rows - 1), t0 = performance.now();
+        const ease = t => 1 - Math.pow(1 - t, 4);              // 처음 빠르게 → 끝에서 느려짐
+        const step = now => {
+          const p = Math.min(1, (now - t0) / dur), y = top + H * ease(p);
+          els.forEach((el, i) => { const r = rs[i], vis = Math.max(0, Math.min(r.height, y - r.top));
+            el.style.clipPath = vis >= r.height ? '' : `inset(0 0 ${r.height - vis}px 0)`; });
+          if(p < 1) requestAnimationFrame(step); else els.forEach(el => { el.style.clipPath = ''; });
+        };
+        els.forEach(el => { el.style.clipPath = 'inset(0 0 100% 0)'; });
+        requestAnimationFrame(step);
+      }
     }
   };
   if(tFold) tFold.addEventListener('click', e => { e.stopPropagation(); setFold(true); });
