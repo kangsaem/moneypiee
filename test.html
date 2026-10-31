@@ -5243,8 +5243,22 @@ document.addEventListener('click', e => {
   const sm = e.target.closest && e.target.closest('summary');
   if(!sm || e.defaultPrevented || mpNoMotion()) return;          // 칩 설명창 등(먼저 preventDefault)은 그대로
   const d = sm.parentElement;
-  if(!d || d.tagName !== 'DETAILS' || d.open || !d.closest('#analysisRoot, #watchRoot')) return;
+  if(!d || d.tagName !== 'DETAILS' || !d.closest('#analysisRoot, #watchRoot')) return;
   if(e.target.closest('a, button, input, select') && e.target.closest('a, button, input, select') !== sm) return;
+  if(d.open){                                                     // 닫기(2026-11-01): 빠르게(160~260ms), 점점 빨라지며 제목 높이까지 줄어든 뒤 닫힘
+    if(d.dataset.closing) { e.preventDefault(); return; }
+    e.preventDefault();
+    const h0 = d.getBoundingClientRect().height, hs = sm.getBoundingClientRect().height + (h0 - d.clientHeight);
+    if(h0 - hs < 2){ d.open = false; return; }
+    d.dataset.closing = '1'; d.style.overflow = 'hidden';
+    const end = () => { d.open = false; d.style.overflow = ''; delete d.dataset.closing; };
+    try{
+      const a = d.animate([{ height: h0 + 'px' }, { height: hs + 'px' }], { duration: Math.round(Math.min(260, 160 + (h0 - hs) * 0.08)), easing: 'cubic-bezier(0.55, 0, 1, 0.45)', fill: 'forwards' });
+      a.onfinish = () => { end(); a.cancel(); };
+      a.oncancel = () => { if(d.dataset.closing) end(); };
+    }catch(err){ end(); }
+    return;
+  }
   e.preventDefault();
   const h0 = d.getBoundingClientRect().height;
   d.style.height = h0 + 'px'; d.style.overflow = 'hidden';       // 다 그려질 때까지 닫힌 높이로 잡아 둠
