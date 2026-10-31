@@ -5193,7 +5193,15 @@ function renderTabs(){
   }catch(e){}
   const tfAdd = tabs.querySelector('.tf-add'), tFold = document.getElementById('tabFold'), tUn = document.getElementById('tabUnfold');
   if(tfAdd) tfAdd.addEventListener('click', addAccount);
-  const setFold = v => { accTabsFolded = v; renderTabs(); };
+  const setFold = v => {
+    accTabsFolded = v; renderTabs();
+    if(!v){                                                  // 펼칠 때: 계좌 탭이 왼쪽부터 차례로 나옴(감속 곡선, 2026-11-01)
+      document.querySelectorAll('#tabs .tab.acc, #tabs .tab-fill').forEach((el, i) => {
+        try{ el.animate([{ opacity: 0, transform: 'translateX(-10px) scaleY(0.6)' }, { opacity: 1, transform: 'none' }],
+                        { duration: 320, delay: i * 35, easing: MP_EASE, fill: 'backwards' }); }catch(e){}
+      });
+    }
+  };
   if(tFold) tFold.addEventListener('click', e => { e.stopPropagation(); setFold(true); });
   if(tUn) tUn.addEventListener('click', () => setFold(false));
   tabFillFit();
@@ -5213,6 +5221,67 @@ function tabFillFit(){
   if(f.getBoundingClientRect().top > m.getBoundingClientRect().top + 4){ if(add) add.style.display = 'none'; else f.style.display = 'none'; }   // 다음 줄로 밀리면 '+'만 숨기고 접기 버튼은 남김
 }
 window.addEventListener('resize', () => { try{ tabFillFit(); }catch(e){} });
+
+// ------------------------------------------------------------------ 열림 애니메이션(2026-11-01 사용자) — 열 때만, 닫기는 바로
+// 곡선 = 처음 빠르게 열리다 끝에서 느려짐(감속, easeOutQuint). 움직임 줄이기 설정이면 안 함.
+const MP_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const mpNoMotion = () => { try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } };
+// ① V1·관심 탭 안 모든 접힘(details): 제목을 눌러 열 때 높이가 아래로 자라며 열림
+document.addEventListener('click', e => {
+  const sm = e.target.closest && e.target.closest('summary');
+  if(!sm || e.defaultPrevented || mpNoMotion()) return;          // 칩 설명창 등(먼저 preventDefault)은 그대로
+  const d = sm.parentElement;
+  if(!d || d.tagName !== 'DETAILS' || d.open || !d.closest('#analysisRoot, #watchRoot')) return;
+  if(e.target.closest('a, button, input, select') && e.target.closest('a, button, input, select') !== sm) return;
+  e.preventDefault();
+  const h0 = d.getBoundingClientRect().height;
+  d.style.height = h0 + 'px'; d.style.overflow = 'hidden';       // 다 그려질 때까지 닫힌 높이로 잡아 둠
+  d.open = true;
+  const slot = d.querySelector('[data-an-chart]');                // 종목 차트(비동기)는 먼저 그린 뒤 그 높이까지 열림(최대 0.3초 기다림)
+  let p = null;
+  if(slot && !slot.dataset.drawn && anState.result && slot.closest('details') === d){ slot.dataset.drawn = '1'; try{ p = anDrawChartSlot(slot); }catch(err){} }
+  const go = () => {
+    const h1 = d.scrollHeight;
+    const done = () => { d.style.height = ''; d.style.overflow = ''; };
+    if(h1 - h0 < 2) return done();
+    try{
+      const a = d.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: Math.round(Math.min(480, 220 + (h1 - h0) * 0.2)), easing: MP_EASE });
+      a.onfinish = a.oncancel = done;
+    }catch(err){ done(); }
+  };
+  if(p && p.then) Promise.race([p, new Promise(r => setTimeout(r, 300))]).then(() => requestAnimationFrame(go)); else go();
+});
+// ② 계좌·자산 탭 팝업(.floating-acc, 머리줄 .acc-header 있는 것): 머리줄이 먼저 나타나고 몸통이 아래로 펼쳐짐(clip-path라 자리 안 움직임)
+//    팝업 안에서 다른 섹터로 넘기는 등 다시 그릴 때(같은 순간에 옛 팝업이 지워짐)는 애니메이션 안 함
+(() => {
+  const onTab = () => { try{ return ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) || state.accounts.some(a => a.id === state.activeId); }catch(e){ return false; } };
+  const run = acc => {
+    const hd = acc.querySelector(':scope > .acc-header');
+    if(!hd) return;
+    const H = acc.getBoundingClientRect().height, h = hd.getBoundingClientRect().height;
+    if(!(H > h + 2)) return;
+    const cut = Math.max(0, H - h);
+    try{
+      acc.animate([
+        { clipPath: `inset(0 0 ${cut}px 0 round 6px)`, opacity: 0, offset: 0 },
+        { clipPath: `inset(0 0 ${cut}px 0 round 6px)`, opacity: 1, offset: 0.22, easing: MP_EASE },
+        { clipPath: 'inset(0 0 0 0 round 6px)', opacity: 1, offset: 1 }
+      ], { duration: Math.round(Math.min(560, 300 + cut * 0.35)), easing: 'linear' });
+    }catch(e){}
+  };
+  const mo = new MutationObserver(list => {
+    if(mpNoMotion() || !onTab()) return;
+    let removed = false; const added = [];
+    list.forEach(m => {
+      m.removedNodes.forEach(n => { if(n.nodeType === 1 && (n.classList.contains('floating-acc') || n.querySelector && n.querySelector('.floating-acc'))) removed = true; });
+      m.addedNodes.forEach(n => { if(n.nodeType !== 1) return; if(n.classList.contains('floating-acc')) added.push(n); else if(n.querySelectorAll) added.push(...n.querySelectorAll('.floating-acc')); });
+    });
+    if(removed || !added.length) return;
+    added.forEach(run);
+  });
+  const start = () => mo.observe(document.body, { childList: true, subtree: true });
+  if(document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+})();
 // ⚠ 탭 색(2026-10-20): 코스피·S&P500·나스닥이 모두 200일선 위면 회색, 하나라도 아래(또는 아직 모름)면 주황. 마지막 V1 결과의 지수 값(현재가 반영) 기준
 let warnTabLoaded = false;
 function warnTabAllAbove(){
