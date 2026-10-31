@@ -5193,6 +5193,12 @@ function renderTabs(){
   }catch(e){}
   const tfAdd = tabs.querySelector('.tf-add'), tFold = document.getElementById('tabFold'), tUn = document.getElementById('tabUnfold');
   if(tfAdd) tfAdd.addEventListener('click', addAccount);
+  // 아래 탭 줄·내용이 계좌 탭이 펼쳐지는 선을 따라 같은 속도로 내려가고 올라옴(2026-11-01): 줄어든 만큼(off ≤ 0) 위로 당겨 둠
+  const shiftBelow = off => {
+    const t = document.getElementById('tabs'); if(!t) return;
+    [...t.children].forEach(el => { if(!el.classList.contains('acc') && !el.classList.contains('tab-fill') && !el.classList.contains('tab-br')) el.style.transform = off ? `translateY(${off}px)` : ''; });
+    t.style.marginBottom = off ? off + 'px' : '';
+  };
   const setFold = v => {
     accTabsFolded = v; renderTabs();
     if(!v && !mpNoMotion()){                                 // 펼칠 때: 계좌 탭 묶음 전체가 위에서 아래로 한 번에 펼쳐짐 — 두 줄이면 윗줄부터(2026-11-01)
@@ -5203,13 +5209,16 @@ function renderTabs(){
         const rows = new Set(rs.map(r => Math.round(r.top))).size;
         const dur = 420 + 180 * (rows - 1), t0 = performance.now();   // 600 → 420ms(2026-11-01 사용자 '조금 더 빠르게')
         const ease = t => 1 - Math.pow(1 - t, 4);              // 처음 빠르게 → 끝에서 느려짐
+        const extra = H - Math.max(...rs.map(r => r.height));           // 접힌 칸(한 줄)보다 늘어난 높이 — 두 줄 이상일 때만
         const step = now => {
           const p = Math.min(1, (now - t0) / dur), y = top + H * ease(p);
           els.forEach((el, i) => { const r = rs[i], vis = Math.max(0, Math.min(r.height, y - r.top));
             el.style.clipPath = vis >= r.height ? '' : `inset(0 0 ${r.height - vis}px 0)`; });
+          shiftBelow(extra > 1 && p < 1 ? Math.max(-extra, y - bot) : 0);
           if(p < 1) requestAnimationFrame(step); else els.forEach(el => { el.style.clipPath = ''; });
         };
         els.forEach(el => { el.style.clipPath = 'inset(0 0 100% 0)'; });
+        if(extra > 1) shiftBelow(-extra);
         requestAnimationFrame(step);
       }
     }
@@ -5223,11 +5232,13 @@ function renderTabs(){
     const rows = new Set(rs.map(r => Math.round(r.top))).size;
     const dur = 200 + 90 * (rows - 1), t0 = performance.now();
     const ease = t => t * t * t;                                // 처음 느리게 → 점점 빨라짐
+    const extra = H - Math.max(...rs.map(r => r.height));
     const step = now => {
       const p = Math.min(1, (now - t0) / dur), y = bot - H * ease(p);
       els.forEach((el, i) => { const r = rs[i], vis = Math.max(0, Math.min(r.height, y - r.top));
         el.style.clipPath = `inset(0 0 ${r.height - vis}px 0)`; });
-      if(p < 1) requestAnimationFrame(step); else setFold(true);
+      if(extra > 1) shiftBelow(Math.max(-extra, y - bot));
+      if(p < 1) requestAnimationFrame(step); else { shiftBelow(0); setFold(true); }
     };
     requestAnimationFrame(step);
   };
