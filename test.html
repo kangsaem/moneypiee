@@ -5201,7 +5201,7 @@ function renderTabs(){
         const rs = els.map(el => el.getBoundingClientRect());
         const top = Math.min(...rs.map(r => r.top)), bot = Math.max(...rs.map(r => r.bottom)), H = bot - top;
         const rows = new Set(rs.map(r => Math.round(r.top))).size;
-        const dur = 600 + 250 * (rows - 1), t0 = performance.now();
+        const dur = 420 + 180 * (rows - 1), t0 = performance.now();   // 600 → 420ms(2026-11-01 사용자 '조금 더 빠르게')
         const ease = t => 1 - Math.pow(1 - t, 4);              // 처음 빠르게 → 끝에서 느려짐
         const step = now => {
           const p = Math.min(1, (now - t0) / dur), y = top + H * ease(p);
@@ -5214,7 +5214,24 @@ function renderTabs(){
       }
     }
   };
-  if(tFold) tFold.addEventListener('click', e => { e.stopPropagation(); setFold(true); });
+  // 접기(2026-11-01): 아래에서 위로 빠르게 걷힌 뒤(점점 빨라짐) 접힌 칸으로 바뀜. 두 줄이면 아랫줄부터
+  const foldAnim = () => {
+    const els = [...document.querySelectorAll('#tabs .tab.acc, #tabs .tab-fill')].filter(el => el.offsetParent);
+    if(!els.length || mpNoMotion()) return setFold(true);
+    const rs = els.map(el => el.getBoundingClientRect());
+    const top = Math.min(...rs.map(r => r.top)), bot = Math.max(...rs.map(r => r.bottom)), H = bot - top;
+    const rows = new Set(rs.map(r => Math.round(r.top))).size;
+    const dur = 200 + 90 * (rows - 1), t0 = performance.now();
+    const ease = t => t * t * t;                                // 처음 느리게 → 점점 빨라짐
+    const step = now => {
+      const p = Math.min(1, (now - t0) / dur), y = bot - H * ease(p);
+      els.forEach((el, i) => { const r = rs[i], vis = Math.max(0, Math.min(r.height, y - r.top));
+        el.style.clipPath = `inset(0 0 ${r.height - vis}px 0)`; });
+      if(p < 1) requestAnimationFrame(step); else setFold(true);
+    };
+    requestAnimationFrame(step);
+  };
+  if(tFold) tFold.addEventListener('click', e => { e.stopPropagation(); foldAnim(); });
   if(tUn) tUn.addEventListener('click', () => setFold(false));
   tabFillFit();
   warnTabPaint();
