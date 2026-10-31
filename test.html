@@ -6158,7 +6158,7 @@ function renderPanel0(){
 
 // 맨 위 데이터 버튼 5개(2026-10-31): 관리 탭 맨 위로 옮김(같은 버튼을 옮기므로 기능 그대로). 다른 탭에선 숨김
 // 백업 알림: 마지막 '데이터 저장하기'가 30일 넘었거나 기록이 없으면 제목 옆 작은 칩 → 누르면 관리 탭
-const BK_KEY = 'mp-last-export', BK_DAYS = 30;
+const BK_KEY = 'mp-last-export', BK_DAYS = 15;   // 2026-10-31: 30 → 15일(사용자)
 let hdrBtnsEl = null;                                   // 버튼 묶음 참조(패널을 다시 그리면 문서에서 떨어지므로 직접 들고 있음)
 function hdrBtnsHome(){                                  // 패널을 다시 그리기 전에 버튼 묶음을 원래 자리로(2026-10-31 오류 수정: 자산 → 관리 때 사라짐)
   const box = hdrBtnsEl || (hdrBtnsEl = document.getElementById('hdrBtns')), home = document.getElementById('hdrBtnsHome');
