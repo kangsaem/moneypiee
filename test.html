@@ -5154,13 +5154,14 @@ function trendBarsHTML(snapshots, groupKey, type, title, compact, idPrefix){
   `;
 }
 
+let accTabsFolded = true;                                 // 계좌 탭 줄: 열 때마다 접힘으로 시작(2026-10-31)
 function renderTabs(){
   const tabs = document.getElementById('tabs');
   // 2026-10-20 탭 정리: 1줄 = 계좌(높이 2/3) + 마통(마지막) / 2줄 = 자산·월별·관심·V1·⚠(200일선 붕괴 사례)·관리
   // 자산 = 옛 전체·국내·해외(안에서 국내/해외 버튼으로 전환, 내부 id는 그대로) · 관리 = 계좌 추가 + 계좌 삭제 · 월별자산 목록은 월별 탭 안 버튼
   const isAsset = ['__total__', '__domestic__', '__overseas__'].includes(state.activeId);
-  // 계좌 탭 줄 접기(2026-10-31): 접으면 '계좌 n ▾' 한 칸만(누르면 펼침), 펼치면 오른쪽 끝 '▴'. 이 기기에 기억(mp-acc-fold)
-  let accFold = false; try{ accFold = localStorage.getItem('mp-acc-fold') === '1'; }catch(e){}
+  // 계좌 탭 줄 접기(2026-10-31): 접으면 '계좌 n ▾' 한 칸만(누르면 펼침), 펼치면 오른쪽 끝 '▴'. 앱을 열 때마다 접힌 채로 시작(사용자)
+  const accFold = accTabsFolded;
   let html = '';
   if(accFold){
     const onAcc = state.accounts.some(a => a.id === state.activeId) || state.activeId === '__creditLines__';
@@ -5192,7 +5193,7 @@ function renderTabs(){
   }catch(e){}
   const tfAdd = tabs.querySelector('.tf-add'), tFold = document.getElementById('tabFold'), tUn = document.getElementById('tabUnfold');
   if(tfAdd) tfAdd.addEventListener('click', addAccount);
-  const setFold = v => { try{ v ? localStorage.setItem('mp-acc-fold', '1') : localStorage.removeItem('mp-acc-fold'); }catch(e){} renderTabs(); };
+  const setFold = v => { accTabsFolded = v; renderTabs(); };
   if(tFold) tFold.addEventListener('click', e => { e.stopPropagation(); setFold(true); });
   if(tUn) tUn.addEventListener('click', () => setFold(false));
   tabFillFit();
