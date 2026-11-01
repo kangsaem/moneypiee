@@ -501,7 +501,7 @@ function renderSummary(){
   const row=(k,v)=>`<div class="r"><span>${k}</span><b>${v}</b></div>`;
   let h='';
   const rp=r.plan||(r.alt&&r.alt.plan);
-  if(!r.plan&&r.alt&&r.alt.safetyOnly){h+=`<div><span class="tip" data-tip="safety" style="color:#0f9d7a;font-weight:600">5m 안전정지 3분 추천</span><br><span style="color:var(--mute)">${fmt(r.alt.t0)}에 5m 통과</span></div>`;}
+  if(!r.plan&&r.alt&&r.alt.safetyOnly){}
   else if(rp){
     if(!r.plan)h+='<div style="color:var(--mute)"><span class="tip" data-tip="plan">추천</span> ('+fmt(r.alt.t0)+' 5m 지점)</div>';
     const st=rp.stops.slice().sort((a,b)=>b.d-a.d).map(s=>(s.safety?'<span class="tip" data-tip="safety">':'')+`${s.d}m ${Math.round(s.s/60)}분${s.safety?'(안전)</span>':''}`);
