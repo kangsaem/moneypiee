@@ -212,7 +212,7 @@ function makePlan(T0,d0,anc0,c){
   const wait=(sec,safety)=>{step(T,d,c.fN2,sec);t+=sec;push();const k=Math.round(d*10)/10;const s=stops.find(x=>x.d===k&&!!x.safety===!!safety);s?s.s+=sec:stops.push({d:k,s:sec,safety});};
   const anc=Math.max(anc0,rawCeil(T,c.lo));
   if(d0<=0.05)return {pts,stops,t:0,deco:false};
-  if(anc<=0&&okAt(T,0,c.hi)){
+  if(okAt(T,0,c.hi)){
     if(d>5){travel(5);wait(180,true);}
     travel(0);return {pts,stops,t,deco:false};
   }
@@ -471,7 +471,7 @@ function updateStats(s){
   const r=RES[S.cur];s=Math.min(s,r.N);
   const T=Array.from(r.snaps[s]),d=r.depth[s],c=r.c,anc=r.anc[s];
   $('sT').textContent=fmt(s);$('sD').textContent=d.toFixed(1)+' m';
-  const decoNow=!(anc<=0&&okAt(T,0,c.hi));
+  const decoNow=!okAt(T,0,c.hi);
   if(!decoNow){
     let ndl=Infinity;const pi=pin(d,c.fN2);
     for(let i=0;i<NT;i++){const lim=allow(i,ENV.psurf,c.hi);if(pi<=lim)continue;const v=T[i]>=lim?0:-Math.log((lim-pi)/(T[i]-pi))/KK[i];ndl=Math.min(ndl,v);}
