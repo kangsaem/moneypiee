@@ -7,7 +7,11 @@
 <style>
 :root{--bg:#e6e7ea;--card:#fff;--ink:#1f2328;--mute:#6b7280;--line:#e5e7eb;--up:#e5484d;--down:#2f6fe4;--plan:#0f9d7a;--ceil:#f59e0b;--mod:#8b5cf6;--acc:#1f2328}
 *{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+body{background:#0d3b4f!important;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+#bgv{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;pointer-events:none}
+.bgdim{position:fixed;inset:0;background:rgba(6,24,40,.38);z-index:-1;pointer-events:none}
+h1{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45)}
+.foot{background:rgba(255,255,255,.9);border-radius:10px;padding:10px 12px}
 .wrap{max-width:1000px;margin:0 auto;padding:14px}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#e5484d;color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
@@ -96,6 +100,11 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 </style>
 </head>
 <body>
+<video id="bgv" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+  <source src="scuba-bg.webm" type='video/webm; codecs="av01.0.08M.08"'>
+  <source src="scuba-bg.mp4" type="video/mp4">
+</video>
+<div class="bgdim"></div>
 <div class="wrap">
 <h1>Bühlmann 다이빙 플래너</h1>
 <div class="rule">
