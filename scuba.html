@@ -229,8 +229,10 @@ function makePlan(T0,d0,anc0,c){
     if(d>5){travel(5);wait(180,true);}
     travel(0);return {pts,stops,t,deco:false};
   }
+  let ss=d<=5;
   while(d>1e-6&&t<6*3600){
     const next=Math.max(0,Math.ceil(d/3-1e-6)*3-3);
+    if(!ss&&next<5&&d>5&&okAt(T,next,gfAt(next,anc,c.lo,c.hi))){travel(5);wait(180,true);ss=true;continue;}
     if(okAt(T,next,gfAt(next,anc,c.lo,c.hi)))travel(next);else wait(60,false);
   }
   return {pts,stops,t,deco:true};
@@ -487,7 +489,7 @@ function renderSummary(){
   const row=(k,v)=>`<div class="r"><span>${k}</span><b>${v}</b></div>`;
   let h='';
   if(r.plan){
-    const st=r.plan.stops.filter(s=>!s.safety).sort((a,b)=>b.d-a.d).map(s=>`${s.d}m ${Math.round(s.s/60)}분`);
+    const st=r.plan.stops.slice().sort((a,b)=>b.d-a.d).map(s=>`${s.d}m ${Math.round(s.s/60)}분${s.safety?'(안전)':''}`);
     const sf=r.plan.stops.find(s=>s.safety);
     h+=`<div>${r.plan.deco?'<b style="color:#0f9d7a">감압 필요</b><br>'+st.join(' → '):'무감압'+(sf?'<br>5m 안전정지 3분':'')}<br><span style="color:var(--mute)">출수까지 ${fmt(r.plan.t)}</span></div>`;
   }
