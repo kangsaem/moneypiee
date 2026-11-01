@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#284656">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Bühlmann 다이빙 플래너</title>
 <style>
 :root{--bg:#e6e7ea;--card:#fff;--ink:#1f2328;--mute:#6b7280;--line:#e5e7eb;--up:#e5484d;--down:#2f6fe4;--plan:#0f9d7a;--ceil:#f59e0b;--mod:#8b5cf6;--acc:#1f2328}
 *{box-sizing:border-box}
-body{background:#3e6272!important;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
-#bgv{position:fixed;top:0;left:0;width:100%;height:auto;z-index:-2;pointer-events:none;-webkit-mask-image:linear-gradient(to bottom,#000 55%,transparent 100%);mask-image:linear-gradient(to bottom,#000 55%,transparent 100%)}
-.bgdim{position:fixed;inset:0;background:rgba(6,24,40,.38);z-index:-1;pointer-events:none}
+body{background:transparent!important;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+#bgv{position:fixed;top:0;left:0;width:100%;height:auto;z-index:-1;pointer-events:none;filter:brightness(.62);-webkit-mask-image:linear-gradient(to bottom,#000 55%,transparent 100%);mask-image:linear-gradient(to bottom,#000 55%,transparent 100%)}
 h1{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45)}
 .foot{background:rgba(255,255,255,.9);border-radius:10px;padding:10px 12px}
-html{background:#3e6272}
+html{background:#284656}
 .wrap{max-width:1000px;margin:0 auto;padding:calc(84px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left))}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#e5484d;color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
@@ -107,7 +107,6 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
   <source src="scuba-bg.webm" type='video/webm; codecs="av01.0.08M.08"'>
   <source src="scuba-bg.mp4" type="video/mp4">
 </video>
-<div class="bgdim"></div>
 <div class="wrap">
 <h1>Bühlmann 다이빙 플래너</h1>
 <div class="rule">
