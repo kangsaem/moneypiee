@@ -15,11 +15,11 @@ body{background:transparent!important;margin:0;font-family:-apple-system,BlinkMa
 h1{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45)}
 .foot{background:rgba(255,255,255,.9);border-radius:10px;padding:10px 12px}
 html{background:#284656}
-.wrap{max-width:1000px;margin:0 auto;padding:calc(84px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left))}
+.wrap{max-width:1000px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left))}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#e5484d;color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
-.card{background:var(--card);border:1px solid #dcdee2;border-radius:10px;padding:12px;margin-bottom:12px}
+.card{background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid #dcdee2;border-radius:10px;padding:12px;margin-bottom:12px}
 .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 label{color:var(--mute);font-size:12px;display:inline-flex;align-items:center;gap:6px}
 select,input[type=number]{font:inherit;font-size:13px;padding:5px 6px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:var(--ink)}
@@ -70,7 +70,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 .tools{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
 .tools button{font-size:12px;padding:5px 9px;white-space:nowrap}
 .play .seg button{font-size:12px;padding:5px 8px}
-.summary{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.55;background:#fafafa}
+.summary{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.55;background:rgba(250,250,250,.6)}
 .summary .r{display:flex;justify-content:space-between;gap:6px}
 .summary .r span:first-child{color:var(--mute)}
 .wbox{background:#e5484d;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;line-height:1.55}
@@ -81,7 +81,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 /* 질소 + 통계 */
 .split{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
 .side{display:flex;flex-direction:column;gap:6px;min-width:0}
-.st{border:1px solid #d9dce1;border-radius:8px;padding:6px 9px;background:#fff}
+.st{border:1px solid #d9dce1;border-radius:8px;padding:6px 9px;background:rgba(255,255,255,.6)}
 .st .k{display:block;font-size:11px;color:var(--mute);white-space:nowrap}
 .st .v{display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px}
 .st .v small{font-size:11px;font-weight:400;color:var(--mute)}
