@@ -156,7 +156,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .tabs .tab-logo h1{font-size:22px;margin:0;line-height:1;white-space:nowrap;}   /* 아이콘(1.2em ≈ 26px) = 계좌 탭 높이 */
   .tabs .tab-logo h1 > span:last-child{display:none !important;}   /* 탭 줄에선 'MONEY PIE' 글자 뺌(자리 부족 — 백업 칩·계좌 칸이 한 줄에 들어가게) */
   .tabs .tab-logo .bk-chip{flex-shrink:0;height:20px;font-size:11px;padding:0 8px;}
-  .tabs .tab.acc-unfold{margin-left:auto;width:auto !important;min-width:0;padding-left:12px;padding-right:12px;color:var(--text-dim);}   /* 계좌 탭 줄 오른쪽 빈칸 = 계좌 추가 */
+  .tabs .tab.acc-unfold{margin-left:auto;}   /* '계좌' 탭: 다른 탭과 같은 폭, 관리 탭 바로 위(오른쪽 끝 맞춤은 tabUnfoldAlign) */   /* 계좌 탭 줄 오른쪽 빈칸 = 계좌 추가 */
   .tab.active{background:var(--surface2);border-color:var(--accent-dim);}
   .tab.total{color:var(--accent);}
   .tab-add{
@@ -5171,7 +5171,7 @@ function renderTabs(){
   if(accFold){
     const onAcc = state.accounts.some(a => a.id === state.activeId) || state.activeId === '__creditLines__';
     html += `<div class="tab-logo" id="tabLogoSlot"></div>`;   // 접혔을 때 = 왼쪽 로고·제목(+백업 칩), 오른쪽 끝 '계좌 n ▾'(2026-11-01)
-    html += `<div class="tab acc acc-unfold${onAcc ? ' active' : ''}" id="tabUnfold" title="계좌 탭 펼치기">계좌 ${state.accounts.length} ▾</div>`;
+    html += `<div class="tab acc acc-unfold${onAcc ? ' active' : ''}" id="tabUnfold" title="계좌 ${state.accounts.length}개 펼치기">계좌</div>`;   // 2026-11-01: '계좌' 탭, 관리 탭 바로 위·같은 폭(tabUnfoldAlign)
   } else {
   html += state.accounts.map(a => `
     <div class="tab acc ${a.id===state.activeId?'active':''}" data-tab="${a.id}" title="${escapeHTML(a.name)}">${escapeHTML(a.name)}</div>
@@ -5275,7 +5275,17 @@ function renderTabs(){
   });
 }
 // 마통 오른쪽 '+': 마통과 같은 줄에 못 들어가면 숨김
+// '계좌' 탭(접힘)을 관리 탭 바로 위에: 같은 폭, 오른쪽 끝을 관리 탭 오른쪽 끝에 맞춤(2026-11-01)
+function tabUnfoldAlign(){
+  const u = document.getElementById('tabUnfold'), m = document.querySelector('#tabs [data-tab="__deleteAccounts__"]'), t = document.getElementById('tabs');
+  if(!u || !m || !t) return;
+  u.style.marginRight = '';
+  const mr = m.getBoundingClientRect(), tr = t.getBoundingClientRect();
+  u.style.width = mr.width + 'px';
+  u.style.marginRight = Math.max(0, Math.round(tr.right - mr.right)) + 'px';
+}
 function tabFillFit(){
+  try{ tabUnfoldAlign(); }catch(e){}
   const f = document.getElementById('tabFill'), m = document.querySelector('.tabs [data-tab="__creditLines__"]');
   if(!f || !m) return;
   const add = f.querySelector('.tf-add');
