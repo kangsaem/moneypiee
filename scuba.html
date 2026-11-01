@@ -350,6 +350,7 @@ ja:{
  }
 }};
 let LANG='ko';try{const l=localStorage.getItem('scuba_lang');if(l&&I18N[l])LANG=l;}catch(e){}
+{const h=(location.hash||'').slice(1);if(I18N[h]){LANG=h;try{localStorage.setItem('scuba_lang',h);}catch(e){}}}
 function tr(k,...a){const v=(k in I18N[LANG])?I18N[LANG][k]:I18N.ko[k];return typeof v==='function'?v(...a):v;}
 // ===== ZHL-16C (N2) =====
 const HT=[5,8,12.5,18.5,27,38.3,54.3,77,109,146,187,239,305,390,498,635];
