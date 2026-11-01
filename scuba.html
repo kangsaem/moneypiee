@@ -17,7 +17,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 label{color:var(--mute);font-size:12px;display:inline-flex;align-items:center;gap:6px}
 select,input[type=number]{font:inherit;font-size:13px;padding:5px 6px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:var(--ink)}
 input[type=number]{width:62px}
-button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:var(--ink)}
+button{touch-action:manipulation;font:inherit;font-size:13px;padding:6px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:var(--ink)}
 button:disabled{opacity:.4;cursor:default}
 button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .seg{display:inline-flex}
@@ -526,7 +526,7 @@ function renderSummary(){
 
 // ===== 통계 =====
 function updateStats(s){
-  const r=RES[S.cur];s=Math.min(s,r.N);
+  const r=RES[S.cur];s=clamp(Math.round(s)||0,0,r.N);
   const T=Array.from(r.snaps[s]),d=r.depth[s],c=r.c,anc=r.anc[s];
   $('sT').textContent=fmt(s);$('sD').textContent=d.toFixed(1)+' m';
   const decoNow=!okAt(T,0,c.hi);
@@ -570,7 +570,7 @@ function drawBars(T,d,c){
 // ===== 재생 =====
 function frame(ts){
   if(!P.run)return;const r=RES[S.cur];
-  const dt=Math.min(0.1,(ts-P.last)/1000);P.last=ts;P.t+=dt*240*P.sp;
+  const dt=clamp((ts-P.last)/1000,0,0.1);P.last=ts;P.t=Math.max(0,P.t+dt*240*P.sp);
   if(P.t>=r.N)P.t=r.N;
   const tick=Math.floor(P.t/5)*5;if(tick!==P.tick){P.tick=tick;updateStats(tick);}
   drawProfile();syncScrub();
