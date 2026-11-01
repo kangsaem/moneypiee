@@ -180,6 +180,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
       <div class="legend" id="lgSw" style="display:none">
         <span class="tip" data-tip="swIn"><i style="border-color:#06b6d4;border-top-style:dashed"></i><span data-i18n="swIn">들이마신 질소</span></span>
         <span class="tip" data-tip="swAmb"><i style="border-color:#eab308"></i><span data-i18n="swAmb">주변 압력</span></span>
+        <span class="tip" data-tip="swGF"><i style="border-color:#374151;border-top-style:dashed"></i><span data-i18n="swGF">GF 한계(천장)</span></span>
         <span class="tip" data-tip="swM"><i style="border-color:#e5484d"></i><span data-i18n="swM">M값(원래 한계)</span></span>
       </div>
       <div class="legend">
@@ -230,7 +231,7 @@ ko:{
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
  disc:'교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',
  model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 헬륨·산소 독성(CNS/OTU)은 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
- bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',
+ bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
  siTitle:'수면휴식 시간',hUnit:'시간',minUnit:'분',cancel:'취소',ok:'확인',
  axisMin:m=>m+'분',max:v=>`최대 ${v}m`,total:v=>`총 ${v}`,
  empty:'그래프에 수심을 그려 주세요. 출수까지 안 그리면 추천 플랜이 이어집니다.',
@@ -266,7 +267,8 @@ ko:{
   safety:['안전정지','5m에서 3분. 의무 정지는 아니지만 기포를 줄이기 위해 권장. 추천 경로에 자동으로 포함.'],
   gf99:['GF99','지금 수심 기준으로, 가장 많이 쌓인 구획이 주변 압력과 M값 사이 어디쯤인지(%). 0% = 주변 압력 이하, 100% = M값. 감압 정지 중 이 값이 GF 설정보다 낮으면 더 올라가도 됨(쉐어워터 표기).'],
   swIn:['들이마신 질소','지금 들이마시는 질소의 분압. 막대가 이 선보다 짧으면 흡수, 길면 배출.'],
-  swAmb:['주변 압력','지금 수심의 압력. 막대가 이 선을 넘으면 과포화(노란 테두리) = 기포가 생길 수 있는 쪽.'],
+  swAmb:['주변 압력','지금 수심의 압력. 막대가 이 선을 넘는 것(과포화, 점선 테두리)은 정상 = 질소가 빠지는 중. 위험 기준은 GF 한계선과 M값.'],
+  swGF:['GF 한계(천장)','지금 수심에서 설정한 GF로 허용되는 한계. 첫 정지 근처는 GF Low, 수면에 가까울수록 GF High로 오른쪽으로 이동. 가장 긴 막대가 이 선에 닿으면 지금 수심 = 천장.'],
   swM:['M값','뷜만 원래 허용 한계(보수도 미적용). 쉐어워터처럼 구획마다 눈금을 달리해 모든 구획의 M값을 같은 위치(오른쪽 선)에 맞춤. 수심이 바뀌면 눈금도 바뀜.'],
   si:['수면휴식','앞 다이빙과 이번 다이빙 사이에 수면에서 쉰 시간. 남은 질소가 다음 다이빙에 이어짐. 누르면 시간 변경.']
  }
@@ -281,7 +283,7 @@ en:{
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
  disc:'For education and learning only. Do not use it to plan real dives or as a substitute for a dive computer.',
  model:'Model: Bühlmann ZHL-16C, 16 nitrogen compartments, Baker gradient factors, water vapour 0.0627 bar, 1-second steps. Deco stops in 3 m steps and whole minutes, last stop 3 m. A 3-minute safety stop at 5 m is included. Altitude assumes you are acclimatised. Helium and oxygen toxicity (CNS/OTU) are not calculated. Results can differ from real dive computers by a few minutes because of how stops are handled and rounded.',
- bmSurf:'Surface-based',bmSw:'Shearwater-style',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',
+ bmSurf:'Surface-based',bmSw:'Shearwater-style',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
  siTitle:'Surface interval',hUnit:'h',minUnit:'min',cancel:'Cancel',ok:'OK',
  axisMin:m=>String(m),axisLast:m=>m+' min',max:v=>`Max ${v}m`,total:v=>`Total ${v}`,
  empty:'Draw your depth profile on the graph. If you stop before surfacing, a suggested ascent is added.',
@@ -317,7 +319,8 @@ en:{
   safety:['Safety stop','3 minutes at 5 m. Not mandatory, but recommended to reduce bubbles. Included automatically in the suggested ascent.'],
   gf99:['GF99','At the current depth, where the most-loaded compartment sits between ambient pressure and its M-value (%). 0% = at or below ambient, 100% = M-value. During deco, if it is below your GF you may ascend further (Shearwater convention).'],
   swIn:['Inspired N₂','Partial pressure of the nitrogen you breathe now. Bars shorter than this line are on-gassing, longer ones off-gassing.'],
-  swAmb:['Ambient','Pressure at the current depth. Bars beyond this line are supersaturated (yellow outline).'],
+  swAmb:['Ambient','Pressure at the current depth. Bars beyond this line (supersaturated, dotted outline) are normal = nitrogen is leaving. The danger markers are the GF limit line and the M-value.'],
+  swGF:['GF limit (ceiling)','Limit allowed by your GF setting at the current depth: GF Low near the first stop, moving right toward GF High as you approach the surface. When the longest bar touches this line, your current depth is the ceiling.'],
   swM:['M-value','Raw Bühlmann limit (no conservatism). As on Shearwater, each compartment is scaled so all M-values line up at the right-hand line. The scale changes with depth.'],
   si:['Surface interval','Time spent at the surface between the previous dive and this one. Residual nitrogen carries over. Tap to change.']
  }
@@ -332,7 +335,7 @@ ja:{
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
  disc:'教育・学習用のシミュレーターです。実際のダイビング計画やダイブコンピューターの代わりに使用しないでください。',
  model:'計算: Bühlmann ZHL-16C 窒素16コンパートメント、Baker グラディエントファクター、水蒸気圧 0.0627 bar、1秒単位の計算。減圧停止は3 m刻み・1分単位、最終停止 3 m。5 mで3分の安全停止を含む。標高はその標高に順応した状態を想定。ヘリウム・酸素毒性(CNS/OTU)は計算しません。停止の扱いや丸め方の違いにより、実際のダイブコンピューターと数分の差が出ることがあります。',
- bmSurf:'水面基準',bmSw:'Shearwater式',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',
+ bmSurf:'水面基準',bmSw:'Shearwater式',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
  siTitle:'水面休息時間',hUnit:'時間',minUnit:'分',cancel:'キャンセル',ok:'OK',
  axisMin:m=>m+'分',max:v=>`最大 ${v}m`,total:v=>`合計 ${v}`,
  empty:'グラフに水深を描いてください。浮上まで描かなければ推奨プランが続きます。',
@@ -368,7 +371,8 @@ ja:{
   safety:['安全停止','5mで3分。義務ではないが気泡を減らすため推奨。推奨経路に自動で含まれる。'],
   gf99:['GF99','現在の水深を基準に、最も窒素が溜まったコンパートメントが周囲圧とM値の間のどこにあるか(%)。0% = 周囲圧以下、100% = M値。減圧停止中にこの値がGF設定より低ければさらに浮上できる(Shearwaterの表記)。'],
   swIn:['吸気の窒素','今吸っている窒素の分圧。バーがこの線より短ければ吸収、長ければ排出。'],
-  swAmb:['周囲圧','現在の水深の圧力。バーがこの線を超えると過飽和(黄色の枠)。'],
+  swAmb:['周囲圧','現在の水深の圧力。バーがこの線を超えるのは正常(過飽和、点線の枠)= 窒素が抜けている状態。危険の基準はGF限界線とM値。'],
+  swGF:['GF限界(シーリング)','現在の水深で設定したGFにより許容される限界。最初の停止付近はGF Low、水面に近づくほどGF Highへ右に移動。最も長いバーがこの線に触れると、現在の水深 = シーリング。'],
   swM:['M値','ビュールマン本来の許容限界(保守性なし)。Shearwaterと同様、コンパートメントごとに目盛りを変えてM値を同じ位置(右の線)に揃える。水深が変わると目盛りも変わる。'],
   si:['水面休息','前のダイビングと今回のダイビングの間に水面で休んだ時間。残留窒素が次のダイビングに持ち越される。タップで時間を変更。']
  }
@@ -720,10 +724,10 @@ function updateStats(s){
   $('sGF').textContent=Math.max(0,Math.round(sg))+'%';$('sGF').style.color=sg>c.hi*100?'#e5484d':'';
   {const pa=pamb(d);let g=0;for(let i=0;i<NT;i++)g=Math.max(g,(T[i]-pa)/(mv(i,pa)-pa)*100);$('sGF99').textContent=Math.max(0,Math.round(g))+'%';$('sGF99').style.color=g>c.hi*100?'#e5484d':'';}
   const po2=c.fO2*pamb(d);$('sPO2').textContent=po2.toFixed(2);$('sPO2').style.color=po2>1.4?'#e5484d':'';
-  drawBars(T,d,c);
+  drawBars(T,d,c,anc);
 }
-function drawBars(T,d,c){
-  if(S.bm==='sw')return drawBarsSW(T,d,c);
+function drawBars(T,d,c,anc){
+  if(S.bm==='sw')return drawBarsSW(T,d,c,anc||0);
   const bc=$('bars'),g=bc.getContext('2d'),dpr=window.devicePixelRatio||1,w=bc.width/dpr,h=bc.height/dpr;
   const narrow=w<300,rh=narrow?17:20,L=24,R=narrow?36:40,top=2,W=w-L-R,MAXP=130;
   const px=v=>L+clamp(v,0,MAXP)/MAXP*W;
@@ -746,7 +750,7 @@ function drawBars(T,d,c){
   }
 }
 
-function drawBarsSW(T,d,c){
+function drawBarsSW(T,d,c,anc){
   const bc=$('bars'),g=bc.getContext('2d'),dpr=window.devicePixelRatio||1,w=bc.width/dpr,h=bc.height/dpr;
   const narrow=w<300,rh=narrow?17:20,L=24,R=narrow?36:40,top=2,W=w-L-R,AMB=50,MAXP=125;
   const px=v=>L+clamp(v,0,MAXP)/MAXP*W;
@@ -761,11 +765,12 @@ function drawBarsSW(T,d,c){
     const col=pi>T[i]+0.003?'#e5484d':pi<T[i]-0.003?'#2f6fe4':'#9ca3af';
     g.fillStyle='#6b7280';g.textAlign='right';g.textBaseline='middle';g.fillText(String(i+1),L-6,y+rh/2);
     g.fillStyle=col;g.globalAlpha=.85;g.fillRect(L,y+3,Math.max(0,px(v)-L),rh-6);g.globalAlpha=1;
-    if(T[i]>pa){g.strokeStyle='#eab308';g.lineWidth=2;g.strokeRect(L+1,y+4,Math.max(0,px(v)-L-2),rh-8);}
+    if(T[i]>pa){g.strokeStyle='#6b7280';g.lineWidth=1;g.setLineDash([2,2]);g.strokeRect(L+.5,y+3.5,Math.max(0,px(v)-L-1),rh-7);g.setLineDash([]);}
     if(v>MAXP){g.fillStyle=col;g.beginPath();g.moveTo(px(MAXP)+1,y+2);g.lineTo(px(MAXP)+7,y+rh/2);g.lineTo(px(MAXP)+1,y+rh-2);g.fill();}
     if(T[i]>pa){const gf=Math.round((T[i]-pa)/(mv(i,pa)-pa)*100);g.fillStyle='#1f2328';g.textAlign='right';g.fillText(gf+'%',w-1,y+rh/2);}
   }
   vline(pi/pa*AMB,'#06b6d4',[4,3],'');vline(AMB,'#eab308',[],'');vline(100,'#e5484d',[],'M');
+  {const gfn=gfAt(d,anc,c.lo,c.hi);vline(AMB+gfn*(100-AMB),'#374151',[5,3],'GF '+Math.round(gfn*100));}
 }
 
 // ===== 재생 =====
