@@ -41,6 +41,10 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .tabs .tab{gap:5px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .pop{position:absolute;z-index:20;background:#1f2328;border-radius:8px;padding:4px;display:flex;gap:4px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
 .pop button{background:transparent;color:#fff;border:0;font-size:13px;padding:6px 12px}
+.st[data-info]{cursor:pointer}
+.pop.inf::before{display:none}
+.info{max-width:260px;color:#fff;font-size:12px;line-height:1.55;padding:6px 8px}
+.info b{display:block;margin-bottom:2px;font-size:13px}
 .pop button:hover{background:rgba(255,255,255,.12)}
 .pop::before{content:"";position:absolute;top:-5px;left:16px;border:5px solid transparent;border-top:0;border-bottom-color:#1f2328}
 .tabs .tab{display:inline-flex;align-items:center}
@@ -163,10 +167,10 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
       <div class="wbox hide" id="warnBox"></div>
       <div class="st"><span class="k">경과 시간</span><span class="v" id="sT">0:00</span></div>
       <div class="st"><span class="k">수심</span><span class="v" id="sD">0.0 m</span></div>
-      <div class="st"><span class="k" id="sNk">NDL</span><span class="v" id="sN">-</span></div>
-      <div class="st"><span class="k">TTS</span><span class="v" id="sTTS">-</span></div>
-      <div class="st"><span class="k">수면 GF</span><span class="v" id="sGF">-</span></div>
-      <div class="st"><span class="k">PO₂</span><span class="v" id="sPO2">-</span></div>
+      <div class="st" data-info="ndl"><span class="k"><span id="sNk">NDL</span> ⓘ</span><span class="v" id="sN">-</span></div>
+      <div class="st" data-info="tts"><span class="k">TTS ⓘ</span><span class="v" id="sTTS">-</span></div>
+      <div class="st" data-info="gf"><span class="k">수면 GF ⓘ</span><span class="v" id="sGF">-</span></div>
+      <div class="st" data-info="po2"><span class="k">PO₂ ⓘ</span><span class="v" id="sPO2">-</span></div>
     </div>
   </div>
 </div>
@@ -586,7 +590,7 @@ $('pkOk').onclick=()=>{
 let CLIP=null;
 function hidePop(){$('pop').classList.add('hide');}
 function showPop(btn,i){
-  const pop=$('pop');pop.innerHTML='';
+  const pop=$('pop');pop.innerHTML='';pop.dataset.k='';pop.classList.remove('inf');
   const add=(t,fn)=>{const b=document.createElement('button');b.textContent=t;b.onclick=e=>{e.stopPropagation();fn();hidePop();};pop.appendChild(b);};
   add('복사',()=>{CLIP={pts:JSON.parse(JSON.stringify(S.dives[i].pts)),from:i};});
   if(CLIP&&CLIP.from!==i)add(`붙여넣기 (다이빙 ${CLIP.from+1})`,()=>{const dv=S.dives[i];dv.undo.push(JSON.stringify(dv.pts));dv.redoSnap=null;dv.pts=JSON.parse(JSON.stringify(CLIP.pts));S.cur=i;syncForm();recompute();});
@@ -595,7 +599,19 @@ function showPop(btn,i){
   pop.style.top=(window.scrollY+r.bottom+8)+'px';
   if(navigator.vibrate)try{navigator.vibrate(15);}catch(e){}
 }
-document.addEventListener('pointerdown',e=>{if(!e.target.closest('#pop'))hidePop();});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#pop')&&!e.target.closest('.st[data-info]'))hidePop();});
+const INFO={
+  ndl:['NDL / 천장','NDL: 지금 수심에 계속 머물 때, 감압 정지 없이 바로 출수할 수 있는 남은 시간.<br>천장: 감압이 필요해지면 대신 표시. 이보다 얕게 올라가면 안 되는 수심.'],
+  tts:['TTS (출수까지 시간)','지금 추천 플랜대로 올라갈 때 수면까지 걸리는 총 시간. 상승 시간 + 감압 정지 + 안전정지(무감압일 때 5m 3분) 포함. 남은 공기와 비교하는 기준.'],
+  gf:['수면 GF','지금 정지 없이 바로 수면에 올라간다고 칠 때, 가장 많이 쌓인 조직이 수면 한계에 얼마나 가까운지(%). 0% = 과포화 없음, 100% = 뷜만 원래 한계(M값). 설정한 GF High를 넘으면 빨간색 = 바로 출수 불가.'],
+  po2:['PO₂ (산소 분압)','들이마시는 산소의 분압(bar). 1.4 넘으면 빨간색 = 산소 독성 위험 한계(MOD).']
+};
+document.querySelectorAll('.st[data-info]').forEach(el=>el.onclick=()=>{
+  const pop=$('pop');if(!pop.classList.contains('hide')&&pop.dataset.k===el.dataset.info){hidePop();return;}
+  const [t,b]=INFO[el.dataset.info];pop.dataset.k=el.dataset.info;pop.classList.add('inf');pop.innerHTML=`<div class="info"><b>${t}</b>${b}</div>`;
+  pop.classList.remove('hide');const r=el.getBoundingClientRect(),W=document.documentElement.clientWidth;
+  pop.style.left=Math.max(6,window.scrollX+Math.min(r.right-pop.offsetWidth,W-pop.offsetWidth-6))+'px';pop.style.top=(window.scrollY+r.bottom+8)+'px';
+});
 
 // ===== 설정·탭 UI =====
 const fmtSI=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
