@@ -243,6 +243,7 @@ function makePlan(T0,d0,anc0,c){
     if(d>5){travel(5);wait(180,true);}
     travel(0);return {pts,stops,t,deco:false};
   }
+  {const need=Math.ceil(ceilAt(T,anc,c.lo,c.hi)/3-1e-9)*3;if(need>d+1e-6)travel(need);} // 천장보다 얕으면 첫 정지 깊이로 내려감
   let ss=d<=5;
   while(d>1e-6&&t<6*3600){
     const next=Math.max(0,Math.ceil(d/3-1e-6)*3-3);
@@ -447,11 +448,11 @@ function drawProfile(){
 function pushUndo(){const dv=dive();dv.undo.push(JSON.stringify(dv.pts));if(dv.undo.length>60)dv.undo.shift();dv.redoSnap=null;}
 function pos(e){const b=cv.getBoundingClientRect();return {x:e.clientX-b.left,y:e.clientY-b.top};}
 function addFree(t,d){
-  const pts=dive().pts;t=clamp(t,0,TMAX);d=clamp(d,0,DMAX);if(d<0.3)d=0;if(t<=0)return;
+  const pts=dive().pts;t=clamp(t,0,TMAX);d=clamp(d,0,DMAX);if(d<1)d=0;if(t<=0)return;
   while(pts.length>1&&pts[pts.length-1].t>=t)pts.pop();
   pts.push({t,d});
 }
-function snapPt(t,d){t=Math.round(clamp(t,0,TMAX)/10)*10;d=Math.round(clamp(d,0,DMAX)*2)/2;if(d<0.8)d=0;return {t,d};}
+function snapPt(t,d){t=Math.round(clamp(t,0,TMAX)/10)*10;d=Math.round(clamp(d,0,DMAX)*2)/2;if(d<1)d=0;return {t,d};}
 function hit(p){const pts=dive().pts;let best=-1,bd=14;for(let i=1;i<pts.length;i++){const dd=Math.hypot(X(pts[i].t)-p.x,Y(pts[i].d)-p.y);if(dd<bd){bd=dd;best=i;}}return best;}
 function rdp(pts,eps){
   if(pts.length<3)return pts;
