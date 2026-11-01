@@ -377,7 +377,7 @@ ja:{
   si:['水面休息','前のダイビングと今回のダイビングの間に水面で休んだ時間。残留窒素が次のダイビングに持ち越される。タップで時間を変更。']
  }
 }};
-let BM='surf';try{const b=localStorage.getItem('scuba_bm');if(b==='sw')BM='sw';}catch(e){}
+let BM='surf';try{localStorage.removeItem('scuba_bm');}catch(e){}
 let LANG='ko';try{const l=localStorage.getItem('scuba_lang');if(l&&I18N[l])LANG=l;}catch(e){}
 {const h=(location.hash||'').slice(1);if(I18N[h]){LANG=h;try{localStorage.setItem('scuba_lang',h);}catch(e){}}}
 function tr(k,...a){const v=(k in I18N[LANG])?I18N[LANG][k]:I18N.ko[k];return typeof v==='function'?v(...a):v;}
@@ -927,7 +927,7 @@ document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{LANG=b.datase
   applyLang();syncForm();renderSummary();updateStats(P.tick<0?0:P.tick);drawProfile();});
 function syncBM(){document.querySelectorAll('[data-bm]').forEach(b=>b.classList.toggle('on',b.dataset.bm===S.bm));
   $('lgSw').style.display=S.bm==='sw'?'':'none';document.querySelector('[data-tip="pct"]').style.display=S.bm==='sw'?'none':'';}
-document.querySelectorAll('[data-bm]').forEach(b=>b.onclick=()=>{S.bm=b.dataset.bm;try{localStorage.setItem('scuba_bm',S.bm);}catch(e){}syncBM();updateStats(P.tick<0?0:P.tick);});
+document.querySelectorAll('[data-bm]').forEach(b=>b.onclick=()=>{S.bm=b.dataset.bm;syncBM();updateStats(P.tick<0?0:P.tick);});
 syncBM();
 applyLang();
 layout();syncForm();recompute();modeChanged();
