@@ -38,7 +38,11 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .tabs{display:flex;gap:4px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
 .tabs button{flex-shrink:0;white-space:nowrap;font-size:12px;padding:5px 9px}
-.tabs .tab{gap:5px}
+.tabs .tab{gap:5px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.pop{position:absolute;z-index:20;background:#1f2328;border-radius:8px;padding:4px;display:flex;gap:4px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.pop button{background:transparent;color:#fff;border:0;font-size:13px;padding:6px 12px}
+.pop button:hover{background:rgba(255,255,255,.12)}
+.pop::before{content:"";position:absolute;top:-5px;left:16px;border:5px solid transparent;border-top:0;border-bottom-color:#1f2328}
 .tabs .tab{display:inline-flex;align-items:center}
 .tabs .x{opacity:.7;font-size:14px;line-height:1;padding:0 2px}
 .tabs .x:hover{opacity:1}
@@ -173,6 +177,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 </div>
 </div>
 
+<div class="pop hide" id="pop"></div>
 <div class="modal hide" id="pk">
   <div class="sheet">
     <div class="pt" id="pkTitle">수면휴식 시간</div>
@@ -562,6 +567,21 @@ $('pkOk').onclick=()=>{
   S.dives[pkIdx].si=clamp(h*60+m,10,1440);$('pk').classList.add('hide');renderTabs();recompute();
 };
 
+// ===== 다이빙 복사·붙여넣기 =====
+let CLIP=null;
+function hidePop(){$('pop').classList.add('hide');}
+function showPop(btn,i){
+  const pop=$('pop');pop.innerHTML='';
+  const add=(t,fn)=>{const b=document.createElement('button');b.textContent=t;b.onclick=e=>{e.stopPropagation();fn();hidePop();};pop.appendChild(b);};
+  add('복사',()=>{CLIP={pts:JSON.parse(JSON.stringify(S.dives[i].pts)),from:i};});
+  if(CLIP&&CLIP.from!==i)add(`붙여넣기 (다이빙 ${CLIP.from+1})`,()=>{const dv=S.dives[i];dv.undo.push(JSON.stringify(dv.pts));dv.pts=JSON.parse(JSON.stringify(CLIP.pts));S.cur=i;if(S.playMode)setPlayMode(false);syncForm();recompute();});
+  const r=btn.getBoundingClientRect();pop.classList.remove('hide');
+  pop.style.left=Math.max(6,Math.min(window.scrollX+r.left,window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-6))+'px';
+  pop.style.top=(window.scrollY+r.bottom+8)+'px';
+  if(navigator.vibrate)try{navigator.vibrate(15);}catch(e){}
+}
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#pop'))hidePop();});
+
 // ===== 설정·탭 UI =====
 const fmtSI=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
 function renderTabs(){
@@ -571,7 +591,12 @@ function renderTabs(){
     const b=document.createElement('button');b.className='tab'+(i===S.cur?' on':'');b.innerHTML='다이빙 '+(i+1);
     if(i===S.cur&&S.dives.length>1){const x=document.createElement('span');x.className='x';x.textContent='×';x.title='이 다이빙 삭제';
       x.onclick=e=>{e.stopPropagation();S.dives.splice(i,1);S.cur=Math.max(0,Math.min(S.cur,S.dives.length-1));syncForm();recompute();};b.appendChild(x);}
-    b.onclick=()=>{S.cur=i;syncForm();recompute();};el.appendChild(b);
+    let lp=null,fired=false;
+    const cancel=()=>{clearTimeout(lp);lp=null;};
+    b.addEventListener('pointerdown',()=>{fired=false;cancel();lp=setTimeout(()=>{fired=true;showPop(b,i);},500);});
+    b.addEventListener('pointerup',cancel);b.addEventListener('pointerleave',cancel);b.addEventListener('pointercancel',cancel);
+    b.addEventListener('contextmenu',e=>e.preventDefault());
+    b.onclick=e=>{if(fired){e.preventDefault();fired=false;return;}S.cur=i;syncForm();recompute();};el.appendChild(b);
   });
   const a=document.createElement('button');a.className='add';a.textContent='+ 다이빙 추가';
   a.onclick=()=>{S.dives.push(newDive());S.cur=S.dives.length-1;syncForm();recompute();};
