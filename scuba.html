@@ -147,7 +147,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
     <button id="clear">지우기</button>
   </div>
   <div style="margin-top:10px"><canvas id="prof"></canvas></div>
-  <div class="legend">
+  <div class="legend" style="justify-content:center">
     <span class="tip" data-tip="path"><i style="border-color:var(--ink)"></i>내 경로</span>
     <span class="tip" data-tip="plan"><i style="border-color:var(--plan);border-top-style:dashed"></i>추천</span>
     <span class="tip" data-tip="ceil"><i class="box"></i>천장</span>
@@ -165,8 +165,8 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
     <div>
       <canvas id="bars"></canvas>
       <div class="legend">
-        <span class="tip" data-tip="on"><i style="border-color:var(--up);border-top-width:8px"></i>흡수 중</span>
-        <span class="tip" data-tip="off"><i style="border-color:var(--down);border-top-width:8px"></i>배출 중</span>
+        <span class="tip" data-tip="on"><i style="border-color:var(--up);border-top-width:8px"></i>질소 흡수 중</span>
+        <span class="tip" data-tip="off"><i style="border-color:var(--down);border-top-width:8px"></i>질소 배출 중</span>
         <span class="tip" data-tip="pct">100% = 수면 허용한계(GF High)</span>
       </div>
     </div>
@@ -640,8 +640,8 @@ const TIPS={
   ceil:['천장 (ceiling)','이보다 얕게 올라가면 GF 한계를 넘는 수심. 0m면 바로 출수 가능.'],
   fast:['급상승','분당 10m보다 빠르게 올라간 구간. 기포 생성 위험이 커짐.'],
   mod:['MOD (최대 운용 수심)','산소 분압이 1.4bar가 되는 수심. 나이트록스일 때만 표시. 이보다 깊이 가면 산소 독성 위험.'],
-  on:['흡수 중','들이마시는 질소 분압이 조직보다 높아 질소가 쌓이는 중 (주로 내려가거나 깊이 머물 때).'],
-  off:['배출 중','조직의 질소가 들이마시는 것보다 높아 빠져나가는 중 (주로 올라올 때·수면 휴식 중).'],
+  on:['질소 흡수 중','들이마시는 질소 분압이 조직보다 높아 질소가 쌓이는 중 (주로 내려가거나 깊이 머물 때).'],
+  off:['질소 배출 중','조직의 질소가 들이마시는 것보다 높아 빠져나가는 중 (주로 올라올 때·수면 휴식 중).'],
   pct:['막대 %','조직 질소분압 ÷ 수면 허용한계(GF High). 100%를 넘는 구획이 하나라도 있으면 바로 출수 불가 = 감압 필요.'],
   deco:['감압 필요','NDL을 넘겨, 출수 전에 정해진 수심에서 정해진 시간 동안 멈춰야 하는 상태.'],
   nodeco:['무감압','감압 정지 없이 바로 출수할 수 있는 상태. 안전정지만 권장.'],
