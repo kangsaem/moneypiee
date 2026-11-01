@@ -18,6 +18,10 @@ html{background:#284656;overflow-x:clip}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#e5484d;color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 2px 12px}
+.top h1{margin:0;font-size:clamp(16px,4.6vw,19px)}
+.lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85)}
+.lang button.on{background:#1f2328;color:#fff}
 .card{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid #dcdee2;border-radius:10px;padding:12px;margin-bottom:12px}
 .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 label{color:var(--mute);font-size:12px;display:inline-flex;align-items:center;gap:6px}
@@ -103,40 +107,40 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 </head>
 <body>
 <div class="wrap">
-<h1>Bühlmann 다이빙 플래너</h1>
+<div class="top"><h1 data-i18n="h1">Bühlmann 다이빙 플래너</h1><span class="seg lang"><button data-lang="ko">KOR</button><button data-lang="en">ENG</button><button data-lang="ja">JPN</button></span></div>
 <div class="rule">
-  <div>1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
-  <div>2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
+  <div data-i18n="rule1">1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
+  <div data-i18n="rule2">2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
 </div>
 
 <div class="card">
-  <button class="setHead" id="setHead"><b>⚙ 설정</b><span class="sum" id="setSum"></span><span class="arr">▾</span></button>
+  <button class="setHead" id="setHead"><b data-i18n="settings">⚙ 설정</b><span class="sum" id="setSum"></span><span class="arr">▾</span></button>
   <div class="setWrap" id="setWrap"><div>
   <div class="setBody" id="setBody">
     <div class="row">
-      <label><span class="tip" data-tip="alt">해발 고도</span>
+      <label><span class="tip" data-tip="alt" data-i18n="alt">해발 고도</span>
         <select id="altSel">
-          <option value="0">0 m (해수면)</option><option value="300">300 m</option><option value="600">600 m</option>
-          <option value="900">900 m</option><option value="1500">1500 m</option><option value="2400">2400 m</option><option value="c">직접 입력</option>
+          <option value="0" data-i18n="sealevel">0 m (해수면)</option><option value="300">300 m</option><option value="600">600 m</option>
+          <option value="900">900 m</option><option value="1500">1500 m</option><option value="2400">2400 m</option><option value="c" data-i18n="custom">직접 입력</option>
         </select>
         <input type="number" id="altIn" class="hide" min="0" max="4500" step="50" value="0">
       </label>
-      <label><span class="tip" data-tip="water">수질</span> <select id="water"><option value="salt">해수</option><option value="fresh">담수</option></select></label>
-      <label><span class="tip" data-tip="gas">기체</span>
+      <label><span class="tip" data-tip="water" data-i18n="water">수질</span> <select id="water"><option value="salt" data-i18n="salt">해수</option><option value="fresh" data-i18n="fresh">담수</option></select></label>
+      <label><span class="tip" data-tip="gas" data-i18n="gas">기체</span>
         <select id="gas">
-          <option value="21">공기 (21%)</option><option value="28">EAN28</option><option value="30">EAN30</option>
-          <option value="32">EAN32</option><option value="36">EAN36</option><option value="40">EAN40</option><option value="c">직접 입력</option>
+          <option value="21" data-i18n="air21">공기 (21%)</option><option value="28">EAN28</option><option value="30">EAN30</option>
+          <option value="32">EAN32</option><option value="36">EAN36</option><option value="40">EAN40</option><option value="c" data-i18n="custom">직접 입력</option>
         </select>
         <input type="number" id="o2" class="hide" min="21" max="40" step="1">
       </label>
-      <label><span class="tip" data-tip="cons">보수도</span>
+      <label><span class="tip" data-tip="cons" data-i18n="cons">보수도</span>
         <select id="cons">
-          <option value="cons">보수 (GF 35/75)</option><option value="med">보통 (GF 40/85)</option>
-          <option value="agg">공격 (GF 45/95)</option><option value="custom">커스텀</option>
+          <option value="cons" data-i18n="consH">보수 (GF 35/75)</option><option value="med" data-i18n="consM">보통 (GF 40/85)</option>
+          <option value="agg" data-i18n="consL">공격 (GF 45/95)</option><option value="custom" data-i18n="consC">커스텀</option>
         </select>
         <span id="gfWrap" class="hide">Low <input type="number" id="gfLo" min="10" max="100"> High <input type="number" id="gfHi" min="10" max="100"></span>
       </label>
-      <label><span class="tip" data-tip="asc">플랜 상승속도</span> <input type="number" id="asc" min="3" max="18" step="1"> m/분</label>
+      <label><span class="tip" data-tip="asc" data-i18n="asc">플랜 상승속도</span> <input type="number" id="asc" min="3" max="18" step="1"> <span data-i18n="mpm">m/분</span></label>
     </div>
   </div>
   </div></div>
@@ -148,16 +152,16 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 
 <div class="card">
   <div class="tools">
-    <span class="seg"><button id="mFree">그리기</button><button id="mPt">점찍기</button><button id="mDel">점지우기</button></span>
-    <button id="undo">실행취소</button>
-    <button id="clear">지우기</button>
+    <span class="seg"><button id="mFree" data-i18n="draw">그리기</button><button id="mPt" data-i18n="points">점찍기</button><button id="mDel" data-i18n="erase">점지우기</button></span>
+    <button id="undo" data-i18n="undo">실행취소</button>
+    <button id="clear" data-i18n="clear">지우기</button>
   </div>
   <div style="margin-top:10px"><canvas id="prof"></canvas></div>
   <div class="legend" style="justify-content:center">
-    <span class="tip" data-tip="path"><i style="border-color:var(--ink)"></i>내 경로</span>
-    <span class="tip" data-tip="plan"><i style="border-color:var(--plan);border-top-style:dashed"></i>추천</span>
-    <span class="tip" data-tip="ceil"><i class="box"></i>천장</span>
-    <span class="tip" data-tip="fast"><i style="border-color:var(--up);border-top-width:4px"></i>급상승</span>
+    <span class="tip" data-tip="path"><i style="border-color:var(--ink)"></i><span data-i18n="lgPath">내 경로</span></span>
+    <span class="tip" data-tip="plan"><i style="border-color:var(--plan);border-top-style:dashed"></i><span data-i18n="lgPlan">추천</span></span>
+    <span class="tip" data-tip="ceil"><i class="box"></i><span data-i18n="lgCeil">천장</span></span>
+    <span class="tip" data-tip="fast"><i style="border-color:var(--up);border-top-width:4px"></i><span data-i18n="lgFast">급상승</span></span>
     <span id="lgMod" class="tip" data-tip="mod"><i style="border-color:var(--mod);border-top-style:dashed"></i>MOD</span>
   </div>
   <div class="play">
@@ -171,42 +175,182 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
     <div>
       <canvas id="bars"></canvas>
       <div class="legend">
-        <span class="tip" data-tip="on"><i style="border-color:var(--up);border-top-width:8px"></i>질소 흡수 중</span>
-        <span class="tip" data-tip="off"><i style="border-color:var(--down);border-top-width:8px"></i>질소 배출 중</span>
-        <span class="tip" data-tip="pct">100% = 수면 허용한계(GF High)</span>
+        <span class="tip" data-tip="on"><i style="border-color:var(--up);border-top-width:8px"></i><span data-i18n="on">질소 흡수 중</span></span>
+        <span class="tip" data-tip="off"><i style="border-color:var(--down);border-top-width:8px"></i><span data-i18n="off">질소 배출 중</span></span>
+        <span class="tip" data-tip="pct" data-i18n="pct">100% = 수면 허용한계(GF High)</span>
       </div>
     </div>
     <div class="side">
       <div class="summary" id="summary"></div>
       <div class="wbox hide" id="warnBox"></div>
-      <div class="st" data-tip="t"><span class="k">경과 시간</span><span class="v" id="sT">0:00</span></div>
-      <div class="st" data-tip="d"><span class="k">수심</span><span class="v" id="sD">0.0 m</span></div>
+      <div class="st" data-tip="t"><span class="k" data-i18n="elapsed">경과 시간</span><span class="v" id="sT">0:00</span></div>
+      <div class="st" data-tip="d"><span class="k" data-i18n="depth">수심</span><span class="v" id="sD">0.0 m</span></div>
       <div class="st" data-tip="ndl"><span class="k"><span id="sNk">NDL</span></span><span class="v" id="sN">-</span></div>
       <div class="st" data-tip="tts"><span class="k">TTS</span><span class="v" id="sTTS">-</span></div>
-      <div class="st" data-tip="gf"><span class="k">수면 GF</span><span class="v" id="sGF">-</span></div>
+      <div class="st" data-tip="gf"><span class="k" data-i18n="surfGF">수면 GF</span><span class="v" id="sGF">-</span></div>
       <div class="st" data-tip="po2"><span class="k">PO₂</span><span class="v" id="sPO2">-</span></div>
     </div>
   </div>
 </div>
 
 <div class="foot">
-  <span style="color:#e5484d;font-weight:600">교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.</span> <a href="mailto:kangsaem@gmail.com" style="color:#1f2328;white-space:nowrap;margin-left:6px">kangsaem@gmail.com</a><br>
-  계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m.
-  무감압이면 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 헬륨·산소 독성(CNS/OTU)은 계산하지 않습니다.
-  실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.
+  <span data-i18n="disc" style="color:#e5484d;font-weight:600">교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.</span> <a href="mailto:kangsaem@gmail.com" style="color:#1f2328;white-space:nowrap;margin-left:6px">kangsaem@gmail.com</a><br>
+  <span data-i18n="model"></span>
 </div>
 </div>
 
 <div class="pop hide" id="pop"></div>
 <div class="modal hide" id="pk">
   <div class="sheet">
-    <div class="pt" id="pkTitle">수면휴식 시간</div>
-    <div class="wheels"><div class="wheel" id="wH"></div><span>시간</span><div class="wheel" id="wM"></div><span>분</span></div>
-    <div class="btns"><button id="pkC">취소</button><button id="pkOk" class="on">확인</button></div>
+    <div class="pt" id="pkTitle" data-i18n="siTitle">수면휴식 시간</div>
+    <div class="wheels"><div class="wheel" id="wH"></div><span data-i18n="hUnit">시간</span><div class="wheel" id="wM"></div><span data-i18n="minUnit">분</span></div>
+    <div class="btns"><button id="pkC" data-i18n="cancel">취소</button><button id="pkOk" class="on" data-i18n="ok">확인</button></div>
   </div>
 </div>
 
 <script>
+// ===== 다국어 =====
+const I18N={
+ko:{
+ title:'Bühlmann 다이빙 플래너',h1:'Bühlmann 다이빙 플래너',
+ rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
+ settings:'⚙ 설정',alt:'해발 고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
+ cons:'보수도',consH:'보수 (GF 35/75)',consM:'보통 (GF 40/85)',consL:'공격 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:'m/분',
+ draw:'그리기',points:'점찍기',erase:'점지우기',undo:'실행취소',clear:'지우기',
+ lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
+ elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
+ disc:'교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',
+ model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 헬륨·산소 독성(CNS/OTU)은 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
+ siTitle:'수면휴식 시간',hUnit:'시간',minUnit:'분',cancel:'취소',ok:'확인',
+ axisMin:m=>m+'분',max:v=>`최대 ${v}m`,total:v=>`총 ${v}`,
+ empty:'그래프에 수심을 그려 주세요. 출수까지 안 그리면 추천 플랜이 이어집니다.',
+ stop:(d,m,s)=>`${d}m ${m}분${s?'(안전)':''}`,deco:'감압 필요',nodeco:'무감압',safety5:'5m 안전정지 3분',toSurf:v=>`출수까지 ${v}`,
+ wCeil:v=>`천장 위반 ${v}분`,wFast:'급상승 구간',wMod:v=>`MOD ${v}m 초과`,wOver:v=>`${v}분 초과`,
+ minV:v=>v+'분',ndl:'NDL',ceiling:'천장',play:'플레이',pause:'일시정지',siPick:(a,b)=>`다이빙 ${a} → ${b} 수면휴식`,
+ copy:'복사',paste:n=>`붙여넣기 (다이빙 ${n})`,dive:n=>'다이빙 '+n,delDive:'이 다이빙 삭제',addDive:'+ 다이빙 추가',
+ sAir:'공기',sSum:(w,a,g,lo,hi,asc)=>`${w} · 고도 ${a}m · ${g} · GF ${lo}/${hi} · 상승 ${asc}m/분`,
+ bOn:'흡수 중',bOff:'배출 중',bEq:'평형',
+ bar:(i,ht,n,v,st)=>`<b>${i}번 구획 · 반감기 ${ht}분</b>질소 ${n} bar · 수면 한계의 ${v}% · ${st}<br>반감기가 짧은 구획(위쪽)은 빨리 차고 빨리 빠지고, 긴 구획(아래쪽)은 천천히 차고 천천히 빠져 반복 다이빙에 남음.`,
+ tips:{
+  t:['경과 시간','다이빙 시작부터 지금 재생 위치까지의 시간.'],
+  d:['수심','지금 재생 위치의 수심.'],
+  ndl:['NDL / 천장','NDL: 지금 수심에 계속 머물 때, 감압 정지 없이 바로 출수할 수 있는 남은 시간.<br>천장: 감압이 필요해지면 대신 표시. 이보다 얕게 올라가면 안 되는 수심.'],
+  tts:['TTS (출수까지 시간)','지금 추천 플랜대로 올라갈 때 수면까지 걸리는 총 시간. 상승 + 감압 정지 + 5m 안전정지 포함. 남은 공기와 비교하는 기준.'],
+  gf:['수면 GF','지금 정지 없이 바로 수면에 올라간다고 칠 때, 가장 많이 쌓인 조직이 수면 한계에 얼마나 가까운지(%). 0% = 과포화 없음, 100% = 뷜만 원래 한계(M값). 설정한 GF High를 넘으면 빨간색 = 바로 출수 불가.'],
+  po2:['PO₂ (산소 분압)','들이마시는 산소의 분압(bar). 1.4를 넘으면 빨간색 = 산소 독성 위험.'],
+  alt:['해발 고도','고도가 높으면 수면 기압이 낮아, 같은 수심이라도 감압 부담이 커짐. 그 고도에 적응된 상태로 가정.'],
+  water:['수질','해수는 10m당 약 1.005bar, 담수는 0.981bar. 담수가 같은 수심에서 압력이 조금 낮음.'],
+  gas:['기체','공기는 산소 21%·질소 79%. 나이트록스(EAN)는 산소를 늘리고 질소를 줄여 NDL이 길어지지만, 산소 독성 때문에 내려갈 수 있는 최대 수심(MOD)이 얕아짐.'],
+  cons:['보수도 (GF Low/High)','그래디언트 팩터. Low는 첫 감압 정지 깊이(낮을수록 깊게 멈춤), High는 수면 도착 때 허용 한계(낮을수록 NDL 짧고 정지 길어짐). 보수 35/75 · 보통 40/85 · 공격 45/95 (가민·쉐어워터 기본값).'],
+  asc:['플랜 상승속도','추천 플랜이 올라갈 때 쓰는 속도. 기본 분당 9m. 내가 그린 경로의 급상승 경고는 분당 10m 기준.'],
+  path:['내 경로','직접 그린 수심 이동. 0m에 닿으면 그 지점에서 다이빙 종료.'],
+  plan:['추천 경로','그린 경로가 출수 전에 끝나면 그 지점부터, 감압 정지(3m 단위)와 5m 3분 안전정지를 넣어 계산한 상승 경로. 출수까지 다 그렸는데 5m 안전정지를 안 했으면 5m를 지나는 지점부터 안전정지 경로를 비교용으로 표시(통계는 내 경로 기준).'],
+  ceil:['천장 (ceiling)','이보다 얕게 올라가면 GF 한계를 넘는 수심. 0m면 바로 출수 가능.'],
+  fast:['급상승','분당 10m보다 빠르게 올라간 구간. 기포 생성 위험이 커짐.'],
+  mod:['MOD (최대 운용 수심)','산소 분압이 1.4bar가 되는 수심. 나이트록스일 때만 표시. 이보다 깊이 가면 산소 독성 위험.'],
+  on:['질소 흡수 중','들이마시는 질소 분압이 조직보다 높아 질소가 쌓이는 중 (주로 내려가거나 깊이 머물 때).'],
+  off:['질소 배출 중','조직의 질소가 들이마시는 것보다 높아 빠져나가는 중 (주로 올라올 때·수면 휴식 중).'],
+  pct:['막대 %','조직 질소분압 ÷ 수면 허용한계(GF High). 100%를 넘는 구획이 하나라도 있으면 바로 출수 불가 = 감압 필요.'],
+  deco:['감압 필요','NDL을 넘겨, 출수 전에 정해진 수심에서 정해진 시간 동안 멈춰야 하는 상태.'],
+  nodeco:['무감압','감압 정지 없이 바로 출수할 수 있는 상태. 안전정지만 권장.'],
+  safety:['안전정지','5m에서 3분. 의무 정지는 아니지만 기포를 줄이기 위해 권장. 추천 경로에 자동으로 포함.'],
+  si:['수면휴식','앞 다이빙과 이번 다이빙 사이에 수면에서 쉰 시간. 남은 질소가 다음 다이빙에 이어짐. 누르면 시간 변경.']
+ }
+},
+en:{
+ title:'Bühlmann Dive Planner',h1:'Bühlmann Dive Planner',
+ rule1:'1. Keep the pink ceiling from appearing <small>= no-decompression dive</small>',rule2:'2. If the pink ceiling appears, never cross it <small>= decompression dive</small>',
+ settings:'⚙ Settings',alt:'Altitude',sealevel:'0 m (sea level)',custom:'Custom',water:'Water',salt:'Salt',fresh:'Fresh',gas:'Gas',air21:'Air (21%)',
+ cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom',asc:'Plan ascent rate',mpm:'m/min',
+ draw:'Draw',points:'Points',erase:'Erase pts',undo:'Undo',clear:'Clear',
+ lgPath:'My profile',lgPlan:'Suggested',lgCeil:'Ceiling',lgFast:'Fast ascent',on:'N₂ on-gassing',off:'N₂ off-gassing',pct:'100% = surfacing limit (GF High)',
+ elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
+ disc:'For education and learning only. Do not use it to plan real dives or as a substitute for a dive computer.',
+ model:'Model: Bühlmann ZHL-16C, 16 nitrogen compartments, Baker gradient factors, water vapour 0.0627 bar, 1-second steps. Deco stops in 3 m steps and whole minutes, last stop 3 m. A 3-minute safety stop at 5 m is included. Altitude assumes you are acclimatised. Helium and oxygen toxicity (CNS/OTU) are not calculated. Results can differ from real dive computers by a few minutes because of how stops are handled and rounded.',
+ siTitle:'Surface interval',hUnit:'h',minUnit:'min',cancel:'Cancel',ok:'OK',
+ axisMin:m=>String(m),axisLast:m=>m+' min',max:v=>`Max ${v}m`,total:v=>`Total ${v}`,
+ empty:'Draw your depth profile on the graph. If you stop before surfacing, a suggested ascent is added.',
+ stop:(d,m,s)=>`${d}m ${m} min${s?' (safety)':''}`,deco:'Deco required',nodeco:'No deco',safety5:'5 m safety stop 3 min',toSurf:v=>`To surface ${v}`,
+ wCeil:v=>`Ceiling violated ${v} min`,wFast:'Fast ascent',wMod:v=>`MOD ${v} m exceeded`,wOver:v=>`Over ${v} min`,
+ minV:v=>v+' min',ndl:'NDL',ceiling:'Ceiling',play:'Play',pause:'Pause',siPick:(a,b)=>`Surface interval: dive ${a} → ${b}`,
+ copy:'Copy',paste:n=>`Paste (dive ${n})`,dive:n=>'Dive '+n,delDive:'Delete this dive',addDive:'+ Add dive',
+ sAir:'Air',sSum:(w,a,g,lo,hi,asc)=>`${w} · Alt ${a}m · ${g} · GF ${lo}/${hi} · Ascent ${asc}m/min`,
+ bOn:'on-gassing',bOff:'off-gassing',bEq:'balanced',
+ bar:(i,ht,n,v,st)=>`<b>Compartment ${i} · half-time ${ht} min</b>N₂ ${n} bar · ${v}% of surfacing limit · ${st}<br>Fast compartments (top) load and unload quickly; slow ones (bottom) load and unload slowly and carry over into repetitive dives.`,
+ tips:{
+  t:['Elapsed time','Time from the start of the dive to the current playback position.'],
+  d:['Depth','Depth at the current playback position.'],
+  ndl:['NDL / Ceiling','NDL (no-decompression limit): time left at this depth before you can no longer surface directly without deco stops.<br>Ceiling: shown instead once deco is required. Do not ascend shallower than this depth.'],
+  tts:['TTS (time to surface)','Total time to reach the surface following the suggested ascent from now: ascent + deco stops + 5 m safety stop. Compare it with your remaining gas.'],
+  gf:['Surface GF','If you surfaced right now without stopping, how close the most-loaded compartment would be to its limit (%). 0% = no supersaturation, 100% = the raw Bühlmann limit (M-value). Red when above your GF High = you cannot surface directly.'],
+  po2:['PO₂ (oxygen partial pressure)','Partial pressure of the oxygen you breathe (bar). Red above 1.4 = oxygen toxicity risk.'],
+  alt:['Altitude','At altitude the surface pressure is lower, so the same depth carries a larger decompression burden. Assumes you are acclimatised.'],
+  water:['Water','Salt water adds about 1.005 bar per 10 m, fresh water 0.981 bar. Fresh water gives slightly less pressure at the same depth.'],
+  gas:['Gas','Air is 21% oxygen / 79% nitrogen. Nitrox (EAN) adds oxygen and reduces nitrogen, so NDLs get longer, but oxygen toxicity makes the maximum operating depth (MOD) shallower.'],
+  cons:['Conservatism (GF Low/High)','Gradient factors. Low sets the depth of the first deco stop (lower = deeper stops). High sets the limit on reaching the surface (lower = shorter NDL, longer stops). High 35/75 · Medium 40/85 · Low 45/95 (Garmin and Shearwater presets).'],
+  asc:['Plan ascent rate','Ascent rate used for the suggested ascent. Default 9 m/min. The fast-ascent warning on your own profile triggers above 10 m/min.'],
+  path:['My profile','The depth profile you drew. The dive ends where it first reaches 0 m.'],
+  plan:['Suggested ascent','If your profile ends before surfacing, an ascent from that point with deco stops (3 m steps) and a 3-minute safety stop at 5 m. If you drew all the way up without a safety stop, a safety-stop path from where you pass 5 m is shown for comparison (stats still follow your profile).'],
+  ceil:['Ceiling','The shallowest depth you may ascend to without exceeding the GF limit. 0 m means you can surface directly.'],
+  fast:['Fast ascent','Sections where you ascended faster than 10 m/min. Raises the risk of bubble formation.'],
+  mod:['MOD (maximum operating depth)','Depth where oxygen partial pressure reaches 1.4 bar. Shown for nitrox only. Going deeper risks oxygen toxicity.'],
+  on:['N₂ on-gassing','The nitrogen you breathe is at a higher pressure than in the tissue, so nitrogen is building up (mostly when descending or staying deep).'],
+  off:['N₂ off-gassing','The tissue holds more nitrogen than you breathe, so it is leaving (mostly when ascending or during a surface interval).'],
+  pct:['Bar %','Tissue nitrogen pressure ÷ surfacing limit (GF High). If any compartment is above 100% you cannot surface directly = deco required.'],
+  deco:['Deco required','You have passed the NDL and must stop at set depths for set times before surfacing.'],
+  nodeco:['No deco','You can surface without deco stops. A safety stop is still recommended.'],
+  safety:['Safety stop','3 minutes at 5 m. Not mandatory, but recommended to reduce bubbles. Included automatically in the suggested ascent.'],
+  si:['Surface interval','Time spent at the surface between the previous dive and this one. Residual nitrogen carries over. Tap to change.']
+ }
+},
+ja:{
+ title:'Bühlmann ダイブプランナー',h1:'Bühlmann ダイブプランナー',
+ rule1:'1. ピンクの天井を出さないこと <small>= 無減圧ダイビング</small>',rule2:'2. ピンクの天井が出たら絶対に越えないこと <small>= 減圧ダイビング</small>',
+ settings:'⚙ 設定',alt:'標高',sealevel:'0 m (海面)',custom:'直接入力',water:'水質',salt:'海水',fresh:'淡水',gas:'ガス',air21:'空気 (21%)',
+ cons:'保守度',consH:'保守的 (GF 35/75)',consM:'標準 (GF 40/85)',consL:'積極的 (GF 45/95)',consC:'カスタム',asc:'プラン浮上速度',mpm:'m/分',
+ draw:'描く',points:'点を打つ',erase:'点を消す',undo:'元に戻す',clear:'クリア',
+ lgPath:'自分の経路',lgPlan:'推奨',lgCeil:'天井',lgFast:'急浮上',on:'窒素 吸収中',off:'窒素 排出中',pct:'100% = 浮上許容限界(GF High)',
+ elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
+ disc:'教育・学習用のシミュレーターです。実際のダイビング計画やダイブコンピューターの代わりに使用しないでください。',
+ model:'計算: Bühlmann ZHL-16C 窒素16コンパートメント、Baker グラディエントファクター、水蒸気圧 0.0627 bar、1秒単位の計算。減圧停止は3 m刻み・1分単位、最終停止 3 m。5 mで3分の安全停止を含む。標高はその標高に順応した状態を想定。ヘリウム・酸素毒性(CNS/OTU)は計算しません。停止の扱いや丸め方の違いにより、実際のダイブコンピューターと数分の差が出ることがあります。',
+ siTitle:'水面休息時間',hUnit:'時間',minUnit:'分',cancel:'キャンセル',ok:'OK',
+ axisMin:m=>m+'分',max:v=>`最大 ${v}m`,total:v=>`合計 ${v}`,
+ empty:'グラフに水深を描いてください。浮上まで描かなければ推奨プランが続きます。',
+ stop:(d,m,s)=>`${d}m ${m}分${s?'(安全)':''}`,deco:'減圧が必要',nodeco:'無減圧',safety5:'5m 安全停止 3分',toSurf:v=>`浮上まで ${v}`,
+ wCeil:v=>`天井違反 ${v}分`,wFast:'急浮上区間',wMod:v=>`MOD ${v}m 超過`,wOver:v=>`${v}分 超過`,
+ minV:v=>v+'分',ndl:'NDL',ceiling:'天井',play:'再生',pause:'一時停止',siPick:(a,b)=>`ダイブ ${a} → ${b} 水面休息`,
+ copy:'コピー',paste:n=>`貼り付け (ダイブ ${n})`,dive:n=>'ダイブ '+n,delDive:'このダイブを削除',addDive:'+ ダイブ追加',
+ sAir:'空気',sSum:(w,a,g,lo,hi,asc)=>`${w} · 標高 ${a}m · ${g} · GF ${lo}/${hi} · 浮上 ${asc}m/分`,
+ bOn:'吸収中',bOff:'排出中',bEq:'平衡',
+ bar:(i,ht,n,v,st)=>`<b>コンパートメント ${i} · 半減期 ${ht}分</b>窒素 ${n} bar · 浮上限界の ${v}% · ${st}<br>半減期の短いコンパートメント(上)は速く溜まり速く抜け、長いもの(下)はゆっくり溜まりゆっくり抜けるため、反復ダイビングに残ります。`,
+ tips:{
+  t:['経過時間','ダイビング開始から現在の再生位置までの時間。'],
+  d:['水深','現在の再生位置の水深。'],
+  ndl:['NDL / 天井','NDL: 今の水深に留まった場合に、減圧停止なしで直接浮上できる残り時間。<br>天井: 減圧が必要になると代わりに表示。これより浅く浮上してはいけない水深。'],
+  tts:['TTS (浮上までの時間)','今から推奨プラン通りに浮上した場合に水面に着くまでの合計時間。浮上 + 減圧停止 + 5m安全停止を含む。残りガスと比べる目安。'],
+  gf:['水面 GF','今すぐ停止せずに浮上したと仮定したとき、最も窒素が溜まったコンパートメントが限界にどれだけ近いか(%)。0% = 過飽和なし、100% = ビュールマン本来の限界(M値)。設定した GF High を超えると赤 = 直接浮上不可。'],
+  po2:['PO₂ (酸素分圧)','吸っている酸素の分圧(bar)。1.4を超えると赤 = 酸素中毒の危険。'],
+  alt:['標高','標高が高いと水面気圧が低く、同じ水深でも減圧の負担が大きくなる。その標高に順応した状態を想定。'],
+  water:['水質','海水は10mごとに約1.005bar、淡水は0.981bar。淡水は同じ水深で圧力がやや低い。'],
+  gas:['ガス','空気は酸素21%・窒素79%。ナイトロックス(EAN)は酸素を増やし窒素を減らすためNDLが長くなるが、酸素毒性のため最大運用水深(MOD)が浅くなる。'],
+  cons:['保守度 (GF Low/High)','グラディエントファクター。Low は最初の減圧停止の深さ(低いほど深く止まる)、High は水面到着時の許容限界(低いほどNDLが短く停止が長い)。保守的 35/75 · 標準 40/85 · 積極的 45/95 (Garmin・Shearwater の初期値)。'],
+  asc:['プラン浮上速度','推奨プランの浮上に使う速度。初期値 毎分9m。自分の経路の急浮上警告は毎分10mが基準。'],
+  path:['自分の経路','自分で描いた水深の動き。0mに達した地点でダイビング終了。'],
+  plan:['推奨経路','描いた経路が浮上前に終わった場合、その地点から減圧停止(3m刻み)と5m 3分の安全停止を入れて計算した浮上経路。浮上まで描いたのに5mの安全停止をしていない場合は、5mを通過する地点から安全停止の経路を比較用に表示(統計は自分の経路が基準)。'],
+  ceil:['天井 (シーリング)','これより浅く浮上すると GF の限界を超える水深。0mなら直接浮上可能。'],
+  fast:['急浮上','毎分10mより速く浮上した区間。気泡ができる危険が高まる。'],
+  mod:['MOD (最大運用水深)','酸素分圧が1.4barになる水深。ナイトロックスの時のみ表示。これより深いと酸素中毒の危険。'],
+  on:['窒素 吸収中','吸っている窒素の分圧が組織より高く、窒素が溜まっている状態(主に潜降中や深く留まっている時)。'],
+  off:['窒素 排出中','組織の窒素が吸っているものより多く、抜けている状態(主に浮上中・水面休息中)。'],
+  pct:['バー %','組織の窒素分圧 ÷ 浮上許容限界(GF High)。100%を超えるコンパートメントが一つでもあれば直接浮上不可 = 減圧が必要。'],
+  deco:['減圧が必要','NDLを超えたため、浮上前に決められた水深で決められた時間止まる必要がある状態。'],
+  nodeco:['無減圧','減圧停止なしで直接浮上できる状態。安全停止のみ推奨。'],
+  safety:['安全停止','5mで3分。義務ではないが気泡を減らすため推奨。推奨経路に自動で含まれる。'],
+  si:['水面休息','前のダイビングと今回のダイビングの間に水面で休んだ時間。残留窒素が次のダイビングに持ち越される。タップで時間を変更。']
+ }
+}};
+let LANG='ko';try{const l=localStorage.getItem('scuba_lang');if(l&&I18N[l])LANG=l;}catch(e){}
+function tr(k,...a){const v=(k in I18N[LANG])?I18N[LANG][k]:I18N.ko[k];return typeof v==='function'?v(...a):v;}
 // ===== ZHL-16C (N2) =====
 const HT=[5,8,12.5,18.5,27,38.3,54.3,77,109,146,187,239,305,390,498,635];
 const AA=[1.1696,1.0,0.8618,0.7562,0.62,0.5043,0.441,0.4,0.375,0.35,0.3295,0.3065,0.2835,0.261,0.248,0.2327];
@@ -355,7 +499,7 @@ function drawProfile(){
   for(let m=0;m<=TMAX/60;m+=5){
     const x=X(m*60);cx.strokeStyle=m===60?'#6b7280':m%10?'#f1f2f4':'#e5e7eb';cx.lineWidth=m===60?1.4:1;cx.setLineDash(m===60?[6,4]:[]);
     cx.beginPath();cx.moveTo(x+.5,G.T);cx.lineTo(x+.5,G.T+G.H);cx.stroke();cx.setLineDash([]);cx.lineWidth=1;
-    if(m%10===0){cx.textAlign='center';cx.textBaseline='top';cx.fillText(m+'분',x,G.T+G.H+6);}
+    if(m%10===0){const last=m===TMAX/60&&I18N[LANG].axisLast;cx.textAlign=last?'right':'center';cx.textBaseline='top';cx.fillText(last?tr('axisLast',m):tr('axisMin',m),last?x+2:x,G.T+G.H+6);}
   }
   cx.save();cx.beginPath();cx.rect(G.L,G.T-2,G.W,G.H+4);cx.clip();
   if(r&&S.playMode&&P.t>0){
@@ -422,7 +566,7 @@ function drawProfile(){
     cx.fillStyle='#fff';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(lab,bx+5,ty+9.5);}
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
-        const l1=`최대 ${L0.maxD.toFixed(1)}m`,l2=`총 ${fmt(L0.N)}`;cx.font='600 12px sans-serif';
+        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N));cx.font='600 12px sans-serif';
         const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width)+12,th=36;let bx=L0.xn-tw-4,by=L0.yd-th-4;
         if(bx<G.L+2)bx=G.L+2;if(by<G.T+2)by=L0.yd+4;
         cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle='#9ca3af';cx.lineWidth=1;
@@ -510,23 +654,23 @@ cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));i
 function renderSummary(){
   const r=RES[S.cur],dv=dive();const el=$('summary');
   el.classList.remove('hide');$('warnBox').classList.add('hide');
-  if(dv.pts.length<2){el.innerHTML='<span style="color:var(--mute)">그래프에 수심을 그려 주세요. 출수까지 안 그리면 추천 플랜이 이어집니다.</span>';return;}
+  if(dv.pts.length<2){el.innerHTML='<span style="color:var(--mute)">'+tr('empty')+'</span>';return;}
   const row=(k,v)=>`<div class="r"><span>${k}</span><b>${v}</b></div>`;
   let h='';
   const rp=r.plan||(r.alt&&r.alt.plan);
   if(!r.plan&&r.alt&&r.alt.safetyOnly){}
   else if(rp){
-    if(!r.plan)h+='<div style="color:var(--mute)"><span class="tip" data-tip="plan">추천</span> ('+fmt(r.alt.t0)+' 5m 지점)</div>';
-    const st=rp.stops.slice().sort((a,b)=>b.d-a.d).map(s=>(s.safety?'<span class="tip" data-tip="safety">':'')+`${s.d}m ${Math.round(s.s/60)}분${s.safety?'(안전)</span>':''}`);
+    if(!r.plan)h+='<div style="color:var(--mute)"><span class="tip" data-tip="plan">'+tr('lgPlan')+'</span> (5m '+fmt(r.alt.t0)+')</div>';
+    const st=rp.stops.slice().sort((a,b)=>b.d-a.d).map(s=>(s.safety?'<span class="tip" data-tip="safety">':'')+tr('stop',s.d,Math.round(s.s/60),s.safety)+(s.safety?'</span>':''));
     const sf=rp.stops.find(s=>s.safety);
-    h+=`<div>${rp.deco?'<b class="tip" data-tip="deco" style="color:#0f9d7a">감압 필요</b><br>'+st.join(' → '):'<span class="tip" data-tip="nodeco">무감압</span>'+(sf?'<br><span class="tip" data-tip="safety">5m 안전정지 3분</span>':'')}<br><span class="tip" data-tip="tts" style="color:var(--mute)">출수까지 ${fmt(rp.t)}</span></div>`;
+    h+=`<div>${rp.deco?'<b class="tip" data-tip="deco" style="color:#0f9d7a">'+tr('deco')+'</b><br>'+st.join(' → '):'<span class="tip" data-tip="nodeco">'+tr('nodeco')+'</span>'+(sf?'<br><span class="tip" data-tip="safety">'+tr('safety5')+'</span>':'')}<br><span class="tip" data-tip="tts" style="color:var(--mute)">${tr('toSurf',fmt(rp.t))}</span></div>`;
   }
   const w=[];
   const vc=r.viol.filter(Boolean).length,fc=r.fast.filter(Boolean).length;
-  if(vc)w.push(`천장 위반 ${Math.round(vc*5/60*10)/10}분`);
-  if(fc)w.push('급상승 구간');
-  const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;if(r.maxD>mod+0.1)w.push(`MOD ${mod.toFixed(1)}m 초과`);
-  if(r.N>TMAX)w.push(`${TMAX/60}분 초과`);
+  if(vc)w.push(tr('wCeil',Math.round(vc*5/60*10)/10));
+  if(fc)w.push(tr('wFast'));
+  const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;if(r.maxD>mod+0.1)w.push(tr('wMod',mod.toFixed(1)));
+  if(r.N>TMAX)w.push(tr('wOver',TMAX/60));
   $('warnBox').innerHTML=w.length?'⚠ '+w.join('<br>⚠ '):'';$('warnBox').classList.toggle('hide',!w.length);
   el.innerHTML=h;el.classList.toggle('hide',!h);
 }
@@ -540,12 +684,12 @@ function updateStats(s){
   if(!decoNow){
     let ndl=Infinity;const pi=pin(d,c.fN2);
     for(let i=0;i<NT;i++){const lim=allow(i,ENV.psurf,c.hi);if(pi<=lim)continue;const v=T[i]>=lim?0:-Math.log((lim-pi)/(T[i]-pi))/KK[i];ndl=Math.min(ndl,v);}
-    $('sNk').textContent='NDL';$('sN').textContent=ndl===Infinity||ndl>99*60?'99+분':Math.floor(ndl/60)+'분';$('sN').style.color='';
+    $('sNk').textContent=tr('ndl');$('sN').textContent=ndl===Infinity||ndl>99*60?tr('minV','99+'):tr('minV',Math.floor(ndl/60));$('sN').style.color='';
   }else{
-    const ce=ceilAt(T,anc,c.lo,c.hi);$('sNk').textContent='천장';
+    const ce=ceilAt(T,anc,c.lo,c.hi);$('sNk').textContent=tr('ceiling');
     $('sN').textContent=ce.toFixed(1)+' m';$('sN').style.color=ce>d+0.3?'#e5484d':'#db2777';
   }
-  if(d>0.05){const pl=makePlan(T,d,anc,c);$('sTTS').textContent=Math.ceil(pl.t/60)+'분';}else $('sTTS').textContent='-';
+  if(d>0.05){const pl=makePlan(T,d,anc,c);$('sTTS').textContent=tr('minV',Math.ceil(pl.t/60));}else $('sTTS').textContent='-';
   const sg=surfGF(T);
   $('sGF').textContent=Math.max(0,Math.round(sg))+'%';$('sGF').style.color=sg>c.hi*100?'#e5484d':'';
   const po2=c.fO2*pamb(d);$('sPO2').textContent=po2.toFixed(2);$('sPO2').style.color=po2>1.4?'#e5484d':'';
@@ -591,9 +735,9 @@ function startPlay(){
   const r=RES[S.cur];if(dive().pts.length<2){renderSummary();return;}
   if(!S.playMode){S.mode='none';modeChanged();}
   if(P.t>=r.N){P.t=0;P.tick=-1;}
-  P.run=true;P.last=performance.now();$('playBtn').innerHTML=IC_PAUSE;$('playBtn').title='일시정지';requestAnimationFrame(frame);
+  P.run=true;P.last=performance.now();$('playBtn').innerHTML=IC_PAUSE;$('playBtn').title=tr('pause');requestAnimationFrame(frame);
 }
-function stopPlay(){P.run=false;$('playBtn').innerHTML=IC_PLAY;$('playBtn').title='플레이';}
+function stopPlay(){P.run=false;$('playBtn').innerHTML=IC_PLAY;$('playBtn').title=tr('play');}
 $('playBtn').onclick=()=>P.run?(stopPlay(),drawProfile()):startPlay();
 function seek(t){const r=RES[S.cur];P.t=clamp(t,0,r.N);P.tick=Math.floor(P.t/5)*5;updateStats(P.tick);syncScrub();drawProfile();}
 stopPlay();
@@ -606,7 +750,7 @@ fillWheel($('wH'),Array.from({length:25},(_,i)=>i));
 fillWheel($('wM'),[0,10,20,30,40,50].map(v=>String(v).padStart(2,'0')));
 const wIdx=el=>Math.round(el.scrollTop/IH);
 function openPicker(i){
-  pkIdx=i;const m=S.dives[i].si;$('pkTitle').textContent=`다이빙 ${i} → ${i+1} 수면휴식`;
+  pkIdx=i;const m=S.dives[i].si;$('pkTitle').textContent=tr('siPick',i,i+1);
   $('pk').classList.remove('hide');
   $('wH').scrollTop=Math.floor(m/60)*IH;$('wM').scrollTop=Math.round((m%60)/10)*IH;
 }
@@ -623,45 +767,21 @@ function hidePop(){$('pop').classList.add('hide');$('pop').dataset.k='';}
 function showPop(btn,i){
   const pop=$('pop');pop.innerHTML='';pop.dataset.k='';pop.classList.remove('inf');
   const add=(t,fn)=>{const b=document.createElement('button');b.textContent=t;b.onclick=e=>{e.stopPropagation();fn();hidePop();};pop.appendChild(b);};
-  add('복사',()=>{CLIP={pts:JSON.parse(JSON.stringify(S.dives[i].pts)),from:i};});
-  if(CLIP&&CLIP.from!==i)add(`붙여넣기 (다이빙 ${CLIP.from+1})`,()=>{const dv=S.dives[i];dv.undo.push(JSON.stringify(dv.pts));dv.redoSnap=null;dv.pts=JSON.parse(JSON.stringify(CLIP.pts));S.cur=i;syncForm();recompute();});
+  add(tr('copy'),()=>{CLIP={pts:JSON.parse(JSON.stringify(S.dives[i].pts)),from:i};});
+  if(CLIP&&CLIP.from!==i)add(tr('paste',CLIP.from+1),()=>{const dv=S.dives[i];dv.undo.push(JSON.stringify(dv.pts));dv.redoSnap=null;dv.pts=JSON.parse(JSON.stringify(CLIP.pts));S.cur=i;syncForm();recompute();});
   const r=btn.getBoundingClientRect();pop.classList.remove('hide');
   pop.style.left=Math.max(6,Math.min(window.scrollX+r.left,window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-6))+'px';
   pop.style.top=(window.scrollY+r.bottom+8)+'px';
   if(navigator.vibrate)try{navigator.vibrate(15);}catch(e){}
 }
-const TIPS={
-  t:['경과 시간','다이빙 시작부터 지금 재생 위치까지의 시간.'],
-  d:['수심','지금 재생 위치의 수심.'],
-  ndl:['NDL / 천장','NDL: 지금 수심에 계속 머물 때, 감압 정지 없이 바로 출수할 수 있는 남은 시간.<br>천장: 감압이 필요해지면 대신 표시. 이보다 얕게 올라가면 안 되는 수심.'],
-  tts:['TTS (출수까지 시간)','지금 추천 플랜대로 올라갈 때 수면까지 걸리는 총 시간. 상승 + 감압 정지 + 5m 안전정지 포함. 남은 공기와 비교하는 기준.'],
-  gf:['수면 GF','지금 정지 없이 바로 수면에 올라간다고 칠 때, 가장 많이 쌓인 조직이 수면 한계에 얼마나 가까운지(%). 0% = 과포화 없음, 100% = 뷜만 원래 한계(M값). 설정한 GF High를 넘으면 빨간색 = 바로 출수 불가.'],
-  po2:['PO₂ (산소 분압)','들이마시는 산소의 분압(bar). 1.4를 넘으면 빨간색 = 산소 독성 위험.'],
-  alt:['해발 고도','고도가 높으면 수면 기압이 낮아, 같은 수심이라도 감압 부담이 커짐. 그 고도에 적응된 상태로 가정.'],
-  water:['수질','해수는 10m당 약 1.005bar, 담수는 0.981bar. 담수가 같은 수심에서 압력이 조금 낮음.'],
-  gas:['기체','공기는 산소 21%·질소 79%. 나이트록스(EAN)는 산소를 늘리고 질소를 줄여 NDL이 길어지지만, 산소 독성 때문에 내려갈 수 있는 최대 수심(MOD)이 얕아짐.'],
-  cons:['보수도 (GF Low/High)','그래디언트 팩터. Low는 첫 감압 정지 깊이(낮을수록 깊게 멈춤), High는 수면 도착 때 허용 한계(낮을수록 NDL 짧고 정지 길어짐). 보수 35/75 · 보통 40/85 · 공격 45/95 (가민·쉐어워터 기본값).'],
-  asc:['플랜 상승속도','추천 플랜이 올라갈 때 쓰는 속도. 기본 분당 9m. 내가 그린 경로의 급상승 경고는 분당 10m 기준.'],
-  path:['내 경로','직접 그린 수심 이동. 0m에 닿으면 그 지점에서 다이빙 종료.'],
-  plan:['추천 경로','그린 경로가 출수 전에 끝나면 그 지점부터, 감압 정지(3m 단위)와 5m 3분 안전정지를 넣어 계산한 상승 경로. 출수까지 다 그렸는데 5m 안전정지를 안 했으면 5m를 지나는 지점부터 안전정지 경로를 비교용으로 표시(통계는 내 경로 기준).'],
-  ceil:['천장 (ceiling)','이보다 얕게 올라가면 GF 한계를 넘는 수심. 0m면 바로 출수 가능.'],
-  fast:['급상승','분당 10m보다 빠르게 올라간 구간. 기포 생성 위험이 커짐.'],
-  mod:['MOD (최대 운용 수심)','산소 분압이 1.4bar가 되는 수심. 나이트록스일 때만 표시. 이보다 깊이 가면 산소 독성 위험.'],
-  on:['질소 흡수 중','들이마시는 질소 분압이 조직보다 높아 질소가 쌓이는 중 (주로 내려가거나 깊이 머물 때).'],
-  off:['질소 배출 중','조직의 질소가 들이마시는 것보다 높아 빠져나가는 중 (주로 올라올 때·수면 휴식 중).'],
-  pct:['막대 %','조직 질소분압 ÷ 수면 허용한계(GF High). 100%를 넘는 구획이 하나라도 있으면 바로 출수 불가 = 감압 필요.'],
-  deco:['감압 필요','NDL을 넘겨, 출수 전에 정해진 수심에서 정해진 시간 동안 멈춰야 하는 상태.'],
-  nodeco:['무감압','감압 정지 없이 바로 출수할 수 있는 상태. 안전정지만 권장.'],
-  safety:['안전정지','5m에서 3분. 의무 정지는 아니지만 기포를 줄이기 위해 권장. 추천 경로에 자동으로 포함.'],
-  si:['수면휴식','앞 다이빙과 이번 다이빙 사이에 수면에서 쉰 시간. 남은 질소가 다음 다이빙에 이어짐. 누르면 시간 변경.']
-};
+const TIPS=new Proxy({},{get:(_,k)=>I18N[LANG].tips[k]||I18N.ko.tips[k]});
 function placePop(html,rect,key){
   const pop=$('pop');pop.dataset.k=key||'';pop.classList.add('inf');pop.innerHTML=`<div class="info">${html}</div>`;pop.classList.remove('hide');
   const W=document.documentElement.clientWidth;let left=rect.left;if(left+pop.offsetWidth>W-6)left=W-pop.offsetWidth-6;
   let top=rect.bottom+8;if(top+pop.offsetHeight>window.innerHeight-6&&rect.top-pop.offsetHeight-8>0)top=rect.top-pop.offsetHeight-8;
   pop.style.left=(window.scrollX+Math.max(6,left))+'px';pop.style.top=(window.scrollY+top)+'px';
 }
-function tipHtml(k){const v=TIPS[k];if(!v)return '';const t=k==='ndl'&&$('sNk').textContent==='천장'?['천장',TIPS.ceil[1]]:v;return `<b>${t[0]}</b>${t[1]}`;}
+function tipHtml(k){const v=TIPS[k];if(!v)return '';const t=k==='ndl'&&$('sNk').textContent===tr('ceiling')?[tr('ceiling'),TIPS.ceil[1]]:v;return `<b>${t[0]}</b>${t[1]}`;}
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('#pop')&&!e.target.closest('[data-tip]')&&e.target.id!=='bars')hidePop();});
 document.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const el=e.target.closest('[data-tip]');if(el&&$('pop').dataset.k!==el.dataset.tip)placePop(tipHtml(el.dataset.tip),el.getBoundingClientRect(),el.dataset.tip);});
 document.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;const el=e.target.closest('[data-tip]');if(el&&!el.contains(e.relatedTarget)&&$('pop').classList.contains('inf'))hidePop();});
@@ -674,9 +794,9 @@ document.querySelectorAll('label .tip').forEach(el=>el.addEventListener('click',
 function barTip(e){
   const B=window.BARG;if(!B)return;const b=$('bars').getBoundingClientRect(),y=e.clientY-b.top,i=Math.floor((y-B.top)/B.rh);
   if(i<0||i>=NT){if(e.pointerType==='mouse')hidePop();return;}
-  const T=B.T[i],v=Math.round(T/allow(i,ENV.psurf,B.c.hi)*100),st=B.pin>T+0.003?'흡수 중':B.pin<T-0.003?'배출 중':'평형';
+  const T=B.T[i],v=Math.round(T/allow(i,ENV.psurf,B.c.hi)*100),st=B.pin>T+0.003?I18N[LANG].bOn:B.pin<T-0.003?I18N[LANG].bOff:I18N[LANG].bEq;
   const key='bar'+i;if($('pop').dataset.k===key&&!$('pop').classList.contains('hide'))return;
-  placePop(`<b>${i+1}번 구획 · 반감기 ${HT[i]}분</b>질소 ${T.toFixed(2)} bar · 수면 한계의 ${v}% · ${st}<br>반감기가 짧은 구획(위쪽)은 빨리 차고 빨리 빠지고, 긴 구획(아래쪽)은 천천히 차고 천천히 빠져 반복 다이빙에 남음.`,
+  placePop(I18N[LANG].bar(i+1,HT[i],T.toFixed(2),v,st),
     {left:b.left+B.L,right:b.right,top:b.top+B.top+i*B.rh,bottom:b.top+B.top+(i+1)*B.rh},key);
 }
 $('bars').addEventListener('pointermove',e=>{if(e.pointerType==='mouse')barTip(e);});
@@ -689,8 +809,8 @@ function renderTabs(){
   const el=$('tabs');el.innerHTML='';
   S.dives.forEach((dv,i)=>{
     if(i>0){const c=document.createElement('button');c.className='chip';c.textContent=fmtSI(dv.si);c.dataset.tip='si';c.onclick=()=>openPicker(i);el.appendChild(c);}
-    const b=document.createElement('button');b.className='tab'+(i===S.cur?' on':'');b.innerHTML='다이빙 '+(i+1);
-    if(i===S.cur&&S.dives.length>1){const x=document.createElement('span');x.className='x';x.textContent='×';x.title='이 다이빙 삭제';
+    const b=document.createElement('button');b.className='tab'+(i===S.cur?' on':'');b.innerHTML=tr('dive',i+1);
+    if(i===S.cur&&S.dives.length>1){const x=document.createElement('span');x.className='x';x.textContent='×';x.title=tr('delDive');
       x.onclick=e=>{e.stopPropagation();S.dives.splice(i,1);S.cur=Math.max(0,Math.min(S.cur,S.dives.length-1));syncForm();recompute();};b.appendChild(x);}
     let lp=null,fired=false;
     const cancel=()=>{clearTimeout(lp);lp=null;};
@@ -699,14 +819,14 @@ function renderTabs(){
     b.addEventListener('contextmenu',e=>e.preventDefault());
     b.onclick=e=>{if(fired){e.preventDefault();fired=false;return;}S.cur=i;syncForm();recompute();};el.appendChild(b);
   });
-  const a=document.createElement('button');a.className='add';a.textContent='+ 다이빙 추가';
+  const a=document.createElement('button');a.className='add';a.textContent=tr('addDive');
   a.onclick=()=>{S.dives.push(newDive());S.cur=S.dives.length-1;syncForm();recompute();};
   el.appendChild(a);
 }
 function renderSum(){
-  const consName={cons:'보수',med:'보통',agg:'공격',custom:'커스텀'}[S.cons],c=cfg();
-  const gas=S.o2<=21?'공기':'EAN'+S.o2;
-  $('setSum').textContent=`${S.water==='salt'?'해수':'담수'} · 고도 ${S.alt}m · ${gas} · GF ${Math.round(c.lo*100)}/${Math.round(c.hi*100)} · 상승 ${c.asc}m/분`;
+  const c=cfg();
+  const gas=S.o2<=21?tr('sAir'):'EAN'+S.o2;
+  $('setSum').textContent=tr('sSum',tr(S.water==='salt'?'salt':'fresh'),S.alt,gas,Math.round(c.lo*100),Math.round(c.hi*100),c.asc);
 }
 function syncForm(){
   renderTabs();renderSum();
@@ -742,6 +862,15 @@ $('clear').onclick=()=>{const dv=dive();if(dv.pts.length<2)return;pushUndo();dv.
 window.addEventListener('resize',()=>{layout();drawProfile();updateStats(P.tick<0?0:P.tick);});
 
 // 배경 영상을 수심 그래프 뒤(세로 가운데)에 배치
+function applyLang(){
+  document.documentElement.lang=LANG==='ja'?'ja':LANG;document.title=tr('title');
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.innerHTML=tr(el.dataset.i18n);});
+  document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
+  $('playBtn').title=tr(P.run?'pause':'play');hidePop();
+}
+document.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{LANG=b.dataset.lang;try{localStorage.setItem('scuba_lang',LANG);}catch(e){}
+  applyLang();syncForm();renderSummary();updateStats(P.tick<0?0:P.tick);drawProfile();});
+applyLang();
 layout();syncForm();recompute();modeChanged();
 </script>
 </body>
