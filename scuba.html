@@ -580,7 +580,7 @@ function renderTabs(){
 function renderSum(){
   const consName={cons:'보수',med:'보통',agg:'공격',custom:'커스텀'}[S.cons],c=cfg();
   const gas=S.o2<=21?'공기':'EAN'+S.o2;
-  $('setSum').textContent=`${S.water==='salt'?'해수':'담수'} · 고도 ${S.alt}m · ${gas} · ${consName} GF ${Math.round(c.lo*100)}/${Math.round(c.hi*100)} · 상승 ${c.asc}m/분`;
+  $('setSum').textContent=`${S.water==='salt'?'해수':'담수'} · 고도 ${S.alt}m · ${gas} · GF ${Math.round(c.lo*100)}/${Math.round(c.hi*100)} · 상승 ${c.asc}m/분`;
 }
 function syncForm(){
   renderTabs();renderSum();
