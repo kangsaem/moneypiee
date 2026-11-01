@@ -41,7 +41,9 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .tabs .tab{gap:5px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .pop{position:absolute;z-index:20;background:#1f2328;border-radius:8px;padding:4px;display:flex;gap:4px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
 .pop button{background:transparent;color:#fff;border:0;font-size:13px;padding:6px 12px}
-.st[data-info]{cursor:pointer}
+.st[data-tip],.tip{cursor:help}
+.tip{text-decoration:underline dotted #b6bac2;text-underline-offset:3px}
+.legend .tip{text-decoration:none}
 .pop.inf::before{display:none}
 .info{max-width:260px;color:#fff;font-size:12px;line-height:1.55;padding:6px 8px}
 .info b{display:block;margin-bottom:2px;font-size:13px}
@@ -100,29 +102,29 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
   <div class="setWrap" id="setWrap"><div>
   <div class="setBody" id="setBody">
     <div class="row">
-      <label>해발 고도
+      <label><span class="tip" data-tip="alt">해발 고도</span>
         <select id="altSel">
           <option value="0">0 m (해수면)</option><option value="300">300 m</option><option value="600">600 m</option>
           <option value="900">900 m</option><option value="1500">1500 m</option><option value="2400">2400 m</option><option value="c">직접 입력</option>
         </select>
         <input type="number" id="altIn" class="hide" min="0" max="4500" step="50" value="0">
       </label>
-      <label>수질 <select id="water"><option value="salt">해수</option><option value="fresh">담수</option></select></label>
-      <label>기체
+      <label><span class="tip" data-tip="water">수질</span> <select id="water"><option value="salt">해수</option><option value="fresh">담수</option></select></label>
+      <label><span class="tip" data-tip="gas">기체</span>
         <select id="gas">
           <option value="21">공기 (21%)</option><option value="28">EAN28</option><option value="30">EAN30</option>
           <option value="32">EAN32</option><option value="36">EAN36</option><option value="40">EAN40</option><option value="c">직접 입력</option>
         </select>
         <input type="number" id="o2" class="hide" min="21" max="40" step="1">
       </label>
-      <label>보수도
+      <label><span class="tip" data-tip="cons">보수도</span>
         <select id="cons">
           <option value="cons">보수 (GF 35/75)</option><option value="med">보통 (GF 40/85)</option>
           <option value="agg">공격 (GF 45/95)</option><option value="custom">커스텀</option>
         </select>
         <span id="gfWrap" class="hide">Low <input type="number" id="gfLo" min="10" max="100"> High <input type="number" id="gfHi" min="10" max="100"></span>
       </label>
-      <label>플랜 상승속도 <input type="number" id="asc" min="3" max="18" step="1"> m/분</label>
+      <label><span class="tip" data-tip="asc">플랜 상승속도</span> <input type="number" id="asc" min="3" max="18" step="1"> m/분</label>
     </div>
   </div>
   </div></div>
@@ -140,11 +142,11 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
   </div>
   <div style="margin-top:10px"><canvas id="prof"></canvas></div>
   <div class="legend">
-    <span><i style="border-color:var(--ink)"></i>내 경로</span>
-    <span><i style="border-color:var(--plan);border-top-style:dashed"></i>추천</span>
-    <span><i class="box"></i>천장</span>
-    <span><i style="border-color:var(--up);border-top-width:4px"></i>급상승</span>
-    <span id="lgMod"><i style="border-color:var(--mod);border-top-style:dashed"></i>MOD</span>
+    <span class="tip" data-tip="path"><i style="border-color:var(--ink)"></i>내 경로</span>
+    <span class="tip" data-tip="plan"><i style="border-color:var(--plan);border-top-style:dashed"></i>추천</span>
+    <span class="tip" data-tip="ceil"><i class="box"></i>천장</span>
+    <span class="tip" data-tip="fast"><i style="border-color:var(--up);border-top-width:4px"></i>급상승</span>
+    <span id="lgMod" class="tip" data-tip="mod"><i style="border-color:var(--mod);border-top-style:dashed"></i>MOD</span>
   </div>
   <div class="play">
     <button class="big" id="playBtn" title="플레이"></button>
@@ -157,20 +159,20 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
     <div>
       <canvas id="bars"></canvas>
       <div class="legend">
-        <span><i style="border-color:var(--up);border-top-width:8px"></i>흡수 중</span>
-        <span><i style="border-color:var(--down);border-top-width:8px"></i>배출 중</span>
-        <span>100% = 수면 허용한계(GF High)</span>
+        <span class="tip" data-tip="on"><i style="border-color:var(--up);border-top-width:8px"></i>흡수 중</span>
+        <span class="tip" data-tip="off"><i style="border-color:var(--down);border-top-width:8px"></i>배출 중</span>
+        <span class="tip" data-tip="pct">100% = 수면 허용한계(GF High)</span>
       </div>
     </div>
     <div class="side">
       <div class="summary" id="summary"></div>
       <div class="wbox hide" id="warnBox"></div>
-      <div class="st"><span class="k">경과 시간</span><span class="v" id="sT">0:00</span></div>
-      <div class="st"><span class="k">수심</span><span class="v" id="sD">0.0 m</span></div>
-      <div class="st" data-info="ndl"><span class="k"><span id="sNk">NDL</span> ⓘ</span><span class="v" id="sN">-</span></div>
-      <div class="st" data-info="tts"><span class="k">TTS ⓘ</span><span class="v" id="sTTS">-</span></div>
-      <div class="st" data-info="gf"><span class="k">수면 GF ⓘ</span><span class="v" id="sGF">-</span></div>
-      <div class="st" data-info="po2"><span class="k">PO₂ ⓘ</span><span class="v" id="sPO2">-</span></div>
+      <div class="st" data-tip="t"><span class="k">경과 시간</span><span class="v" id="sT">0:00</span></div>
+      <div class="st" data-tip="d"><span class="k">수심</span><span class="v" id="sD">0.0 m</span></div>
+      <div class="st" data-tip="ndl"><span class="k"><span id="sNk">NDL</span></span><span class="v" id="sN">-</span></div>
+      <div class="st" data-tip="tts"><span class="k">TTS</span><span class="v" id="sTTS">-</span></div>
+      <div class="st" data-tip="gf"><span class="k">수면 GF</span><span class="v" id="sGF">-</span></div>
+      <div class="st" data-tip="po2"><span class="k">PO₂</span><span class="v" id="sPO2">-</span></div>
     </div>
   </div>
 </div>
@@ -489,9 +491,9 @@ function renderSummary(){
   const row=(k,v)=>`<div class="r"><span>${k}</span><b>${v}</b></div>`;
   let h='';
   if(r.plan){
-    const st=r.plan.stops.slice().sort((a,b)=>b.d-a.d).map(s=>`${s.d}m ${Math.round(s.s/60)}분${s.safety?'(안전)':''}`);
+    const st=r.plan.stops.slice().sort((a,b)=>b.d-a.d).map(s=>(s.safety?'<span class="tip" data-tip="safety">':'')+`${s.d}m ${Math.round(s.s/60)}분${s.safety?'(안전)</span>':''}`);
     const sf=r.plan.stops.find(s=>s.safety);
-    h+=`<div>${r.plan.deco?'<b style="color:#0f9d7a">감압 필요</b><br>'+st.join(' → '):'무감압'+(sf?'<br>5m 안전정지 3분':'')}<br><span style="color:var(--mute)">출수까지 ${fmt(r.plan.t)}</span></div>`;
+    h+=`<div>${r.plan.deco?'<b class="tip" data-tip="deco" style="color:#0f9d7a">감압 필요</b><br>'+st.join(' → '):'<span class="tip" data-tip="nodeco">무감압</span>'+(sf?'<br><span class="tip" data-tip="safety">5m 안전정지 3분</span>':'')}<br><span class="tip" data-tip="tts" style="color:var(--mute)">출수까지 ${fmt(r.plan.t)}</span></div>`;
   }
   const w=[];
   const vc=r.viol.filter(Boolean).length,fc=r.fast.filter(Boolean).length;
@@ -528,6 +530,7 @@ function drawBars(T,d,c){
   const narrow=w<300,rh=narrow?17:20,L=narrow?22:66,R=narrow?36:40,top=2,W=w-L-R,MAXP=130;
   const px=v=>L+clamp(v,0,MAXP)/MAXP*W;
   g.clearRect(0,0,w,h);g.font=(narrow?10:11)+'px sans-serif';
+  window.BARG={top,rh,L,T:T.slice(),c,pin:pin(d,c.fN2)};
   for(const v of [0,50,100,130]){
     g.strokeStyle=v===100?'#1f2328':'#eceef1';g.lineWidth=v===100?1.2:1;g.setLineDash(v===100?[4,3]:[]);
     g.beginPath();g.moveTo(px(v)+.5,top);g.lineTo(px(v)+.5,top+16*rh);g.stroke();g.setLineDash([]);
@@ -590,7 +593,7 @@ $('pkOk').onclick=()=>{
 
 // ===== 다이빙 복사·붙여넣기 =====
 let CLIP=null;
-function hidePop(){$('pop').classList.add('hide');}
+function hidePop(){$('pop').classList.add('hide');$('pop').dataset.k='';}
 function showPop(btn,i){
   const pop=$('pop');pop.innerHTML='';pop.dataset.k='';pop.classList.remove('inf');
   const add=(t,fn)=>{const b=document.createElement('button');b.textContent=t;b.onclick=e=>{e.stopPropagation();fn();hidePop();};pop.appendChild(b);};
@@ -601,26 +604,65 @@ function showPop(btn,i){
   pop.style.top=(window.scrollY+r.bottom+8)+'px';
   if(navigator.vibrate)try{navigator.vibrate(15);}catch(e){}
 }
-document.addEventListener('pointerdown',e=>{if(!e.target.closest('#pop')&&!e.target.closest('.st[data-info]'))hidePop();});
-const INFO={
+const TIPS={
+  t:['경과 시간','다이빙 시작부터 지금 재생 위치까지의 시간.'],
+  d:['수심','지금 재생 위치의 수심.'],
   ndl:['NDL / 천장','NDL: 지금 수심에 계속 머물 때, 감압 정지 없이 바로 출수할 수 있는 남은 시간.<br>천장: 감압이 필요해지면 대신 표시. 이보다 얕게 올라가면 안 되는 수심.'],
-  tts:['TTS (출수까지 시간)','지금 추천 플랜대로 올라갈 때 수면까지 걸리는 총 시간. 상승 시간 + 감압 정지 + 안전정지(무감압일 때 5m 3분) 포함. 남은 공기와 비교하는 기준.'],
+  tts:['TTS (출수까지 시간)','지금 추천 플랜대로 올라갈 때 수면까지 걸리는 총 시간. 상승 + 감압 정지 + 5m 안전정지 포함. 남은 공기와 비교하는 기준.'],
   gf:['수면 GF','지금 정지 없이 바로 수면에 올라간다고 칠 때, 가장 많이 쌓인 조직이 수면 한계에 얼마나 가까운지(%). 0% = 과포화 없음, 100% = 뷜만 원래 한계(M값). 설정한 GF High를 넘으면 빨간색 = 바로 출수 불가.'],
-  po2:['PO₂ (산소 분압)','들이마시는 산소의 분압(bar). 1.4 넘으면 빨간색 = 산소 독성 위험 한계(MOD).']
+  po2:['PO₂ (산소 분압)','들이마시는 산소의 분압(bar). 1.4를 넘으면 빨간색 = 산소 독성 위험.'],
+  alt:['해발 고도','고도가 높으면 수면 기압이 낮아, 같은 수심이라도 감압 부담이 커짐. 그 고도에 적응된 상태로 가정.'],
+  water:['수질','해수는 10m당 약 1.005bar, 담수는 0.981bar. 담수가 같은 수심에서 압력이 조금 낮음.'],
+  gas:['기체','공기는 산소 21%·질소 79%. 나이트록스(EAN)는 산소를 늘리고 질소를 줄여 NDL이 길어지지만, 산소 독성 때문에 내려갈 수 있는 최대 수심(MOD)이 얕아짐.'],
+  cons:['보수도 (GF Low/High)','그래디언트 팩터. Low는 첫 감압 정지 깊이(낮을수록 깊게 멈춤), High는 수면 도착 때 허용 한계(낮을수록 NDL 짧고 정지 길어짐). 보수 35/75 · 보통 40/85 · 공격 45/95 (가민·쉐어워터 기본값).'],
+  asc:['플랜 상승속도','추천 플랜이 올라갈 때 쓰는 속도. 기본 분당 9m. 내가 그린 경로의 급상승 경고는 분당 10m 기준.'],
+  path:['내 경로','직접 그린 수심 이동. 0m에 닿으면 그 지점에서 다이빙 종료.'],
+  plan:['추천 경로','그린 경로가 출수 전에 끝나면, 그 지점부터 감압 정지(3m 단위)와 5m 3분 안전정지를 넣어 계산한 상승 경로.'],
+  ceil:['천장 (ceiling)','이보다 얕게 올라가면 GF 한계를 넘는 수심. 0m면 바로 출수 가능.'],
+  fast:['급상승','분당 10m보다 빠르게 올라간 구간. 기포 생성 위험이 커짐.'],
+  mod:['MOD (최대 운용 수심)','산소 분압이 1.4bar가 되는 수심. 나이트록스일 때만 표시. 이보다 깊이 가면 산소 독성 위험.'],
+  on:['흡수 중','들이마시는 질소 분압이 조직보다 높아 질소가 쌓이는 중 (주로 내려가거나 깊이 머물 때).'],
+  off:['배출 중','조직의 질소가 들이마시는 것보다 높아 빠져나가는 중 (주로 올라올 때·수면 휴식 중).'],
+  pct:['막대 %','조직 질소분압 ÷ 수면 허용한계(GF High). 100%를 넘는 구획이 하나라도 있으면 바로 출수 불가 = 감압 필요.'],
+  deco:['감압 필요','NDL을 넘겨, 출수 전에 정해진 수심에서 정해진 시간 동안 멈춰야 하는 상태.'],
+  nodeco:['무감압','감압 정지 없이 바로 출수할 수 있는 상태. 안전정지만 권장.'],
+  safety:['안전정지','5m에서 3분. 의무 정지는 아니지만 기포를 줄이기 위해 권장. 추천 경로에 자동으로 포함.'],
+  si:['수면휴식','앞 다이빙과 이번 다이빙 사이에 수면에서 쉰 시간. 남은 질소가 다음 다이빙에 이어짐. 누르면 시간 변경.']
 };
-document.querySelectorAll('.st[data-info]').forEach(el=>el.onclick=()=>{
-  const pop=$('pop');if(!pop.classList.contains('hide')&&pop.dataset.k===el.dataset.info){hidePop();return;}
-  const [t,b]=INFO[el.dataset.info];pop.dataset.k=el.dataset.info;pop.classList.add('inf');pop.innerHTML=`<div class="info"><b>${t}</b>${b}</div>`;
-  pop.classList.remove('hide');const r=el.getBoundingClientRect(),W=document.documentElement.clientWidth;
-  pop.style.left=Math.max(6,window.scrollX+Math.min(r.right-pop.offsetWidth,W-pop.offsetWidth-6))+'px';pop.style.top=(window.scrollY+r.bottom+8)+'px';
-});
+function placePop(html,rect,key){
+  const pop=$('pop');pop.dataset.k=key||'';pop.classList.add('inf');pop.innerHTML=`<div class="info">${html}</div>`;pop.classList.remove('hide');
+  const W=document.documentElement.clientWidth;let left=rect.left;if(left+pop.offsetWidth>W-6)left=W-pop.offsetWidth-6;
+  let top=rect.bottom+8;if(top+pop.offsetHeight>window.innerHeight-6&&rect.top-pop.offsetHeight-8>0)top=rect.top-pop.offsetHeight-8;
+  pop.style.left=(window.scrollX+Math.max(6,left))+'px';pop.style.top=(window.scrollY+top)+'px';
+}
+function tipHtml(k){const v=TIPS[k];if(!v)return '';const t=k==='ndl'&&$('sNk').textContent==='천장'?['천장',TIPS.ceil[1]]:v;return `<b>${t[0]}</b>${t[1]}`;}
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#pop')&&!e.target.closest('[data-tip]')&&e.target.id!=='bars')hidePop();});
+document.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const el=e.target.closest('[data-tip]');if(el&&$('pop').dataset.k!==el.dataset.tip)placePop(tipHtml(el.dataset.tip),el.getBoundingClientRect(),el.dataset.tip);});
+document.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse')return;const el=e.target.closest('[data-tip]');if(el&&!el.contains(e.relatedTarget)&&$('pop').classList.contains('inf'))hidePop();});
+document.addEventListener('click',e=>{const el=e.target.closest('[data-tip]');if(!el||el.closest('button')||el.closest('label'))return;
+  if(!$('pop').classList.contains('hide')&&$('pop').dataset.k===el.dataset.tip){hidePop();return;}placePop(tipHtml(el.dataset.tip),el.getBoundingClientRect(),el.dataset.tip);});
+// 설정 라벨: 글자 누르면 설명(선택 상자 열지 않음)
+document.querySelectorAll('label .tip').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();
+  if(!$('pop').classList.contains('hide')&&$('pop').dataset.k===el.dataset.tip){hidePop();return;}placePop(tipHtml(el.dataset.tip),el.getBoundingClientRect(),el.dataset.tip);}));
+// 질소 막대: 구획 위에 올리거나 누르면 설명
+function barTip(e){
+  const B=window.BARG;if(!B)return;const b=$('bars').getBoundingClientRect(),y=e.clientY-b.top,i=Math.floor((y-B.top)/B.rh);
+  if(i<0||i>=NT){if(e.pointerType==='mouse')hidePop();return;}
+  const T=B.T[i],v=Math.round(T/allow(i,ENV.psurf,B.c.hi)*100),st=B.pin>T+0.003?'흡수 중':B.pin<T-0.003?'배출 중':'평형';
+  const key='bar'+i;if($('pop').dataset.k===key&&!$('pop').classList.contains('hide'))return;
+  placePop(`<b>${i+1}번 구획 · 반감기 ${HT[i]}분</b>질소 ${T.toFixed(2)} bar · 수면 한계의 ${v}% · ${st}<br>반감기가 짧은 구획(위쪽)은 빨리 차고 빨리 빠지고, 긴 구획(아래쪽)은 천천히 차고 천천히 빠져 반복 다이빙에 남음.`,
+    {left:b.left+B.L,right:b.right,top:b.top+B.top+i*B.rh,bottom:b.top+B.top+(i+1)*B.rh},key);
+}
+$('bars').addEventListener('pointermove',e=>{if(e.pointerType==='mouse')barTip(e);});
+$('bars').addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&($('pop').dataset.k||'').startsWith('bar'))hidePop();});
+$('bars').addEventListener('click',barTip);
 
 // ===== 설정·탭 UI =====
 const fmtSI=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
 function renderTabs(){
   const el=$('tabs');el.innerHTML='';
   S.dives.forEach((dv,i)=>{
-    if(i>0){const c=document.createElement('button');c.className='chip';c.textContent=fmtSI(dv.si);c.title='수면휴식 시간';c.onclick=()=>openPicker(i);el.appendChild(c);}
+    if(i>0){const c=document.createElement('button');c.className='chip';c.textContent=fmtSI(dv.si);c.dataset.tip='si';c.onclick=()=>openPicker(i);el.appendChild(c);}
     const b=document.createElement('button');b.className='tab'+(i===S.cur?' on':'');b.innerHTML='다이빙 '+(i+1);
     if(i===S.cur&&S.dives.length>1){const x=document.createElement('span');x.className='x';x.textContent='×';x.title='이 다이빙 삭제';
       x.onclick=e=>{e.stopPropagation();S.dives.splice(i,1);S.cur=Math.max(0,Math.min(S.cur,S.dives.length-1));syncForm();recompute();};b.appendChild(x);}
