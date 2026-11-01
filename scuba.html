@@ -111,7 +111,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
     <button class="big" id="playBtn">▶ 플레이</button>
     <button id="rst">⟲ 처음</button>
     <span class="seg"><button data-sp="0.5">0.5×</button><button data-sp="1" class="on">1×</button><button data-sp="2">2×</button></span>
-    <span class="hint">1× = 80분을 약 20초에 재생 · 통계는 다이빙 시간 5초마다 갱신</span>
+    <span class="hint">1× = 70분을 약 18초에 재생 · 통계는 다이빙 시간 5초마다 갱신</span>
   </div>
 </div>
 
@@ -146,7 +146,7 @@ const HT=[5,8,12.5,18.5,27,38.3,54.3,77,109,146,187,239,305,390,498,635];
 const AA=[1.1696,1.0,0.8618,0.7562,0.62,0.5043,0.441,0.4,0.375,0.35,0.3295,0.3065,0.2835,0.261,0.248,0.2327];
 const BB=[0.5578,0.6514,0.7222,0.7825,0.8126,0.8434,0.8693,0.891,0.9092,0.9222,0.9319,0.9403,0.9477,0.9544,0.9602,0.9653];
 const NT=16, KK=HT.map(h=>Math.LN2/(h*60)), E1=KK.map(k=>1-Math.exp(-k));
-const PH2O=0.0627, TMAX=4800, DMAX=50, FN2_AIR=0.7902;
+const PH2O=0.0627, TMAX=4200, DMAX=40, FN2_AIR=0.7902;
 let ENV={psurf:1.01325,bpm:0.10052};
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const pamb=d=>ENV.psurf+d*ENV.bpm;
@@ -207,7 +207,7 @@ function simulate(dv,T0){
   const c=cfgOf(dv),up=dv.pts,uEnd=Math.round(up[up.length-1].t);
   const depth=sampleDepth(up,uEnd),snaps=[],anc=[];
   const T=T0.slice();let a=0,s=0;
-  const adv=()=>{for(;s<depth.length;s++){if(s>0)step(T,(depth[s-1]+depth[s])/2,c.fN2,1);snaps[s]=Float32Array.from(T);a=Math.max(a,rawCeil(T,c.lo));anc[s]=a;}};
+  const adv=()=>{for(;s<depth.length;s++){if(s>0)step(T,(depth[s-1]+depth[s])/2,c.fN2,1);snaps[s]=Float32Array.from(T);a=Math.max(a,rawCeil(T,c.lo));anc[s]=Math.ceil(a/3-1e-9)*3;}};
   adv();
   let plan=null;
   if(uEnd>0&&depth[uEnd]>0.05){
@@ -274,7 +274,7 @@ function drawProfile(){
     cx.textAlign='right';cx.textBaseline='middle';cx.fillText(d+'m',G.L-6,Y(d));
   }
   cx.setLineDash([]);
-  for(let m=0;m<=80;m+=5){
+  for(let m=0;m<=TMAX/60;m+=5){
     const x=X(m*60);cx.strokeStyle=m%10?'#f1f2f4':'#e5e7eb';
     cx.beginPath();cx.moveTo(x+.5,G.T);cx.lineTo(x+.5,G.T+G.H);cx.stroke();
     if(m%10===0){cx.textAlign='center';cx.textBaseline='top';cx.fillText(m+'분',x,G.T+G.H+6);}
@@ -405,7 +405,7 @@ function renderSummary(){
   if(vc)w.push(`천장 위반 약 ${Math.round(vc*5/60*10)/10}분`);
   if(fc)w.push(`상승속도 10 m/분 초과 구간 있음`);
   const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;if(r.maxD>mod+0.1)w.push(`MOD(${mod.toFixed(1)}m) 초과`);
-  if(r.N>TMAX)w.push(`총 시간이 80분을 넘어 그래프 밖 구간이 있음`);
+  if(r.N>TMAX)w.push(`총 시간이 70분을 넘어 그래프 밖 구간이 있음`);
   el.innerHTML=parts.join(' · ')+(line2?'<br>'+line2:'')+(w.length?'<br><span class="warn">⚠ '+w.join(' · ')+'</span>':'');
 }
 
