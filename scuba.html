@@ -135,8 +135,8 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
       </label>
       <label><span class="tip" data-tip="cons" data-i18n="cons">보수도</span>
         <select id="cons">
-          <option value="cons" data-i18n="consH">보수 (GF 35/75)</option><option value="med" data-i18n="consM">보통 (GF 40/85)</option>
-          <option value="agg" data-i18n="consL">공격 (GF 45/95)</option><option value="custom" data-i18n="consC">커스텀</option>
+          <option value="cons" data-i18n="consH">높음 (GF 35/75)</option><option value="med" data-i18n="consM">중간 (GF 40/85)</option>
+          <option value="agg" data-i18n="consL">낮음 (GF 45/95)</option><option value="custom" data-i18n="consC">커스텀</option>
         </select>
         <span id="gfWrap" class="hide">Low <input type="number" id="gfLo" min="10" max="100"> High <input type="number" id="gfHi" min="10" max="100"></span>
       </label>
@@ -215,7 +215,7 @@ ko:{
  title:'Bühlmann 다이빙 플래너',h1:'Bühlmann 다이빙 플래너',
  rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
  settings:'⚙ 설정',alt:'해발 고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
- cons:'보수도',consH:'보수 (GF 35/75)',consM:'보통 (GF 40/85)',consL:'공격 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:'m/분',
+ cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:'m/분',
  draw:'그리기',points:'점찍기',erase:'점지우기',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
@@ -241,7 +241,7 @@ ko:{
   alt:['해발 고도','고도가 높으면 수면 기압이 낮아, 같은 수심이라도 감압 부담이 커짐. 그 고도에 적응된 상태로 가정.'],
   water:['수질','해수는 10m당 약 1.005bar, 담수는 0.981bar. 담수가 같은 수심에서 압력이 조금 낮음.'],
   gas:['기체','공기는 산소 21%·질소 79%. 나이트록스(EAN)는 산소를 늘리고 질소를 줄여 NDL이 길어지지만, 산소 독성 때문에 내려갈 수 있는 최대 수심(MOD)이 얕아짐.'],
-  cons:['보수도 (GF Low/High)','그래디언트 팩터. Low는 첫 감압 정지 깊이(낮을수록 깊게 멈춤), High는 수면 도착 때 허용 한계(낮을수록 NDL 짧고 정지 길어짐). 보수 35/75 · 보통 40/85 · 공격 45/95 (가민·쉐어워터 기본값).'],
+  cons:['보수도 (GF Low/High)','그래디언트 팩터. Low는 첫 감압 정지 깊이(낮을수록 깊게 멈춤), High는 수면 도착 때 허용 한계(낮을수록 NDL 짧고 정지 길어짐). 높음 35/75 · 중간 40/85 · 낮음 45/95 (가민·쉐어워터 기본값).'],
   asc:['플랜 상승속도','추천 플랜이 올라갈 때 쓰는 속도. 기본 분당 9m. 내가 그린 경로의 급상승 경고는 분당 10m 기준.'],
   path:['내 경로','직접 그린 수심 이동. 0m에 닿으면 그 지점에서 다이빙 종료.'],
   plan:['추천 경로','그린 경로가 출수 전에 끝나면 그 지점부터, 감압 정지(3m 단위)와 5m 3분 안전정지를 넣어 계산한 상승 경로. 출수까지 다 그렸는데 5m 안전정지를 안 했으면 5m를 지나는 지점부터 안전정지 경로를 비교용으로 표시(통계는 내 경로 기준).'],
