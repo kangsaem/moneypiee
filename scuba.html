@@ -10,6 +10,8 @@
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
 .wrap{max-width:1000px;margin:0 auto;padding:14px}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
+.rule{background:#e5484d;color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
+.rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
 .card{background:var(--card);border:1px solid #dcdee2;border-radius:10px;padding:12px;margin-bottom:12px}
 .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 label{color:var(--mute);font-size:12px;display:inline-flex;align-items:center;gap:6px}
@@ -96,6 +98,10 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 <body>
 <div class="wrap">
 <h1>Bühlmann 다이빙 플래너</h1>
+<div class="rule">
+  <div>1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
+  <div>2. 핑크색 천장이 부득이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
+</div>
 
 <div class="card">
   <button class="setHead" id="setHead"><b>⚙ 설정</b><span class="sum" id="setSum"></span><span class="arr">▾</span></button>
