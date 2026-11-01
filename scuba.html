@@ -48,13 +48,19 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 .legend{display:flex;flex-wrap:wrap;gap:4px 11px;font-size:12px;color:var(--mute);margin-top:8px}
 .legend i{display:inline-block;width:16px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
 .legend i.box{height:10px;border:1.5px solid #db2777;background:#f8c4dc}
+.tools{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.tools button{font-size:12px;padding:5px 9px;white-space:nowrap}
+.scrub{order:3;flex-basis:100%;display:flex;align-items:center;gap:10px;min-width:0;padding:0 2px}
+.scrub input{flex:1;min-width:0;accent-color:#1f2328}
+.scrub span{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
+.play .seg button{font-size:12px;padding:5px 8px}
 .summary{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.55;background:#fafafa}
 .summary .r{display:flex;justify-content:space-between;gap:6px}
 .summary .r span:first-child{color:var(--mute)}
 .summary .pl{margin-top:4px;padding-top:4px;border-top:1px solid var(--line)}
 .warn{color:var(--up)}
 .play{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 2px}
-.play .big{padding:7px 26px;font-size:16px;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
+.play .big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:34px;padding:0;flex-shrink:0;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
 /* 질소 + 통계 */
 .split{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
 .side{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -121,8 +127,8 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 </div>
 
 <div class="card">
-  <div class="row" style="gap:8px">
-    <span class="seg"><button id="mFree">연속 그리기</button><button id="mPt">점 찍기</button><button id="mDel">점 지우기</button></span>
+  <div class="tools">
+    <span class="seg"><button id="mFree">그리기</button><button id="mPt">점찍기</button><button id="mDel">점지우기</button></span>
     <button id="undo">실행취소</button>
     <button id="clear">지우기</button>
   </div>
@@ -135,8 +141,8 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
     <span id="lgMod"><i style="border-color:var(--mod);border-top-style:dashed"></i>MOD</span>
   </div>
   <div class="play">
-    <button class="big" id="playBtn" title="플레이">▶</button>
-    <button id="rst">⟲ 처음</button>
+    <button class="big" id="playBtn" title="플레이"></button>
+    <div class="scrub hide" id="scrubRow"><input type="range" id="scrub" min="0" max="100" step="5" value="0"><span id="scrubT">0:00</span></div>
     <span class="seg"><button data-sp="0.5">0.5×</button><button data-sp="1" class="on">1×</button><button data-sp="2">2×</button></span>
   </div>
 </div>
@@ -284,7 +290,7 @@ function recompute(){
     if(i>0){T=Array.from(RES[i-1].endT);step(T,0,FN2_AIR,clamp(+S.dives[i].si||0,10,1440)*60);}
     RES[i]=simulate(S.dives[i],T,c);
   }
-  stopPlay();P.t=0;P.tick=-1;
+  stopPlay();P.t=0;P.tick=-1;if(typeof syncScrub==='function')syncScrub();
   drawProfile();updateStats(0);renderSummary();
   $('undo').disabled=!dive().undo.length;
 }
@@ -319,7 +325,7 @@ function drawProfile(){
     if(m%10===0){cx.textAlign='center';cx.textBaseline='top';cx.fillText(m+'분',x,G.T+G.H+6);}
   }
   cx.save();cx.beginPath();cx.rect(G.L,G.T-2,G.W,G.H+4);cx.clip();
-  if(r&&(P.run||P.t>0)){
+  if(r&&S.playMode&&P.t>0){
     const tc=Math.min(P.t,r.N);cx.beginPath();cx.moveTo(X(0),Y(0));
     for(let s=0;s<tc;s+=5)cx.lineTo(X(s),Y(r.depth[s]));
     cx.lineTo(X(tc),Y(r.depth[Math.floor(tc)]));cx.lineTo(X(tc),Y(0));cx.closePath();
@@ -360,11 +366,11 @@ function drawProfile(){
   const pts=dv.pts;
   cx.strokeStyle='#1f2328';cx.lineWidth=2.4;cx.lineJoin='round';cx.beginPath();
   pts.forEach((p,i)=>i?cx.lineTo(X(p.t),Y(p.d)):cx.moveTo(X(p.t),Y(p.d)));cx.stroke();
-  if((S.mode==='pt'||S.mode==='del')&&pts.length<300){
+  if(!S.playMode&&(S.mode==='pt'||S.mode==='del')&&pts.length<300){
     const del=S.mode==='del';
     pts.forEach((p,i)=>{cx.beginPath();cx.arc(X(p.t),Y(p.d),i===drag?6:(del&&i?5:4),0,7);cx.fillStyle=i?'#fff':'#1f2328';cx.fill();cx.strokeStyle=del&&i?'#e5484d':'#1f2328';cx.lineWidth=1.6;cx.stroke();});
   }
-  if(r&&(P.run||P.t>0)){
+  if(r&&S.playMode){
     const t=Math.min(P.t,r.N),d=r.depth[Math.round(t)];
     cx.strokeStyle='rgba(31,35,40,.45)';cx.lineWidth=1;cx.beginPath();cx.moveTo(X(t)+.5,G.T);cx.lineTo(X(t)+.5,G.T+G.H);cx.stroke();
     cx.beginPath();cx.arc(X(t),Y(d),5,0,7);cx.fillStyle='#1f2328';cx.fill();
@@ -380,7 +386,7 @@ function drawProfile(){
         cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+10.5);cx.fillText(l2,bx+6,by+26);
       }
   }
-  if(hover&&!P.run){
+  if(hover&&!P.run&&!S.playMode){
     const t=clamp(toT(hover.x),0,TMAX),d=clamp(toD(hover.y),0,DMAX);
     if(hover.x>=G.L&&hover.x<=G.L+G.W){
       cx.strokeStyle='rgba(107,114,128,.5)';cx.setLineDash([2,3]);cx.lineWidth=1;cx.beginPath();
@@ -413,7 +419,9 @@ function rdp(pts,eps){
 }
 let raf=0;const liveRecompute=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;recompute();});};
 
+let seeking=false;
 cv.addEventListener('pointerdown',e=>{
+  if(S.playMode){if(P.run)stopPlay();cv.setPointerCapture(e.pointerId);seeking=true;seek(toT(pos(e).x));return;}
   if(P.run)stopPlay();
   const p=pos(e);cv.setPointerCapture(e.pointerId);
   const t=toT(p.x),d=toD(p.y);
@@ -430,6 +438,7 @@ cv.addEventListener('pointerdown',e=>{
 });
 cv.addEventListener('pointermove',e=>{
   const p=pos(e);hover=p;
+  if(seeking){seek(toT(p.x));return;}
   if(drawing){addFree(toT(p.x),toD(p.y));drawProfile();return;}
   if(drag>0){const pts=dive().pts,q=snapPt(toT(p.x),toD(p.y));
     const lo=pts[drag-1].t+10,hi=drag<pts.length-1?pts[drag+1].t-10:TMAX;
@@ -437,6 +446,7 @@ cv.addEventListener('pointermove',e=>{
   if(!P.run)drawProfile();
 });
 const endPtr=()=>{
+  seeking=false;
   if(drawing){drawing=false;const dv=dive();dv.pts=rdp(dv.pts,1.2);recompute();}
   if(drag>0){drag=-1;recompute();}
 };
@@ -514,18 +524,24 @@ function frame(ts){
   const dt=Math.min(0.1,(ts-P.last)/1000);P.last=ts;P.t+=dt*240*P.sp;
   if(P.t>=r.N)P.t=r.N;
   const tick=Math.floor(P.t/5)*5;if(tick!==P.tick){P.tick=tick;updateStats(tick);}
-  drawProfile();
+  drawProfile();syncScrub();
   if(P.t>=r.N){updateStats(r.N);stopPlay();return;}
   requestAnimationFrame(frame);
 }
+const IC_PLAY='<svg viewBox="0 0 16 16" width="16" height="16"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>',IC_PAUSE='<svg viewBox="0 0 16 16" width="16" height="16"><rect x="3.5" y="2.5" width="3.2" height="11" rx="1" fill="currentColor"/><rect x="9.3" y="2.5" width="3.2" height="11" rx="1" fill="currentColor"/></svg>';
+function syncScrub(){const r=RES[S.cur];if(!r)return;const sc=$('scrub');sc.max=r.N;sc.value=Math.round(P.t);$('scrubT').textContent=fmt(P.t)+' / '+fmt(r.N);}
+function setPlayMode(on){S.playMode=on;$('scrubRow').classList.toggle('hide',!on);if(!on){stopPlay();P.t=0;P.tick=-1;}syncForm();}
 function startPlay(){
   const r=RES[S.cur];if(dive().pts.length<2){renderSummary();return;}
+  if(!S.playMode)setPlayMode(true);
   if(P.t>=r.N){P.t=0;P.tick=-1;}
-  P.run=true;P.last=performance.now();$('playBtn').textContent='⏸';requestAnimationFrame(frame);
+  P.run=true;P.last=performance.now();$('playBtn').innerHTML=IC_PAUSE;$('playBtn').title='일시정지';requestAnimationFrame(frame);
 }
-function stopPlay(){P.run=false;$('playBtn').textContent='▶';}
+function stopPlay(){P.run=false;$('playBtn').innerHTML=IC_PLAY;$('playBtn').title='플레이';}
 $('playBtn').onclick=()=>P.run?(stopPlay(),drawProfile()):startPlay();
-$('rst').onclick=()=>{P.run=false;P.t=0;P.tick=-1;stopPlay();updateStats(0);drawProfile();};
+function seek(t){const r=RES[S.cur];P.t=clamp(t,0,r.N);P.tick=Math.floor(P.t/5)*5;updateStats(P.tick);syncScrub();drawProfile();}
+$('scrub').addEventListener('input',e=>{if(P.run)stopPlay();seek(+e.target.value);});
+stopPlay();
 document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{P.sp=+b.dataset.sp;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x===b));});
 
 // ===== 휴식시간 휠 피커 =====
@@ -573,7 +589,7 @@ function syncForm(){
   $('cons').value=S.cons;$('gfWrap').classList.toggle('hide',S.cons!=='custom');$('gfLo').value=S.gfLo;$('gfHi').value=S.gfHi;
   $('asc').value=S.asc;
   $('setWrap').classList.toggle('open',S.setOpen);$('setHead').classList.toggle('open',S.setOpen);
-  $('mFree').classList.toggle('on',S.mode==='free');$('mPt').classList.toggle('on',S.mode==='pt');$('mDel').classList.toggle('on',S.mode==='del');
+  const pm=!!S.playMode;$('mFree').classList.toggle('on',!pm&&S.mode==='free');$('mPt').classList.toggle('on',!pm&&S.mode==='pt');$('mDel').classList.toggle('on',!pm&&S.mode==='del');
   $('undo').disabled=!dive().undo.length;
 }
 const upd=()=>{syncForm();recompute();};
@@ -587,11 +603,11 @@ $('cons').onchange=e=>{S.cons=e.target.value;upd();};
 $('gfLo').onchange=e=>{S.gfLo=clamp(+e.target.value||40,10,100);upd();};
 $('gfHi').onchange=e=>{S.gfHi=clamp(+e.target.value||85,10,100);upd();};
 $('asc').onchange=e=>{S.asc=clamp(+e.target.value||9,3,18);upd();};
-$('mFree').onclick=()=>{S.mode='free';syncForm();drawProfile();};
-$('mPt').onclick=()=>{S.mode='pt';syncForm();drawProfile();};
-$('mDel').onclick=()=>{S.mode='del';syncForm();drawProfile();};
-$('undo').onclick=()=>{const dv=dive();if(!dv.undo.length)return;dv.pts=JSON.parse(dv.undo.pop());recompute();};
-$('clear').onclick=()=>{const dv=dive();if(dv.pts.length<2)return;pushUndo();dv.pts=[{t:0,d:0}];recompute();};
+$('mFree').onclick=()=>{S.mode='free';setPlayMode(false);updateStats(0);drawProfile();};
+$('mPt').onclick=()=>{S.mode='pt';setPlayMode(false);updateStats(0);drawProfile();};
+$('mDel').onclick=()=>{S.mode='del';setPlayMode(false);updateStats(0);drawProfile();};
+$('undo').onclick=()=>{if(S.playMode)setPlayMode(false);const dv=dive();if(!dv.undo.length)return;dv.pts=JSON.parse(dv.undo.pop());recompute();};
+$('clear').onclick=()=>{if(S.playMode)setPlayMode(false);const dv=dive();if(dv.pts.length<2)return;pushUndo();dv.pts=[{t:0,d:0}];recompute();};
 window.addEventListener('resize',()=>{layout();drawProfile();updateStats(P.tick<0?0:P.tick);});
 
 layout();syncForm();recompute();
