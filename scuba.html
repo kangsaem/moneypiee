@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>뷜만 ZHL-16C 감압 플래너</title>
+<style>
+:root{--bg:#f6f6f4;--card:#fff;--ink:#1f2328;--mute:#6b7280;--line:#e5e7eb;--up:#e5484d;--down:#2f6fe4;--plan:#0f9d7a;--ceil:#f59e0b;--mod:#8b5cf6;--acc:#1f2328}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.wrap{max-width:1000px;margin:0 auto;padding:14px}
+h1{font-size:18px;margin:4px 0 12px;font-weight:700}
+h1 small{font-size:12px;color:var(--mute);font-weight:400;margin-left:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+label{color:var(--mute);font-size:12px;display:inline-flex;align-items:center;gap:6px}
+select,input[type=number]{font:inherit;font-size:13px;padding:5px 6px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:var(--ink)}
+input[type=number]{width:62px}
+button{font:inherit;font-size:13px;padding:6px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:var(--ink)}
+button:disabled{opacity:.4;cursor:default}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.seg{display:inline-flex}
+.seg button{border-radius:0}
+.seg button:first-child{border-radius:6px 0 0 6px}
+.seg button:last-child{border-radius:0 6px 6px 0}
+.seg button+button{margin-left:-1px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tabs button.add{border-style:dashed;color:var(--mute)}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+.legend i.box{height:10px;border:1px solid var(--ceil);background:rgba(245,158,11,.22)}
+.summary{font-size:13px;margin-top:8px;line-height:1.6}
+.warn{color:var(--up)}
+.play{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:12px 0 4px}
+.play .big{padding:8px 22px;font-size:15px;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.tile{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.tile .k{font-size:11px;color:var(--mute)}
+.tile .v{font-size:18px;font-weight:600;margin-top:2px;font-variant-numeric:tabular-nums}
+.hint{font-size:12px;color:var(--mute)}
+.foot{font-size:11px;color:var(--mute);line-height:1.6;margin:6px 2px 30px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>뷜만 감압 플래너 <small>ZHL-16C · 그래디언트 팩터 · 질소</small></h1>
+
+<div class="card">
+  <div class="row">
+    <label>해발 고도
+      <select id="altSel">
+        <option value="0">0 m (해수면)</option><option value="300">300 m</option><option value="600">600 m</option>
+        <option value="900">900 m</option><option value="1500">1500 m</option><option value="2400">2400 m</option><option value="c">직접 입력</option>
+      </select>
+      <input type="number" id="altIn" class="hide" min="0" max="4500" step="50" value="0">
+    </label>
+    <label>수질
+      <select id="water"><option value="salt">해수</option><option value="fresh">담수</option></select>
+    </label>
+    <span class="hint" id="envInfo"></span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="tabs" id="tabs"></div>
+  <div class="row">
+    <label id="siWrap">수면휴식
+      <input type="number" id="si" min="1" max="1440" step="5"> 분
+    </label>
+    <label>기체
+      <select id="gas">
+        <option value="21">공기 (21%)</option><option value="28">EAN28</option><option value="30">EAN30</option>
+        <option value="32">EAN32</option><option value="36">EAN36</option><option value="40">EAN40</option><option value="c">직접 입력</option>
+      </select>
+      <input type="number" id="o2" class="hide" min="21" max="40" step="1">
+    </label>
+    <label>보수도
+      <select id="cons">
+        <option value="cons">보수 (GF 35/75)</option><option value="med">보통 (GF 40/85)</option>
+        <option value="agg">공격 (GF 45/95)</option><option value="custom">커스텀</option>
+      </select>
+      <span id="gfWrap" class="hide">Low <input type="number" id="gfLo" min="10" max="100"> High <input type="number" id="gfHi" min="10" max="100"></span>
+    </label>
+    <label>플랜 상승속도 <input type="number" id="asc" min="3" max="18" step="1"> m/분</label>
+    <button id="delDive">이 다이빙 삭제</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="row" style="justify-content:space-between">
+    <div class="row" style="gap:8px">
+      <span class="seg"><button id="mFree">연속 그리기</button><button id="mPt">점 찍기</button></span>
+      <button id="undo">실행취소</button>
+      <button id="clear">지우기</button>
+    </div>
+    <span class="hint" id="modeHint"></span>
+  </div>
+  <div style="margin-top:10px"><canvas id="prof"></canvas></div>
+  <div class="legend">
+    <span><i style="border-color:var(--ink)"></i>내 프로파일</span>
+    <span><i style="border-color:var(--plan);border-top-style:dashed"></i>추천 감압 플랜</span>
+    <span><i class="box"></i>천장(ceiling)</span>
+    <span><i style="border-color:var(--up);border-top-width:4px"></i>상승 10 m/분 초과</span>
+    <span id="lgMod"><i style="border-color:var(--mod);border-top-style:dashed"></i>MOD (PO₂ 1.4)</span>
+  </div>
+  <div class="summary" id="summary"></div>
+
+  <div class="play">
+    <button class="big" id="playBtn">▶ 플레이</button>
+    <button id="rst">⟲ 처음</button>
+    <span class="seg"><button data-sp="0.5">0.5×</button><button data-sp="1" class="on">1×</button><button data-sp="2">2×</button></span>
+    <span class="hint">1× = 80분을 약 20초에 재생 · 통계는 다이빙 시간 5초마다 갱신</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="tiles">
+    <div class="tile"><div class="k">경과 시간</div><div class="v" id="sT">0:00</div></div>
+    <div class="tile"><div class="k">수심</div><div class="v" id="sD">0.0 m</div></div>
+    <div class="tile"><div class="k" id="sNk">NDL</div><div class="v" id="sN">-</div></div>
+    <div class="tile"><div class="k">TTS (출수까지)</div><div class="v" id="sTTS">-</div></div>
+    <div class="tile"><div class="k">수면 GF</div><div class="v" id="sGF">-</div></div>
+    <div class="tile"><div class="k">PO₂</div><div class="v" id="sPO2">-</div></div>
+  </div>
+  <div style="margin-top:12px"><canvas id="bars"></canvas></div>
+  <div class="legend">
+    <span><i style="border-color:var(--up);border-top-width:8px"></i>질소 흡수 중</span>
+    <span><i style="border-color:var(--down);border-top-width:8px"></i>질소 배출 중</span>
+    <span>막대 = 조직 질소분압 ÷ 수면 허용한계(GF High) · 100% 넘으면 바로 출수 불가</span>
+  </div>
+</div>
+
+<div class="foot">
+  교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.<br>
+  계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m.
+  무감압이면 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 헬륨·산소 독성(CNS/OTU)은 계산하지 않습니다.
+  실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.
+</div>
+</div>
+
+<script>
+// ===== ZHL-16C (N2) =====
+const HT=[5,8,12.5,18.5,27,38.3,54.3,77,109,146,187,239,305,390,498,635];
+const AA=[1.1696,1.0,0.8618,0.7562,0.62,0.5043,0.441,0.4,0.375,0.35,0.3295,0.3065,0.2835,0.261,0.248,0.2327];
+const BB=[0.5578,0.6514,0.7222,0.7825,0.8126,0.8434,0.8693,0.891,0.9092,0.9222,0.9319,0.9403,0.9477,0.9544,0.9602,0.9653];
+const NT=16, KK=HT.map(h=>Math.LN2/(h*60)), E1=KK.map(k=>1-Math.exp(-k));
+const PH2O=0.0627, TMAX=4800, DMAX=50, FN2_AIR=0.7902;
+let ENV={psurf:1.01325,bpm:0.10052};
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const pamb=d=>ENV.psurf+d*ENV.bpm;
+const pin=(d,f)=>Math.max(0,pamb(d)-PH2O)*f;
+function step(T,d,f,dt){const p=pin(d,f);for(let i=0;i<NT;i++){const e=dt===1?E1[i]:1-Math.exp(-KK[i]*dt);T[i]+=(p-T[i])*e;}}
+const mv=(i,p)=>p/BB[i]+AA[i];
+const allow=(i,p,gf)=>p+gf*(mv(i,p)-p);
+function okAt(T,d,gf){const p=pamb(d);for(let i=0;i<NT;i++)if(T[i]>allow(i,p,gf)+1e-9)return false;return true;}
+function rawCeil(T,gf){let m=0;for(let i=0;i<NT;i++){const p=(T[i]-AA[i]*gf)/(1-gf+gf/BB[i]);if(p>m)m=p;}return Math.max(0,(m-ENV.psurf)/ENV.bpm);}
+function gfAt(d,anc,lo,hi){if(anc<=0)return hi;if(d>=anc)return lo;return hi+(lo-hi)*d/anc;}
+function ceilAt(T,anc,lo,hi){
+  if(okAt(T,0,gfAt(0,anc,lo,hi)))return 0;
+  let d=Math.floor(rawCeil(T,hi)*10)/10;
+  while(d<90&&!okAt(T,d,gfAt(d,anc,lo,hi)))d+=0.1;
+  return d;
+}
+function satTissues(){const p=Math.max(0,ENV.psurf-PH2O)*FN2_AIR;return new Array(NT).fill(p);}
+
+// 감압 플랜: 현재 상태에서 출수까지
+function makePlan(T0,d0,anc0,c){
+  const T=T0.slice();let t=0,d=d0;const pts=[{t:0,d:d0}],stops=[];const r=c.asc/60;
+  const push=()=>{const n=pts.length;if(n>=2&&Math.abs(pts[n-1].d-d)<1e-6&&Math.abs(pts[n-2].d-d)<1e-6)pts[n-1].t=t;else pts.push({t,d});};
+  const travel=to=>{let g=0;while(Math.abs(d-to)>1e-6&&g++<30000){const s=to<d?-Math.min(r,d-to):Math.min(0.3,to-d);step(T,d+s/2,c.fN2,1);d+=s;t++;}d=to;push();};
+  const wait=(sec,safety)=>{step(T,d,c.fN2,sec);t+=sec;push();const k=Math.round(d*10)/10;const s=stops.find(x=>x.d===k&&!!x.safety===!!safety);s?s.s+=sec:stops.push({d:k,s:sec,safety});};
+  const first=Math.ceil(rawCeil(T,c.lo)/3-1e-9)*3;const anc=Math.max(anc0,first);
+  if(d0<=0.05)return {pts,stops,t:0,deco:false};
+  if(anc<=0&&okAt(T,0,c.hi)){
+    if(d>5){travel(5);wait(180,true);}
+    travel(0);return {pts,stops,t,deco:false};
+  }
+  while(d>1e-6&&t<6*3600){
+    const next=Math.max(0,Math.ceil(d/3-1e-6)*3-3);
+    if(okAt(T,next,gfAt(next,anc,c.lo,c.hi)))travel(next);else wait(60,false);
+  }
+  return {pts,stops,t,deco:true};
+}
+
+function sampleDepth(pts,n){
+  const out=new Array(n+1);let j=0;
+  for(let s=0;s<=n;s++){
+    while(j<pts.length-2&&pts[j+1].t<s)j++;
+    const p=pts[j],q=pts[j+1]||p;
+    const u=q.t>p.t?clamp((s-p.t)/(q.t-p.t),0,1):1;
+    out[s]=p.d+(q.d-p.d)*u;
+  }
+  return out;
+}
+
+function cfgOf(dv){
+  const pr={cons:[35,75],med:[40,85],agg:[45,95]};
+  let lo,hi;if(dv.cons==='custom'){lo=+dv.gfLo||40;hi=+dv.gfHi||85;}else[lo,hi]=pr[dv.cons];
+  lo=clamp(lo,10,100)/100;hi=clamp(hi,10,100)/100;if(lo>hi)lo=hi;
+  const o2=clamp(+dv.o2||21,21,40);
+  return {lo,hi,fO2:o2/100,fN2:1-o2/100,asc:clamp(+dv.asc||9,3,18)};
+}
+
+function simulate(dv,T0){
+  const c=cfgOf(dv),up=dv.pts,uEnd=Math.round(up[up.length-1].t);
+  const depth=sampleDepth(up,uEnd),snaps=[],anc=[];
+  const T=T0.slice();let a=0,s=0;
+  const adv=()=>{for(;s<depth.length;s++){if(s>0)step(T,(depth[s-1]+depth[s])/2,c.fN2,1);snaps[s]=Float32Array.from(T);a=Math.max(a,rawCeil(T,c.lo));anc[s]=a;}};
+  adv();
+  let plan=null;
+  if(uEnd>0&&depth[uEnd]>0.05){
+    plan=makePlan(Array.from(snaps[uEnd]),depth[uEnd],a,c);
+    const pd=sampleDepth(plan.pts,plan.t);
+    for(let k=1;k<pd.length;k++)depth.push(pd[k]);
+    adv();
+  }
+  const N=depth.length-1,ceil5=[],fast=[],viol=[];
+  let maxD=0;for(let k=0;k<=uEnd;k++)maxD=Math.max(maxD,depth[k]);
+  for(let k=0;k*5<=N;k++){
+    const t=k*5;ceil5[k]=ceilAt(snaps[t],anc[t],c.lo,c.hi);
+    if(t<=uEnd){
+      const s0=Math.max(0,t-15),s1=Math.min(uEnd,t+15);
+      const rate=s1>s0?(depth[s0]-depth[s1])/((s1-s0)/60):0;
+      fast[k]=rate>10.5;viol[k]=ceil5[k]>depth[t]+0.3;
+    }
+  }
+  return {c,depth,snaps,anc,N,uEnd,plan,ceil5,fast,viol,maxD,endT:snaps[N]};
+}
+
+// ===== 상태 =====
+const newDive=()=>({pts:[{t:0,d:0}],o2:21,gasSel:'21',cons:'med',gfLo:40,gfHi:85,asc:9,si:60,undo:[]});
+const S={alt:0,water:'salt',dives:[newDive()],cur:0,mode:'free'};
+let RES=[];
+const P={t:0,run:false,sp:1,last:0,tick:-1};
+const $=id=>document.getElementById(id);
+const dive=()=>S.dives[S.cur];
+
+function recompute(){
+  ENV.psurf=1.01325*Math.pow(1-2.25577e-5*S.alt,5.25588);
+  ENV.bpm=S.water==='salt'?0.10052:0.0980665;
+  $('envInfo').textContent=`수면 기압 ${ENV.psurf.toFixed(3)} bar · 10 m당 ${(ENV.bpm*10).toFixed(3)} bar`;
+  RES=[];let T=satTissues();
+  for(let i=0;i<S.dives.length;i++){
+    if(i>0){T=Array.from(RES[i-1].endT);step(T,0,FN2_AIR,clamp(+S.dives[i].si||0,0,1440)*60);}
+    RES[i]=simulate(S.dives[i],T);
+  }
+  stopPlay();P.t=0;P.tick=-1;
+  drawProfile();updateStats(0);renderSummary();
+}
+
+// ===== 프로파일 그래프 =====
+const cv=$('prof'),cx=cv.getContext('2d');
+let G={},hover=null,drawing=false,drag=-1;
+function layout(){
+  const w=cv.parentElement.clientWidth,h=Math.round(clamp(w*0.5,260,400)),dpr=window.devicePixelRatio||1;
+  cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';cx.setTransform(dpr,0,0,dpr,0,0);
+  G={w,h,L:40,R:10,T:10,B:26};G.W=w-G.L-G.R;G.H=h-G.T-G.B;
+  const bw=$('bars').parentElement.clientWidth,bh=16*20+30,bc=$('bars');
+  bc.width=bw*dpr;bc.height=bh*dpr;bc.style.height=bh+'px';bc.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+}
+const X=t=>G.L+t/TMAX*G.W, Y=d=>G.T+d/DMAX*G.H;
+const toT=x=>(x-G.L)/G.W*TMAX, toD=y=>(y-G.T)/G.H*DMAX;
+const fmt=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+
+function drawProfile(){
+  const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);
+  cx.font='11px sans-serif';cx.fillStyle='#6b7280';
+  // 수심 그리드
+  for(let d=0;d<=DMAX;d+=5){
+    cx.strokeStyle=d===0?'#9ca3af':'#d1d5db';cx.setLineDash(d===0?[]:[3,4]);cx.lineWidth=1;
+    cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
+    cx.textAlign='right';cx.textBaseline='middle';cx.fillText(d+'m',G.L-6,Y(d));
+  }
+  cx.setLineDash([]);
+  for(let m=0;m<=80;m+=5){
+    const x=X(m*60);cx.strokeStyle=m%10?'#f1f2f4':'#e5e7eb';
+    cx.beginPath();cx.moveTo(x+.5,G.T);cx.lineTo(x+.5,G.T+G.H);cx.stroke();
+    if(m%10===0){cx.textAlign='center';cx.textBaseline='top';cx.fillText(m+'분',x,G.T+G.H+6);}
+  }
+  cx.save();cx.beginPath();cx.rect(G.L,G.T-2,G.W,G.H+4);cx.clip();
+  if(r){
+    // 천장
+    if(r.ceil5.some(v=>v>0)){
+      cx.beginPath();cx.moveTo(X(0),Y(0));
+      r.ceil5.forEach((v,k)=>cx.lineTo(X(k*5),Y(v)));
+      cx.lineTo(X((r.ceil5.length-1)*5),Y(0));cx.closePath();
+      cx.fillStyle='rgba(245,158,11,.22)';cx.fill();
+      cx.strokeStyle='#f59e0b';cx.lineWidth=1;cx.beginPath();
+      r.ceil5.forEach((v,k)=>k?cx.lineTo(X(k*5),Y(v)):cx.moveTo(X(0),Y(v)));cx.stroke();
+    }
+    // MOD
+    const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;
+    $('lgMod').style.display=mod<DMAX?'':'none';
+    if(mod<DMAX){cx.strokeStyle='#8b5cf6';cx.setLineDash([6,4]);cx.lineWidth=1.2;cx.beginPath();cx.moveTo(G.L,Y(mod));cx.lineTo(G.L+G.W,Y(mod));cx.stroke();cx.setLineDash([]);
+      cx.fillStyle='#8b5cf6';cx.textAlign='right';cx.textBaseline='bottom';cx.fillText('MOD '+mod.toFixed(1)+'m',G.L+G.W-4,Y(mod)-2);}
+    // 플랜
+    if(r.plan&&!drawing){
+      cx.strokeStyle='#0f9d7a';cx.lineWidth=2.2;cx.setLineDash([6,4]);cx.beginPath();
+      r.plan.pts.forEach((p,i)=>{const x=X(r.uEnd+p.t),y=Y(p.d);i?cx.lineTo(x,y):cx.moveTo(x,y);});cx.stroke();cx.setLineDash([]);
+    }
+    // 상승속도 초과
+    if(!drawing){
+      cx.strokeStyle='#e5484d';cx.lineWidth=5;cx.lineCap='round';
+      r.fast.forEach((f,k)=>{if(!f)return;const t0=k*5,t1=Math.min(r.uEnd,t0+5);cx.beginPath();cx.moveTo(X(t0),Y(r.depth[t0]));cx.lineTo(X(t1),Y(r.depth[t1]));cx.stroke();});
+      cx.lineCap='butt';
+    }
+  }
+  // 내 프로파일
+  const pts=dv.pts;
+  cx.strokeStyle='#1f2328';cx.lineWidth=2.4;cx.lineJoin='round';cx.beginPath();
+  pts.forEach((p,i)=>i?cx.lineTo(X(p.t),Y(p.d)):cx.moveTo(X(p.t),Y(p.d)));cx.stroke();
+  if(S.mode==='pt'&&pts.length<300){
+    pts.forEach((p,i)=>{cx.beginPath();cx.arc(X(p.t),Y(p.d),i===drag?6:4,0,7);cx.fillStyle=i?'#fff':'#1f2328';cx.fill();cx.strokeStyle='#1f2328';cx.lineWidth=1.6;cx.stroke();});
+  }
+  // 재생 커서
+  if(r&&(P.run||P.t>0)){
+    const t=Math.min(P.t,r.N),d=r.depth[Math.round(t)];
+    cx.strokeStyle='rgba(31,35,40,.45)';cx.lineWidth=1;cx.beginPath();cx.moveTo(X(t)+.5,G.T);cx.lineTo(X(t)+.5,G.T+G.H);cx.stroke();
+    cx.beginPath();cx.arc(X(t),Y(d),5,0,7);cx.fillStyle='#1f2328';cx.fill();
+  }
+  cx.restore();
+  // 호버
+  if(hover&&!P.run){
+    const t=clamp(toT(hover.x),0,TMAX),d=clamp(toD(hover.y),0,DMAX);
+    if(hover.x>=G.L&&hover.x<=G.L+G.W){
+      cx.strokeStyle='rgba(107,114,128,.5)';cx.setLineDash([2,3]);cx.lineWidth=1;cx.beginPath();
+      cx.moveTo(hover.x,G.T);cx.lineTo(hover.x,G.T+G.H);cx.moveTo(G.L,hover.y);cx.lineTo(G.L+G.W,hover.y);cx.stroke();cx.setLineDash([]);
+      const txt=fmt(t)+' · '+d.toFixed(1)+'m';cx.font='12px sans-serif';const tw=cx.measureText(txt).width+10;
+      let bx=hover.x+10,by=hover.y-26;if(bx+tw>G.w)bx=hover.x-tw-10;if(by<0)by=hover.y+10;
+      cx.fillStyle='rgba(31,35,40,.85)';cx.fillRect(bx,by,tw,20);cx.fillStyle='#fff';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(txt,bx+5,by+10);
+    }
+  }
+}
+
+// ===== 입력 =====
+function pushUndo(){const dv=dive();dv.undo.push(JSON.stringify(dv.pts));if(dv.undo.length>60)dv.undo.shift();}
+function pos(e){const b=cv.getBoundingClientRect();return {x:e.clientX-b.left,y:e.clientY-b.top};}
+function addFree(t,d){
+  const pts=dive().pts;t=clamp(t,0,TMAX);d=clamp(d,0,DMAX);if(d<0.3)d=0;if(t<=0)return;
+  while(pts.length>1&&pts[pts.length-1].t>=t)pts.pop();
+  pts.push({t,d});
+}
+function snapPt(t,d){t=Math.round(clamp(t,0,TMAX)/10)*10;d=Math.round(clamp(d,0,DMAX)*2)/2;if(d<0.8)d=0;return {t,d};}
+function hit(p){const pts=dive().pts;let best=-1,bd=14;for(let i=1;i<pts.length;i++){const dx=X(pts[i].t)-p.x,dy=Y(pts[i].d)-p.y,dd=Math.hypot(dx,dy);if(dd<bd){bd=dd;best=i;}}return best;}
+function rdp(pts,eps){
+  if(pts.length<3)return pts;
+  const px=p=>({x:X(p.t),y:Y(p.d)});const keep=new Array(pts.length).fill(false);keep[0]=keep[pts.length-1]=true;
+  const st=[[0,pts.length-1]];
+  while(st.length){const [a,b]=st.pop();const A=px(pts[a]),B=px(pts[b]);let mi=-1,md=eps;
+    for(let i=a+1;i<b;i++){const C=px(pts[i]);const L=Math.hypot(B.x-A.x,B.y-A.y)||1;const dist=Math.abs((B.x-A.x)*(A.y-C.y)-(A.x-C.x)*(B.y-A.y))/L;if(dist>md){md=dist;mi=i;}}
+    if(mi>0){keep[mi]=true;st.push([a,mi],[mi,b]);}}
+  return pts.filter((_,i)=>keep[i]);
+}
+let raf=0;const liveRecompute=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;recompute();});};
+
+cv.addEventListener('pointerdown',e=>{
+  if(P.run)stopPlay();
+  const p=pos(e);cv.setPointerCapture(e.pointerId);
+  const t=toT(p.x),d=toD(p.y);
+  if(S.mode==='free'){pushUndo();drawing=true;addFree(t,d);drawProfile();}
+  else{
+    const h=hit(p);pushUndo();
+    if(h>0){drag=h;}
+    else{const q=snapPt(t,d);if(q.t<=0){dive().undo.pop();return;}const pts=dive().pts;
+      if(pts.some(x=>x.t===q.t)){dive().undo.pop();return;}
+      let i=pts.findIndex(x=>x.t>q.t);if(i<0)i=pts.length;pts.splice(i,0,q);drag=i;}
+    recompute();
+  }
+});
+cv.addEventListener('pointermove',e=>{
+  const p=pos(e);hover=p;
+  if(drawing){addFree(toT(p.x),toD(p.y));drawProfile();return;}
+  if(drag>0){const pts=dive().pts,q=snapPt(toT(p.x),toD(p.y));
+    const lo=pts[drag-1].t+10,hi=drag<pts.length-1?pts[drag+1].t-10:TMAX;
+    pts[drag]={t:clamp(q.t,lo,hi),d:q.d};liveRecompute();return;}
+  if(!P.run)drawProfile();
+});
+const endPtr=()=>{
+  if(drawing){drawing=false;const dv=dive();dv.pts=rdp(dv.pts,1.2);recompute();}
+  if(drag>0){drag=-1;recompute();}
+};
+cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('pointerleave',()=>{hover=null;if(!drawing&&drag<0&&!P.run)drawProfile();});
+cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));if(h>0){pushUndo();dive().pts.splice(h,1);recompute();}});
+
+// ===== 요약 =====
+function renderSummary(){
+  const r=RES[S.cur],dv=dive();const el=$('summary');
+  if(dv.pts.length<2){el.innerHTML='<span class="hint">그래프 위에 수심 이동을 그려 주세요. 출수(0m)까지 그리지 않으면 끝난 지점부터 추천 감압 플랜이 자동으로 그려집니다.</span>';return;}
+  const parts=[];
+  parts.push(`최대 수심 <b>${r.maxD.toFixed(1)} m</b>`);
+  parts.push(`내가 그린 시간 <b>${fmt(r.uEnd)}</b>`);
+  parts.push(`총 다이빙 시간 <b>${fmt(r.N)}</b>`);
+  let line2='';
+  if(r.plan){
+    const st=r.plan.stops.filter(s=>!s.safety).sort((a,b)=>b.d-a.d).map(s=>`${s.d}m ${Math.round(s.s/60)}분`);
+    const sf=r.plan.stops.find(s=>s.safety);
+    line2=r.plan.deco?`추천 플랜: <b style="color:#0f9d7a">감압 필요</b> — ${st.join(' → ')} (출수까지 ${fmt(r.plan.t)})`
+      :`추천 플랜: 무감압 — ${sf?'5m 안전정지 3분 → ':''}출수 (출수까지 ${fmt(r.plan.t)})`;
+  }else if(r.depth[r.uEnd]<=0.05&&r.uEnd>0){line2='출수까지 직접 그렸습니다.';}
+  const w=[];
+  const vc=r.viol.filter(Boolean).length,fc=r.fast.filter(Boolean).length;
+  if(vc)w.push(`천장 위반 약 ${Math.round(vc*5/60*10)/10}분`);
+  if(fc)w.push(`상승속도 10 m/분 초과 구간 있음`);
+  const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;if(r.maxD>mod+0.1)w.push(`MOD(${mod.toFixed(1)}m) 초과`);
+  if(r.N>TMAX)w.push(`총 시간이 80분을 넘어 그래프 밖 구간이 있음`);
+  el.innerHTML=parts.join(' · ')+(line2?'<br>'+line2:'')+(w.length?'<br><span class="warn">⚠ '+w.join(' · ')+'</span>':'');
+}
+
+// ===== 통계 =====
+function updateStats(s){
+  const r=RES[S.cur];s=Math.min(s,r.N);
+  const T=Array.from(r.snaps[s]),d=r.depth[s],c=r.c,anc=r.anc[s];
+  $('sT').textContent=fmt(s);$('sD').textContent=d.toFixed(1)+' m';
+  const decoNow=!(anc<=0&&okAt(T,0,c.hi));
+  if(!decoNow){
+    let ndl=Infinity;const pi=pin(d,c.fN2);
+    for(let i=0;i<NT;i++){const lim=allow(i,ENV.psurf,c.hi);if(pi<=lim)continue;const v=T[i]>=lim?0:-Math.log((lim-pi)/(T[i]-pi))/KK[i];ndl=Math.min(ndl,v);}
+    $('sNk').textContent='NDL';$('sN').textContent=ndl===Infinity||ndl>99*60?'99+분':Math.floor(ndl/60)+'분';$('sN').style.color='';
+  }else{
+    const ce=ceilAt(T,anc,c.lo,c.hi);$('sNk').textContent='천장';
+    $('sN').textContent=ce>0?ce.toFixed(1)+' m':'0 m';$('sN').style.color=ce>d+0.3?'#e5484d':'#b45309';
+  }
+  if(d>0.05){const pl=makePlan(T,d,anc,c);$('sTTS').textContent=Math.ceil(pl.t/60)+'분';}else $('sTTS').textContent='-';
+  let sg=0;for(let i=0;i<NT;i++){const p=ENV.psurf;sg=Math.max(sg,(T[i]-p)/(mv(i,p)-p)*100);}
+  $('sGF').textContent=Math.max(0,Math.round(sg))+'%';$('sGF').style.color=sg>c.hi*100?'#e5484d':'';
+  const po2=c.fO2*pamb(d);$('sPO2').textContent=po2.toFixed(2);$('sPO2').style.color=po2>1.4?'#e5484d':'';
+  drawBars(T,d,c);
+}
+function drawBars(T,d,c){
+  const bc=$('bars'),g=bc.getContext('2d'),w=bc.width/(window.devicePixelRatio||1),h=bc.height/(window.devicePixelRatio||1);
+  g.clearRect(0,0,w,h);const L=78,R=92,top=4,rh=20,W=w-L-R,MAXP=200;const px=v=>L+clamp(v,0,MAXP)/MAXP*W;
+  g.font='11px sans-serif';
+  for(let v=0;v<=MAXP;v+=50){g.strokeStyle=v===100?'#1f2328':'#eceef1';g.lineWidth=v===100?1.2:1;g.setLineDash(v===100?[4,3]:[]);
+    g.beginPath();g.moveTo(px(v)+.5,top);g.lineTo(px(v)+.5,top+16*rh);g.stroke();g.setLineDash([]);
+    g.fillStyle=v===100?'#1f2328':'#9ca3af';g.textAlign='center';g.textBaseline='top';g.fillText(v===100?'100% 수면 한계':v+'%',px(v),top+16*rh+6);}
+  const pi=pin(d,c.fN2);
+  for(let i=0;i<NT;i++){
+    const y=top+i*rh,v=T[i]/allow(i,ENV.psurf,c.hi)*100;
+    const col=pi>T[i]+0.003?'#e5484d':pi<T[i]-0.003?'#2f6fe4':'#9ca3af';
+    g.fillStyle='#6b7280';g.textAlign='right';g.textBaseline='middle';
+    g.fillText(`${i+1}  ${HT[i]}분`,L-8,y+rh/2);
+    g.fillStyle=col;g.globalAlpha=.85;g.fillRect(L,y+4,px(v)-L,rh-8);g.globalAlpha=1;
+    if(v>MAXP){g.fillStyle=col;g.beginPath();g.moveTo(px(MAXP),y+3);g.lineTo(px(MAXP)+6,y+rh/2);g.lineTo(px(MAXP),y+rh-3);g.fill();}
+    g.fillStyle='#1f2328';g.textAlign='left';g.fillText(`${Math.round(v)}% · ${T[i].toFixed(2)}bar`,w-R+8,y+rh/2);
+  }
+}
+
+// ===== 재생 =====
+function frame(ts){
+  if(!P.run)return;const r=RES[S.cur];
+  const dt=Math.min(0.1,(ts-P.last)/1000);P.last=ts;P.t+=dt*240*P.sp;
+  if(P.t>=r.N){P.t=r.N;}
+  const tick=Math.floor(P.t/5)*5;if(tick!==P.tick){P.tick=tick;updateStats(tick);}
+  drawProfile();
+  if(P.t>=r.N){updateStats(r.N);stopPlay();return;}
+  requestAnimationFrame(frame);
+}
+function startPlay(){
+  const r=RES[S.cur];if(dive().pts.length<2){renderSummary();return;}
+  if(P.t>=r.N){P.t=0;P.tick=-1;}
+  P.run=true;P.last=performance.now();$('playBtn').textContent='⏸ 일시정지';requestAnimationFrame(frame);
+}
+function stopPlay(){P.run=false;$('playBtn').textContent=P.t>0&&RES[S.cur]&&P.t<RES[S.cur].N?'▶ 계속':'▶ 플레이';}
+$('playBtn').onclick=()=>P.run?(stopPlay(),drawProfile()):startPlay();
+$('rst').onclick=()=>{stopPlay();P.t=0;P.tick=-1;updateStats(0);drawProfile();stopPlay();};
+document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{P.sp=+b.dataset.sp;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x===b));});
+
+// ===== 설정 UI =====
+function renderTabs(){
+  const el=$('tabs');el.innerHTML='';
+  S.dives.forEach((_,i)=>{const b=document.createElement('button');b.textContent='다이빙 '+(i+1);if(i===S.cur)b.classList.add('on');b.onclick=()=>{S.cur=i;syncForm();recompute();};el.appendChild(b);});
+  const a=document.createElement('button');a.className='add';a.textContent='+ 반복 다이빙 추가';
+  a.onclick=()=>{const p=dive();const n=newDive();n.o2=p.o2;n.gasSel=p.gasSel;n.cons=p.cons;n.gfLo=p.gfLo;n.gfHi=p.gfHi;n.asc=p.asc;S.dives.push(n);S.cur=S.dives.length-1;syncForm();recompute();};
+  el.appendChild(a);
+}
+function syncForm(){
+  const dv=dive();renderTabs();
+  $('siWrap').classList.toggle('hide',S.cur===0);$('si').value=dv.si;
+  $('gas').value=dv.gasSel;$('o2').classList.toggle('hide',dv.gasSel!=='c');$('o2').value=dv.o2;
+  $('cons').value=dv.cons;$('gfWrap').classList.toggle('hide',dv.cons!=='custom');$('gfLo').value=dv.gfLo;$('gfHi').value=dv.gfHi;
+  $('asc').value=dv.asc;$('delDive').classList.toggle('hide',S.dives.length<2);
+  $('mFree').classList.toggle('on',S.mode==='free');$('mPt').classList.toggle('on',S.mode==='pt');
+  $('modeHint').textContent=S.mode==='free'?'누른 채로 그리기 · 뒤로 그리면 그 지점부터 다시 그림':'클릭해서 점 추가 · 점 끌어서 이동 · 점 더블클릭 삭제';
+  $('undo').disabled=!dv.undo.length;
+}
+$('altSel').onchange=e=>{const v=e.target.value;$('altIn').classList.toggle('hide',v!=='c');if(v!=='c')S.alt=+v;else S.alt=+$('altIn').value||0;recompute();};
+$('altIn').onchange=e=>{S.alt=clamp(+e.target.value||0,0,4500);e.target.value=S.alt;recompute();};
+$('water').onchange=e=>{S.water=e.target.value;recompute();};
+$('si').onchange=e=>{dive().si=clamp(+e.target.value||10,1,1440);e.target.value=dive().si;recompute();};
+$('gas').onchange=e=>{const v=e.target.value,dv=dive();dv.gasSel=v;if(v!=='c')dv.o2=+v;syncForm();recompute();};
+$('o2').onchange=e=>{dive().o2=clamp(+e.target.value||21,21,40);e.target.value=dive().o2;recompute();};
+$('cons').onchange=e=>{dive().cons=e.target.value;syncForm();recompute();};
+$('gfLo').onchange=e=>{dive().gfLo=clamp(+e.target.value||40,10,100);syncForm();recompute();};
+$('gfHi').onchange=e=>{dive().gfHi=clamp(+e.target.value||85,10,100);syncForm();recompute();};
+$('asc').onchange=e=>{dive().asc=clamp(+e.target.value||9,3,18);e.target.value=dive().asc;recompute();};
+$('delDive').onclick=()=>{if(S.dives.length<2)return;S.dives.splice(S.cur,1);S.cur=Math.max(0,S.cur-1);syncForm();recompute();};
+$('mFree').onclick=()=>{S.mode='free';syncForm();drawProfile();};
+$('mPt').onclick=()=>{S.mode='pt';syncForm();drawProfile();};
+$('undo').onclick=()=>{const dv=dive();if(!dv.undo.length)return;dv.pts=JSON.parse(dv.undo.pop());syncForm();recompute();};
+$('clear').onclick=()=>{const dv=dive();if(dv.pts.length<2)return;pushUndo();dv.pts=[{t:0,d:0}];syncForm();recompute();};
+const _rc=recompute;recompute=function(){_rc();$('undo').disabled=!dive().undo.length;};
+window.addEventListener('resize',()=>{layout();drawProfile();updateStats(P.tick<0?0:P.tick);});
+
+layout();syncForm();recompute();
+</script>
+</body>
+</html>
