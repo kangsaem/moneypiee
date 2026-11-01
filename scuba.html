@@ -372,12 +372,12 @@ function drawProfile(){
   cx.restore();
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
-        const lab=`최대 ${L0.maxD.toFixed(1)}m · 총 ${fmt(L0.N)}`;cx.font='600 12px sans-serif';
-        const tw=cx.measureText(lab).width+10,th=19;let bx=L0.xn-tw-4,by=L0.yd-th-4;
+        const l1=`최대 ${L0.maxD.toFixed(1)}m`,l2=`총 ${fmt(L0.N)}`;cx.font='600 12px sans-serif';
+        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width)+12,th=36;let bx=L0.xn-tw-4,by=L0.yd-th-4;
         if(bx<G.L+2)bx=G.L+2;if(by<G.T+2)by=L0.yd+4;
         cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle='#9ca3af';cx.lineWidth=1;
         cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();cx.stroke();
-        cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(lab,bx+5,by+th/2+.5);
+        cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+10.5);cx.fillText(l2,bx+6,by+26);
       }
   }
   if(hover&&!P.run){
