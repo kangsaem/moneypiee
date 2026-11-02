@@ -1074,41 +1074,59 @@ const GRAPH=()=>cv,BARS=()=>$('bars');
 // --- 경로 상태
 const A0=[[0,0]],A1=[[0,0],[180,18],[1500,18]],A2=[...A1,[1620,10],[1740,5],[1920,5],[1980,0]],
 A3=[[0,0],[180,18],[1320,18],[1440,10],[1560,5],[1740,5],[1800,0]],
+A4=[[0,0],[180,18],[1320,18],[1440,10],[1950,10],[2070,5],[2250,5],[2310,0]],
 B1=[[0,0],[180,30],[1680,30],[1800,0]],B2=[[0,0],[180,30],[1680,30]],
-B3=[[0,0],[180,30],[780,30],[960,12],[1080,5],[1260,5],[1320,0]];
+B3=[[0,0],[180,30],[780,30],[960,12],[1620,12],[1740,5],[1920,5],[1980,0]];
+async function dragGroup(fromT,dt,t){ // fromT 이후 점을 한꺼번에 오른쪽으로
+  const pts=dive().pts;const idx=pts.map((p,i)=>p.t>=fromT?i:-1).filter(i=>i>=0);if(!idx.length)return;const base=idx.map(i=>pts[i].t);
+  const p0=pts[idx[0]];let [x,y]=cpt(p0.t,p0.d);await moveTo(x,y,500,t);ripple(x,y);await sleep(250);pushUndo();
+  const n=50;for(let k=1;k<=n;k++){chk(t);const u=k/n;idx.forEach((i,j)=>{pts[i]={t:base[j]+dt*u,d:pts[i].d};});[x,y]=cpt(base[0]+dt*u,p0.d);setHand(x,y);if(k%5===0||k===n)recompute();else drawProfile();await sleep(24);}
+  idx.forEach((i,j)=>{pts[i]={t:base[j]+dt,d:pts[i].d};});recompute();await sleep(300);}
+let OVL=null;
+function hideOverlay(){if(OVL){OVL.remove();OVL=null;}}
+async function showRules(t){hideOverlay();const card=cv.closest('.card'),r=card.getBoundingClientRect();
+  OVL=document.createElement('div');Object.assign(OVL.style,{position:'fixed',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',background:'rgba(15,20,26,.86)',borderRadius:'10px',zIndex:57,display:'flex',flexDirection:'column',justifyContent:'center',gap:'10px',padding:'14px',boxSizing:'border-box'});
+  document.body.appendChild(OVL);
+  const items=['핑크색 천장이 안 나오게 (무감압)','나오면 절대 침범하지 않기','상승은 분당 9~10m 이하 · 5m 3분 안전정지','출수 때 공기 50bar 이상','싱글탱크 레저 다이빙은 무감압 한계 안에서'];
+  for(let i=0;i<items.length;i++){chk(t);const b=document.createElement('div');
+    Object.assign(b.style,{background:'#e5484d',color:'#fff',borderRadius:'10px',padding:'12px 14px',fontWeight:'800',fontSize:'clamp(15px,4.4vw,20px)',lineHeight:'1.35',wordBreak:'keep-all',opacity:0,transform:'translateX(-14px)',transition:'all .35s ease-out'});
+    b.innerHTML=`<span style="opacity:.75;margin-right:8px">${i+1}</span>${items[i]}`;OVL.appendChild(b);await sleep(40);b.style.opacity=1;b.style.transform='none';await sleep(900);}}
 const STEPS=[
 {p:'1부 · 무감압 다이빙',ti:'튜토리얼 시작',tx:'손가락을 따라 플래너 쓰는 법을 배워요. 1부는 <b>이상적인 무감압 다이빙</b> 그리기, 2부는 <b>천장을 침범한 위험한 다이빙</b>과 고치는 법이에요. 설정은 공기, 보수도 중간(GF 40/85), 12L·200bar 탱크, 호흡량 보통이에요.',
  set:()=>setState(A0,'free'),go:async t=>{await scrollTo(GRAPH(),t);showHand(true);const [x,y]=ctr(GRAPH());setHand(x,y);await point(GRAPH(),t,600);}},
-{p:'1부 · 무감압 다이빙',ti:'① 그리기 모드',tx:'<b>그리기</b>를 고르고 그래프 위를 누른 채로 끌면 수심 경로가 그려져요. 가로는 시간(분), 세로는 수심(m)이에요.',
+{p:'1부 · 무감압 다이빙',ti:'① 그리기 모드',tx:'<b>그리기</b>를 고르고 그래프 위를 누른 채로 끌면 수심 경로가 그려져요. 가로는 시간, 세로는 수심이에요.',
  set:()=>setState(A0,'none'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mFree'),t);}},
-{p:'1부 · 무감압 다이빙',ti:'② 내려가서 머물기',tx:'3분에 걸쳐 18m까지 내려가 25분까지 머물러 볼게요. 출수하기 전에 손을 떼면 <span style="color:#34d399">초록 점선(추천 경로)</span>이 자동으로 이어져요. 5m 안전정지 3분 후 출수하라는 뜻이에요.',
+{p:'1부 · 무감압 다이빙',ti:'② 내려가서 머물기',tx:'3분에 걸쳐 18m까지 내려가 25분까지 머물러 볼게요. 출수하기 전에 손을 떼면 <span style="color:#34d399">추천 경로</span>가 자동으로 이어져요. 5m 안전정지 3분 후 출수하라는 뜻이에요.',
  set:()=>setState(A0,'free'),go:async t=>{await scrollTo(GRAPH(),t);await drawPath([[0,0],[180,18],[1500,18]],t,2600);dive().pts=A1.map(([a,b])=>({t:a,d:b}));recompute();await sleep(500);}},
-{p:'1부 · 무감압 다이빙',ti:'③ 점찍기로 상승 만들기',tx:'<b>점찍기</b>로 바꾸고 점을 하나씩 찍어요. 10m → 5m는 <b>분당 9m 이하</b>로 천천히, <b>5m에서 3분 안전정지</b> 후 수면(0m)으로. 0m에 닿으면 다이빙이 끝나요.',
+{p:'1부 · 무감압 다이빙',ti:'③ 점찍기로 상승 만들기',tx:'<b>점찍기</b>로 바꾸고 점을 하나씩 찍어요. 10m → 5m는 <b>분당 9m 이하</b>로 천천히, <b>5m에서 3분 안전정지</b> 후 수면으로. 수면에 닿으면 다이빙이 끝나요.',
  set:()=>setState(A1,'free'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mPt'),t);for(const [a,b] of [[1620,10],[1740,5],[1920,5],[1980,0]])await tapPoint(a,b,t);}},
-{p:'1부 · 무감압 다이빙',ti:'④ 점을 끌어서 다듬기',tx:'점은 끌어서 옮길 수 있어요. 바닥을 떠나는 점을 25분 → <b>22분</b>으로 당겨 바닥 시간을 줄였어요. 바닥 시간이 짧을수록 NDL 여유가 커지고 공기도 덜 써요.',
+{p:'1부 · 무감압 다이빙',ti:'④ 점을 끌어서 다듬기',tx:'점은 끌어서 옮길 수 있어요. 바닥을 떠나는 점을 25분 → <b>22분</b>으로 당겨 바닥 시간을 줄였어요. 그리고 다이빙 시간을 늘였어요. 바닥 시간이 짧을수록 NDL이 커지고 공기도 덜 써요.',
  set:()=>setState(A2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1500,18],[1320,18],t);
    const pts=dive().pts;const sh=[[1620,1440],[1740,1560],[1920,1740],[1980,1800]];
-   for(const [f,to] of sh){const i=pts.findIndex(p=>p.t===f);if(i>0)pts[i].t=to;}recompute();await sleep(400);}},
-{p:'1부 · 무감압 다이빙',ti:'⑤ 잘못 찍은 점 지우기',tx:'실수로 엉뚱한 곳(10m)에 점을 찍으면 경로가 튀어요. <b>점지우기</b>를 고르고 그 점을 누르면 지워져요. (실행취소로 되돌릴 수도 있어요.)',
- set:()=>setState(A3,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapPoint(900,10,t);await sleep(500);await tapEl($('mDel'),t);await delPoint(900,10,t);await tapEl($('mDel'),t);}},
-{p:'1부 · 무감압 다이빙',ti:'⑥ 이상적인 무감압 다이빙',tx:'완성! <b>핑크색 천장이 없고</b>, 경고도 없어요. 라벨은 최대 수심·총 시간, 그래프 오른쪽 끝 막대는 <b>남은 공기</b>예요(주황선 = 50bar). 출수 때 50bar 이상 남기는 게 기본이에요.',
- set:()=>setState(A3,'none'),go:async t=>{await scrollTo(GRAPH(),t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(1150),r.top+Y(10),600,t);await sleep(800);await moveTo(r.left+G.L+G.W+15,r.top+G.T+G.H*0.6,700,t);await sleep(1200);}},
+   for(const [f,to] of sh){const i=pts.findIndex(p=>p.t===f);if(i>0)pts[i].t=to;}recompute();await sleep(400);
+   await dragGroup(1560,510,t);await tapPoint(1950,10,t);dive().pts=A4.map(([a,b])=>({t:a,d:b}));recompute();}},
+{p:'1부 · 무감압 다이빙',ti:'⑤ 잘못 찍은 점 지우기',tx:'실수로 엉뚱한 곳에 점을 찍었어요. <b>점지우기</b>를 고르고, 그 점을 누르면 지워져요. 실행취소로 되돌릴 수도 있어요.',
+ set:()=>setState(A4,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapPoint(900,10,t);await sleep(500);await tapEl($('mDel'),t);await delPoint(900,10,t);await tapEl($('mDel'),t);}},
+{p:'1부 · 무감압 다이빙',ti:'⑥ 이상적인 무감압 다이빙',tx:'완성! <b>핑크색 천장이 없고</b>, 경고도 없어요. 라벨은 최대 수심·총 시간, 그래프 오른쪽 끝 막대는 <b>남은 공기</b>예요. 출수 때 50bar 이상 남기는 게 기본이에요.',
+ set:()=>setState(A4,'none'),go:async t=>{await scrollTo(GRAPH(),t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(1700),r.top+Y(14),600,t);await sleep(800);await moveTo(r.left+G.L+G.W+15,r.top+G.T+G.H*0.75,700,t);await sleep(1200);}},
 {p:'1부 · 무감압 다이빙',ti:'⑦ 플레이',tx:'▶를 누르면 다이빙이 재생돼요. 내려가는 동안 질소가 쌓이고(<span style="color:#f87171">빨강</span>), 올라오면 빠져요(<span style="color:#60a5fa">파랑</span>). 오른쪽 공기 막대도 줄어들어요. 재생 중엔 그래프 위 점을 잡고 좌우로 움직일 수 있어요.',
- set:()=>{setState(A3,'none');P.sp=2;},go:async t=>{await scrollTo($('playBtn'),t,'center');await tapEl($('playBtn'),t);await scrollTo(BARS(),t,'start');await waitPlay(t);}},
+ set:()=>{setState(A4,'none');P.sp=2;},go:async t=>{await scrollTo($('playBtn'),t,'center');await tapEl($('playBtn'),t);await scrollTo(BARS(),t,'start');await waitPlay(t);}},
 {p:'1부 · 무감압 다이빙',ti:'⑧ 통계 읽기',tx:'<b>NDL</b>: 감압 없이 머물 수 있는 남은 시간. <b>수면 GF</b>: 지금 바로 출수하면 한계의 몇 %인지 — GF High(85%)보다 낮으면 무감압이에요. 막대가 모두 100% 아래면 바로 출수해도 되는 상태예요. 이 다이빙은 끝까지 NDL이 남아 있었어요.',
- set:()=>{setState(A3,'none');seek(1300);},go:async t=>{await scrollTo(BARS(),t,'start');await point(document.querySelector('[data-tip=ndl]'),t,1300);await point(document.querySelector('[data-tip=gf]'),t,1300);await point(BARS(),t,1200);}},
+ set:()=>{setState(A4,'none');seek(1300);},go:async t=>{await scrollTo(BARS(),t,'start');await point(document.querySelector('[data-tip=ndl]'),t,1300);await point(document.querySelector('[data-tip=gf]'),t,1300);await point(BARS(),t,1200);}},
 {p:'2부 · 천장 위반',ti:'⑨ 위험한 다이빙 그리기',tx:'이번엔 <b>30m에서 28분</b> 머문 뒤 2분 만에 바로 올라와 볼게요. 그래프에 <b style="color:#f472b6">핑크색 천장</b>이 생기고, 경로가 그걸 뚫고 올라가요.',
  set:()=>setState(A0,'pt'),go:async t=>{await scrollTo(GRAPH(),t);for(const [a,b] of [[180,30],[1680,30],[1800,0]])await tapPoint(a,b,t);await sleep(500);}},
-{p:'2부 · 천장 위반',ti:'⑩ 왜 위험한가',tx:'NDL을 넘겨 오래 머물면 질소가 많이 쌓여 <b>천장</b>(이보다 얕게 오르면 안 되는 수심)이 생겨요. 천장을 뚫고 빨리 올라오면 몸속 질소가 기포가 되어 <b>감압병</b> 위험이 커져요. 빨간 경고: 천장 위반, 급상승, 그리고 공기도 50bar 밑으로 떨어졌어요.',
+{p:'2부 · 천장 위반',ti:'⑩ 왜 위험한가',tx:'깊은 수심에 오래 머물면 질소가 많이 쌓여 <b>천장</b>이 생겨요. 천장을 뚫고 올라오면 몸속 질소가 기포가 되어 <b>감압병</b> 위험이 커져요. 급상승에다가 공기도 50bar 밑으로 떨어졌어요.',
  set:()=>setState(B1,'none'),go:async t=>{await scrollTo(GRAPH(),t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(1700),r.top+Y(6),600,t);await sleep(1200);await scrollTo($('warnBox'),t);await point($('warnBox'),t,1500);}},
-{p:'2부 · 천장 위반',ti:'⑪ 감압하면 되지 않나? → 싱글탱크 한계',tx:'바로 올라오지 않고 바닥에서 멈추면 추천 경로가 <b>감압 정지</b>를 넣어줘요. 하지만 오른쪽 공기 막대를 보면 <b>정지 도중 공기가 바닥나요</b>. 12L 탱크 하나로는 30m 28분 + 감압을 버틸 수 없어요. 레저용 싱글탱크 다이빙은 <b>무감압 한계 안</b>에서 끝내야 해요.',
- set:()=>setState(B1,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mDel'),t);await delPoint(1800,0,t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(2100),r.top+Y(5),700,t);await sleep(900);await moveTo(r.left+G.L+G.W+15,r.top+G.T+G.H*0.85,700,t);await sleep(1300);}},
-{p:'2부 · 천장 위반',ti:'⑫ 플랜 고치기',tx:'고치는 법: ① <b>바닥 시간을 NDL 안으로</b>(30m는 약 13분) ② 또는 <b>더 얕게</b> 다이빙 ③ <b>천천히 상승 + 5m 안전정지</b>. 바닥을 떠나는 점을 13분으로 당기고 상승 점을 찍으니 천장이 사라지고 공기도 넉넉해요.',
- set:()=>setState(B2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1680,30],[780,30],t);for(const [a,b] of [[960,12],[1080,5],[1260,5],[1320,0]])await tapPoint(a,b,t);await sleep(400);}},
-{p:'정리',ti:'⑬ 기억할 것',tx:'1. 핑크색 천장이 안 나오게(무감압) 2. 나오면 절대 침범하지 않기 3. 상승은 분당 9~10m 이하, 5m 3분 안전정지 4. 출수 때 공기 50bar 이상 5. 싱글탱크 레저 다이빙은 무감압 한계 안에서. <br><span style="color:#9ca3af">교육용 시뮬레이터예요. 실제 다이빙은 다이브 컴퓨터와 교육받은 절차를 따르세요.</span>',
- set:()=>setState(B3,'none'),go:async t=>{await scrollTo(GRAPH(),t);showHand(false);}}
+{p:'2부 · 천장 위반',ti:'⑪ 질소 막대로 보기',tx:'질소 막대(수면 기준)를 볼게요. 바닥을 떠나는 28분에 여러 막대가 <b>100%를 넘었어요</b>. 100%는 바로 출수해도 되는 한계라, 넘은 막대가 있으면 감압이 필요해요. 위쪽 빠른 구획이 먼저 넘고, 오래 머물수록 아래쪽 느린 구획도 차올라요. 이 상태로 바로 올라오면 넘친 질소가 기포가 돼요.',
+ set:()=>{setState(B1,'none');seek(1680);},go:async t=>{await scrollTo(BARS(),t,'start');await point(BARS(),t,1800);await point(document.querySelector('[data-tip=gf]'),t,1300);}},
+{p:'2부 · 천장 위반',ti:'⑫ 감압하면 되지 않나? → 싱글탱크 한계',tx:'바로 올라오지 않고 바닥에서 멈추면 추천 경로가 <b>감압 정지</b>를 넣어줘요. 하지만 오른쪽 공기 막대를 보면 <b>다이빙 도중 공기가 바닥나요</b>. 12L 탱크 하나로는 30m 28분 + 감압을 버틸 수 없어요. 레저용 싱글탱크 다이빙은 <b>무감압 한계 안</b>에서 끝내야 해요.',
+ set:()=>setState(B1,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mDel'),t);await delPoint(1800,0,t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(2044),r.top+Y(6),700,t);await sleep(900);await moveTo(r.left+G.L+G.W+15,r.top+G.T+G.H*0.85,700,t);await sleep(1300);}},
+{p:'2부 · 천장 위반',ti:'⑬ 플랜 고치기',tx:'고치는 법: ① 바닥 시간을 줄일 것 ② 또는 더 얕게 다이빙 ③ 천천히 상승 + 5m 안전정지. 바닥을 떠나는 점을 13분으로 당기고 상승 점을 찍으니 천장이 사라지고 공기도 넉넉해요.',
+ set:()=>setState(B2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1680,30],[780,30],t);for(const [a,b] of [[960,12],[1620,12],[1740,5],[1920,5],[1980,0]])await tapPoint(a,b,t);await sleep(400);}},
+{p:'정리',ti:'⑭ 기억할 것',tx:'1. 핑크색 천장이 안 나오게(무감압) 2. 나오면 절대 침범하지 않기 3. 상승은 분당 9~10m 이하, 5m 3분 안전정지 4. 출수 때 공기 50bar 이상 5. 싱글탱크 레저 다이빙은 무감압 한계 안에서.',
+ set:()=>setState(B3,'none'),go:async t=>{await scrollTo(GRAPH(),t);showHand(false);await showRules(t);}}
 ];
-async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];
+async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];hideOverlay();
   document.getElementById('tutPart').textContent=st.p;document.getElementById('tutCnt').textContent=(i+1)+' / '+STEPS.length;
   document.getElementById('tutTitle').textContent=st.ti;document.getElementById('tutText').innerHTML=st.tx;
   document.getElementById('tutPrev').disabled=i===0;document.getElementById('tutNext').textContent=i===STEPS.length-1?'끝내기':'다음';
@@ -1118,7 +1136,7 @@ async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
     if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
 function start(){if(ON)return;ON=true;try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
-function end(){TOK++;ON=false;hush();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
+function end(){TOK++;ON=false;hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
 document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
 document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
 document.getElementById('tutEnd').onclick=end;
