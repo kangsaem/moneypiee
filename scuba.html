@@ -1010,7 +1010,7 @@ layout();syncForm();recompute();modeChanged();
 // ===== 튜토리얼 =====
 (function(){
 const H=document.getElementById('tutHand'),BOX=document.getElementById('tutBox');
-let TOK=0,IDX=0,ON=false,VOICE=true,AUTO=false;
+let TOK=0,IDX=0,ON=false,VOICE=true,AUTO=true,DONE=-1;
 const SS=window.speechSynthesis;
 let VSEL;
 function koVoice(){if(VSEL!==undefined)return VSEL;try{const all=SS.getVoices();if(!all.length)return null;
@@ -1138,6 +1138,7 @@ async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];hideOverlay();
   sp.then(()=>{if(TW===tw)typeAll();});
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
     if(i===STEPS.length-1){await sleep(400);chk(t);await playClip(clip(STEPS.length+1));chk(t);}
+    DONE=t;
     if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
 function start(){if(ON)return;ON=true;try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
 function end(){TOK++;ON=false;hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
@@ -1148,7 +1149,7 @@ document.getElementById('tutText').onclick=typeAll;
 const vb=document.getElementById('tutVoice'),ab=document.getElementById('tutAuto');
 const syncTB=()=>{vb.classList.toggle('on',VOICE);vb.textContent=VOICE?'🔊':'🔇';ab.classList.toggle('on',AUTO);};
 vb.onclick=()=>{VOICE=!VOICE;if(!VOICE)hush();else{const st=STEPS[IDX];playClip(clip(IDX+1),()=>speak(st.ti+'. '+st.tx));}syncTB();};
-ab.onclick=()=>{AUTO=!AUTO;syncTB();if(AUTO&&!P.run&&!SS?.speaking){}};
+ab.onclick=()=>{AUTO=!AUTO;syncTB();if(AUTO&&ON&&DONE===TOK&&IDX<STEPS.length-1){const t=TOK;setTimeout(()=>{if(t===TOK&&AUTO)run(IDX+1);},400);}};
 syncTB();try{if(SS){SS.getVoices();SS.onvoiceschanged=()=>{if(VSEL===null)VSEL=undefined;koVoice();};}}catch(e){}
 window.startTutorial=start;
 })();
