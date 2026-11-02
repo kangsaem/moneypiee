@@ -207,7 +207,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
   <div id="ptEd" class="hide"><div class="peHint" data-i18n="peHint">점을 누르면 시간·수심을 입력할 수 있어요</div>
     <div class="peRow"><button id="pePrev" aria-label="prev">◀</button><b id="peN"></b><button id="peNext" aria-label="next">▶</button>
       <label><span data-i18n="peT">시간</span> <input type="number" id="peMin" min="0" max="70" inputmode="numeric">:<input type="number" id="peSec" min="0" max="59" step="10" inputmode="numeric"></label>
-      <label><span data-i18n="peD">수심</span> <input type="number" id="peDep" min="0" step="0.5" inputmode="decimal"> <span id="peU">m</span></label>
+      <label><span data-i18n="peD">수심</span> <input type="number" id="peDep" min="0" step="0.1" inputmode="decimal"> <span id="peU">m</span></label>
       <button id="peDelB" data-i18n="peDel">삭제</button></div>
     <div id="peSeg" class="peSeg"></div></div>
   <div class="legend" style="justify-content:center">
@@ -725,23 +725,24 @@ function syncPtEd(){const ed=$('ptEd');if(!ed)return;const on=S.mode==='pt';ed.c
   $('peN').textContent=tr('pePt',SEL);$('pePrev').disabled=SEL<=1;$('peNext').disabled=SEL>=pts.length-1;$('peU').textContent=ft?'ft':'m';
   const m=Math.floor(q.t/60),sc=Math.round(q.t-m*60);
   if(f!==$('peMin'))$('peMin').value=m;if(f!==$('peSec'))$('peSec').value=sc;
-  const dep=$('peDep');dep.step=ft?1:0.5;if(f!==dep)dep.value=ft?Math.round(q.d*FT):q.d;
+  const dep=$('peDep');dep.step=ft?1:0.1;if(f!==dep)dep.value=ft?Math.round(q.d*FT):q.d;
   const sg=$('peSeg');if(SEL<pts.length-1){const n=pts[SEL+1],dt=(n.t-q.t)/60,dd=n.d-q.d,v=dt>0?Math.abs(dd)/dt:0;
     sg.textContent=tr('peSeg',ft?Math.round(v*FT)+'ft':(Math.round(v*10)/10)+'m',dd===0?null:dd<0);sg.classList.toggle('bad',dd<0&&v>10);}else{sg.textContent=tr('peLast');sg.classList.remove('bad');}}
 function applyPtEd(){const pts=dive().pts;if(!(SEL>0&&SEL<pts.length))return;
   const m=+$('peMin').value||0,sc=+$('peSec').value||0,dv=+$('peDep').value;
   const lo=pts[SEL-1].t+10,hi=SEL<pts.length-1?pts[SEL+1].t-10:TMAX;
-  let t=clamp(Math.round(m*60+sc),lo,hi),d=clamp(isFt()?(dv||0)/FT:(dv||0),0,DMAX);d=Math.round(d*10)/10;
+  let t=clamp(Math.round(m*60+sc),lo,hi),d=clamp(isFt()?(dv||0)/FT:(dv||0),0,DMAX);d=R1(d);
   if(t===pts[SEL].t&&d===pts[SEL].d){syncPtEd();return;}
   pushUndo();pts[SEL]={t,d};const dv2=dive();dv2.pts=trimSurface(dv2.pts);recompute();}
 function pushUndo(){const dv=dive();dv.undo.push(JSON.stringify(dv.pts));if(dv.undo.length>60)dv.undo.shift();dv.redoSnap=null;}
 function pos(e){const b=cv.getBoundingClientRect();return {x:e.clientX-b.left,y:e.clientY-b.top};}
+const R1=v=>Math.round(v*10+1e-9)/10;
 function addFree(t,d){
-  const pts=dive().pts;t=clamp(t,0,TMAX);d=clamp(d,0,DMAX);if(d<1)d=0;if(t<=0)return;
+  const pts=dive().pts;t=clamp(t,0,TMAX);d=R1(clamp(d,0,DMAX));if(d<1)d=0;if(t<=0)return;
   while(pts.length>1&&pts[pts.length-1].t>=t)pts.pop();
   pts.push({t,d});
 }
-function snapPt(t,d){t=Math.round(clamp(t,0,TMAX)/10)*10;d=Math.round(clamp(d,0,DMAX)*2)/2;if(d<1)d=0;return {t,d};}
+function snapPt(t,d){t=Math.round(clamp(t,0,TMAX)/10)*10;d=R1(clamp(d,0,DMAX));if(d<1)d=0;return {t,d};}
 function hit(p){const pts=dive().pts;let best=-1,bd=14;for(let i=1;i<pts.length;i++){const dd=Math.hypot(X(pts[i].t)-p.x,Y(pts[i].d)-p.y);if(dd<bd){bd=dd;best=i;}}return best;}
 function rdp(pts,eps){
   if(pts.length<3)return pts;
