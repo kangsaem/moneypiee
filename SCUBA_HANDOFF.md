@@ -4,7 +4,7 @@
 시작 콜사인: "스쿠버 이어서" → 이 파일 기준으로 작업.
 
 ## 화면
-- 제목: "DTMD 다이빙 플래너"(영 DTMD Dive Planner, 일 DTMD ダイブプランナー). 제목 아래 검은 띠에 흰 글씨 "Don't Try Maximum Depth", 띠 폭 = 제목 폭(글자 크기·자간을 JS `fitDTMD()`로 맞춤).
+- 제목: "DTMD 다이빙 플래너"(영 DTMD Dive Planner, 일 DTMD ダイブプランナー). 제목 아래 검은 띠에 흰 글씨 "Don’t Touch Maximum Depth"(배경 검정 55%·글자 92%, 글자 크기 = 맞춤값×0.8, 남는 폭은 자간), 띠 폭 = 제목 폭(글자 크기·자간을 JS `fitDTMD()`로 맞춤).
 - 첫 화면(`#splash`): 화면 가득 "튜토리얼" 버튼 + 아래 Skip. 매 방문 표시, 언어가 ko가 아니면(#en/#ja 또는 저장된 scuba_lang) 생략. 튜토리얼 버튼 = 사용자 조작이라 녹음 재생 허용에 유리.
 
 ## 파일
