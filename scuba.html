@@ -82,7 +82,8 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .tabs .x:hover{opacity:1}
 .tabs .chip{border-radius:999px;padding:4px 7px;font-size:11px;color:var(--mute);background:#f3f4f6;border-color:#e5e7eb}
 .tabs .add{border-style:dashed;color:var(--mute)}
-canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:contain}
+html,body{overflow-x:hidden}
 .legend{display:flex;flex-wrap:wrap;gap:4px 11px;font-size:12px;color:var(--mute);margin-top:8px}
 .legend i{display:inline-block;width:16px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
 .legend i.box{height:10px;border:1.5px solid #db2777;background:#f8c4dc}
@@ -793,6 +794,10 @@ const endPtr=()=>{
   if(drawing){drawing=false;const dv=dive();dv.pts=trimSurface(rdp(dv.pts,1.2));recompute();}
   if(drag>0){const dv=dive();if(DG&&!DG.moved){dv.undo.pop();drag=-1;DG=null;syncPtEd();drawProfile();return;}drag=-1;DG=null;dv.pts=trimSurface(dv.pts);recompute();}
 };
+// 모바일: 그래프 위 터치는 페이지 스크롤로 넘기지 않음(touch-action 무시하는 브라우저 대비), 그리는 중엔 문서 스크롤도 막음
+cv.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault();},{passive:false});
+cv.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault();},{passive:false});
+document.addEventListener('touchmove',e=>{if((drawing||drag>0||seeking)&&e.cancelable)e.preventDefault();},{passive:false});
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
 cv.addEventListener('pointerleave',()=>{hover=null;if(!drawing&&drag<0&&!P.run)drawProfile();});
 cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));if(h>0){pushUndo();dive().pts.splice(h,1);recompute();}});
