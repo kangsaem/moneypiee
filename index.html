@@ -842,7 +842,9 @@ async function fetchNaverStockPrice(naverCode){
   const price = parseFloat(String(row.closePrice).replace(/,/g, ''));
   if(!isFinite(price) || price <= 0) return null;
   const changePct = parseFloat(String(row.fluctuationsRatio).replace(/,/g, ''));
-  return { price, currency: 'KRW', changePct: isFinite(changePct) ? changePct : null };
+  const vol = parseFloat(String(row.accumulatedTradingVolume == null ? '' : row.accumulatedTradingVolume).replace(/,/g, ''));   // 누적 거래량(V1 차트 오늘 막대, 2026-11-03)
+  const td = typeof row.localTradedAt === 'string' ? row.localTradedAt.slice(0, 10) : null;           // 마지막 체결 날짜(현지)
+  return { price, currency: 'KRW', changePct: isFinite(changePct) ? changePct : null, vol: isFinite(vol) && vol > 0 ? vol : null, date: td };
 }
 function koreanMarketTimesForToday(){
   const kstMs = Date.now() + 9*60*60*1000;
@@ -7096,6 +7098,79 @@ async function anFetchUsLive(sym){
   const d = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(m.regularMarketTime * 1000));
   return d === anNyNow().date ? { price: m.regularMarketPrice } : null;
 }
+// ---- 종목 줄 오늘 등락률(2026-11-03): V1·관심 탭을 열 때 현재가만 다시 받음(5분에 한 번). 신호는 마지막 분석 그대로 ----
+// 국장 = 네이버 실시간(등락률·누적 거래량), 미장 = 야후 1일(정규장 가격 ÷ 전 거래일 종가). 휴장일엔 마지막 거래일 등락률.
+async function anFetchUsQuote(sym){
+  const res = await fetchYahooProxied(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=1d&interval=1d&_=${Date.now()}`);
+  const j = await res.json(), m = j && j.chart && j.chart.result && j.chart.result[0] && j.chart.result[0].meta;
+  if(!m || !(m.regularMarketPrice > 0)) return null;
+  const pc = m.chartPreviousClose > 0 ? m.chartPreviousClose : (m.previousClose > 0 ? m.previousClose : null);
+  const d = m.regularMarketTime ? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(m.regularMarketTime * 1000)) : null;
+  return { price: m.regularMarketPrice, changePct: pc ? (m.regularMarketPrice / pc - 1) * 100 : null, vol: m.regularMarketVolume > 0 ? m.regularMarketVolume : null, date: d };
+}
+const AN_QUOTE_MS = 5 * 60 * 1000;
+let anQuoteBusy = false;
+function anQuoteKey(r){ return r.key || r.code; }
+async function anQuoteRefresh(force){
+  const res = anState.result;
+  if(!res || anState.running || anQuoteBusy) return;
+  if(!force && res.quoteAt && Date.now() - res.quoteAt < AN_QUOTE_MS) return;
+  anQuoteBusy = true;
+  try{
+    const list = (res.results || []).filter(r => r.market === 'KR' || (r.market === 'US' && r.code && !r.code.includes('.')));
+    const quotes = Object.assign({}, res.quotes || {});
+    let k = 0, got = 0;
+    const worker = async () => {
+      while(k < list.length){
+        const r = list[k++];
+        try{
+          const q = r.market === 'KR' ? await fetchNaverStockPrice(r.code) : await anFetchUsQuote(r.code);
+          if(!q || !(q.price > 0) || !anOk(q.changePct)) continue;
+          quotes[anQuoteKey(r)] = { chg: q.changePct, px: q.price, vol: q.vol || null, date: q.date || null, at: Date.now() };
+          got++;
+          const ln = anLiveNow(r.market);                // 장중이면 차트 끝 현재가·범위 판정도 이 값으로(신호는 그대로)
+          if(ln.open && (!q.date || q.date === ln.date) && r.last < ln.date){
+            r.livePx = { price: q.price, date: ln.date, vol: q.vol || null };
+            r.chartLive = null;                          // 6개월 차트도 새 현재가로 다시 만듦(anChartFor)
+            if(r.live && r.live.date === ln.date){ r.live.px = q.price; r.live.chg = (q.price / r.live.base - 1) * 100; r.live.at = Date.now(); }
+          }
+        }catch(e){}
+      }
+    };
+    await Promise.all(Array.from({ length: 4 }, worker));
+    if(anState.result !== res || anState.running) return;   // 그 사이 새 분석이 돌았으면 버림
+    if(got){ res.quotes = quotes; res.quoteAt = Date.now(); }
+    anState.html = null;                                // 다음 그리기 때 새 값으로(열린 줄·차트 상태는 openKeys로 유지)
+    anChgPaint();
+    document.querySelectorAll('.an-stock[open] [data-an-chart][data-drawn]').forEach(sl => { try{ anDrawChartSlot(sl); }catch(e){} });
+  }finally{ anQuoteBusy = false; }
+}
+// 종목 줄 등락률: 다시 받은 현재가 → 없으면 분석 때 차트(장중 현재가 또는 마지막 종가)의 전일 대비
+function anChgOf(r){
+  const q = anState.result && anState.result.quotes && anState.result.quotes[anQuoteKey(r)];
+  if(q && anOk(q.chg) && (!anState.result.at || q.at >= anState.result.at)) return { v: q.chg, at: q.at };
+  const c = (r.chartLive || r.chart || {}).close || [];
+  const a = c[c.length - 1], b = c[c.length - 2];
+  return anOk(a) && anOk(b) && b > 0 ? { v: (a / b - 1) * 100, at: anState.result && anState.result.at } : null;
+}
+function anChgTxt(v){ return `${v > 0 ? '▲ ' : v < 0 ? '▼ ' : ''}${Math.abs(v).toFixed(2)}<span class="pc">%</span>`; }   // 상단 경제지표 카드와 같은 모양(화살표 + 공백 + 숫자 + 작은 %)
+function anChgHtml(r){
+  const o = anChgOf(r);
+  if(!o) return `<span class="an-chg" data-chg="${anE(anQuoteKey(r))}">-</span>`;
+  const t = o.at ? new Date(o.at + 9 * 3600e3) : null;
+  const tip = t ? `${anPad(t.getUTCMonth() + 1)}-${anPad(t.getUTCDate())} ${anPad(t.getUTCHours())}:${anPad(t.getUTCMinutes())} 기준` : '';
+  const exact = anChgTxt(o.v).replace(/<[^>]+>/g, '');   // 마우스 올리면 소수·% 포함 값
+  return `<span class="an-chg ${o.v > 0 ? 'up' : o.v < 0 ? 'dn' : ''}" data-chg="${anE(anQuoteKey(r))}" title="${anE(exact + (tip ? ' · ' + tip : ''))}">${o.v > 0 ? '▲ ' : o.v < 0 ? '▼ ' : ''}${Math.trunc(Math.abs(o.v))}</span>`;   // 접힌 줄 = 삼각형 + 정수(소수·% 없음, 2026-11-03)
+}
+function anChgPaint(){
+  const res = anState.result; if(!res) return;
+  const by = new Map((res.results || []).map(r => [anQuoteKey(r), r]));
+  document.querySelectorAll('.an-chg[data-chg]').forEach(el => {
+    const r = by.get(el.dataset.chg); if(!r) return;
+    const tmp = document.createElement('span'); tmp.innerHTML = anChgHtml(r);
+    const n = tmp.firstChild; el.className = n.className; el.title = n.title; el.innerHTML = n.innerHTML;
+  });
+}
 function anLiveInfo(bars, px, wantTrend, market){
   const t = anLiveNow(market), n = bars.close.length, base = bars.close[n - 1];
   if(bars.dates[n - 1] >= t.date) return null;                         // 오늘 봉이 이미 있으면(장 마감 뒤) 해당 없음
@@ -7184,7 +7259,7 @@ function anLiveVerdict(r, keys){
   const free = v => v && v.loOpen && (v.hiOpen || v.key === 'sell');
   const parts = ks.filter(k => r.vr[k] && !free(r.vr[k])).map(k => `${AN_LIVE_SIG[k]} ${anRangeTxt(r.vr[k])} ${anInRange(r.vr[k], L.px) ? '안' : '밖'}`);
   if(!parts.length) return null;
-  return { line: `장중 ${anPrice(L.px)} (${anS(L.chg, 1)}%) · ${parts.join(' · ')}` };
+  return { line: `장중 ${anPrice(L.px)} · ${parts.join(' · ')}` };   // 등락률은 차트 현재가 점 옆(2026-11-03)
 }
 
 const AN_CATEGORY = { sell: 'sell', buyb: 'buy', buy: 'buy', up: 'buy', hold: 'watch', caution: 'watch', wait: 'watch', waitdn: 'watch' };
@@ -8227,12 +8302,27 @@ function anSvgChart(ch){
     // 점 바로 오른쪽. 좁은 화면에서 오른쪽 끝을 넘으면 넘는 만큼만 안쪽으로 당김
     // 오늘 종가 점: 화면 폭과 상관없이 같은 크기로 보이도록 HTML로 겹쳐 그림
     const dot = `<span class="an-lastdot" style="left:${(x(n-1) / W * 100).toFixed(2)}%;top:${(ly / H * 100).toFixed(2)}%"></span>`;
-    const lbl = dot + `<span class="an-lastlbl" style="left:min(${((x(n-1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(lastTxt.length * 0.6 + 0.2).toFixed(1)}em));top:calc(${(ly / H * 100).toFixed(2)}% - 5px)">${lastTxt}</span>`;
+    let chgLbl = '';
+    if(ch.showChg && n >= 2 && anOk(close[n-2]) && close[n-2] > 0){   // 점 아래 등락률(전 거래일 종가 대비, 2026-11-03)
+      const cv = (close[n-1] / close[n-2] - 1) * 100, ct = anChgTxt(cv).replace(/<[^>]+>/g, '');
+      const up = ly - pt > pt + PH - ly;                 // 점 위·아래 중 넓은 쪽(위 = 가격 글자 위로 한 칸 더, 아래 = 점에서 띄워서)
+      chgLbl = `<span class="an-lastchg ${cv > 0 ? 'up' : cv < 0 ? 'dn' : ''}${up ? ' above' : ''}" style="left:min(${((x(n-1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(ct.length * 0.62 + 0.2).toFixed(1)}em));top:calc(${(ly / H * 100).toFixed(2)}% ${up ? '- 24px' : '+ 14px'})">${anChgTxt(cv)}</span>`;
+    }
+    const lbl = chgLbl + dot + `<span class="an-lastlbl" style="left:min(${((x(n-1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(lastTxt.length * 0.6 + 0.2).toFixed(1)}em));top:calc(${(ly / H * 100).toFixed(2)}% - 5px)">${lastTxt}</span>`;
     o.push(`<text class="an-ch-t" x="${pl}" y="${H - 3}">${ch.dates[0]}</text>`);
     o.push(`<text class="an-ch-t" x="${x(n-1).toFixed(1)}" y="${H - 3}" text-anchor="middle">${ch.dates[n-1]}</text>`);
     if(RH){
       const top = pt + PH + gap, y2 = v => top + RH * (1 - v / 100);
       o.push(`<rect class="an-ch-bg" x="0" y="${top}" width="${xr}" height="${RH}"/>`);
+      if(ch.vol){                                         // 거래량 막대(RSI 칸 바닥에서 위로, 최대 = 칸 높이의 70%)
+        const vm = Math.max(...ch.vol.filter(v => v != null));
+        const bw = Math.max(1, (xr - pl - 2) / Math.max(1, N - 1) * 0.6);
+        if(vm > 0) ch.vol.forEach((v, i) => {
+          if(v == null) return;
+          const h = Math.max(0.8, RH * 0.7 * v / vm), lv = ch.volLive && i === ch.vol.length - 1;
+          o.push(`<rect class="an-ch-vol${lv ? ' live' : ch.volHot[i] ? ' hot' : ''}" x="${(x(i) - bw / 2).toFixed(1)}" y="${(top + RH - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}"/>`);
+        });
+      }
       const rv = ch.rsi;
       let last = null;
       for(let i = rv.length - 1; i >= 0; i--) if(rv[i] != null){ last = rv[i]; break; }
@@ -8575,7 +8665,7 @@ function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
       const liveChip = '';                                    // 옛 장중 칩(매수 가능·종가 대기) → 범위 칩으로 대체(2026-10-15)
       const liveLine = lvNow ? `<div class="an-liveline">${anE(lvNow.line)}</div>` : '';
       return `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${[...new Set(keys.map(k => AN_CATEGORY[k]))].join(' ') || 'none'}">
-        <summary>${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b title="${anE(r.name)}">${anE(anNm16(r.name))}</b> ${gchips}${liveChip}${opt.right != null ? opt.right : `<span class="an-rsi ${rc} an-rsir">RSI ${anF(r.rsi, 0)}</span>`}</summary>
+        <summary><span class="an-sl">${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b title="${anE(r.name)}">${anE(anNm16(r.name))}</b> ${gchips}${liveChip}</span>${anChgHtml(r)}${opt.right != null ? opt.right : ''}</summary>
         <div class="an-sbody">${liveLine}${limHtml}${whys}${(() => { const mh = anMetricsHtml(r, side, lv, others, top && ['sell', 'buy'].includes(AN_CATEGORY[top])); const mk = 'm:' + r.code;
             return mh ? `<details class="an-mfold" data-an-key="${anE(mk)}"${anState.openKeys.has(mk) ? ' open' : ''}><summary>지표</summary>${mh}</details>` : ''; })()}<div class="an-chwrap" data-an-chart="${i}"></div>
           <details class="an-sub" data-an-key="x:${anE(r.code)}"><summary>세부 보기 <small>${anE(r.code)}</small></summary><pre>${anE(anDetailText(r))}</pre></details></div></details>`;
@@ -8837,7 +8927,8 @@ function anBtBind(root){
 const anChartCache = new Map();
 async function anChartFor(r, per){
   const p = AN_CHART_PER.find(x => x[0] === per);
-  if(!p || per === '6m' || !r.key) return r.chartLive || r.chart;       // 장중에 받은 현재가가 있으면 그걸 붙인 차트
+  if(!p || !r.key) return r.chartLive || r.chart;
+  if(per === '6m' && (r.chartLive || !r.livePx)) return r.chartLive || r.chart;   // 장중에 받은 현재가가 있으면 그걸 붙인 차트(탭을 열 때 다시 받은 현재가면 아래에서 새로 만듦)
   const ck = r.key + '|' + per + '|' + r.last + '|' + (r.livePx ? r.livePx.price : '');
   if(anChartCache.has(ck)) return anChartCache.get(ck);
   const b = await anDB.get('bars3:' + r.key);
@@ -8901,6 +8992,26 @@ function anSigMarks(ch, tracks){
     return { i, side: t.side, price: ch.close[i], tip: `${nm} ${anShort(t.sigDate)} ${anPrice(sp)}`, html };
   }).filter(Boolean);
 }
+// RSI 칸 거래량 막대(2026-11-03): 6개월 이하만. 날마다 직전 20거래일 단순 평균의 2.5배 이상(V1 거래량 폭증 기준)이면 강조.
+// 오늘 장중(현재가 점) = 누적 거래량 속 빈 막대(판정에 안 씀). 시세 캐시(bars3)의 일봉 거래량을 날짜로 맞춤
+async function anChartVol(r, ch){
+  if(!ch || !ch.dates || (ch.days || AN.CHART_DAYS) > AN.CHART_DAYS || !r.key) return null;
+  const b = await anDB.get('bars3:' + r.key);
+  if(!b || !b.vol || b.vol.length !== b.dates.length) return null;
+  const v = b.vol.map(x => anOk(x) && x > 0 ? x : null), idx = new Map();
+  b.dates.forEach((d, i) => idx.set(anShort(d), i));
+  const n = ch.dates.length, live = ch.lastLabel === '현재가';
+  const vol = new Array(n).fill(null), hot = new Array(n).fill(false);
+  for(let j = 0; j < n; j++){
+    if(live && j === n - 1){ vol[j] = (r.livePx && r.livePx.vol) || null; continue; }
+    const i = idx.get(ch.dates[j]);
+    if(i == null || v[i] == null) continue;
+    vol[j] = v[i];
+    const prev = v.slice(Math.max(0, i - 20), i).filter(x => x != null);
+    if(prev.length >= 10) hot[j] = v[i] / (prev.reduce((a, c) => a + c, 0) / prev.length) >= AN.VOL_SPIKE;
+  }
+  return vol.some(x => x != null) ? { vol, volHot: hot, volLive: live } : null;
+}
 async function anDrawChartSlot(slot){
   const r = anState.result && anState.result.results[parseInt(slot.dataset.anChart, 10)];
   if(!r) return;
@@ -8908,6 +9019,8 @@ async function anDrawChartSlot(slot){
   let ch = r.chart;
   try{ ch = await anChartFor(r, per); }catch(e){}
   try{ ch = Object.assign({}, ch, { marks: anSigMarks(ch, await anTracksFor(r)), gaps: anChartGaps(ch, anTrackCache && anTrackCache.gaps && anTrackCache.gaps[r.code]) }); }catch(e){}
+  try{ const vb = await anChartVol(r, ch); if(vb) ch = Object.assign({}, ch, vb); }catch(e){}
+  ch = Object.assign({}, ch, { showChg: true });       // 현재가(종가) 점 아래 등락률(종목 차트만)
   slot.innerHTML = anChartTabs(per) + anSvgChart(ch);
 }
 
@@ -9128,9 +9241,11 @@ function anWatchMount(){
       anState.loaded = true;
       if(res && !anState.result){ anState.result = res; anState.html = null; }
       anWatchFill();
+      anQuoteRefresh();
     });
   }
   anWatchFill();
+  anQuoteRefresh();
 }
 function anWatchFill(){
   const root = document.getElementById('watchRoot');
@@ -9204,10 +9319,12 @@ function anMount(){
       if(res && !anState.result){ anState.result = res; anState.html = null; }
       anFillRoot();
       anRefreshMarket();
+      anQuoteRefresh();
     });
   }
   anFillRoot();
   anRefreshMarket();                                      // V1 탭을 열 때 시장 지표 다시 계산(2026-10-20)
+  anQuoteRefresh();                                       // 종목 줄 오늘 등락률(5분에 한 번, 2026-11-03)
 }
 
 function anUpdateViewBtn(){
@@ -9415,7 +9532,7 @@ details.an-gauge ul { padding-bottom:10px; }
 .an-ftab.on.t-watch { background:#a99ff0; border-color:#a99ff0; color:var(--bg); }
 .an-list { margin-top:6px; display:grid; gap:3px; } .an-list .an-det { margin-bottom:0; }
 .an-stock, .an-stock[open] { background:var(--surface) !important; border-left-width:1px !important; }
-.an-sbody { padding:0 11px 6px; } .an-stock > summary { padding:6px 11px; display:flex; flex-wrap:wrap; align-items:center; gap:4px; } .an-stock > summary > b { margin-right:2px; } .an-rsir { margin-left:auto; } .an-sbody .an-mrow { margin-bottom:6px; } .an-sbody pre { padding:6px 0 10px; }
+.an-sbody { padding:0 11px 6px; } .an-stock > summary { padding:6px 11px; display:flex; flex-wrap:wrap; align-items:center; gap:4px; } .an-stock > summary > b, .an-stock > summary > .an-sl > b { margin-right:2px; } .an-rsir { margin-left:auto; } .an-sbody .an-mrow { margin-bottom:6px; } .an-sbody pre { padding:6px 0 10px; }
 .an-whyrow { display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin:2px 0 6px; } .an-whyrow .an-ex { flex-basis:100%; margin:0; }
 .an-whyh { font-size:11px; font-weight:800; margin-right:2px; }
 .an-whyh.buy, .an-whyh.up { color:var(--an-up); } .an-whyh.sell { color:var(--an-dn); } .an-whyh.caution { color:var(--an-amber); } .an-whyh.hold { color:var(--an-green); } .an-whyh.wait, .an-whyh.waitdn { color:var(--text-dim); }
@@ -9498,13 +9615,24 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 #analysisBtn.an-blink, #watchAnBtn.an-blink { animation: anBlink 1s ease-in-out infinite; }
 .an-wdot { display:inline-block; width:4px; height:4px; border-radius:50%; background:#F04452; margin-right:5px; flex-shrink:0; }
 @media (max-width:600px){ .an-tab .an-rsir { display:none; } }
+/* 종목 줄 오늘 등락률·칩 생략(2026-11-03): 접힌 줄 = 한 줄(넘치는 칩은 … 생략) + 오른쪽 등락률, 펼치면 칩 전체·등락률 숨김(차트 점 옆에 표시). RSI 숨김 */
+.an-stock > summary .an-sl { flex:1 1 auto; min-width:0; }
+.an-list > *, .an-allfold, .an-stock { min-width:0; }   /* 그리드 칸이 긴 칩 줄 때문에 넓어지지 않게 */
+.an-stock:not([open]) > summary { flex-wrap:nowrap; }
+.an-stock:not([open]) > summary .an-sl { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.an-stock[open] > summary .an-chg { display:none; }
+.an-chg { flex-shrink:0; padding-left:6px; font-size:12px; font-weight:700; white-space:nowrap; color:var(--text-dim); }
+.an-chg .pc, .an-lastchg .pc { font-size:.6em; }   /* 상단 경제지표 카드와 같음 */
+.an-chg.up, .an-lastchg.up { color:#E87BA4; } .an-chg.dn, .an-lastchg.dn { color:#5FB8E0; }
+.an-lastchg { position:absolute; font-size:11px; font-weight:700; line-height:1; white-space:nowrap; color:var(--text-dim); text-shadow:0 0 3px var(--surface2),0 0 3px var(--surface2),0 0 2px var(--surface2); pointer-events:none; } .an-lastchg.above { transform:translateY(-100%); }
+.an-ch-vol { fill:var(--text); opacity:.2; } .an-ch-vol.hot { opacity:.6; } .an-ch-vol.live { fill:none; stroke:var(--text); stroke-width:1; opacity:.45; }
 .an-wdel { margin-left:auto; font:inherit; font-size:11px; height:22px; padding:0 8px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-dim); cursor:pointer; }
 .an-wsum { padding:6px 11px; display:flex; align-items:center; gap:4px; }
 #editModal.watch-add #editModeBadge, #editModal.watch-add #editModeQtyHint, #editModal.watch-add #editAmount, #editModal.watch-add #editQty,
 #editModal.watch-add #editQtyPreview, #editModal.watch-add #editGroup, #editModal.watch-add #editRegion { display:none !important; }
 #analysisHistBtn { width:64px !important; padding:0 !important; font-size:12px !important; text-align:center; white-space:nowrap; flex-shrink:0; }   /* 신호추적·최근종가 같은 폭 */
 .an-hb, .an-hg { font-style:normal !important; } .an-hstop { margin-left:6px; display:inline-flex; align-items:center; }
-.an-stock > summary { padding:4px 10px !important; } .an-stock > summary > b { font-size:12.5px; }
+.an-stock > summary { padding:4px 10px !important; } .an-stock > summary > b, .an-stock > summary > .an-sl > b { font-size:12.5px; }
 .an-idx > summary { padding:4px 10px !important; } .an-idx > summary .an-in { font-size:12.5px; }
 details.an-gauge > summary { padding:6px 10px !important; font-weight:500 !important; font-size:12.5px; }
 .an-ht2 td b:not([class]) { font-weight:500; font-size:12px; }
