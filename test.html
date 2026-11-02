@@ -7204,7 +7204,8 @@ function anChgHtml(r){
   if(!o) return `<span class="an-chg" data-chg="${anE(anQuoteKey(r))}">-</span>`;
   const t = o.at ? new Date(o.at + 9 * 3600e3) : null;
   const tip = t ? `${anPad(t.getUTCMonth() + 1)}-${anPad(t.getUTCDate())} ${anPad(t.getUTCHours())}:${anPad(t.getUTCMinutes())} 기준` : '';
-  return `<span class="an-chg ${o.v > 0 ? 'up' : o.v < 0 ? 'dn' : ''}" data-chg="${anE(anQuoteKey(r))}" title="${tip}">${anChgTxt(o.v)}</span>`;
+  const exact = anChgTxt(o.v).replace(/<[^>]+>/g, '');   // 마우스 올리면 소수·% 포함 값
+  return `<span class="an-chg ${o.v > 0 ? 'up' : o.v < 0 ? 'dn' : ''}" data-chg="${anE(anQuoteKey(r))}" title="${anE(exact + (tip ? ' · ' + tip : ''))}">${o.v > 0 ? '▲ ' : o.v < 0 ? '▼ ' : ''}${Math.trunc(Math.abs(o.v))}</span>`;   // 접힌 줄 = 삼각형 + 정수(소수·% 없음, 2026-11-03)
 }
 function anChgPaint(){
   const res = anState.result; if(!res) return;
