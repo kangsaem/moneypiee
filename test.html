@@ -7198,7 +7198,7 @@ function anChgOf(r){
   const a = c[c.length - 1], b = c[c.length - 2];
   return anOk(a) && anOk(b) && b > 0 ? { v: (a / b - 1) * 100, at: anState.result && anState.result.at } : null;
 }
-function anChgTxt(v){ return `${v > 0 ? '▲' : v < 0 ? '▼' : ''}${Math.abs(v).toFixed(2)}<small>%</small>`; }
+function anChgTxt(v){ return `${v > 0 ? '▲ ' : v < 0 ? '▼ ' : ''}${Math.abs(v).toFixed(2)}<span class="pc">%</span>`; }   // 상단 경제지표 카드와 같은 모양(화살표 + 공백 + 숫자 + 작은 %)
 function anChgHtml(r){
   const o = anChgOf(r);
   if(!o) return `<span class="an-chg" data-chg="${anE(anQuoteKey(r))}">-</span>`;
@@ -8349,7 +8349,8 @@ function anSvgChart(ch){
     let chgLbl = '';
     if(ch.showChg && n >= 2 && anOk(close[n-2]) && close[n-2] > 0){   // 점 아래 등락률(전 거래일 종가 대비, 2026-11-03)
       const cv = (close[n-1] / close[n-2] - 1) * 100, ct = anChgTxt(cv).replace(/<[^>]+>/g, '');
-      chgLbl = `<span class="an-lastchg ${cv > 0 ? 'up' : cv < 0 ? 'dn' : ''}" style="left:min(${((x(n-1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(ct.length * 0.62 + 0.2).toFixed(1)}em));top:calc(${(ly / H * 100).toFixed(2)}% + 5px)">${anChgTxt(cv)}</span>`;
+      const up = ly - pt > pt + PH - ly;                 // 점 위·아래 중 넓은 쪽(위 = 가격 글자 위로 한 칸 더, 아래 = 점에서 띄워서)
+      chgLbl = `<span class="an-lastchg ${cv > 0 ? 'up' : cv < 0 ? 'dn' : ''}${up ? ' above' : ''}" style="left:min(${((x(n-1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(ct.length * 0.62 + 0.2).toFixed(1)}em));top:calc(${(ly / H * 100).toFixed(2)}% ${up ? '- 24px' : '+ 14px'})">${anChgTxt(cv)}</span>`;
     }
     const lbl = chgLbl + dot + `<span class="an-lastlbl" style="left:min(${((x(n-1) + 6) / W * 100).toFixed(2)}%, calc(100% - ${(lastTxt.length * 0.6 + 0.2).toFixed(1)}em));top:calc(${(ly / H * 100).toFixed(2)}% - 5px)">${lastTxt}</span>`;
     o.push(`<text class="an-ch-t" x="${pl}" y="${H - 3}">${ch.dates[0]}</text>`);
@@ -9664,10 +9665,10 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 .an-stock:not([open]) > summary { flex-wrap:nowrap; }
 .an-stock:not([open]) > summary .an-sl { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .an-stock[open] > summary .an-chg { display:none; }
-.an-chg { flex-shrink:0; padding-left:6px; font-size:12px; font-weight:600; white-space:nowrap; color:var(--text-dim); font-variant-numeric:tabular-nums; }
-.an-chg small, .an-lastchg small { font-size:.75em; margin-left:1px; }
+.an-chg { flex-shrink:0; padding-left:6px; font-size:12px; font-weight:700; white-space:nowrap; color:var(--text-dim); }
+.an-chg .pc, .an-lastchg .pc { font-size:.6em; }   /* 상단 경제지표 카드와 같음 */
 .an-chg.up, .an-lastchg.up { color:#E87BA4; } .an-chg.dn, .an-lastchg.dn { color:#5FB8E0; }
-.an-lastchg { position:absolute; font-size:10.5px; font-weight:700; line-height:1; white-space:nowrap; color:var(--text-dim); text-shadow:0 0 3px var(--surface2),0 0 3px var(--surface2),0 0 2px var(--surface2); pointer-events:none; }
+.an-lastchg { position:absolute; font-size:10.5px; font-weight:700; line-height:1; white-space:nowrap; color:var(--text-dim); text-shadow:0 0 3px var(--surface2),0 0 3px var(--surface2),0 0 2px var(--surface2); pointer-events:none; } .an-lastchg.above { transform:translateY(-100%); }
 .an-ch-vol { fill:var(--text); opacity:.2; } .an-ch-vol.hot { opacity:.6; } .an-ch-vol.live { fill:none; stroke:var(--text); stroke-width:1; opacity:.45; }
 .an-wdel { margin-left:auto; font:inherit; font-size:11px; height:22px; padding:0 8px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-dim); cursor:pointer; }
 .an-wsum { padding:6px 11px; display:flex; align-items:center; gap:4px; }
