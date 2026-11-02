@@ -112,11 +112,11 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 <body>
 <div id="splash"><button id="spTut"><span class="sp1">튜토리얼</span><span class="sp2">DTMD 다이빙 플래너 사용법 · 약 3분</span></button><button id="spSkip">Skip</button></div>
 <style>
-#splash{position:fixed;inset:0;z-index:100;background:#fff;display:flex;flex-direction:column;gap:10px;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom));box-sizing:border-box}
-#spTut{flex:1;border:0;border-radius:18px;background:#0f2a3d;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;font-family:inherit}
+#splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;gap:10px;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom));box-sizing:border-box}
+#spTut{flex:1;border:0;border-radius:18px;background:transparent;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;font-family:inherit}
 #spTut .sp1{font-size:clamp(40px,12vw,84px);font-weight:800;letter-spacing:-1px}
 #spTut .sp2{font-size:clamp(14px,3.8vw,18px);opacity:.7}
-#spSkip{height:56px;border:1px solid #d0d7de;border-radius:14px;background:#fff;color:#57606a;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit}
+#spSkip{height:56px;border:0;border-radius:14px;background:#7dd3fc;color:#0f2a3d;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit}
 </style>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
@@ -155,7 +155,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
       <label><span class="tip" data-tip="asc" data-i18n="asc">플랜 상승속도</span> <input type="number" id="asc" min="3" max="18" step="1"> <span data-i18n="mpm">m/분</span></label>
       <label><span class="tip" data-tip="tank" data-i18n="tank">탱크</span>
         <select id="tankV"><option value="10">10 L</option><option value="11.1">11.1 L (AL80)</option><option value="12">12 L</option><option value="15">15 L</option></select>
-        <select id="tankP"></select><select id="pu"><option value="bar">bar</option><option value="psi">PSI</option></select>
+        <select id="tankP"></select><select id="pu"><option value="bar">bar · m</option><option value="psi">PSI · ft</option></select>
       </label>
       <label><span class="tip" data-tip="sac" data-i18n="sac">호흡량</span>
         <select id="sac"><option value="15" data-i18n="sacLo">적음 (15 L/분)</option><option value="20" data-i18n="sacMd">보통 (20 L/분)</option><option value="25" data-i18n="sacHi">많음 (25 L/분)</option></select>
@@ -242,7 +242,7 @@ ko:{
  title:'DTMD 다이빙 플래너',h1:'DTMD 다이빙 플래너',
  rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
  settings:'⚙ 설정',alt:'해발 고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
- cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:'m/분',
+ cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:()=>(isFt()?'ft':'m')+'/분',
  draw:'그리기',points:'점찍기',erase:'점지우기',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
@@ -251,13 +251,13 @@ ko:{
  tank:'탱크',sac:'호흡량',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:(v,m)=>`출수 잔압 ${v} (${m} 미만)`,wGas0:'공기 고갈',
  tutBtn:'튜토리얼',bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
  siTitle:'수면휴식 시간',hUnit:'시간',minUnit:'분',cancel:'취소',ok:'확인',
- axisMin:m=>m+'분',max:v=>`최대 ${v}m`,total:v=>`총 ${v}`,
+ axisMin:m=>m+'분',max:v=>`최대 ${DU(v)}`,total:v=>`총 ${v}`,
  empty:'그래프에 수심을 그려 주세요. 출수까지 안 그리면 추천 플랜이 이어집니다.',
- stop:(d,m,s)=>`${d}m ${m}분${s?'(안전)':''}`,deco:'감압 필요',nodeco:'무감압',safety5:'5m 안전 정지 3분',toSurf:v=>`출수까지 ${v}`,
- wCeil:v=>`천장 위반 ${v}분`,wFast:'급상승 구간',wMod:v=>`MOD ${v}m 초과`,wOver:v=>`${v}분 초과`,
+ stop:(d,m,s)=>`${DS(d)} ${m}분${s?'(안전)':''}`,deco:'감압 필요',nodeco:'무감압',safety5:()=>`${DS(5)} 안전 정지 3분`,toSurf:v=>`출수까지 ${v}`,
+ wCeil:v=>`천장 위반 ${v}분`,wFast:'급상승 구간',wMod:v=>`MOD ${DU(v)} 초과`,wOver:v=>`${v}분 초과`,
  minV:v=>v+'분',ndl:'NDL',ceiling:'천장',play:'플레이',pause:'일시정지',siPick:(a,b)=>`다이빙 ${a} → ${b} 수면휴식`,
  copy:'복사',paste:n=>`붙여넣기 (다이빙 ${n})`,dive:n=>'다이빙 '+n,delDive:'이 다이빙 삭제',addDive:'+ 다이빙 추가',
- sAir:'공기',sSum:(w,a,g,lo,hi,asc)=>`${w} · 고도 ${a}m · ${g} · GF ${lo}/${hi} · 상승 ${asc}m/분`,
+ sAir:'공기',sSum:(w,a,g,lo,hi,asc)=>`${w} · 고도 ${a}m · ${g} · GF ${lo}/${hi} · 상승 ${DU(asc)}/분`,
  bOn:'흡수 중',bOff:'배출 중',bEq:'평형',
  bar:(i,ht,n,v,st)=>`<b>${i}번 구획 · 반감기 ${ht}분</b>질소 ${n} bar · 수면 한계의 ${v}% · ${st}<br>반감기가 짧은 구획(위쪽)은 빨리 차고 빨리 빠지고, 긴 구획(아래쪽)은 천천히 차고 천천히 빠져 반복 다이빙에 남음.`,
  tips:{
@@ -297,7 +297,7 @@ en:{
  title:'DTMD Dive Planner',h1:'DTMD Dive Planner',
  rule1:'1. Keep the pink ceiling from appearing <small>= no-decompression dive</small>',rule2:'2. If the pink ceiling appears, never cross it <small>= decompression dive</small>',
  settings:'⚙ Settings',alt:'Altitude',sealevel:'0 m (sea level)',custom:'Custom',water:'Water type',salt:'Salt',fresh:'Fresh',gas:'Gas',air21:'Air (21%)',
- cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom',asc:'Plan ascent rate',mpm:'m/min',
+ cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom',asc:'Plan ascent rate',mpm:()=>(isFt()?'ft':'m')+'/min',
  draw:'Draw',points:'Points',erase:'Erase pts',undo:'Undo',clear:'Clear',
  lgPath:'My profile',lgPlan:'Suggested',lgCeil:'Ceiling',lgFast:'Fast ascent',on:'N₂ on-gassing',off:'N₂ off-gassing',pct:'100% = surfacing limit (GF High)',
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
@@ -306,13 +306,13 @@ en:{
  tank:'Tank',sac:'Breathing (SAC)',sacLo:'Low (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'High (25 L/min)',wGas:(v,m)=>`Surfacing with ${v} (below ${m})`,wGas0:'Out of air',
  tutBtn:'Tutorial (KR)',bmSurf:'Surface-based',bmSw:'Shearwater-style',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
  siTitle:'Surface interval',hUnit:'h',minUnit:'min',cancel:'Cancel',ok:'OK',
- axisMin:m=>String(m),axisLast:m=>m+' min',max:v=>`Max ${v}m`,total:v=>`Total ${v}`,
+ axisMin:m=>String(m),axisLast:m=>m+' min',max:v=>`Max ${DU(v)}`,total:v=>`Total ${v}`,
  empty:'Draw your depth profile on the graph. If you stop before surfacing, a suggested ascent is added.',
- stop:(d,m,s)=>`${d}m ${m} min${s?' (safety)':''}`,deco:'Deco required',nodeco:'No-deco',safety5:'5 m safety stop 3 min',toSurf:v=>`To surface ${v}`,
- wCeil:v=>`Ceiling violated ${v} min`,wFast:'Fast ascent',wMod:v=>`MOD ${v} m exceeded`,wOver:v=>`Over ${v} min`,
+ stop:(d,m,s)=>`${DS(d)} ${m} min${s?' (safety)':''}`,deco:'Deco required',nodeco:'No-deco',safety5:()=>`${DS(5)} safety stop 3 min`,toSurf:v=>`To surface ${v}`,
+ wCeil:v=>`Ceiling violated ${v} min`,wFast:'Fast ascent',wMod:v=>`MOD ${DU(v)} exceeded`,wOver:v=>`Over ${v} min`,
  minV:v=>v+' min',ndl:'NDL',ceiling:'Ceiling',play:'Play',pause:'Pause',siPick:(a,b)=>`Surface interval: dive ${a} → ${b}`,
  copy:'Copy',paste:n=>`Paste (dive ${n})`,dive:n=>'Dive '+n,delDive:'Delete this dive',addDive:'+ Add dive',
- sAir:'Air',sSum:(w,a,g,lo,hi,asc)=>`${w} · Alt ${a}m · ${g} · GF ${lo}/${hi} · Ascent ${asc}m/min`,
+ sAir:'Air',sSum:(w,a,g,lo,hi,asc)=>`${w} · Alt ${a}m · ${g} · GF ${lo}/${hi} · Ascent ${DU(asc)}/min`,
  bOn:'on-gassing',bOff:'off-gassing',bEq:'balanced',
  bar:(i,ht,n,v,st)=>`<b>Compartment ${i} · half-time ${ht} min</b>N₂ ${n} bar · ${v}% of surfacing limit · ${st}<br>Fast compartments (top) load and unload quickly; slow ones (bottom) load and unload slowly and carry over into repetitive dives.`,
  tips:{
@@ -352,7 +352,7 @@ ja:{
  title:'DTMD ダイブプランナー',h1:'DTMD ダイブプランナー',
  rule1:'1. ピンクのシーリングを出さないこと <small>= 無減圧潜水</small>',rule2:'2. ピンクのシーリングが出たら絶対に越えないこと <small>= 減圧潜水</small>',
  settings:'⚙ 設定',alt:'標高',sealevel:'0 m (海面)',custom:'直接入力',water:'水の種類',salt:'海水',fresh:'淡水',gas:'ガス',air21:'空気 (21%)',
- cons:'保守性',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'カスタム',asc:'プラン浮上速度',mpm:'m/分',
+ cons:'保守性',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'カスタム',asc:'プラン浮上速度',mpm:()=>(isFt()?'ft':'m')+'/分',
  draw:'描く',points:'点を打つ',erase:'点を消す',undo:'元に戻す',clear:'クリア',
  lgPath:'自分の経路',lgPlan:'推奨',lgCeil:'シーリング',lgFast:'急浮上',on:'窒素 吸収中',off:'窒素 排出中',pct:'100% = 浮上許容限界(GF High)',
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
@@ -361,13 +361,13 @@ ja:{
  tank:'タンク',sac:'呼吸量',sacLo:'少ない (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'多い (25 L/分)',wGas:(v,m)=>`浮上時残圧 ${v} (${m}未満)`,wGas0:'エア切れ',
  tutBtn:'チュートリアル(韓)',bmSurf:'水面基準',bmSw:'Shearwater式',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
  siTitle:'水面休息時間',hUnit:'時間',minUnit:'分',cancel:'キャンセル',ok:'OK',
- axisMin:m=>m+'分',max:v=>`最大 ${v}m`,total:v=>`合計 ${v}`,
+ axisMin:m=>m+'分',max:v=>`最大 ${DU(v)}`,total:v=>`合計 ${v}`,
  empty:'グラフに水深を描いてください。浮上まで描かなければ推奨プランが続きます。',
- stop:(d,m,s)=>`${d}m ${m}分${s?'(安全)':''}`,deco:'減圧が必要',nodeco:'無減圧',safety5:'5m 安全停止 3分',toSurf:v=>`浮上まで ${v}`,
- wCeil:v=>`シーリング違反 ${v}分`,wFast:'急浮上区間',wMod:v=>`MOD ${v}m 超過`,wOver:v=>`${v}分 超過`,
+ stop:(d,m,s)=>`${DS(d)} ${m}分${s?'(安全)':''}`,deco:'減圧が必要',nodeco:'無減圧',safety5:()=>`${DS(5)} 安全停止 3分`,toSurf:v=>`浮上まで ${v}`,
+ wCeil:v=>`シーリング違反 ${v}分`,wFast:'急浮上区間',wMod:v=>`MOD ${DU(v)} 超過`,wOver:v=>`${v}分 超過`,
  minV:v=>v+'分',ndl:'NDL',ceiling:'シーリング',play:'再生',pause:'一時停止',siPick:(a,b)=>`ダイブ ${a} → ${b} 水面休息`,
  copy:'コピー',paste:n=>`貼り付け (ダイブ ${n})`,dive:n=>'ダイブ '+n,delDive:'このダイブを削除',addDive:'+ ダイブ追加',
- sAir:'空気',sSum:(w,a,g,lo,hi,asc)=>`${w} · 標高 ${a}m · ${g} · GF ${lo}/${hi} · 浮上 ${asc}m/分`,
+ sAir:'空気',sSum:(w,a,g,lo,hi,asc)=>`${w} · 標高 ${a}m · ${g} · GF ${lo}/${hi} · 浮上 ${DU(asc)}/分`,
  bOn:'吸収中',bOff:'排出中',bEq:'平衡',
  bar:(i,ht,n,v,st)=>`<b>コンパートメント ${i} · 半減期 ${ht}分</b>窒素 ${n} bar · 浮上限界の ${v}% · ${st}<br>半減期の短いコンパートメント(上)は速く溜まり速く抜け、長いもの(下)はゆっくり溜まりゆっくり抜けるため、反復ダイビングに残ります。`,
  tips:{
@@ -406,6 +406,7 @@ ja:{
 let BM='surf';try{localStorage.removeItem('scuba_bm');}catch(e){}
 let LANG='ko';try{const l=localStorage.getItem('scuba_lang');if(l&&I18N[l])LANG=l;}catch(e){}
 {const h=(location.hash||'').slice(1);if(I18N[h]){LANG=h;try{localStorage.setItem('scuba_lang',h);}catch(e){}}}
+const FT=3.28084,isFt=()=>typeof S!=='undefined'&&S.pu==='psi',DU=v=>isFt()?Math.round(+v*FT)+'ft':v+'m',DS=v=>isFt()?Math.round(v*FT/5)*5+'ft':v+'m';
 function tr(k,...a){const v=(k in I18N[LANG])?I18N[LANG][k]:I18N.ko[k];return typeof v==='function'?v(...a):v;}
 // ===== ZHL-16C (N2) =====
 const HT=[5,8,12.5,18.5,27,38.3,54.3,77,109,146,187,239,305,390,498,635];
@@ -551,7 +552,11 @@ const fmt=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(
 function drawProfile(){
   const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);let labPos=null,timeTag=null;
   cx.font='11px sans-serif';cx.fillStyle='#6b7280';
-  for(let d=0;d<=DMAX;d+=5){
+  if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===60||f===100;
+    cx.strokeStyle=f===0?'#9ca3af':f===100?'#e5484d':f===60?'#6b7280':'#d1d5db';cx.setLineDash(f===0?[]:hi?[6,4]:[3,4]);cx.lineWidth=hi?1.4:1;
+    cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
+    cx.textAlign='right';cx.textBaseline='middle';cx.fillText(f+'ft',G.L-6,Y(d));}}
+  else for(let d=0;d<=DMAX;d+=5){
     cx.strokeStyle=d===0?'#9ca3af':d===30?'#e5484d':d===20?'#6b7280':'#d1d5db';cx.setLineDash(d===0?[]:d===20||d===30?[6,4]:[3,4]);cx.lineWidth=d===20||d===30?1.4:1;
     cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
     cx.textAlign='right';cx.textBaseline='middle';cx.fillText(d+'m',G.L-6,Y(d));
@@ -591,7 +596,7 @@ function drawProfile(){
     const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;
     $('lgMod').style.display=mod<DMAX?'':'none';
     if(mod<DMAX){cx.strokeStyle='#8b5cf6';cx.setLineDash([6,4]);cx.lineWidth=1.2;cx.beginPath();cx.moveTo(G.L,Y(mod));cx.lineTo(G.L+G.W,Y(mod));cx.stroke();cx.setLineDash([]);
-      cx.fillStyle='#8b5cf6';cx.textAlign='right';cx.textBaseline='bottom';cx.fillText('MOD '+mod.toFixed(1)+'m',G.L+G.W-4,Y(mod)-2);}
+      cx.fillStyle='#8b5cf6';cx.textAlign='right';cx.textBaseline='bottom';cx.fillText('MOD '+DU(mod.toFixed(1)),G.L+G.W-4,Y(mod)-2);}
     if(!drawing&&dv.pts.length>1){
       cx.strokeStyle='#6b7280';cx.lineWidth=1;cx.setLineDash([2,3]);cx.font='11px sans-serif';cx.fillStyle='#4b5563';
       const xn=X(Math.min(r.N,TMAX)),yd=Y(r.maxD);
@@ -670,7 +675,7 @@ function drawProfile(){
     if(hover.x>=G.L&&hover.x<=G.L+G.W){
       cx.strokeStyle='rgba(107,114,128,.5)';cx.setLineDash([2,3]);cx.lineWidth=1;cx.beginPath();
       cx.moveTo(hover.x,G.T);cx.lineTo(hover.x,G.T+G.H);cx.moveTo(G.L,hover.y);cx.lineTo(G.L+G.W,hover.y);cx.stroke();cx.setLineDash([]);
-      const txt=fmt(t)+' · '+d.toFixed(1)+'m';cx.font='12px sans-serif';const tw=cx.measureText(txt).width+10;
+      const txt=fmt(t)+' · '+DU(d.toFixed(1));cx.font='12px sans-serif';const tw=cx.measureText(txt).width+10;
       let bx=hover.x+10,by=hover.y-26;if(bx+tw>G.w)bx=hover.x-tw-10;if(by<0)by=hover.y+10;
       cx.fillStyle='rgba(31,35,40,.85)';cx.fillRect(bx,by,tw,20);cx.fillStyle='#fff';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(txt,bx+5,by+10);
     }
@@ -769,7 +774,7 @@ function renderSummary(){
 function updateStats(s){
   const r=RES[S.cur];s=clamp(Math.round(s)||0,0,r.N);
   const T=Array.from(r.snaps[s]),d=r.depth[s],c=r.c,anc=r.anc[s];
-  $('sT').textContent=fmt(s);$('sD').textContent=d.toFixed(1)+' m';
+  $('sT').textContent=fmt(s);$('sD').textContent=(isFt()?Math.round(d*FT)+' ft':d.toFixed(1)+' m');
   const decoNow=!okAt(T,0,c.hi);
   if(!decoNow){
     let ndl=Infinity;const pi=pin(d,c.fN2);
@@ -777,7 +782,7 @@ function updateStats(s){
     $('sNk').textContent=tr('ndl');$('sN').textContent=ndl===Infinity||ndl>99*60?tr('minV','99+'):tr('minV',Math.floor(ndl/60));$('sN').style.color='';
   }else{
     const ce=ceilAt(T,anc,c.lo,c.hi);$('sNk').textContent=tr('ceiling');
-    $('sN').textContent=ce.toFixed(1)+' m';$('sN').style.color=ce>d+0.3?'#e5484d':'#db2777';
+    $('sN').textContent=(isFt()?Math.round(ce*FT)+' ft':ce.toFixed(1)+' m');$('sN').style.color=ce>d+0.3?'#e5484d':'#db2777';
   }
   if(d>0.05){const pl=makePlan(T,d,anc,c);$('sTTS').textContent=tr('minV',Math.ceil(pl.t/60));}else $('sTTS').textContent='-';
   const sg=surfGF(T);
@@ -949,7 +954,7 @@ function syncForm(){
   $('altSel').value=S.altSel;$('altIn').classList.toggle('hide',S.altSel!=='c');$('altIn').value=S.alt;$('water').value=S.water;
   $('gas').value=S.gasSel;$('o2').classList.toggle('hide',S.gasSel!=='c');$('o2').value=S.o2;
   $('cons').value=S.cons;$('gfWrap').classList.toggle('hide',S.cons!=='custom');$('gfLo').value=S.gfLo;$('gfHi').value=S.gfHi;
-  $('asc').value=S.asc;$('tankV').value=String(S.tankV);[150,180,200].forEach((v,i)=>{const o=$('tankP').options[i]||$('tankP').appendChild(document.createElement('option'));o.value=v;o.textContent=pu(v)+' '+puN();});$('tankP').value=String(S.tankP);$('pu').value=S.pu;$('sac').value=String(S.sac);
+  $('asc').value=isFt()?Math.round(S.asc*FT):S.asc;$('asc').min=isFt()?10:3;$('asc').max=isFt()?60:18;document.querySelectorAll('[data-i18n=mpm]').forEach(e=>e.innerHTML=tr('mpm'));$('tankV').value=String(S.tankV);[150,180,200].forEach((v,i)=>{const o=$('tankP').options[i]||$('tankP').appendChild(document.createElement('option'));o.value=v;o.textContent=pu(v)+' '+puN();});$('tankP').value=String(S.tankP);$('pu').value=S.pu;$('sac').value=String(S.sac);
   $('setWrap').classList.toggle('open',S.setOpen);$('setHead').classList.toggle('open',S.setOpen);
   $('mFree').classList.toggle('on',S.mode==='free');$('mPt').classList.toggle('on',S.mode==='pt');$('mDel').classList.toggle('on',S.mode==='del');
   $('undo').disabled=!(dive().undo.length||dive().redoSnap);
@@ -964,7 +969,7 @@ $('o2').onchange=e=>{S.o2=clamp(+e.target.value||21,21,40);upd();};
 $('cons').onchange=e=>{S.cons=e.target.value;upd();};
 $('gfLo').onchange=e=>{S.gfLo=clamp(+e.target.value||40,10,100);upd();};
 $('gfHi').onchange=e=>{S.gfHi=clamp(+e.target.value||85,10,100);upd();};
-$('asc').onchange=e=>{S.asc=clamp(+e.target.value||9,3,18);upd();};
+$('asc').onchange=e=>{const v=+e.target.value;S.asc=v?clamp(isFt()?Math.round(v/FT*10)/10:v,3,18):9;upd();};
 $('tankV').onchange=e=>{S.tankV=+e.target.value;upd();};
 $('tankP').onchange=e=>{S.tankP=+e.target.value;upd();};
 $('pu').onchange=e=>{S.pu=e.target.value;try{localStorage.setItem('scuba_pu',S.pu);}catch(x){}upd();};
@@ -1107,8 +1112,8 @@ function hideOverlay(){if(OVL){OVL.remove();OVL=null;}}
 async function showRules(t){hideOverlay();const card=cv.closest('.card'),r=card.getBoundingClientRect();
   OVL=document.createElement('div');Object.assign(OVL.style,{position:'fixed',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',background:'rgba(15,20,26,.86)',borderRadius:'10px',zIndex:57,display:'flex',flexDirection:'column',justifyContent:'center',gap:'10px',padding:'14px',boxSizing:'border-box'});
   document.body.appendChild(OVL);
-  const items=['핑크색 천장이 안 나오게 (무감압)','나오면 절대 침범하지 않기','상승은 분당 9~10m 이하 · 5m 3분 안전정지','출수 때 공기 50bar 이상','싱글탱크 레저 다이빙은 무감압 한계 안에서'];
-  const RT=[0,4.15,7.58,12.76,15.84],synced=()=>!AU.paused&&/ko12\.mp3$/.test(AU.src);
+  const items=['핑크색 천장이 안 나오게 (무감압)','나오면 절대 침범하지 않기','상승은 분당 9~10m 이하 · 5m 3분 안전정지','출수 때 공기 50bar 이상'];
+  const RT=[0,4.15,7.58,12.76],synced=()=>!AU.paused&&/ko12\.mp3$/.test(AU.src);
   for(let i=0;i<items.length;i++){chk(t);
     if(synced()){while(synced()&&AU.currentTime<RT[i]){await sleep(50);chk(t);}}else if(i>0)await sleep(900);
     chk(t);const b=document.createElement('div');
@@ -1141,7 +1146,7 @@ const STEPS=[
  set:()=>setState(B1,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mDel'),t);await delPoint(1800,0,t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(2044),r.top+Y(6),700,t);await sleep(900);await moveTo(r.left+G.L+G.W+15,r.top+G.T+G.H*0.85,700,t);await sleep(1300);}},
 {p:'2부 · 천장 위반',ti:'⑪ 플랜 고치기',tx:'첫째, 바닥 시간을 줄일 것. 둘째, 또는 더 얕게 다이빙. 셋째, 천천히 상승하고 5미터 안전정지. 바닥을 떠나는 점을 13분으로 당기고 상승 점을 찍으니 천장이 사라지고 공기도 넉넉해요.',
  set:()=>setState(B2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1680,30],[780,30],t);for(const [a,b] of [[960,12],[1620,12],[1740,5],[1920,5],[1980,0]])await tapPoint(a,b,t);await sleep(400);}},
-{p:'정리',ti:'⑫ 기억할 것',tx:'하나, 핑크색 천장이 안 나오게. 무감압. 둘, 나오면 절대 침범하지 않기. 셋, 상승은 분당 9에서 10미터 이하, 5미터 3분 안전정지. 넷, 출수 때 공기 50바 이상. 다섯, 싱글탱크 레저 다이빙은 무감압 한계 안에서.',
+{p:'정리',ti:'⑫ 기억할 것',tx:'하나, 핑크색 천장이 안 나오게. 무감압. 둘, 나오면 절대 침범하지 않기. 셋, 상승은 분당 9에서 10미터 이하, 5미터 3분 안전정지. 넷, 출수 때 공기 50바 이상.',
  set:()=>setState(B3,'none'),go:async t=>{await scrollTo(GRAPH(),t);showHand(false);await showRules(t);}}];
 async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];hideOverlay();
   document.getElementById('tutPart').textContent=st.p;document.getElementById('tutCnt').textContent=(i+1)+' / '+STEPS.length;
@@ -1152,10 +1157,15 @@ async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];hideOverlay();
   sp.then(()=>{if(TW===tw)typeAll();});
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
     if(i===STEPS.length-1){await sleep(400);chk(t);await playClip(clip(STEPS.length+1));chk(t);}
-    DONE=t;
+    DONE=t;if(i===STEPS.length-1)armBlank(t);
     if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
-function start(){if(ON)return;ON=true;try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
-function end(){TOK++;ON=false;hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
+let PU0=null;
+function armBlank(t){const h=e=>{if(t!==TOK){document.removeEventListener('click',h,true);return;}
+    if(e.target.closest&&e.target.closest('#tutPrev,#tutVoice,#tutAuto,#splash'))return;
+    document.removeEventListener('click',h,true);e.preventDefault();e.stopPropagation();end();setState(A0,'free');window.scrollTo({top:0,behavior:'smooth'});};
+  setTimeout(()=>document.addEventListener('click',h,true),0);}
+function start(){if(ON)return;ON=true;if(S.pu!=='bar'){PU0=S.pu;S.pu='bar';syncForm();}try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
+function end(){TOK++;ON=false;if(PU0){S.pu=PU0;PU0=null;syncForm();recompute();}hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
 document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
 document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
 document.getElementById('tutEnd').onclick=end;
@@ -1165,15 +1175,17 @@ const syncTB=()=>{vb.classList.toggle('on',VOICE);vb.textContent=VOICE?'🔊':'�
 vb.onclick=()=>{VOICE=!VOICE;if(!VOICE)hush();else{const st=STEPS[IDX];playClip(clip(IDX+1),()=>speak(st.ti+'. '+st.tx));}syncTB();};
 ab.onclick=()=>{AUTO=!AUTO;syncTB();if(AUTO&&ON&&DONE===TOK&&IDX<STEPS.length-1){const t=TOK;setTimeout(()=>{if(t===TOK&&AUTO)run(IDX+1);},400);}};
 syncTB();try{if(SS){SS.getVoices();SS.onvoiceschanged=()=>{if(VSEL===null)VSEL=undefined;koVoice();};}}catch(e){}
-window.startTutorial=start;
+window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
 })();
 </script>
 
 <script>
 (function(){const sp=document.getElementById('splash');if(!sp)return;
   let lang='ko';try{lang=localStorage.getItem('scuba_lang')||'ko';}catch(e){}const h=(location.hash||'').slice(1);if(h==='en'||h==='ja'||h==='ko')lang=h;
-  if(lang!=='ko'){sp.remove();return;}
-  const close=()=>sp.remove();
+  const close=()=>{sp.style.display='none';};
+  window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';window.scrollTo(0,0);};
+  const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';t.addEventListener('click',()=>window.showSplash());}
+  if(lang!=='ko')close();
   document.getElementById('spSkip').onclick=close;
   document.getElementById('spTut').onclick=()=>{close();window.startTutorial&&window.startTutorial();};})();
 </script>
