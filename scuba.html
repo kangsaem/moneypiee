@@ -19,7 +19,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#e5484d;color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 2px 12px}
-.top h1{margin:0;font-size:clamp(16px,4.6vw,19px)}
+.top h1{margin:0;font-size:clamp(16px,4.6vw,19px);word-break:keep-all}
 .bmode{margin-bottom:8px}
 .bmode button{font-size:12px;padding:4px 10px}
 .lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85)}
@@ -109,7 +109,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 </head>
 <body>
 <div class="wrap">
-<div class="top"><h1 data-i18n="h1">Bühlmann 다이빙 플래너</h1><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></div>
+<div class="top"><h1 data-i18n="h1">Bühlmann 다이빙 플래너</h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
 <div class="rule">
   <div data-i18n="rule1">1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
   <div data-i18n="rule2">2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
@@ -239,7 +239,7 @@ ko:{
  disc:'교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',
  model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 헬륨·산소 독성(CNS/OTU)은 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
  tank:'탱크',sac:'호흡량',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:v=>`출수 잔압 ${v}bar (50 미만)`,wGas0:'공기 고갈',
- bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
+ tutBtn:'튜토리얼',bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
  siTitle:'수면휴식 시간',hUnit:'시간',minUnit:'분',cancel:'취소',ok:'확인',
  axisMin:m=>m+'분',max:v=>`최대 ${v}m`,total:v=>`총 ${v}`,
  empty:'그래프에 수심을 그려 주세요. 출수까지 안 그리면 추천 플랜이 이어집니다.',
@@ -294,7 +294,7 @@ en:{
  disc:'For education and learning only. Do not use it to plan real dives or as a substitute for a dive computer.',
  model:'Model: Bühlmann ZHL-16C, 16 nitrogen compartments, Baker gradient factors, water vapour 0.0627 bar, 1-second steps. Deco stops in 3 m steps and whole minutes, last stop 3 m. A 3-minute safety stop at 5 m is included. Altitude assumes you are acclimatised. Helium and oxygen toxicity (CNS/OTU) are not calculated. Results can differ from real dive computers by a few minutes because of how stops are handled and rounded.',
  tank:'Tank',sac:'Breathing (SAC)',sacLo:'Low (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'High (25 L/min)',wGas:v=>`Surfacing with ${v} bar (below 50)`,wGas0:'Out of air',
- bmSurf:'Surface-based',bmSw:'Shearwater-style',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
+ tutBtn:'Tutorial (KR)',bmSurf:'Surface-based',bmSw:'Shearwater-style',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
  siTitle:'Surface interval',hUnit:'h',minUnit:'min',cancel:'Cancel',ok:'OK',
  axisMin:m=>String(m),axisLast:m=>m+' min',max:v=>`Max ${v}m`,total:v=>`Total ${v}`,
  empty:'Draw your depth profile on the graph. If you stop before surfacing, a suggested ascent is added.',
@@ -349,7 +349,7 @@ ja:{
  disc:'教育・学習用のシミュレーターです。実際のダイビング計画やダイブコンピューターの代わりに使用しないでください。',
  model:'計算: Bühlmann ZHL-16C 窒素16コンパートメント、Baker グラディエントファクター、水蒸気圧 0.0627 bar、1秒単位の計算。減圧停止は3 m刻み・1分単位、最終停止 3 m。5 mで3分の安全停止を含む。標高はその標高に順応した状態を想定。ヘリウム・酸素毒性(CNS/OTU)は計算しません。停止の扱いや丸め方の違いにより、実際のダイブコンピューターと数分の差が出ることがあります。',
  tank:'タンク',sac:'呼吸量',sacLo:'少ない (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'多い (25 L/分)',wGas:v=>`浮上時残圧 ${v}bar (50未満)`,wGas0:'エア切れ',
- bmSurf:'水面基準',bmSw:'Shearwater式',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
+ tutBtn:'チュートリアル(韓)',bmSurf:'水面基準',bmSw:'Shearwater式',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
  siTitle:'水面休息時間',hUnit:'時間',minUnit:'分',cancel:'キャンセル',ok:'OK',
  axisMin:m=>m+'分',max:v=>`最大 ${v}m`,total:v=>`合計 ${v}`,
  empty:'グラフに水深を描いてください。浮上まで描かなければ推奨プランが続きます。',
@@ -966,5 +966,109 @@ syncBM();
 applyLang();
 layout();syncForm();recompute();modeChanged();
 </script>
+<style>
+#tutHand{position:fixed;left:0;top:0;font-size:34px;line-height:1;z-index:60;pointer-events:none;transform:translate(-38%,-6%);filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));display:none;transition:none}
+.tutRip{position:fixed;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:3px solid #e5484d;z-index:59;pointer-events:none;animation:tutRip .6s ease-out forwards}
+@keyframes tutRip{from{transform:scale(.4);opacity:1}to{transform:scale(2.6);opacity:0}}
+#tutBox{position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(94vw,540px);background:rgba(20,24,30,.94);color:#fff;border-radius:12px;padding:12px 14px;z-index:58;box-shadow:0 6px 24px rgba(0,0,0,.35);display:none;font-size:14px;line-height:1.6}
+#tutBox .hd{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#9ca3af;margin-bottom:4px}
+#tutBox .tt{font-weight:700;font-size:15px;margin-bottom:4px}
+#tutBox .bt{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+#tutBox button{background:#374151;color:#fff;border:0}
+#tutBox button.pri{background:#e5484d}
+.tutHi{outline:3px solid #e5484d!important;outline-offset:2px;border-radius:6px}
+.tutBtn{font-size:11px;padding:4px 9px;background:#e5484d;color:#fff;border:0;border-radius:6px;margin-right:6px;white-space:nowrap}
+</style>
+<div id="tutHand">👆</div>
+<div id="tutBox"><div class="hd"><span id="tutPart"></span><span id="tutCnt"></span></div><div class="tt" id="tutTitle"></div><div id="tutText"></div>
+<div class="bt"><button id="tutEnd">종료</button><button id="tutPrev">이전</button><button id="tutNext" class="pri">다음</button></div></div>
+<script>
+// ===== 튜토리얼 =====
+(function(){
+const H=document.getElementById('tutHand'),BOX=document.getElementById('tutBox');
+let TOK=0,IDX=0,ON=false;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+class Stop extends Error{}
+const chk=t=>{if(t!==TOK)throw new Stop();};
+let hx=innerWidth/2,hy=innerHeight/2;
+const showHand=v=>{H.style.display=v?'block':'none';};
+const setHand=(x,y)=>{hx=x;hy=y;H.style.left=x+'px';H.style.top=y+'px';};
+async function moveTo(x,y,ms,t){const x0=hx,y0=hy,n=Math.max(1,Math.round(ms/16));for(let i=1;i<=n;i++){chk(t);const u=i/n,e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;setHand(x0+(x-x0)*e,y0+(y-y0)*e);await sleep(16);}}
+function ripple(x,y){const d=document.createElement('div');d.className='tutRip';d.style.left=x+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),700);}
+async function scrollTo(el,t,block){el.scrollIntoView({behavior:'smooth',block:block||'center'});await sleep(650);chk(t);}
+const ctr=el=>{const r=el.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2];};
+const cpt=(tm,d)=>{const r=cv.getBoundingClientRect();return [r.left+X(tm),r.top+Y(d)];};
+async function tapEl(el,t,click=true){const [x,y]=ctr(el);await moveTo(x,y,550,t);el.classList.add('tutHi');ripple(x,y);await sleep(220);chk(t);if(click)el.click();await sleep(380);el.classList.remove('tutHi');chk(t);}
+async function point(el,t,ms){const [x,y]=ctr(el);await moveTo(x,y,600,t);el.classList.add('tutHi');await sleep(ms||900);el.classList.remove('tutHi');chk(t);}
+function setState(pts,mode){stopPlay();S.dives=[newDive()];S.cur=0;S.dives[0].pts=pts.map(([a,b])=>({t:a,d:b}));S.mode=mode||'none';S.bm='surf';
+  S.alt=0;S.altSel='0';S.water='salt';S.gasSel='21';S.o2=21;S.cons='med';S.asc=9;S.tankV=12;S.tankP=200;S.sac=20;S.setOpen=false;
+  syncForm();syncBM();recompute();modeChanged();}
+async function drawPath(path,t,dur){ // 그리기 모드 손 드래그
+  const dv=dive();dv.pts=[{t:0,d:0}];drawing=true;
+  const seg=[];for(let i=1;i<path.length;i++)seg.push([path[i-1],path[i]]);
+  const n=Math.round(dur/16);let [x,y]=cpt(path[0][0],path[0][1]);await moveTo(x,y,400,t);
+  for(let i=1;i<=n;i++){chk(t);const u=i/n*seg.length,k=Math.min(seg.length-1,Math.floor(u)),f=u-k;const [a,b]=seg[k];
+    const tm=a[0]+(b[0]-a[0])*f,d=a[1]+(b[1]-a[1])*f+(Math.sin(i*.7)*.25);addFree(tm,Math.max(0,d));[x,y]=cpt(tm,d);setHand(x,y);drawProfile();await sleep(16);}
+  drawing=false;}
+async function tapPoint(tm,d,t){const [x,y]=cpt(tm,d);await moveTo(x,y,500,t);ripple(x,y);await sleep(200);chk(t);
+  const pts=dive().pts;pushUndo();const q={t:tm,d};let i=pts.findIndex(p=>p.t>tm);if(i<0)i=pts.length;pts.splice(i,0,q);recompute();await sleep(350);chk(t);}
+async function dragPoint(from,to,t){const pts=dive().pts;let i=pts.findIndex(p=>p.t===from[0]&&p.d===from[1]);if(i<0)return;
+  let [x,y]=cpt(from[0],from[1]);await moveTo(x,y,500,t);ripple(x,y);await sleep(250);pushUndo();
+  const n=50;for(let k=1;k<=n;k++){chk(t);const u=k/n,tm=from[0]+(to[0]-from[0])*u,d=from[1]+(to[1]-from[1])*u;pts[i]={t:tm,d};[x,y]=cpt(tm,d);setHand(x,y);if(k%5===0||k===n)recompute();else drawProfile();await sleep(24);}
+  pts[i]={t:to[0],d:to[1]};recompute();await sleep(300);}
+async function delPoint(tm,d,t){const [x,y]=cpt(tm,d);await moveTo(x,y,500,t);ripple(x,y);await sleep(220);const pts=dive().pts;const i=pts.findIndex(p=>p.t===tm&&p.d===d);if(i>0){pushUndo();pts.splice(i,1);recompute();}await sleep(350);chk(t);}
+async function waitPlay(t){while(P.run){chk(t);await sleep(100);}}
+const GRAPH=()=>cv,BARS=()=>$('bars');
+// --- 경로 상태
+const A0=[[0,0]],A1=[[0,0],[180,18],[1500,18]],A2=[...A1,[1620,10],[1740,5],[1920,5],[1980,0]],
+A3=[[0,0],[180,18],[1320,18],[1440,10],[1560,5],[1740,5],[1800,0]],
+B1=[[0,0],[180,30],[1680,30],[1800,0]],B2=[[0,0],[180,30],[1680,30]],
+B3=[[0,0],[180,30],[780,30],[960,12],[1080,5],[1260,5],[1320,0]];
+const STEPS=[
+{p:'1부 · 무감압 다이빙',ti:'튜토리얼 시작',tx:'손가락을 따라 플래너 쓰는 법을 배워요. 1부는 <b>이상적인 무감압 다이빙</b> 그리기, 2부는 <b>천장을 침범한 위험한 다이빙</b>과 고치는 법이에요. 설정은 공기, 보수도 중간(GF 40/85), 12L·200bar 탱크, 호흡량 보통이에요.',
+ set:()=>setState(A0,'free'),go:async t=>{await scrollTo(GRAPH(),t);showHand(true);const [x,y]=ctr(GRAPH());setHand(x,y);await point(GRAPH(),t,600);}},
+{p:'1부 · 무감압 다이빙',ti:'① 그리기 모드',tx:'<b>그리기</b>를 고르고 그래프 위를 누른 채로 끌면 수심 경로가 그려져요. 가로는 시간(분), 세로는 수심(m)이에요.',
+ set:()=>setState(A0,'none'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mFree'),t);}},
+{p:'1부 · 무감압 다이빙',ti:'② 내려가서 머물기',tx:'3분에 걸쳐 18m까지 내려가 25분까지 머물러 볼게요. 출수하기 전에 손을 떼면 <span style="color:#34d399">초록 점선(추천 경로)</span>이 자동으로 이어져요. 5m 안전정지 3분 후 출수하라는 뜻이에요.',
+ set:()=>setState(A0,'free'),go:async t=>{await scrollTo(GRAPH(),t);await drawPath([[0,0],[180,18],[1500,18]],t,2600);dive().pts=A1.map(([a,b])=>({t:a,d:b}));recompute();await sleep(500);}},
+{p:'1부 · 무감압 다이빙',ti:'③ 점찍기로 상승 만들기',tx:'<b>점찍기</b>로 바꾸고 점을 하나씩 찍어요. 10m → 5m는 <b>분당 9m 이하</b>로 천천히, <b>5m에서 3분 안전정지</b> 후 수면(0m)으로. 0m에 닿으면 다이빙이 끝나요.',
+ set:()=>setState(A1,'free'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mPt'),t);for(const [a,b] of [[1620,10],[1740,5],[1920,5],[1980,0]])await tapPoint(a,b,t);}},
+{p:'1부 · 무감압 다이빙',ti:'④ 점을 끌어서 다듬기',tx:'점은 끌어서 옮길 수 있어요. 바닥을 떠나는 점을 25분 → <b>22분</b>으로 당겨 바닥 시간을 줄였어요. 바닥 시간이 짧을수록 NDL 여유가 커지고 공기도 덜 써요.',
+ set:()=>setState(A2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1500,18],[1320,18],t);
+   const pts=dive().pts;const sh=[[1620,1440],[1740,1560],[1920,1740],[1980,1800]];
+   for(const [f,to] of sh){const i=pts.findIndex(p=>p.t===f);if(i>0)pts[i].t=to;}recompute();await sleep(400);}},
+{p:'1부 · 무감압 다이빙',ti:'⑤ 잘못 찍은 점 지우기',tx:'실수로 엉뚱한 곳(10m)에 점을 찍으면 경로가 튀어요. <b>점지우기</b>를 고르고 그 점을 누르면 지워져요. (실행취소로 되돌릴 수도 있어요.)',
+ set:()=>setState(A3,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapPoint(900,10,t);await sleep(500);await tapEl($('mDel'),t);await delPoint(900,10,t);await tapEl($('mDel'),t);}},
+{p:'1부 · 무감압 다이빙',ti:'⑥ 이상적인 무감압 다이빙',tx:'완성! <b>핑크색 천장이 없고</b>, 경고도 없어요. 라벨은 최대 수심·총 시간, 그래프 오른쪽 끝 막대는 <b>남은 공기</b>예요(주황선 = 50bar). 출수 때 50bar 이상 남기는 게 기본이에요.',
+ set:()=>setState(A3,'none'),go:async t=>{await scrollTo(GRAPH(),t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(1150),r.top+Y(10),600,t);await sleep(800);await moveTo(r.left+G.L+G.W+15,r.top+G.T+G.H*0.6,700,t);await sleep(1200);}},
+{p:'1부 · 무감압 다이빙',ti:'⑦ 플레이',tx:'▶를 누르면 다이빙이 재생돼요. 내려가는 동안 질소가 쌓이고(<span style="color:#f87171">빨강</span>), 올라오면 빠져요(<span style="color:#60a5fa">파랑</span>). 오른쪽 공기 막대도 줄어들어요. 재생 중엔 그래프 위 점을 잡고 좌우로 움직일 수 있어요.',
+ set:()=>{setState(A3,'none');P.sp=2;},go:async t=>{await scrollTo($('playBtn'),t,'center');await tapEl($('playBtn'),t);await scrollTo(BARS(),t,'start');await waitPlay(t);}},
+{p:'1부 · 무감압 다이빙',ti:'⑧ 통계 읽기',tx:'<b>NDL</b>: 감압 없이 머물 수 있는 남은 시간. <b>수면 GF</b>: 지금 바로 출수하면 한계의 몇 %인지 — GF High(85%)보다 낮으면 무감압이에요. 막대가 모두 100% 아래면 바로 출수해도 되는 상태예요. 이 다이빙은 끝까지 NDL이 남아 있었어요.',
+ set:()=>{setState(A3,'none');seek(1300);},go:async t=>{await scrollTo(BARS(),t,'start');await point(document.querySelector('[data-tip=ndl]'),t,1300);await point(document.querySelector('[data-tip=gf]'),t,1300);await point(BARS(),t,1200);}},
+{p:'2부 · 천장 위반',ti:'⑨ 위험한 다이빙 그리기',tx:'이번엔 <b>30m에서 28분</b> 머문 뒤 2분 만에 바로 올라와 볼게요. 그래프에 <b style="color:#f472b6">핑크색 천장</b>이 생기고, 경로가 그걸 뚫고 올라가요.',
+ set:()=>setState(A0,'pt'),go:async t=>{await scrollTo(GRAPH(),t);for(const [a,b] of [[180,30],[1680,30],[1800,0]])await tapPoint(a,b,t);await sleep(500);}},
+{p:'2부 · 천장 위반',ti:'⑩ 왜 위험한가',tx:'NDL을 넘겨 오래 머물면 질소가 많이 쌓여 <b>천장</b>(이보다 얕게 오르면 안 되는 수심)이 생겨요. 천장을 뚫고 빨리 올라오면 몸속 질소가 기포가 되어 <b>감압병</b> 위험이 커져요. 빨간 경고: 천장 위반, 급상승, 그리고 공기도 50bar 밑으로 떨어졌어요.',
+ set:()=>setState(B1,'none'),go:async t=>{await scrollTo(GRAPH(),t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(1700),r.top+Y(6),600,t);await sleep(1200);await scrollTo($('warnBox'),t);await point($('warnBox'),t,1500);}},
+{p:'2부 · 천장 위반',ti:'⑪ 감압하면 되지 않나? → 싱글탱크 한계',tx:'바로 올라오지 않고 바닥에서 멈추면 추천 경로가 <b>감압 정지</b>를 넣어줘요. 하지만 오른쪽 공기 막대를 보면 <b>정지 도중 공기가 바닥나요</b>. 12L 탱크 하나로는 30m 28분 + 감압을 버틸 수 없어요. 레저용 싱글탱크 다이빙은 <b>무감압 한계 안</b>에서 끝내야 해요.',
+ set:()=>setState(B1,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mDel'),t);await delPoint(1800,0,t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(2100),r.top+Y(5),700,t);await sleep(900);await moveTo(r.left+G.L+G.W+15,r.top+G.T+G.H*0.85,700,t);await sleep(1300);}},
+{p:'2부 · 천장 위반',ti:'⑫ 플랜 고치기',tx:'고치는 법: ① <b>바닥 시간을 NDL 안으로</b>(30m는 약 13분) ② 또는 <b>더 얕게</b> 다이빙 ③ <b>천천히 상승 + 5m 안전정지</b>. 바닥을 떠나는 점을 13분으로 당기고 상승 점을 찍으니 천장이 사라지고 공기도 넉넉해요.',
+ set:()=>setState(B2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1680,30],[780,30],t);for(const [a,b] of [[960,12],[1080,5],[1260,5],[1320,0]])await tapPoint(a,b,t);await sleep(400);}},
+{p:'정리',ti:'⑬ 기억할 것',tx:'1. 핑크색 천장이 안 나오게(무감압) 2. 나오면 절대 침범하지 않기 3. 상승은 분당 9~10m 이하, 5m 3분 안전정지 4. 출수 때 공기 50bar 이상 5. 싱글탱크 레저 다이빙은 무감압 한계 안에서. <br><span style="color:#9ca3af">교육용 시뮬레이터예요. 실제 다이빙은 다이브 컴퓨터와 교육받은 절차를 따르세요.</span>',
+ set:()=>setState(B3,'none'),go:async t=>{await scrollTo(GRAPH(),t);showHand(false);}}
+];
+async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];
+  document.getElementById('tutPart').textContent=st.p;document.getElementById('tutCnt').textContent=(i+1)+' / '+STEPS.length;
+  document.getElementById('tutTitle').textContent=st.ti;document.getElementById('tutText').innerHTML=st.tx;
+  document.getElementById('tutPrev').disabled=i===0;document.getElementById('tutNext').textContent=i===STEPS.length-1?'끝내기':'다음';
+  try{st.set();showHand(i<STEPS.length-1);await st.go(t);}catch(e){if(!(e instanceof Stop))console.error(e);}}
+function start(){if(ON)return;ON=true;if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
+function end(){TOK++;ON=false;BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
+document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
+document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
+document.getElementById('tutEnd').onclick=end;
+window.startTutorial=start;
+})();
+</script>
+
 </body>
 </html>
