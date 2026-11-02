@@ -143,6 +143,13 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
         <span id="gfWrap" class="hide">Low <input type="number" id="gfLo" min="10" max="100"> High <input type="number" id="gfHi" min="10" max="100"></span>
       </label>
       <label><span class="tip" data-tip="asc" data-i18n="asc">플랜 상승속도</span> <input type="number" id="asc" min="3" max="18" step="1"> <span data-i18n="mpm">m/분</span></label>
+      <label><span class="tip" data-tip="tank" data-i18n="tank">탱크</span>
+        <select id="tankV"><option value="10">10 L</option><option value="11.1">11.1 L (AL80)</option><option value="12">12 L</option><option value="15">15 L</option></select>
+        <select id="tankP"><option value="150">150 bar</option><option value="180">180 bar</option><option value="200">200 bar</option></select>
+      </label>
+      <label><span class="tip" data-tip="sac" data-i18n="sac">호흡량</span>
+        <select id="sac"><option value="15" data-i18n="sacLo">적음 (15 L/분)</option><option value="20" data-i18n="sacMd">보통 (20 L/분)</option><option value="25" data-i18n="sacHi">많음 (25 L/분)</option></select>
+      </label>
     </div>
   </div>
   </div></div>
@@ -231,6 +238,7 @@ ko:{
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
  disc:'교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',
  model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 헬륨·산소 독성(CNS/OTU)은 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
+ tank:'탱크',sac:'호흡량',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:v=>`출수 잔압 ${v}bar (50 미만)`,wGas0:'공기 고갈',
  bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
  siTitle:'수면휴식 시간',hUnit:'시간',minUnit:'분',cancel:'취소',ok:'확인',
  axisMin:m=>m+'분',max:v=>`최대 ${v}m`,total:v=>`총 ${v}`,
@@ -265,6 +273,8 @@ ko:{
   deco:['감압 필요','NDL을 넘겨, 출수 전에 정해진 수심에서 정해진 시간 동안 멈춰야 하는 상태.'],
   nodeco:['무감압','감압 정지 없이 바로 출수할 수 있는 상태. 안전정지만 권장.'],
   safety:['안전정지','5m에서 3분. 의무 정지는 아니지만 기포를 줄이기 위해 권장. 추천 경로에 자동으로 포함.'],
+  tank:['탱크','탱크 내부 용량(L)과 충전 압력(bar). 다이빙마다 가득 채운 탱크 1개로 계산. 그래프 오른쪽 끝 막대가 남은 공기(잔압)이고, 주황선이 50bar(출수 여유분).'],
+  sac:['호흡량 (SAC)','수면에서 1분에 마시는 공기량. 수심이 깊을수록 압력만큼 더 씀(20m=3배). 초보는 대개 20~25 L/분. 긴장·추위·운동하면 늘어남.'],
   gf99:['GF99 (현재 GF)','지금 수심 기준으로, 가장 많이 쌓인 구획이 주변 압력과 M값 사이 어디쯤인지(%). 0% = 주변 압력 이하, 100% = M값. 감압 정지 중 이 값이 GF 설정보다 낮으면 더 올라가도 됨(쉐어워터 표기).<br>이름의 "99"는 특별한 계산 의미가 없음. 쉐어워터가 유래를 밝히지 않았고, 화면 라벨 글자 수 제한 때문이라는 추측 등이 있음. 뜻은 "지금 수심 기준 GF".'],
   swIn:['들이마신 질소','지금 들이마시는 질소의 분압. 막대가 이 선보다 짧으면 흡수, 길면 배출.'],
   swAmb:['주변 압력','지금 수심의 압력. 막대가 이 선을 넘는 것(과포화, 점선 테두리)은 정상 = 질소가 빠지는 중. 위험 기준은 GF 한계선과 M값.'],
@@ -283,6 +293,7 @@ en:{
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
  disc:'For education and learning only. Do not use it to plan real dives or as a substitute for a dive computer.',
  model:'Model: Bühlmann ZHL-16C, 16 nitrogen compartments, Baker gradient factors, water vapour 0.0627 bar, 1-second steps. Deco stops in 3 m steps and whole minutes, last stop 3 m. A 3-minute safety stop at 5 m is included. Altitude assumes you are acclimatised. Helium and oxygen toxicity (CNS/OTU) are not calculated. Results can differ from real dive computers by a few minutes because of how stops are handled and rounded.',
+ tank:'Tank',sac:'Breathing (SAC)',sacLo:'Low (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'High (25 L/min)',wGas:v=>`Surfacing with ${v} bar (below 50)`,wGas0:'Out of air',
  bmSurf:'Surface-based',bmSw:'Shearwater-style',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
  siTitle:'Surface interval',hUnit:'h',minUnit:'min',cancel:'Cancel',ok:'OK',
  axisMin:m=>String(m),axisLast:m=>m+' min',max:v=>`Max ${v}m`,total:v=>`Total ${v}`,
@@ -317,6 +328,8 @@ en:{
   deco:['Deco required','You have passed the NDL and must stop at set depths for set times before surfacing.'],
   nodeco:['No-deco','You can surface without deco stops. A safety stop is still recommended.'],
   safety:['Safety stop','3 minutes at 5 m. Not mandatory, but recommended to reduce bubbles. Included automatically in the suggested ascent.'],
+  tank:['Tank','Water capacity (L) and fill pressure (bar). Each dive starts with one full tank. The bar at the right edge of the graph is remaining gas; the orange mark is 50 bar (reserve).'],
+  sac:['Breathing (SAC)','Air you breathe per minute at the surface. Deeper means more (20 m = 3×). New divers are typically 20–25 L/min; stress, cold and effort raise it.'],
   gf99:['GF99 (current GF)','At the current depth, where the most-loaded compartment sits between ambient pressure and its M-value (%). 0% = at or below ambient, 100% = M-value. During deco, if it is below your GF you may ascend further (Shearwater convention).<br>The "99" has no mathematical meaning. Shearwater has not explained the name; one guess is a short on-screen label limit. It simply means "GF at the current depth".'],
   swIn:['Inspired N₂','Partial pressure of the nitrogen you breathe now. Bars shorter than this line are on-gassing, longer ones off-gassing.'],
   swAmb:['Ambient','Pressure at the current depth. Bars beyond this line (supersaturated, dotted outline) are normal = nitrogen is leaving. The danger markers are the GF limit line and the M-value.'],
@@ -335,6 +348,7 @@ ja:{
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
  disc:'教育・学習用のシミュレーターです。実際のダイビング計画やダイブコンピューターの代わりに使用しないでください。',
  model:'計算: Bühlmann ZHL-16C 窒素16コンパートメント、Baker グラディエントファクター、水蒸気圧 0.0627 bar、1秒単位の計算。減圧停止は3 m刻み・1分単位、最終停止 3 m。5 mで3分の安全停止を含む。標高はその標高に順応した状態を想定。ヘリウム・酸素毒性(CNS/OTU)は計算しません。停止の扱いや丸め方の違いにより、実際のダイブコンピューターと数分の差が出ることがあります。',
+ tank:'タンク',sac:'呼吸量',sacLo:'少ない (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'多い (25 L/分)',wGas:v=>`浮上時残圧 ${v}bar (50未満)`,wGas0:'エア切れ',
  bmSurf:'水面基準',bmSw:'Shearwater式',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
  siTitle:'水面休息時間',hUnit:'時間',minUnit:'分',cancel:'キャンセル',ok:'OK',
  axisMin:m=>m+'分',max:v=>`最大 ${v}m`,total:v=>`合計 ${v}`,
@@ -369,6 +383,8 @@ ja:{
   deco:['減圧が必要','NDLを超えたため、浮上前に決められた水深で決められた時間止まる必要がある状態。'],
   nodeco:['無減圧','減圧停止なしで直接浮上できる状態。安全停止のみ推奨。'],
   safety:['安全停止','5mで3分。義務ではないが気泡を減らすため推奨。推奨経路に自動で含まれる。'],
+  tank:['タンク','タンク容量(L)と充填圧(bar)。ダイブごとに満タンのタンク1本で計算。グラフ右端のバーが残圧、オレンジの線が50bar(浮上時の余裕)。'],
+  sac:['呼吸量 (SAC)','水面で1分間に吸う空気量。深いほど圧力の分だけ多く使う(20m=3倍)。初心者は大体20〜25 L/分。緊張・寒さ・運動で増える。'],
   gf99:['GF99 (現在のGF)','現在の水深を基準に、最も窒素が溜まったコンパートメントが周囲圧とM値の間のどこにあるか(%)。0% = 周囲圧以下、100% = M値。減圧停止中にこの値がGF設定より低ければさらに浮上できる(Shearwaterの表記)。<br>名前の「99」に計算上の意味はない。Shearwaterは由来を明かしておらず、画面表示の文字数制限によるという推測などがある。意味は「現在の水深基準のGF」。'],
   swIn:['吸気の窒素','今吸っている窒素の分圧。バーがこの線より短ければ吸収、長ければ排出。'],
   swAmb:['周囲圧','現在の水深の圧力。バーがこの線を超えるのは正常(過飽和、点線の枠)= 窒素が抜けている状態。危険の基準はGF限界線とM値。'],
@@ -478,12 +494,15 @@ function simulate(dv,T0,c){
     if(t5>=0&&inZone<170){const up5=Math.round(5/(c.asc/60));
       alt={t0:t5,plan:{pts:[{t:0,d:5},{t:180,d:5},{t:180+up5,d:0}],stops:[{d:5,s:180,safety:true}],t:180+up5,deco:false},safetyOnly:true};}
   }
-  return {c,depth,snaps,anc,N,uEnd,plan,alt,ceil5,fast,viol,maxD,endT:snaps[N]};
+  // 공기: 탱크 1개(다이빙마다 가득), 수면 소모량 × 수심 압력
+  const gas=new Float32Array(N+1);let bar=S.tankP,t50=-1;gas[0]=bar;
+  for(let k=1;k<=N;k++){const dm=(depth[k-1]+depth[k])/2;bar-=S.sac/60*(pamb(dm)/ENV.psurf)/S.tankV;gas[k]=bar;if(t50<0&&bar<=50)t50=k;}
+  return {c,depth,snaps,anc,N,uEnd,plan,alt,ceil5,fast,viol,maxD,endT:snaps[N],gas,t50};
 }
 
 // ===== 상태 =====
 const newDive=()=>({pts:[{t:0,d:0}],si:60,undo:[],redoSnap:null});
-const S={get playMode(){return this.mode==='none';},bm:BM,alt:0,altSel:'0',water:'salt',gasSel:'21',o2:21,cons:'med',gfLo:40,gfHi:85,asc:9,dives:[newDive()],cur:0,mode:'free',setOpen:false};
+const S={get playMode(){return this.mode==='none';},bm:BM,alt:0,altSel:'0',water:'salt',gasSel:'21',o2:21,cons:'med',gfLo:40,gfHi:85,asc:9,tankV:12,tankP:200,sac:20,dives:[newDive()],cur:0,mode:'free',setOpen:false};
 let RES=[];
 const P={t:0,run:false,sp:1,last:0,tick:-1};
 const $=id=>document.getElementById(id);
@@ -509,7 +528,7 @@ function layout(){
   const dpr=window.devicePixelRatio||1;
   const w=cv.parentElement.clientWidth,h=Math.round(clamp(w*0.5,260,400));
   cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';cx.setTransform(dpr,0,0,dpr,0,0);
-  G={w,h,L:40,R:10,T:10,B:26};G.W=w-G.L-G.R;G.H=h-G.T-G.B;
+  G={w,h,L:40,R:30,T:10,B:26};G.W=w-G.L-G.R;G.H=h-G.T-G.B;
   const bc=$('bars'),bw=bc.parentElement.clientWidth,bh=16*(bw<300?17:20)+24;
   bc.width=bw*dpr;bc.height=bh*dpr;bc.style.height=bh+'px';bc.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
 }
@@ -567,6 +586,8 @@ function drawProfile(){
       labPos={xn,yd,maxD:r.maxD,N:r.N};
       cx.setLineDash([]);
     }
+    if(r.t50>=0&&r.t50<=TMAX&&dv.pts.length>1){cx.strokeStyle='#f97316';cx.lineWidth=1.4;cx.setLineDash([3,3]);cx.beginPath();cx.moveTo(X(r.t50)+.5,G.T);cx.lineTo(X(r.t50)+.5,G.T+G.H);cx.stroke();cx.setLineDash([]);
+      cx.font='600 11px sans-serif';cx.fillStyle='#ea580c';cx.textAlign='left';cx.textBaseline='bottom';cx.fillText('50bar',X(r.t50)+3,G.T+G.H-3);}
     const PL=r.plan?{t0:r.uEnd,plan:r.plan}:r.alt;
     if(PL&&!drawing){
       cx.strokeStyle='#0f9d7a';cx.lineWidth=2.2;cx.setLineDash([6,4]);cx.beginPath();
@@ -594,6 +615,15 @@ function drawProfile(){
   if(timeTag){const lab='◀ '+fmt(timeTag.t)+' ▶';cx.font='600 11px sans-serif';const tw=cx.measureText(lab).width+10;
     let bx=clamp(timeTag.x-tw/2,G.L,G.L+G.W-tw),ty=timeTag.y<G.T+40?G.T+G.H-22:G.T+2;cx.fillStyle='#1f2328';cx.beginPath();cx.roundRect?cx.roundRect(bx,ty,tw,18,9):cx.rect(bx,ty,tw,18);cx.fill();
     cx.fillStyle='#fff';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(lab,bx+5,ty+9.5);}
+  if(r&&dv.pts.length>1){ // 공기 게이지(오른쪽 끝)
+    const gx=G.L+G.W+8,gw=14,gy=G.T,gh=G.H,full=S.tankP,tt=S.playMode?Math.min(Math.round(P.t),r.N):r.N,cur=Math.max(0,r.gas[tt]);
+    const yb=b=>gy+gh-clamp(b/full,0,1)*gh;
+    cx.fillStyle='rgba(255,255,255,.7)';cx.fillRect(gx,gy,gw,gh);cx.strokeStyle='#9ca3af';cx.lineWidth=1;cx.strokeRect(gx+.5,gy+.5,gw-1,gh-1);
+    cx.fillStyle=cur<=50?'#f97316':'#2f6fe4';cx.fillRect(gx+1,yb(cur),gw-2,gy+gh-yb(cur)-1);
+    cx.strokeStyle='#ea580c';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(gx-2,yb(50));cx.lineTo(gx+gw+2,yb(50));cx.stroke();
+    cx.font='600 10px sans-serif';cx.fillStyle=cur<=50?'#ea580c':'#1f2328';cx.textAlign='center';cx.textBaseline='top';cx.fillText(Math.round(cur),gx+gw/2,gy+gh+5);
+    cx.font='9px sans-serif';cx.fillStyle='#6b7280';cx.fillText('bar',gx+gw/2,gy+gh+16);
+  }
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
         const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N));cx.font='600 12px sans-serif';
@@ -701,6 +731,7 @@ function renderSummary(){
   if(fc)w.push(tr('wFast'));
   const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;if(r.maxD>mod+0.1)w.push(tr('wMod',mod.toFixed(1)));
   if(r.N>TMAX)w.push(tr('wOver',TMAX/60));
+  {const ge=r.gas[r.N];if(ge<=0)w.push(tr('wGas0'));else if(ge<50)w.push(tr('wGas',Math.round(ge)));}
   $('warnBox').innerHTML=w.length?'⚠ '+w.join('<br>⚠ '):'';$('warnBox').classList.toggle('hide',!w.length);
   el.innerHTML=h;el.classList.toggle('hide',!h);
 }
@@ -881,14 +912,14 @@ function renderTabs(){
 function renderSum(){
   const c=cfg();
   const gas=S.o2<=21?tr('sAir'):'EAN'+S.o2;
-  $('setSum').textContent=tr('sSum',tr(S.water==='salt'?'salt':'fresh'),S.alt,gas,Math.round(c.lo*100),Math.round(c.hi*100),c.asc);
+  $('setSum').textContent=tr('sSum',tr(S.water==='salt'?'salt':'fresh'),S.alt,gas,Math.round(c.lo*100),Math.round(c.hi*100),c.asc)+` · ${S.tankV}L ${S.tankP}bar`;
 }
 function syncForm(){
   renderTabs();renderSum();
   $('altSel').value=S.altSel;$('altIn').classList.toggle('hide',S.altSel!=='c');$('altIn').value=S.alt;$('water').value=S.water;
   $('gas').value=S.gasSel;$('o2').classList.toggle('hide',S.gasSel!=='c');$('o2').value=S.o2;
   $('cons').value=S.cons;$('gfWrap').classList.toggle('hide',S.cons!=='custom');$('gfLo').value=S.gfLo;$('gfHi').value=S.gfHi;
-  $('asc').value=S.asc;
+  $('asc').value=S.asc;$('tankV').value=String(S.tankV);$('tankP').value=String(S.tankP);$('sac').value=String(S.sac);
   $('setWrap').classList.toggle('open',S.setOpen);$('setHead').classList.toggle('open',S.setOpen);
   $('mFree').classList.toggle('on',S.mode==='free');$('mPt').classList.toggle('on',S.mode==='pt');$('mDel').classList.toggle('on',S.mode==='del');
   $('undo').disabled=!(dive().undo.length||dive().redoSnap);
@@ -904,6 +935,9 @@ $('cons').onchange=e=>{S.cons=e.target.value;upd();};
 $('gfLo').onchange=e=>{S.gfLo=clamp(+e.target.value||40,10,100);upd();};
 $('gfHi').onchange=e=>{S.gfHi=clamp(+e.target.value||85,10,100);upd();};
 $('asc').onchange=e=>{S.asc=clamp(+e.target.value||9,3,18);upd();};
+$('tankV').onchange=e=>{S.tankV=+e.target.value;upd();};
+$('tankP').onchange=e=>{S.tankP=+e.target.value;upd();};
+$('sac').onchange=e=>{S.sac=+e.target.value;upd();};
 const toggleMode=m=>{S.mode=S.mode===m?'none':m;modeChanged();};
 $('mFree').onclick=()=>toggleMode('free');
 $('mPt').onclick=()=>toggleMode('pt');
