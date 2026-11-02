@@ -35,15 +35,15 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .ttl{display:inline-flex;flex-direction:column;align-items:stretch;gap:3px}
 .ttl .dtmd{display:block;background:rgba(0,0,0,.55);color:rgba(255,255,255,.92);text-shadow:none;font-weight:700;line-height:1;padding:3px 4px;white-space:nowrap;text-align:left;font-size:10px;box-sizing:border-box;overflow:hidden;width:0;min-width:100%}
 .bmode{margin-bottom:8px}
-.bmode button{font-size:12px;padding:4px 10px}
-.lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85)}
+.bmode button{font-size:12px;padding:4px 10px;--pv:4px}
+.lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85);--pv:4px}
 .lang button.on{background:#1f2328;color:#fff}
 .card{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid #dcdee2;border-radius:10px;padding:12px;margin-bottom:12px}
 .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 label{color:var(--mute);font-size:12px;display:inline-flex;align-items:center;gap:6px}
 select,input[type=number]{font:inherit;font-size:13px;padding:5px 6px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:var(--ink)}
 input[type=number]{width:62px}
-button{touch-action:manipulation;font:inherit;font-size:13px;padding:6px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:var(--ink)}
+button{touch-action:manipulation;font:inherit;font-size:13px;padding:6px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);--pv:6px}
 button:disabled{opacity:.4;cursor:default}
 button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .seg{display:inline-flex}
@@ -65,10 +65,10 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 /* 탭 */
 .tabs{display:flex;gap:4px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
-.tabs button{flex-shrink:0;white-space:nowrap;font-size:12px;padding:5px 9px}
+.tabs button{flex-shrink:0;white-space:nowrap;font-size:12px;padding:5px 9px;--pv:5px}
 .tabs .tab{gap:5px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .pop{position:absolute;z-index:20;background:#1f2328;border-radius:8px;padding:4px;display:flex;gap:4px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
-.pop button{background:transparent;color:#fff;border:0;font-size:13px;padding:6px 12px}
+.pop button{background:transparent;color:#fff;border:0;font-size:13px;padding:6px 12px;--pv:6px}
 .st[data-tip],.tip{cursor:help}
 .tip{text-decoration:underline dotted #b6bac2;text-underline-offset:3px}
 .legend .tip{text-decoration:none}
@@ -91,12 +91,12 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 #ptEd .peHint{color:#57606a;font-size:13px}#ptEd.has .peHint{display:none}#ptEd:not(.has) .peRow,#ptEd:not(.has) .peSeg{display:none}
 #ptEd .peRow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 #ptEd input{width:48px;padding:4px;font-size:15px;text-align:center}#ptEd #peDep{width:58px}
-#ptEd #pePrev,#ptEd #peNext{padding:3px 8px}#ptEd #peN{min-width:42px;text-align:center}
+#ptEd #pePrev,#ptEd #peNext{padding:3px 8px;--pv:3px}#ptEd #peN{min-width:42px;text-align:center}
 #ptEd #peDelB{margin-left:auto;color:#e5484d}
 #ptEd .peSeg{margin-top:4px;font-size:13px;color:#57606a}#ptEd .peSeg.bad{color:#e5484d;font-weight:700}
-.tools button{font-size:12px;padding:5px 9px;white-space:nowrap}
-.play .seg button{font-size:12px;padding:5px 8px}
-@media (max-width:430px){.tools{gap:4px}.tools button,.tools .seg button{padding:5px 6px;letter-spacing:-.3px}}
+.tools button{font-size:12px;padding:5px 9px;white-space:nowrap;--pv:5px}
+.play .seg button{font-size:12px;padding:5px 8px;--pv:5px}
+@media (max-width:430px){.tools{gap:4px}.tools button,.tools .seg button{padding:5px 6px;letter-spacing:-.3px;--pv:5px}}
 .summary{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.55;background:rgba(250,250,250,.6)}
 .summary .r{display:flex;justify-content:space-between;gap:6px}
 .summary .r span:first-child{color:var(--mute)}
@@ -127,6 +127,8 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 .wheels span{position:relative;z-index:1;color:var(--mute);font-size:13px}
 .sheet .btns{display:flex;gap:8px}.sheet .btns button{flex:1}
 @media (max-width:560px){.st .v{font-size:14px}.st{padding:5px 7px}.st .v small{display:block}.summary{font-size:11px;padding:6px 7px}.split{gap:8px}.legend{font-size:11px;gap:3px 9px}}
+
+@supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
 </style>
 </head>
 <body>
@@ -1067,10 +1069,10 @@ layout();syncForm();recompute();modeChanged();
 #tutBox .bt{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 #tutBox button{background:#374151;color:#fff;border:0}
 #tutBox button.pri{background:#e5484d}
-#tutBox .tsm{font-size:12px;padding:3px 8px;background:#4b5563}
+#tutBox .tsm{font-size:12px;padding:3px 8px;background:#4b5563;--pv:3px}
 #tutBox .tsm.on{background:#e5484d}
 .tutHi{outline:3px solid #e5484d!important;outline-offset:2px;border-radius:6px}
-.tutBtn{font-size:11px;padding:4px 9px;background:#e5484d;color:#fff;border:0;border-radius:6px;margin-right:6px;white-space:nowrap}
+.tutBtn{font-size:11px;padding:4px 9px;background:#e5484d;color:#fff;border:0;border-radius:6px;margin-right:6px;white-space:nowrap;--pv:4px}
 </style>
 <div id="tutHand">👆</div>
 <div id="tutBox"><div class="hd"><span id="tutPart"></span><span style="display:flex;gap:6px;align-items:center"><button id="tutVoice" class="tsm">🔊</button><button id="tutAuto" class="tsm">자동 ▶</button><span id="tutCnt"></span></span></div><div class="tt" id="tutTitle"></div><div id="tutText"></div>
