@@ -998,8 +998,9 @@ function spokenText(html){
      .replace(/(\d+)\/(\d+)/g,'$1 $2').replace(/\(/g,', ').replace(/\)/g,', ');
   return t;}
 function speak(text,onProg){return new Promise(res=>{if(!VOICE||!SS){res();return;}
-  try{SS.cancel();const sp=spokenText(text);const u=new SpeechSynthesisUtterance(sp);if(onProg)u.onboundary=ev=>{if(ev.charIndex!=null)onProg(ev.charIndex/sp.length);};u.lang='ko-KR';const v=koVoice();if(v)u.voice=v;u.rate=0.95;
-    let done=false;const fin=()=>{if(!done){done=true;res();}};u.onend=fin;u.onerror=fin;setTimeout(fin,Math.max(4000,text.length*230));SS.speak(u);}catch(e){res();}});}
+  try{const busy=SS.speaking||SS.pending;if(busy)SS.cancel();const sp=spokenText(text);const u=new SpeechSynthesisUtterance(sp);if(onProg)u.onboundary=ev=>{if(ev.charIndex!=null)onProg(ev.charIndex/sp.length);};u.lang='ko-KR';const v=koVoice();if(v)u.voice=v;u.rate=0.95;
+    let done=false;const fin=()=>{if(!done){done=true;res();}};u.onend=fin;u.onerror=fin;setTimeout(fin,Math.max(4000,text.length*230));window.__tutU=u;
+    const go=()=>{try{SS.resume();}catch(e){}SS.speak(u);};if(busy)setTimeout(go,150);else go();}catch(e){res();}});}
 // 글자를 읽는 속도에 맞춰 하나씩 표시
 let TW=null;
 function typeInit(el){const nodes=[];const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))nodes.push([n,n.nodeValue]);
@@ -1011,7 +1012,7 @@ function typeRun(el,tok,voiced){const T0=typeInit(el);TW=T0;const cps=voiced?7.2
   const tick=()=>{if(TW!==T0||tok!==TOK)return;const by=(performance.now()-start)/1000*cps;T0.shown=Math.min(T0.total,Math.max(T0.shown,by,boost));T0.show(T0.shown);if(T0.shown<T0.total)requestAnimationFrame(tick);};
   requestAnimationFrame(tick);return T0;}
 function typeAll(){if(TW){TW.shown=TW.total;TW.show(TW.total);}}
-function hush(){try{SS&&SS.cancel();}catch(e){}}
+function hush(){try{if(SS&&(SS.speaking||SS.pending))SS.cancel();}catch(e){}}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 class Stop extends Error{}
 const chk=t=>{if(t!==TOK)throw new Stop();};
@@ -1090,7 +1091,7 @@ async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];
   sp.then(()=>{if(TW===tw)typeAll();});
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
     if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
-function start(){if(ON)return;ON=true;if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
+function start(){if(ON)return;ON=true;try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
 function end(){TOK++;ON=false;hush();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
 document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
 document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
