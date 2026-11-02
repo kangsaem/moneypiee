@@ -1092,8 +1092,6 @@ async function showRules(t){hideOverlay();const card=cv.closest('.card'),r=card.
     Object.assign(b.style,{background:'#e5484d',color:'#fff',borderRadius:'10px',padding:'12px 14px',fontWeight:'800',fontSize:'clamp(15px,4.4vw,20px)',lineHeight:'1.35',wordBreak:'keep-all',opacity:0,transform:'translateX(-14px)',transition:'all .35s ease-out'});
     b.innerHTML=`<span style="opacity:.75;margin-right:8px">${i+1}</span>${items[i]}`;OVL.appendChild(b);await sleep(40);b.style.opacity=1;b.style.transform='none';await sleep(900);}}
 const STEPS=[
-{p:'1부 · 무감압 다이빙',ti:'튜토리얼 시작',tx:'손가락을 따라 플래너 쓰는 법을 배워요. 1부는 <b>이상적인 무감압 다이빙</b> 그리기, 2부는 <b>천장을 침범한 위험한 다이빙</b>과 고치는 법이에요. 설정은 공기, 보수도 중간(GF 40/85), 12L·200bar 탱크, 호흡량 보통이에요.',
- set:()=>setState(A0,'free'),go:async t=>{await scrollTo(GRAPH(),t);showHand(true);const [x,y]=ctr(GRAPH());setHand(x,y);await point(GRAPH(),t,600);}},
 {p:'1부 · 무감압 다이빙',ti:'① 그리기 모드',tx:'<b>그리기</b>를 고르고 그래프 위를 누른 채로 끌면 수심 경로가 그려져요. 가로는 시간, 세로는 수심이에요.',
  set:()=>setState(A0,'none'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mFree'),t);}},
 {p:'1부 · 무감압 다이빙',ti:'② 내려가서 머물기',tx:'3분에 걸쳐 18m까지 내려가 25분까지 머물러 볼게요. 출수하기 전에 손을 떼면 <span style="color:#34d399">추천 경로</span>가 자동으로 이어져요. 5m 안전정지 3분 후 출수하라는 뜻이에요.',
@@ -1109,23 +1107,18 @@ const STEPS=[
  set:()=>setState(A4,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapPoint(900,10,t);await sleep(500);await tapEl($('mDel'),t);await delPoint(900,10,t);await tapEl($('mDel'),t);}},
 {p:'1부 · 무감압 다이빙',ti:'⑥ 이상적인 무감압 다이빙',tx:'완성! <b>핑크색 천장이 없고</b>, 경고도 없어요. 라벨은 최대 수심·총 시간, 그래프 오른쪽 끝 막대는 <b>남은 공기</b>예요. 출수 때 50bar 이상 남기는 게 기본이에요.',
  set:()=>setState(A4,'none'),go:async t=>{await scrollTo(GRAPH(),t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(1700),r.top+Y(14),600,t);await sleep(800);await moveTo(r.left+G.L+G.W+15,r.top+G.T+G.H*0.75,700,t);await sleep(1200);}},
-{p:'1부 · 무감압 다이빙',ti:'⑦ 플레이',tx:'▶를 누르면 다이빙이 재생돼요. 내려가는 동안 질소가 쌓이고(<span style="color:#f87171">빨강</span>), 올라오면 빠져요(<span style="color:#60a5fa">파랑</span>). 오른쪽 공기 막대도 줄어들어요. 재생 중엔 그래프 위 점을 잡고 좌우로 움직일 수 있어요.',
- set:()=>{setState(A4,'none');P.sp=2;},go:async t=>{await scrollTo($('playBtn'),t,'center');await tapEl($('playBtn'),t);await scrollTo(BARS(),t,'start');await waitPlay(t);}},
-{p:'1부 · 무감압 다이빙',ti:'⑧ 통계 읽기',tx:'<b>NDL</b>: 감압 없이 머물 수 있는 남은 시간. <b>수면 GF</b>: 지금 바로 출수하면 한계의 몇 %인지 — GF High(85%)보다 낮으면 무감압이에요. 막대가 모두 100% 아래면 바로 출수해도 되는 상태예요. 이 다이빙은 끝까지 NDL이 남아 있었어요.',
- set:()=>{setState(A4,'none');seek(1300);},go:async t=>{await scrollTo(BARS(),t,'start');await point(document.querySelector('[data-tip=ndl]'),t,1300);await point(document.querySelector('[data-tip=gf]'),t,1300);await point(BARS(),t,1200);}},
-{p:'2부 · 천장 위반',ti:'⑨ 위험한 다이빙 그리기',tx:'이번엔 <b>30m에서 28분</b> 머문 뒤 2분 만에 바로 올라와 볼게요. 그래프에 <b style="color:#f472b6">핑크색 천장</b>이 생기고, 경로가 그걸 뚫고 올라가요.',
+{p:'2부 · 천장 위반',ti:'⑦ 위험한 다이빙 그리기',tx:'이번엔 <b>30m에서 28분</b> 머문 뒤 2분 만에 바로 올라와 볼게요. 그래프에 <b style="color:#f472b6">핑크색 천장</b>이 생기고, 경로가 그걸 뚫고 올라가요.',
  set:()=>setState(A0,'pt'),go:async t=>{await scrollTo(GRAPH(),t);for(const [a,b] of [[180,30],[1680,30],[1800,0]])await tapPoint(a,b,t);await sleep(500);}},
-{p:'2부 · 천장 위반',ti:'⑩ 왜 위험한가',tx:'깊은 수심에 오래 머물면 질소가 많이 쌓여 <b>천장</b>이 생겨요. 천장을 뚫고 올라오면 몸속 질소가 기포가 되어 <b>감압병</b> 위험이 커져요. 급상승에다가 공기도 50bar 밑으로 떨어졌어요.',
+{p:'2부 · 천장 위반',ti:'⑧ 왜 위험한가',tx:'깊은 수심에 오래 머물면 질소가 많이 쌓여 <b>천장</b>이 생겨요. 천장을 뚫고 올라오면 몸속 질소가 기포가 되어 <b>감압병</b> 위험이 커져요. 급상승에다가 공기도 50bar 밑으로 떨어졌어요.',
  set:()=>setState(B1,'none'),go:async t=>{await scrollTo(GRAPH(),t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(1700),r.top+Y(6),600,t);await sleep(1200);await scrollTo($('warnBox'),t);await point($('warnBox'),t,1500);}},
-{p:'2부 · 천장 위반',ti:'⑪ 질소 막대로 보기',tx:'질소 막대(수면 기준)를 볼게요. 바닥을 떠나는 28분에 여러 막대가 <b>100%를 넘었어요</b>. 100%는 바로 출수해도 되는 한계라, 넘은 막대가 있으면 감압이 필요해요. 위쪽 빠른 구획이 먼저 넘고, 오래 머물수록 아래쪽 느린 구획도 차올라요. 이 상태로 바로 올라오면 넘친 질소가 기포가 돼요.',
+{p:'2부 · 천장 위반',ti:'⑨ 질소 막대로 보기',tx:'질소 막대(수면 기준)를 볼게요. 바닥을 떠나는 28분에 여러 막대가 <b>100%를 넘었어요</b>. 100%는 바로 출수해도 되는 한계라, 넘은 막대가 있으면 감압이 필요해요. 위쪽 빠른 구획이 먼저 넘고, 오래 머물수록 아래쪽 느린 구획도 차올라요. 이 상태로 바로 올라오면 넘친 질소가 기포가 돼요.',
  set:()=>{setState(B1,'none');seek(1680);},go:async t=>{await scrollTo(BARS(),t,'start');await point(BARS(),t,1800);await point(document.querySelector('[data-tip=gf]'),t,1300);}},
-{p:'2부 · 천장 위반',ti:'⑫ 감압하면 되지 않나? → 싱글탱크 한계',tx:'바로 올라오지 않고 바닥에서 멈추면 추천 경로가 <b>감압 정지</b>를 넣어줘요. 하지만 오른쪽 공기 막대를 보면 <b>다이빙 도중 공기가 바닥나요</b>. 12L 탱크 하나로는 30m 28분 + 감압을 버틸 수 없어요. 레저용 싱글탱크 다이빙은 <b>무감압 한계 안</b>에서 끝내야 해요.',
+{p:'2부 · 천장 위반',ti:'⑩ 감압하면 되지 않나? → 싱글탱크 한계',tx:'바로 올라오지 않고 바닥에서 멈추면 추천 경로가 <b>감압 정지</b>를 넣어줘요. 하지만 오른쪽 공기 막대를 보면 <b>다이빙 도중 공기가 바닥나요</b>. 12L 탱크 하나로는 30m 28분 + 감압을 버틸 수 없어요. 레저용 싱글탱크 다이빙은 <b>무감압 한계 안</b>에서 끝내야 해요.',
  set:()=>setState(B1,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mDel'),t);await delPoint(1800,0,t);const r=cv.getBoundingClientRect();await moveTo(r.left+X(2044),r.top+Y(6),700,t);await sleep(900);await moveTo(r.left+G.L+G.W+15,r.top+G.T+G.H*0.85,700,t);await sleep(1300);}},
-{p:'2부 · 천장 위반',ti:'⑬ 플랜 고치기',tx:'고치는 법: ① 바닥 시간을 줄일 것 ② 또는 더 얕게 다이빙 ③ 천천히 상승 + 5m 안전정지. 바닥을 떠나는 점을 13분으로 당기고 상승 점을 찍으니 천장이 사라지고 공기도 넉넉해요.',
+{p:'2부 · 천장 위반',ti:'⑪ 플랜 고치기',tx:'고치는 법: ① 바닥 시간을 줄일 것 ② 또는 더 얕게 다이빙 ③ 천천히 상승 + 5m 안전정지. 바닥을 떠나는 점을 13분으로 당기고 상승 점을 찍으니 천장이 사라지고 공기도 넉넉해요.',
  set:()=>setState(B2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1680,30],[780,30],t);for(const [a,b] of [[960,12],[1620,12],[1740,5],[1920,5],[1980,0]])await tapPoint(a,b,t);await sleep(400);}},
-{p:'정리',ti:'⑭ 기억할 것',tx:'1. 핑크색 천장이 안 나오게(무감압) 2. 나오면 절대 침범하지 않기 3. 상승은 분당 9~10m 이하, 5m 3분 안전정지 4. 출수 때 공기 50bar 이상 5. 싱글탱크 레저 다이빙은 무감압 한계 안에서.',
- set:()=>setState(B3,'none'),go:async t=>{await scrollTo(GRAPH(),t);showHand(false);await showRules(t);}}
-];
+{p:'정리',ti:'⑫ 기억할 것',tx:'1. 핑크색 천장이 안 나오게(무감압) 2. 나오면 절대 침범하지 않기 3. 상승은 분당 9~10m 이하, 5m 3분 안전정지 4. 출수 때 공기 50bar 이상 5. 싱글탱크 레저 다이빙은 무감압 한계 안에서.',
+ set:()=>setState(B3,'none'),go:async t=>{await scrollTo(GRAPH(),t);showHand(false);await showRules(t);}}];
 async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];hideOverlay();
   document.getElementById('tutPart').textContent=st.p;document.getElementById('tutCnt').textContent=(i+1)+' / '+STEPS.length;
   document.getElementById('tutTitle').textContent=st.ti;document.getElementById('tutText').innerHTML=st.tx;
