@@ -742,7 +742,7 @@ function addFree(t,d){
   while(pts.length>1&&pts[pts.length-1].t>=t)pts.pop();
   pts.push({t,d});
 }
-function snapPt(t,d){t=Math.round(clamp(t,0,TMAX)/10)*10;d=R1(clamp(d,0,DMAX));if(d<1)d=0;return {t,d};}
+function snapPt(t,d){t=Math.round(clamp(t,0,TMAX)/10)*10;d=Math.round(clamp(d,0,DMAX)*2)/2;if(d<1)d=0;return {t,d};}
 function hit(p){const pts=dive().pts;let best=-1,bd=14;for(let i=1;i<pts.length;i++){const dd=Math.hypot(X(pts[i].t)-p.x,Y(pts[i].d)-p.y);if(dd<bd){bd=dd;best=i;}}return best;}
 function rdp(pts,eps){
   if(pts.length<3)return pts;
