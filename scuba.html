@@ -251,6 +251,7 @@ html,body{overflow-x:hidden}
       <div class="st" data-tip="gf"><span class="k" data-i18n="surfGF">수면 GF</span><span class="v" id="sGF">-</span></div>
       <div class="st" data-tip="gf99"><span class="k">GF99</span><span class="v" id="sGF99">-</span></div>
       <div class="st" data-tip="po2"><span class="k">PO₂</span><span class="v" id="sPO2">-</span></div>
+      <div class="st hide" id="stCNS" data-tip="cns"><span class="k">CNS</span><span class="v" id="sCNS">-</span></div>
     </div>
   </div>
 </div>
@@ -289,7 +290,7 @@ ko:{
  axisMin:m=>m+'분',max:v=>`최대 ${DU(v)}`,total:v=>`총 ${v}`,
  empty:'그래프에 수심을 그려 주세요. 출수까지 안 그리면 추천 플랜이 이어집니다.',
  stop:(d,m,s)=>`${DS(d)} ${m}분${s?'(안전)':''}`,deco:'감압 필요',nodeco:'무감압',safety5:()=>`${DS(5)} 안전 정지 3분`,toSurf:v=>`출수까지 ${v}`,
- wCeil:v=>`천장 위반 ${v}분`,wFast:'급상승 구간',wMod:v=>`MOD ${DU(v)} 초과`,wOver:v=>`${v}분 초과`,
+ wCeil:v=>`천장 위반 ${v}분`,wFast:'급상승 구간',wMod:v=>`MOD ${DU(v)} 초과`,wCns:v=>`CNS ${v}% (80% 이상)`,wOver:v=>`${v}분 초과`,
  minV:v=>v+'분',ndl:'NDL',ceiling:'천장',play:'플레이',pause:'일시정지',siPick:(a,b)=>`다이빙 ${a} → ${b} 수면휴식`,
  copy:'복사',paste:n=>`붙여넣기 (다이빙 ${n})`,dive:n=>'다이빙 '+n,delDive:'이 다이빙 삭제',addDive:'+ 다이빙 추가',
  sAir:'공기',sSum:(w,a,g,lo,hi,asc)=>`${w} · 고도 ${a}m · ${g} · GF ${lo}/${hi} · 상승 ${DU(asc)}/분`,
@@ -301,6 +302,7 @@ ko:{
   ndl:['NDL / 천장','NDL: 지금 수심에 계속 머물 때, 감압 정지 없이 바로 출수할 수 있는 남은 시간.<br>천장: 감압이 필요해지면 대신 표시. 이보다 얕게 올라가면 안 되는 수심.'],
   tts:['TTS (출수까지 시간)','지금 추천 플랜대로 올라갈 때 수면까지 걸리는 총 시간. 상승 + 감압 정지 + 5m 안전정지 포함. 남은 공기와 비교하는 기준.'],
   gf:['수면 GF','지금 정지 없이 바로 수면에 올라간다고 칠 때, 가장 많이 쌓인 조직이 수면 한계에 얼마나 가까운지(%). 0% = 과포화 없음, 100% = 뷜만 원래 한계(M값). 설정한 GF High를 넘으면 빨간색 = 바로 출수 불가.'],
+  cns:['CNS% (산소 독성 누적)','높은 산소 분압에 노출된 양을 NOAA 허용 시간 대비 %로 누적(예: 1.4bar 150분, 1.6bar 45분 = 100%). 0.5bar 이하는 쌓이지 않음. 80% 이상 빨간색. 재생 중엔 그 시점 값, 아니면 다이빙 끝 값. 수면휴식 90분마다 절반으로 줄어듦. 나이트록스일 때만 표시.'],
   po2:['PO₂ (산소 분압)','들이마시는 산소의 분압(bar). 1.4를 넘으면 빨간색 = 산소 독성 위험.'],
   alt:['해발 고도','고도가 높으면 수면 기압이 낮아, 같은 수심이라도 감압 부담이 커짐. 그 고도에 적응된 상태로 가정.'],
   water:['수질','해수는 10m당 약 1.005bar, 담수는 0.981bar. 담수가 같은 수심에서 압력이 조금 낮음.'],
@@ -344,7 +346,7 @@ en:{
  axisMin:m=>String(m),axisLast:m=>m+' min',max:v=>`Max ${DU(v)}`,total:v=>`Total ${v}`,
  empty:'Draw your depth profile on the graph. If you stop before surfacing, a suggested ascent is added.',
  stop:(d,m,s)=>`${DS(d)} ${m} min${s?' (safety)':''}`,deco:'Deco required',nodeco:'No-deco',safety5:()=>`${DS(5)} safety stop 3 min`,toSurf:v=>`To surface ${v}`,
- wCeil:v=>`Ceiling violated ${v} min`,wFast:'Fast ascent',wMod:v=>`MOD ${DU(v)} exceeded`,wOver:v=>`Over ${v} min`,
+ wCeil:v=>`Ceiling violated ${v} min`,wFast:'Fast ascent',wMod:v=>`MOD ${DU(v)} exceeded`,wCns:v=>`CNS ${v}% (80% or more)`,wOver:v=>`Over ${v} min`,
  minV:v=>v+' min',ndl:'NDL',ceiling:'Ceiling',play:'Play',pause:'Pause',siPick:(a,b)=>`Surface interval: dive ${a} → ${b}`,
  copy:'Copy',paste:n=>`Paste (dive ${n})`,dive:n=>'Dive '+n,delDive:'Delete this dive',addDive:'+ Add dive',
  sAir:'Air',sSum:(w,a,g,lo,hi,asc)=>`${w} · Alt ${a}m · ${g} · GF ${lo}/${hi} · Ascent ${DU(asc)}/min`,
@@ -356,6 +358,7 @@ en:{
   ndl:['NDL / Ceiling','NDL (no-decompression limit): time left at this depth before you can no longer surface directly without deco stops.<br>Ceiling: shown instead once deco is required. Do not ascend shallower than this depth.'],
   tts:['TTS (time to surface)','Total time to reach the surface following the suggested ascent from now: ascent + deco stops + 5 m safety stop. Compare it with your remaining gas.'],
   gf:['Surface GF','If you surfaced right now without stopping, how close the most-loaded compartment would be to its limit (%). 0% = no supersaturation, 100% = the raw Bühlmann limit (M-value). Red when above your GF High = you cannot surface directly.'],
+  cns:['CNS% (oxygen toxicity clock)','Accumulated oxygen exposure as a % of the NOAA single-exposure limits (e.g. 150 min at 1.4 bar or 45 min at 1.6 bar = 100%). Nothing accumulates at 0.5 bar or below. Red at 80%+. Shows the value at the playback time, otherwise at the end of the dive. Halves every 90 min of surface interval. Shown for nitrox only.'],
   po2:['PO₂ (oxygen partial pressure)','Partial pressure of the oxygen you breathe (bar). Red above 1.4 = oxygen toxicity risk.'],
   alt:['Altitude','At altitude the surface pressure is lower, so the same depth carries a larger decompression burden. Assumes you are acclimatised.'],
   water:['Water type','Salt water adds about 1.005 bar per 10 m, fresh water 0.981 bar. Fresh water gives slightly less pressure at the same depth.'],
@@ -399,7 +402,7 @@ ja:{
  axisMin:m=>m+'分',max:v=>`最大 ${DU(v)}`,total:v=>`合計 ${v}`,
  empty:'グラフに水深を描いてください。浮上まで描かなければ推奨プランが続きます。',
  stop:(d,m,s)=>`${DS(d)} ${m}分${s?'(安全)':''}`,deco:'減圧が必要',nodeco:'無減圧',safety5:()=>`${DS(5)} 安全停止 3分`,toSurf:v=>`浮上まで ${v}`,
- wCeil:v=>`シーリング違反 ${v}分`,wFast:'急浮上区間',wMod:v=>`MOD ${DU(v)} 超過`,wOver:v=>`${v}分 超過`,
+ wCeil:v=>`シーリング違反 ${v}分`,wFast:'急浮上区間',wMod:v=>`MOD ${DU(v)} 超過`,wCns:v=>`CNS ${v}% (80%以上)`,wOver:v=>`${v}分 超過`,
  minV:v=>v+'分',ndl:'NDL',ceiling:'シーリング',play:'再生',pause:'一時停止',siPick:(a,b)=>`ダイブ ${a} → ${b} 水面休息`,
  copy:'コピー',paste:n=>`貼り付け (ダイブ ${n})`,dive:n=>'ダイブ '+n,delDive:'このダイブを削除',addDive:'+ ダイブ追加',
  sAir:'空気',sSum:(w,a,g,lo,hi,asc)=>`${w} · 標高 ${a}m · ${g} · GF ${lo}/${hi} · 浮上 ${DU(asc)}/分`,
@@ -411,6 +414,7 @@ ja:{
   ndl:['NDL / シーリング','NDL(無減圧限界): 今の水深に留まった場合に、減圧停止なしで直接浮上できる残り時間。<br>シーリング: 減圧が必要になると代わりに表示。これより浅く浮上してはいけない水深。'],
   tts:['TTS (浮上までの時間)','今から推奨プラン通りに浮上した場合に水面に着くまでの合計時間。浮上 + 減圧停止 + 5m安全停止を含む。残りガスと比べる目安。'],
   gf:['水面 GF','今すぐ停止せずに浮上したと仮定したとき、最も窒素が溜まったコンパートメントが限界にどれだけ近いか(%)。0% = 過飽和なし、100% = ビュールマン本来の限界(M値)。設定した GF High を超えると赤 = 直接浮上不可。'],
+  cns:['CNS% (酸素毒性の蓄積)','高い酸素分圧への曝露量をNOAA許容時間に対する%で累積(例: 1.4barで150分、1.6barで45分 = 100%)。0.5bar以下では増えない。80%以上で赤。再生中はその時点の値、それ以外はダイブ終了時の値。水面休息90分ごとに半減。ナイトロックスの時のみ表示。'],
   po2:['PO₂ (酸素分圧)','吸っている酸素の分圧(bar)。1.4を超えると赤 = 酸素中毒の危険。'],
   alt:['標高','標高が高いと水面気圧が低く、同じ水深でも減圧の負担が大きくなる。その標高に順応した状態を想定。'],
   water:['水の種類','海水は10mごとに約1.005bar、淡水は0.981bar。淡水は同じ水深で圧力がやや低い。'],
@@ -508,6 +512,12 @@ function cfg(){
   return {lo,hi,fO2:o2/100,fN2:1-o2/100,asc:clamp(+S.asc||9,3,18)};
 }
 
+// CNS%: NOAA 단일 노출 한도(분), 사이는 선형 보간. 0.5bar 이하는 0, 0.5~0.6은 720분, 1.6 초과는 1.5~1.6 기울기로 연장(최소 1분)
+const CNS_T=[[0.6,720],[0.7,570],[0.8,450],[0.9,360],[1.0,300],[1.1,240],[1.2,210],[1.3,180],[1.4,150],[1.5,120],[1.6,45]];
+function cnsLimitMin(po2){if(po2<=0.5)return Infinity;if(po2<=0.6)return 720;if(po2>1.6)return Math.max(1,45-(po2-1.6)*750);
+  for(let i=1;i<CNS_T.length;i++){const [p1,t1]=CNS_T[i-1],[p2,t2]=CNS_T[i];if(po2<=p2)return t1+(t2-t1)*(po2-p1)/(p2-p1);}return 45;}
+function calcCNS(r,start){const N=r.N,a=new Float32Array(N+1);let v=start;a[0]=v;
+  for(let k=1;k<=N;k++){const po2=r.c.fO2*pamb((r.depth[k-1]+r.depth[k])/2);const L=cnsLimitMin(po2);if(L!==Infinity)v+=100/(L*60);a[k]=v;}return a;}
 function simulate(dv,T0,c){
   const up=dv.pts,uEnd=Math.round(up[up.length-1].t);
   const depth=sampleDepth(up,uEnd),snaps=[],anc=[];
@@ -563,6 +573,7 @@ function recompute(){
   for(let i=0;i<S.dives.length;i++){
     if(i>0){T=Array.from(RES[i-1].endT);step(T,0,FN2_AIR,clamp(+S.dives[i].si||0,10,1440)*60);}
     RES[i]=simulate(S.dives[i],T,c);
+    {const prev=i>0?RES[i-1].cns[RES[i-1].N]*Math.pow(0.5,clamp(+S.dives[i].si||0,10,1440)/90):0;RES[i].cns=calcCNS(RES[i],prev);}
   }
   stopPlay();P.t=0;P.tick=-1;if(typeof syncScrub==='function')syncScrub();
   drawProfile();updateStats(0);renderSummary();
@@ -822,6 +833,7 @@ function renderSummary(){
   if(vc)w.push(tr('wCeil',Math.round(vc*5/60*10)/10));
   if(fc)w.push(tr('wFast'));
   const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;if(r.maxD>mod+0.1)w.push(tr('wMod',mod.toFixed(1)));
+  if(r.c.fO2>0.215&&r.cns&&r.cns[r.N]>=80)w.push(tr('wCns',Math.round(r.cns[r.N])));
   if(r.N>TMAX)w.push(tr('wOver',TMAX/60));
   {const ge=r.gas[r.N];if(ge<=0)w.push(tr('wGas0'));else if(ge<50)w.push(tr('wGas',pu(ge)+puN(),pu(50)));}
   $('warnBox').innerHTML=w.length?'⚠ '+w.join('<br>⚠ '):'';$('warnBox').classList.toggle('hide',!w.length);
@@ -847,6 +859,7 @@ function updateStats(s){
   $('sGF').textContent=Math.max(0,Math.round(sg))+'%';$('sGF').style.color=sg>c.hi*100?'#e5484d':'';
   {const pa=pamb(d);let g=0;for(let i=0;i<NT;i++)g=Math.max(g,(T[i]-pa)/(mv(i,pa)-pa)*100);$('sGF99').textContent=Math.max(0,Math.round(g))+'%';$('sGF99').style.color=g>c.hi*100?'#e5484d':'';}
   const po2=c.fO2*pamb(d);$('sPO2').textContent=po2.toFixed(2);$('sPO2').style.color=po2>1.4?'#e5484d':'';
+  {const nx=c.fO2>0.215;$('stCNS').classList.toggle('hide',!nx);if(nx&&r.cns){const v=(S.playMode&&P.t>0)?r.cns[s]:r.cns[r.N];$('sCNS').textContent=(v<10?v.toFixed(1):Math.round(v))+'%';$('sCNS').style.color=v>=80?'#e5484d':'';}}
   drawBars(T,d,c,anc);
 }
 function drawBars(T,d,c,anc){
