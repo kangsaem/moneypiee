@@ -197,12 +197,12 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 
 <div class="card">
   <div class="tools">
-    <span class="seg"><button id="mFree" data-i18n="draw">그리기</button><button id="mPt" data-i18n="points">점찍기</button><button id="mDel" data-i18n="erase">점지우기</button><button id="mSel" data-i18n="sel">점선택</button></span>
+    <span class="seg"><button id="mFree" data-i18n="draw">그리기</button><button id="mPt" data-i18n="points">점찍기</button><button id="mDel" data-i18n="erase">점지우기</button></span>
     <button id="undo" data-i18n="undo">실행취소</button>
     <button id="clear" data-i18n="clear">지우기</button>
   </div>
   <div style="margin-top:10px"><canvas id="prof"></canvas></div>
-  <div id="ptEd" class="hide"><div class="peHint" data-i18n="peHint">수정할 점을 누르세요</div>
+  <div id="ptEd" class="hide"><div class="peHint" data-i18n="peHint">점을 누르면 시간·수심을 입력할 수 있어요</div>
     <div class="peRow"><button id="pePrev" aria-label="prev">◀</button><b id="peN"></b><button id="peNext" aria-label="next">▶</button>
       <label><span data-i18n="peT">시간</span> <input type="number" id="peMin" min="0" max="70" inputmode="numeric">:<input type="number" id="peSec" min="0" max="59" step="10" inputmode="numeric"></label>
       <label><span data-i18n="peD">수심</span> <input type="number" id="peDep" min="0" step="0.5" inputmode="decimal"> <span id="peU">m</span></label>
@@ -275,7 +275,7 @@ ko:{
  rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
  settings:'⚙ 설정',alt:'해발 고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
  cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:()=>(isFt()?'ft':'m')+'/분',
- draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'수정할 점을 누르세요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
+ draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
  disc:'교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',
@@ -330,7 +330,7 @@ en:{
  rule1:'1. Keep the pink ceiling from appearing <small>= no-decompression dive</small>',rule2:'2. If the pink ceiling appears, never cross it <small>= decompression dive</small>',
  settings:'⚙ Settings',alt:'Altitude',sealevel:'0 m (sea level)',custom:'Custom',water:'Water type',salt:'Salt',fresh:'Fresh',gas:'Gas',air21:'Air (21%)',
  cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom',asc:'Plan ascent rate',mpm:()=>(isFt()?'ft':'m')+'/min',
- draw:'Draw',points:'Points',erase:'Erase pts',sel:'Select',peHint:'Tap a point to edit',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
+ draw:'Draw',points:'Points',erase:'Erase pts',sel:'Select',peHint:'Tap a point to enter its time and depth',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
  lgPath:'My profile',lgPlan:'Suggested',lgCeil:'Ceiling',lgFast:'Fast ascent',on:'N₂ on-gassing',off:'N₂ off-gassing',pct:'100% = surfacing limit (GF High)',
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
  disc:'For education and learning only. Do not use it to plan real dives or as a substitute for a dive computer.',
@@ -385,7 +385,7 @@ ja:{
  rule1:'1. ピンクのシーリングを出さないこと <small>= 無減圧潜水</small>',rule2:'2. ピンクのシーリングが出たら絶対に越えないこと <small>= 減圧潜水</small>',
  settings:'⚙ 設定',alt:'標高',sealevel:'0 m (海面)',custom:'直接入力',water:'水の種類',salt:'海水',fresh:'淡水',gas:'ガス',air21:'空気 (21%)',
  cons:'保守性',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'カスタム',asc:'プラン浮上速度',mpm:()=>(isFt()?'ft':'m')+'/分',
- draw:'描く',points:'点を打つ',erase:'点を消す',sel:'点を選択',peHint:'編集する点をタップ',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
+ draw:'描く',points:'点を打つ',erase:'点を消す',sel:'点を選択',peHint:'点をタップすると時間・水深を入力できます',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
  lgPath:'自分の経路',lgPlan:'推奨',lgCeil:'シーリング',lgFast:'急浮上',on:'窒素 吸収中',off:'窒素 排出中',pct:'100% = 浮上許容限界(GF High)',
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
  disc:'教育・学習用のシミュレーターです。実際のダイビング計画やダイブコンピューターの代わりに使用しないでください。',
@@ -569,7 +569,7 @@ function recompute(){
 
 // ===== 프로파일 그래프 =====
 const cv=$('prof'),cx=cv.getContext('2d');
-let G={},hover=null,drawing=false,drag=-1;
+let G={},hover=null,drawing=false,drag=-1;let SEL=-1,DG=null;
 function layout(){
   const dpr=window.devicePixelRatio||1;
   const w=cv.parentElement.clientWidth,h=Math.round(clamp(w*0.5,260,400));
@@ -665,7 +665,7 @@ function drawProfile(){
   if(!S.playMode&&(S.mode==='pt'||S.mode==='del'||S.mode==='sel')&&pts.length<300){
     const del=S.mode==='del';
     pts.forEach((p,i)=>{cx.beginPath();cx.arc(X(p.t),Y(p.d),i===drag?6:(del&&i?5:4),0,7);cx.fillStyle=i?'#fff':'#1f2328';cx.fill();cx.strokeStyle=del&&i?'#e5484d':'#1f2328';cx.lineWidth=1.6;cx.stroke();});
-    if(S.mode==='sel'&&SEL>0&&pts[SEL]){const q=pts[SEL];cx.beginPath();cx.arc(X(q.t),Y(q.d),7,0,7);cx.fillStyle='#2f6fe4';cx.fill();cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke();cx.beginPath();cx.arc(X(q.t),Y(q.d),11,0,7);cx.strokeStyle='rgba(47,111,228,.45)';cx.lineWidth=3;cx.stroke();}
+    if(S.mode==='pt'&&SEL>0&&pts[SEL]&&drag<0){const q=pts[SEL];cx.beginPath();cx.arc(X(q.t),Y(q.d),7,0,7);cx.fillStyle='#2f6fe4';cx.fill();cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke();cx.beginPath();cx.arc(X(q.t),Y(q.d),11,0,7);cx.strokeStyle='rgba(47,111,228,.45)';cx.lineWidth=3;cx.stroke();}
   }
   if(r&&S.playMode){
     const t=Math.min(P.t,r.N),d=r.depth[Math.round(t)],x=X(t);
@@ -717,8 +717,7 @@ function drawProfile(){
 }
 
 // ===== 그리기 입력 =====
-let SEL=-1;
-function syncPtEd(){const ed=$('ptEd');if(!ed)return;const on=S.mode==='sel';ed.classList.toggle('hide',!on);if(!on){SEL=-1;return;}
+function syncPtEd(){const ed=$('ptEd');if(!ed)return;const on=S.mode==='pt';ed.classList.toggle('hide',!on);if(!on){SEL=-1;return;}
   const pts=dive().pts;if(!(SEL>0&&SEL<pts.length))SEL=-1;ed.classList.toggle('has',SEL>0);if(SEL<0)return;
   const q=pts[SEL],ft=isFt(),f=document.activeElement;
   $('peN').textContent=tr('pePt',SEL);$('pePrev').disabled=SEL<=1;$('peNext').disabled=SEL>=pts.length-1;$('peU').textContent=ft?'ft':'m';
@@ -761,13 +760,12 @@ cv.addEventListener('pointerdown',e=>{
   const t=toT(p.x),d=toD(p.y);
   if(S.mode==='free'){pushUndo();drawing=true;addFree(t,d);drawProfile();}
   else if(S.mode==='del'){const h=hit(p);if(h>0){pushUndo();dive().pts.splice(h,1);recompute();}}
-  else if(S.mode==='sel'){SEL=hit(p);syncPtEd();drawProfile();}
   else{
-    const h=hit(p);pushUndo();
-    if(h>0){drag=h;}
+    const h=hit(p);pushUndo();DG={x:p.x,y:p.y,moved:false,isNew:false};
+    if(h>0){drag=h;SEL=h;}
     else{const q=snapPt(t,d);const pts=dive().pts;
       if(q.t<=0||pts.some(x=>x.t===q.t)){dive().undo.pop();return;}
-      let i=pts.findIndex(x=>x.t>q.t);if(i<0)i=pts.length;pts.splice(i,0,q);drag=i;}
+      let i=pts.findIndex(x=>x.t>q.t);if(i<0)i=pts.length;pts.splice(i,0,q);drag=i;SEL=i;DG.isNew=true;DG.moved=true;}
     recompute();
   }
 });
@@ -775,6 +773,7 @@ cv.addEventListener('pointermove',e=>{
   const p=pos(e);hover=p;
   if(seeking){seek(toT(p.x));return;}
   if(drawing){addFree(toT(p.x),toD(p.y));drawProfile();return;}
+  if(drag>0&&DG&&!DG.moved){if(Math.hypot(p.x-DG.x,p.y-DG.y)<7){if(!P.run)drawProfile();return;}DG.moved=true;}
   if(drag>0){const pts=dive().pts,q=snapPt(toT(p.x),toD(p.y));
     const lo=pts[drag-1].t+10,hi=drag<pts.length-1?pts[drag+1].t-10:TMAX;
     pts[drag]={t:clamp(q.t,lo,hi),d:q.d};liveRecompute();return;}
@@ -789,7 +788,7 @@ function trimSurface(pts){
 const endPtr=()=>{
   seeking=false;
   if(drawing){drawing=false;const dv=dive();dv.pts=trimSurface(rdp(dv.pts,1.2));recompute();}
-  if(drag>0){drag=-1;const dv=dive();dv.pts=trimSurface(dv.pts);recompute();}
+  if(drag>0){const dv=dive();if(DG&&!DG.moved){dv.undo.pop();drag=-1;DG=null;syncPtEd();drawProfile();return;}drag=-1;DG=null;dv.pts=trimSurface(dv.pts);recompute();}
 };
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
 cv.addEventListener('pointerleave',()=>{hover=null;if(!drawing&&drag<0&&!P.run)drawProfile();});
@@ -1007,7 +1006,7 @@ function syncForm(){
   $('cons').value=S.cons;$('gfWrap').classList.toggle('hide',S.cons!=='custom');$('gfLo').value=S.gfLo;$('gfHi').value=S.gfHi;
   $('asc').value=isFt()?Math.round(S.asc*FT):S.asc;$('asc').min=isFt()?10:3;$('asc').max=isFt()?60:18;document.querySelectorAll('[data-i18n=mpm]').forEach(e=>e.innerHTML=tr('mpm'));$('tankV').value=String(S.tankV);[150,180,200].forEach((v,i)=>{const o=$('tankP').options[i]||$('tankP').appendChild(document.createElement('option'));o.value=v;o.textContent=pu(v)+' '+puN();});$('tankP').value=String(S.tankP);$('pu').value=S.pu;$('sac').value=String(S.sac);
   $('setWrap').classList.toggle('open',S.setOpen);$('setHead').classList.toggle('open',S.setOpen);
-  $('mFree').classList.toggle('on',S.mode==='free');$('mPt').classList.toggle('on',S.mode==='pt');$('mDel').classList.toggle('on',S.mode==='del');$('mSel').classList.toggle('on',S.mode==='sel');
+  $('mFree').classList.toggle('on',S.mode==='free');$('mPt').classList.toggle('on',S.mode==='pt');$('mDel').classList.toggle('on',S.mode==='del');
   $('undo').disabled=!(dive().undo.length||dive().redoSnap);
 }
 const upd=()=>{syncForm();recompute();};
@@ -1026,11 +1025,10 @@ $('tankP').onchange=e=>{S.tankP=+e.target.value;upd();};
 $('pu').onchange=e=>{S.pu=e.target.value;try{localStorage.setItem('scuba_pu',S.pu);}catch(x){}upd();};
 try{const u=localStorage.getItem('scuba_pu');if(u==='psi')S.pu='psi';}catch(x){}
 $('sac').onchange=e=>{S.sac=+e.target.value;upd();};
-const toggleMode=m=>{S.mode=S.mode===m?'none':m;modeChanged();};
+const toggleMode=m=>{S.mode=S.mode===m?'none':m;SEL=-1;modeChanged();};
 $('mFree').onclick=()=>toggleMode('free');
 $('mPt').onclick=()=>toggleMode('pt');
 $('mDel').onclick=()=>toggleMode('del');
-$('mSel').onclick=()=>toggleMode('sel');
 ['peMin','peSec','peDep'].forEach(id=>{const el=$(id);el.addEventListener('change',applyPtEd);el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyPtEd();el.blur();}});});
 $('pePrev').onclick=()=>{if(SEL>1){SEL--;syncPtEd();drawProfile();}};
 $('peNext').onclick=()=>{if(SEL<dive().pts.length-1){SEL++;syncPtEd();drawProfile();}};
@@ -1133,7 +1131,7 @@ const ctr=el=>{const r=el.getBoundingClientRect();return [r.left+r.width/2,r.top
 const cpt=(tm,d)=>{const r=cv.getBoundingClientRect();return [r.left+X(tm),r.top+Y(d)];};
 async function tapEl(el,t,click=true){const [x,y]=ctr(el);await moveTo(x,y,550,t);el.classList.add('tutHi');ripple(x,y);await sleep(220);chk(t);if(click)el.click();await sleep(380);el.classList.remove('tutHi');chk(t);}
 async function point(el,t,ms){const [x,y]=ctr(el);await moveTo(x,y,600,t);el.classList.add('tutHi');await sleep(ms||900);el.classList.remove('tutHi');chk(t);}
-function setState(pts,mode){stopPlay();S.dives=[newDive()];S.cur=0;S.dives[0].pts=pts.map(([a,b])=>({t:a,d:b}));S.mode=mode||'none';S.bm='surf';
+function setState(pts,mode){stopPlay();SEL=-1;S.dives=[newDive()];S.cur=0;S.dives[0].pts=pts.map(([a,b])=>({t:a,d:b}));S.mode=mode||'none';S.bm='surf';
   S.alt=0;S.altSel='0';S.water='salt';S.gasSel='21';S.o2=21;S.cons='med';S.asc=9;S.tankV=12;S.tankP=200;S.sac=20;S.setOpen=false;
   syncForm();syncBM();recompute();modeChanged();}
 async function drawPath(path,t,dur){ // 그리기 모드 손 드래그
