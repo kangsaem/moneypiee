@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#284656">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Bühlmann 다이빙 플래너</title>
+<title>DTMD 다이빙 플래너</title>
 <style>
 :root{--bg:#e6e7ea;--card:#fff;--ink:#1f2328;--mute:#6b7280;--line:#e5e7eb;--up:#e5484d;--down:#2f6fe4;--plan:#0f9d7a;--ceil:#f59e0b;--mod:#8b5cf6;--acc:#1f2328}
 *{box-sizing:border-box}
@@ -20,6 +20,8 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 2px 12px}
 .top h1{margin:0;font-size:clamp(16px,4.6vw,19px);word-break:keep-all}
+.ttl{display:inline-flex;flex-direction:column;align-items:stretch;gap:3px}
+.ttl .dtmd{display:block;background:#000;color:#fff;text-shadow:none;font-weight:700;line-height:1;padding:3px 4px;white-space:nowrap;text-align:left;font-size:10px;box-sizing:border-box;overflow:hidden;width:0;min-width:100%}
 .bmode{margin-bottom:8px}
 .bmode button{font-size:12px;padding:4px 10px}
 .lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85)}
@@ -108,8 +110,16 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 </style>
 </head>
 <body>
+<div id="splash"><button id="spTut"><span class="sp1">튜토리얼</span><span class="sp2">DTMD 다이빙 플래너 사용법 · 약 3분</span></button><button id="spSkip">Skip</button></div>
+<style>
+#splash{position:fixed;inset:0;z-index:100;background:#fff;display:flex;flex-direction:column;gap:10px;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom));box-sizing:border-box}
+#spTut{flex:1;border:0;border-radius:18px;background:#0f2a3d;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;font-family:inherit}
+#spTut .sp1{font-size:clamp(40px,12vw,84px);font-weight:800;letter-spacing:-1px}
+#spTut .sp2{font-size:clamp(14px,3.8vw,18px);opacity:.7}
+#spSkip{height:56px;border:1px solid #d0d7de;border-radius:14px;background:#fff;color:#57606a;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit}
+</style>
 <div class="wrap">
-<div class="top"><h1 data-i18n="h1">Bühlmann 다이빙 플래너</h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
+<div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don't Try Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
 <div class="rule">
   <div data-i18n="rule1">1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
   <div data-i18n="rule2">2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
@@ -229,7 +239,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
 // ===== 다국어 =====
 const I18N={
 ko:{
- title:'Bühlmann 다이빙 플래너',h1:'Bühlmann 다이빙 플래너',
+ title:'DTMD 다이빙 플래너',h1:'DTMD 다이빙 플래너',
  rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
  settings:'⚙ 설정',alt:'해발 고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
  cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:'m/분',
@@ -284,7 +294,7 @@ ko:{
  }
 },
 en:{
- title:'Bühlmann Dive Planner',h1:'Bühlmann Dive Planner',
+ title:'DTMD Dive Planner',h1:'DTMD Dive Planner',
  rule1:'1. Keep the pink ceiling from appearing <small>= no-decompression dive</small>',rule2:'2. If the pink ceiling appears, never cross it <small>= decompression dive</small>',
  settings:'⚙ Settings',alt:'Altitude',sealevel:'0 m (sea level)',custom:'Custom',water:'Water type',salt:'Salt',fresh:'Fresh',gas:'Gas',air21:'Air (21%)',
  cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom',asc:'Plan ascent rate',mpm:'m/min',
@@ -339,7 +349,7 @@ en:{
  }
 },
 ja:{
- title:'Bühlmann ダイブプランナー',h1:'Bühlmann ダイブプランナー',
+ title:'DTMD ダイブプランナー',h1:'DTMD ダイブプランナー',
  rule1:'1. ピンクのシーリングを出さないこと <small>= 無減圧潜水</small>',rule2:'2. ピンクのシーリングが出たら絶対に越えないこと <small>= 減圧潜水</small>',
  settings:'⚙ 設定',alt:'標高',sealevel:'0 m (海面)',custom:'直接入力',water:'水の種類',salt:'海水',fresh:'淡水',gas:'ガス',air21:'空気 (21%)',
  cons:'保守性',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'カスタム',asc:'プラン浮上速度',mpm:'m/分',
@@ -975,7 +985,7 @@ window.addEventListener('resize',()=>{layout();drawProfile();updateStats(P.tick<
 // 배경 영상을 수심 그래프 뒤(세로 가운데)에 배치
 function applyLang(){
   document.documentElement.lang=LANG==='ja'?'ja':LANG;document.title=tr('title');
-  document.querySelectorAll('[data-i18n]').forEach(el=>{el.innerHTML=tr(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.innerHTML=tr(el.dataset.i18n);});if(window.fitDTMD)fitDTMD();
   document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
   $('playBtn').title=tr(P.run?'pause':'play');hidePop();
 }
@@ -1098,9 +1108,13 @@ async function showRules(t){hideOverlay();const card=cv.closest('.card'),r=card.
   OVL=document.createElement('div');Object.assign(OVL.style,{position:'fixed',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',background:'rgba(15,20,26,.86)',borderRadius:'10px',zIndex:57,display:'flex',flexDirection:'column',justifyContent:'center',gap:'10px',padding:'14px',boxSizing:'border-box'});
   document.body.appendChild(OVL);
   const items=['핑크색 천장이 안 나오게 (무감압)','나오면 절대 침범하지 않기','상승은 분당 9~10m 이하 · 5m 3분 안전정지','출수 때 공기 50bar 이상','싱글탱크 레저 다이빙은 무감압 한계 안에서'];
-  for(let i=0;i<items.length;i++){chk(t);const b=document.createElement('div');
+  const RT=[0,4.15,7.58,12.76,15.84],synced=()=>!AU.paused&&/ko12\.mp3$/.test(AU.src);
+  for(let i=0;i<items.length;i++){chk(t);
+    if(synced()){while(synced()&&AU.currentTime<RT[i]){await sleep(50);chk(t);}}else if(i>0)await sleep(900);
+    chk(t);const b=document.createElement('div');
     Object.assign(b.style,{background:'#e5484d',color:'#fff',borderRadius:'10px',padding:'12px 14px',fontWeight:'800',fontSize:'clamp(15px,4.4vw,20px)',lineHeight:'1.35',wordBreak:'keep-all',opacity:0,transform:'translateX(-14px)',transition:'all .35s ease-out'});
-    b.innerHTML=`<span style="opacity:.75;margin-right:8px">${i+1}</span>${items[i]}`;OVL.appendChild(b);await sleep(40);b.style.opacity=1;b.style.transform='none';await sleep(900);}}
+    b.innerHTML=`<span style="opacity:.75;margin-right:8px">${i+1}</span>${items[i]}`;OVL.appendChild(b);await sleep(40);b.style.opacity=1;b.style.transform='none';}
+  await sleep(900);}
 const STEPS=[
 {p:'1부 · 무감압 다이빙',ti:'① 그리기 모드',tx:'<b>그리기</b>를 고르고 그래프 위를 누른 채로 끌면 수심 경로가 그려져요. 가로는 시간, 세로는 수심이에요.',
  set:()=>setState(A0,'none'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mFree'),t);}},
@@ -1155,5 +1169,20 @@ window.startTutorial=start;
 })();
 </script>
 
+<script>
+(function(){const sp=document.getElementById('splash');if(!sp)return;
+  let lang='ko';try{lang=localStorage.getItem('scuba_lang')||'ko';}catch(e){}const h=(location.hash||'').slice(1);if(h==='en'||h==='ja'||h==='ko')lang=h;
+  if(lang!=='ko'){sp.remove();return;}
+  const close=()=>sp.remove();
+  document.getElementById('spSkip').onclick=close;
+  document.getElementById('spTut').onclick=()=>{close();window.startTutorial&&window.startTutorial();};})();
+</script>
+<script>
+(function(){function fit(){const b=document.querySelector('.ttl .dtmd');if(!b)return;b.style.letterSpacing='0px';b.style.fontSize='20px';
+  const w=b.clientWidth-8;if(w<=0)return;const n=Math.max(1,b.textContent.length-1);
+  let f=20;while(f>7&&b.scrollWidth-8>w){f-=.5;b.style.fontSize=f+'px';}
+  const r=document.createRange();r.selectNodeContents(b);const tw=r.getBoundingClientRect().width;b.style.letterSpacing=Math.max(0,(w-tw)/n)+'px';}
+  window.fitDTMD=fit;addEventListener('resize',fit);addEventListener('load',fit);try{document.fonts.ready.then(fit);}catch(e){}fit();})();
+</script>
 </body>
 </html>
