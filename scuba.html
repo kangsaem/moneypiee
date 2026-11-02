@@ -1211,7 +1211,7 @@ async function run(i){IDX=i;const t=++TOK;ARMED=false;const st=STEPS[i];hideOver
   sp.then(()=>{if(TW===tw)typeAll();});
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
     if(i===STEPS.length-1){await sleep(400);chk(t);await playClip(clip(STEPS.length+1));chk(t);}
-    DONE=t;if(i===STEPS.length-1)armBlank(t);
+    DONE=t;if(i===STEPS.length-1){await sleep(600);chk(t);end();setState(A0,'free');window.scrollTo({top:0,behavior:'smooth'});return;}
     if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
 let PU0=null,ARMED=false;
 // 튜토리얼 중에는 튜토리얼 창 버튼 외 사용자 조작 막기 (스크롤은 허용)
