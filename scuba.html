@@ -998,7 +998,7 @@ function spokenText(html){
      .replace(/(\d+)\/(\d+)/g,'$1 $2').replace(/\(/g,', ').replace(/\)/g,', ');
   return t;}
 function speak(text,onProg){return new Promise(res=>{if(!VOICE||!SS){res();return;}
-  try{const busy=SS.speaking||SS.pending;if(busy)SS.cancel();const sp=spokenText(text);const u=new SpeechSynthesisUtterance(sp);if(onProg)u.onboundary=ev=>{if(ev.charIndex!=null)onProg(ev.charIndex/sp.length);};u.lang='ko-KR';const v=koVoice();if(v)u.voice=v;u.rate=1.2;
+  try{const busy=SS.speaking||SS.pending;if(busy)SS.cancel();const sp=spokenText(text);const u=new SpeechSynthesisUtterance(sp);if(onProg)u.onboundary=ev=>{if(ev.charIndex!=null)onProg(ev.charIndex/sp.length);};u.lang='ko-KR';const v=koVoice();if(v)u.voice=v;u.rate=1.05;
     let done=false;const fin=()=>{if(!done){done=true;res();}};u.onend=fin;u.onerror=fin;setTimeout(fin,Math.max(3500,text.length*190));window.__tutU=u;
     const go=()=>{try{SS.resume();}catch(e){}SS.speak(u);};if(busy)setTimeout(go,150);else go();}catch(e){res();}});}
 // 글자를 읽는 속도에 맞춰 하나씩 표시
@@ -1007,7 +1007,7 @@ function typeInit(el){const nodes=[];const w=document.createTreeWalker(el,NodeFi
   let total=0;nodes.forEach(x=>{total+=x[1].length;x[0].nodeValue='';});
   const show=k=>{let left=Math.round(k);for(const [nd,tx] of nodes){const c=Math.max(0,Math.min(tx.length,left));nd.nodeValue=tx.slice(0,c);left-=tx.length;}};
   return {total,show,shown:0};}
-function typeRun(el,tok,voiced){const T0=typeInit(el);TW=T0;const cps=voiced?9.5:18;let start=performance.now(),boost=0;
+function typeRun(el,tok,voiced){const T0=typeInit(el);TW=T0;const cps=voiced?8:16;let start=performance.now(),boost=0;
   T0.prog=p=>{boost=Math.max(boost,p*T0.total);};
   const tick=()=>{if(TW!==T0||tok!==TOK)return;const by=(performance.now()-start)/1000*cps;T0.shown=Math.min(T0.total,Math.max(T0.shown,by,boost));T0.show(T0.shown);if(T0.shown<T0.total)requestAnimationFrame(tick);};
   requestAnimationFrame(tick);return T0;}
