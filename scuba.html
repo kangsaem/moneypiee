@@ -145,7 +145,7 @@ canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-
       <label><span class="tip" data-tip="asc" data-i18n="asc">플랜 상승속도</span> <input type="number" id="asc" min="3" max="18" step="1"> <span data-i18n="mpm">m/분</span></label>
       <label><span class="tip" data-tip="tank" data-i18n="tank">탱크</span>
         <select id="tankV"><option value="10">10 L</option><option value="11.1">11.1 L (AL80)</option><option value="12">12 L</option><option value="15">15 L</option></select>
-        <select id="tankP"><option value="150">150 bar</option><option value="180">180 bar</option><option value="200">200 bar</option></select>
+        <select id="tankP"></select><select id="pu"><option value="bar">bar</option><option value="psi">PSI</option></select>
       </label>
       <label><span class="tip" data-tip="sac" data-i18n="sac">호흡량</span>
         <select id="sac"><option value="15" data-i18n="sacLo">적음 (15 L/분)</option><option value="20" data-i18n="sacMd">보통 (20 L/분)</option><option value="25" data-i18n="sacHi">많음 (25 L/분)</option></select>
@@ -238,7 +238,7 @@ ko:{
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
  disc:'교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',
  model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 헬륨·산소 독성(CNS/OTU)은 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
- tank:'탱크',sac:'호흡량',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:v=>`출수 잔압 ${v}bar (50 미만)`,wGas0:'공기 고갈',
+ tank:'탱크',sac:'호흡량',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:(v,m)=>`출수 잔압 ${v} (${m} 미만)`,wGas0:'공기 고갈',
  tutBtn:'튜토리얼',bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
  siTitle:'수면휴식 시간',hUnit:'시간',minUnit:'분',cancel:'취소',ok:'확인',
  axisMin:m=>m+'분',max:v=>`최대 ${v}m`,total:v=>`총 ${v}`,
@@ -293,7 +293,7 @@ en:{
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
  disc:'For education and learning only. Do not use it to plan real dives or as a substitute for a dive computer.',
  model:'Model: Bühlmann ZHL-16C, 16 nitrogen compartments, Baker gradient factors, water vapour 0.0627 bar, 1-second steps. Deco stops in 3 m steps and whole minutes, last stop 3 m. A 3-minute safety stop at 5 m is included. Altitude assumes you are acclimatised. Helium and oxygen toxicity (CNS/OTU) are not calculated. Results can differ from real dive computers by a few minutes because of how stops are handled and rounded.',
- tank:'Tank',sac:'Breathing (SAC)',sacLo:'Low (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'High (25 L/min)',wGas:v=>`Surfacing with ${v} bar (below 50)`,wGas0:'Out of air',
+ tank:'Tank',sac:'Breathing (SAC)',sacLo:'Low (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'High (25 L/min)',wGas:(v,m)=>`Surfacing with ${v} (below ${m})`,wGas0:'Out of air',
  tutBtn:'Tutorial (KR)',bmSurf:'Surface-based',bmSw:'Shearwater-style',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
  siTitle:'Surface interval',hUnit:'h',minUnit:'min',cancel:'Cancel',ok:'OK',
  axisMin:m=>String(m),axisLast:m=>m+' min',max:v=>`Max ${v}m`,total:v=>`Total ${v}`,
@@ -348,7 +348,7 @@ ja:{
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
  disc:'教育・学習用のシミュレーターです。実際のダイビング計画やダイブコンピューターの代わりに使用しないでください。',
  model:'計算: Bühlmann ZHL-16C 窒素16コンパートメント、Baker グラディエントファクター、水蒸気圧 0.0627 bar、1秒単位の計算。減圧停止は3 m刻み・1分単位、最終停止 3 m。5 mで3分の安全停止を含む。標高はその標高に順応した状態を想定。ヘリウム・酸素毒性(CNS/OTU)は計算しません。停止の扱いや丸め方の違いにより、実際のダイブコンピューターと数分の差が出ることがあります。',
- tank:'タンク',sac:'呼吸量',sacLo:'少ない (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'多い (25 L/分)',wGas:v=>`浮上時残圧 ${v}bar (50未満)`,wGas0:'エア切れ',
+ tank:'タンク',sac:'呼吸量',sacLo:'少ない (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'多い (25 L/分)',wGas:(v,m)=>`浮上時残圧 ${v} (${m}未満)`,wGas0:'エア切れ',
  tutBtn:'チュートリアル(韓)',bmSurf:'水面基準',bmSw:'Shearwater式',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
  siTitle:'水面休息時間',hUnit:'時間',minUnit:'分',cancel:'キャンセル',ok:'OK',
  axisMin:m=>m+'分',max:v=>`最大 ${v}m`,total:v=>`合計 ${v}`,
@@ -503,7 +503,8 @@ function simulate(dv,T0,c){
 
 // ===== 상태 =====
 const newDive=()=>({pts:[{t:0,d:0}],si:60,undo:[],redoSnap:null});
-const S={get playMode(){return this.mode==='none';},bm:BM,alt:0,altSel:'0',water:'salt',gasSel:'21',o2:21,cons:'med',gfLo:40,gfHi:85,asc:9,tankV:12,tankP:200,sac:20,dives:[newDive()],cur:0,mode:'free',setOpen:false};
+const PSI=14.5038;const pu=b=>S.pu==='psi'?Math.round(b*PSI/10)*10:Math.round(b);const puN=()=>S.pu==='psi'?'psi':'bar';
+const S={get playMode(){return this.mode==='none';},pu:'bar',bm:BM,alt:0,altSel:'0',water:'salt',gasSel:'21',o2:21,cons:'med',gfLo:40,gfHi:85,asc:9,tankV:12,tankP:200,sac:20,dives:[newDive()],cur:0,mode:'free',setOpen:false};
 let RES=[];
 const P={t:0,run:false,sp:1,last:0,tick:-1};
 const $=id=>document.getElementById(id);
@@ -557,11 +558,13 @@ function drawProfile(){
     for(let s=0;s<tc;s+=5)cx.lineTo(X(s),Y(r.depth[s]));
     cx.lineTo(X(tc),Y(r.depth[Math.floor(tc)]));cx.lineTo(X(tc),Y(0));cx.closePath();
     cx.save();cx.clip();
-    if(r.t0>=0&&P.t>=r.t0){cx.fillStyle='rgba(0,0,0,.38)';cx.fillRect(G.L,G.T,G.W,G.H);}else{
+    {
     cx.fillStyle='#cfe3fb';cx.fillRect(G.L,Y(0),G.W,Y(20)-Y(0));
     cx.fillStyle='#6aaee8';cx.fillRect(G.L,Y(20),G.W,Y(30)-Y(20));
     cx.fillStyle='#6aaee8';cx.fillRect(G.L,Y(30),G.W,Y(DMAX)-Y(30)+2);}
     cx.restore();
+    if(r.t0>=0&&P.t>=r.t0){cx.beginPath();cx.moveTo(X(r.t0),Y(0));for(let k=r.t0;k<=r.N;k+=5)cx.lineTo(X(k),Y(r.depth[k]));cx.lineTo(X(r.N),Y(r.depth[r.N]));cx.lineTo(X(r.N),Y(0));cx.closePath();
+      cx.fillStyle='rgba(0,0,0,.38)';cx.fill();}
   }
   cx.fillStyle='rgba(0,0,0,.12)';cx.fillRect(G.L,Y(30),G.W,Y(DMAX)-Y(30));
   cx.font='700 16px sans-serif';cx.fillStyle='rgba(31,35,40,.16)';cx.textAlign='center';cx.textBaseline='middle';
@@ -589,7 +592,7 @@ function drawProfile(){
       cx.setLineDash([]);
     }
     if(r.t50>=0&&r.t50<=TMAX&&dv.pts.length>1){cx.strokeStyle='#f97316';cx.lineWidth=1.4;cx.setLineDash([3,3]);cx.beginPath();cx.moveTo(X(r.t50)+.5,G.T);cx.lineTo(X(r.t50)+.5,G.T+G.H);cx.stroke();cx.setLineDash([]);
-      cx.font='600 11px sans-serif';cx.fillStyle='#ea580c';cx.textAlign='left';cx.textBaseline='bottom';cx.fillText('50bar',X(r.t50)+3,G.T+G.H-3);}
+      cx.font='600 11px sans-serif';cx.fillStyle='#ea580c';cx.textAlign='left';cx.textBaseline='bottom';cx.fillText(pu(50)+puN(),X(r.t50)+3,G.T+G.H-3);}
     const PL=r.plan?{t0:r.uEnd,plan:r.plan}:r.alt;
     if(PL&&!drawing){
       cx.strokeStyle='#0f9d7a';cx.lineWidth=2.2;cx.setLineDash([6,4]);cx.beginPath();
@@ -630,26 +633,24 @@ function drawProfile(){
     cx.fillStyle='rgba(255,255,255,.7)';cx.fillRect(gx,gy,gw,gh);cx.strokeStyle='#9ca3af';cx.lineWidth=1;cx.strokeRect(gx+.5,gy+.5,gw-1,gh-1);
     cx.fillStyle=cur<=50?'#f97316':'#2f6fe4';cx.fillRect(gx+1,yb(cur),gw-2,gy+gh-yb(cur)-1);
     cx.strokeStyle='#ea580c';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(gx-2,yb(50));cx.lineTo(gx+gw+2,yb(50));cx.stroke();
-    cx.font='600 10px sans-serif';cx.fillStyle=cur<=50?'#ea580c':'#1f2328';cx.textAlign='center';cx.textBaseline='top';cx.fillText(Math.round(cur),gx+gw/2,gy+gh+5);
-    cx.font='9px sans-serif';cx.fillStyle='#6b7280';cx.fillText('bar',gx+gw/2,gy+gh+16);
-  }
-  if(r&&dv.pts.length>1){
-    const deco=S.playMode&&P.t>0?!okAt(Array.from(r.snaps[Math.min(r.N,Math.round(P.t))]),0,r.c.hi):r.ceil5.some(v=>v>0);
-    if(deco){cx.font='800 13px sans-serif';const tw=cx.measureText('DECO').width+18,bx=G.L+6,by=G.T+4;
-      cx.fillStyle='#e5484d';cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,20,5):cx.rect(bx,by,tw,20);cx.fill();
-      cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+10.5);}
+    cx.font='9px sans-serif';cx.fillStyle='#6b7280';cx.textAlign='center';cx.textBaseline='bottom';cx.fillText(puN(),gx+gw/2,gy-2);
+    {const ty=yb(cur)-2;if(ty-11>=gy){cx.save();cx.translate(gx+gw/2,ty);cx.font='600 10px sans-serif';cx.fillStyle=cur<=50?'#ea580c':'#1f2328';cx.textBaseline='bottom';
+      const txt=String(pu(cur));if(cx.measureText(txt).width>gw-1){cx.rotate(-Math.PI/2);cx.textAlign='left';cx.textBaseline='middle';cx.fillText(txt,2,0);}else{cx.textAlign='center';cx.fillText(txt,0,0);}cx.restore();}}
   }
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
         const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N));cx.font='600 12px sans-serif';
-        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width)+12,th=36;
+        const isDeco=r&&r.ceil5.some(v=>v>0),hh=isDeco?18:0;
+        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,isDeco?48:0)+12,th=36+hh;
         const hits=(bx,by)=>{if(!r)return false;for(let x=bx-2;x<=bx+tw+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+th+3)return true;}return false;};
         const cand=[[L0.xn-tw-4,L0.yd-th-4],[L0.xn+6,L0.yd-th-4],[L0.xn+6,L0.yd+4],[L0.xn-tw-4,L0.yd+4],[L0.xn+6,G.T+28],[L0.xn-tw-4,G.T+28]]
           .map(([x,y])=>[clamp(x,G.L+2,G.L+G.W-tw-2),clamp(y,G.T+2,G.T+G.H-th-2)]);
         let [bx,by]=cand.find(([x,y])=>!hits(x,y))||cand[0];
-        cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle='#9ca3af';cx.lineWidth=1;
+        cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle=isDeco?'#e5484d':'#9ca3af';cx.lineWidth=1;
         cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();cx.stroke();
-        cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+10.5);cx.fillText(l2,bx+6,by+26);
+        if(isDeco){cx.save();cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.clip();cx.fillStyle='#e5484d';cx.fillRect(bx,by,tw,hh);cx.restore();
+          cx.font='800 12px sans-serif';cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+hh/2+.5);cx.font='600 12px sans-serif';}
+        cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+hh+10.5);cx.fillText(l2,bx+6,by+hh+26);
       }
   }
   if(timeTag){cx.beginPath();cx.arc(timeTag.x,timeTag.y,10,0,7);cx.fillStyle='rgba(31,35,40,.18)';cx.fill();
@@ -749,7 +750,7 @@ function renderSummary(){
   if(fc)w.push(tr('wFast'));
   const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;if(r.maxD>mod+0.1)w.push(tr('wMod',mod.toFixed(1)));
   if(r.N>TMAX)w.push(tr('wOver',TMAX/60));
-  {const ge=r.gas[r.N];if(ge<=0)w.push(tr('wGas0'));else if(ge<50)w.push(tr('wGas',Math.round(ge)));}
+  {const ge=r.gas[r.N];if(ge<=0)w.push(tr('wGas0'));else if(ge<50)w.push(tr('wGas',pu(ge)+puN(),pu(50)));}
   $('warnBox').innerHTML=w.length?'⚠ '+w.join('<br>⚠ '):'';$('warnBox').classList.toggle('hide',!w.length);
   el.innerHTML=h;el.classList.toggle('hide',!h);
 }
@@ -922,7 +923,7 @@ function renderTabs(){
     b.addEventListener('pointerdown',()=>{fired=false;cancel();lp=setTimeout(()=>{fired=true;showPop(b,i);},500);});
     b.addEventListener('pointerup',cancel);b.addEventListener('pointerleave',cancel);b.addEventListener('pointercancel',cancel);
     b.addEventListener('contextmenu',e=>e.preventDefault());
-    b.onclick=e=>{if(fired){e.preventDefault();fired=false;return;}S.cur=i;syncForm();recompute();};el.appendChild(b);
+    b.onclick=e=>{if(fired){e.preventDefault();fired=false;return;}S.cur=i;syncForm();recompute();if(dive().pts.length>1){S.mode='none';modeChanged();seek(playEnd(RES[S.cur]));}};el.appendChild(b);
   });
   const a=document.createElement('button');a.className='add';a.textContent=tr('addDive');
   a.onclick=()=>{S.dives.push(newDive());S.cur=S.dives.length-1;syncForm();recompute();};
@@ -931,14 +932,14 @@ function renderTabs(){
 function renderSum(){
   const c=cfg();
   const gas=S.o2<=21?tr('sAir'):'EAN'+S.o2;
-  $('setSum').textContent=tr('sSum',tr(S.water==='salt'?'salt':'fresh'),S.alt,gas,Math.round(c.lo*100),Math.round(c.hi*100),c.asc)+` · ${S.tankV}L ${S.tankP}bar`;
+  $('setSum').textContent=tr('sSum',tr(S.water==='salt'?'salt':'fresh'),S.alt,gas,Math.round(c.lo*100),Math.round(c.hi*100),c.asc)+` · ${S.tankV}L ${pu(S.tankP)}${puN()}`;
 }
 function syncForm(){
   renderTabs();renderSum();
   $('altSel').value=S.altSel;$('altIn').classList.toggle('hide',S.altSel!=='c');$('altIn').value=S.alt;$('water').value=S.water;
   $('gas').value=S.gasSel;$('o2').classList.toggle('hide',S.gasSel!=='c');$('o2').value=S.o2;
   $('cons').value=S.cons;$('gfWrap').classList.toggle('hide',S.cons!=='custom');$('gfLo').value=S.gfLo;$('gfHi').value=S.gfHi;
-  $('asc').value=S.asc;$('tankV').value=String(S.tankV);$('tankP').value=String(S.tankP);$('sac').value=String(S.sac);
+  $('asc').value=S.asc;$('tankV').value=String(S.tankV);[150,180,200].forEach((v,i)=>{const o=$('tankP').options[i]||$('tankP').appendChild(document.createElement('option'));o.value=v;o.textContent=pu(v)+' '+puN();});$('tankP').value=String(S.tankP);$('pu').value=S.pu;$('sac').value=String(S.sac);
   $('setWrap').classList.toggle('open',S.setOpen);$('setHead').classList.toggle('open',S.setOpen);
   $('mFree').classList.toggle('on',S.mode==='free');$('mPt').classList.toggle('on',S.mode==='pt');$('mDel').classList.toggle('on',S.mode==='del');
   $('undo').disabled=!(dive().undo.length||dive().redoSnap);
@@ -956,6 +957,8 @@ $('gfHi').onchange=e=>{S.gfHi=clamp(+e.target.value||85,10,100);upd();};
 $('asc').onchange=e=>{S.asc=clamp(+e.target.value||9,3,18);upd();};
 $('tankV').onchange=e=>{S.tankV=+e.target.value;upd();};
 $('tankP').onchange=e=>{S.tankP=+e.target.value;upd();};
+$('pu').onchange=e=>{S.pu=e.target.value;try{localStorage.setItem('scuba_pu',S.pu);}catch(x){}upd();};
+try{const u=localStorage.getItem('scuba_pu');if(u==='psi')S.pu='psi';}catch(x){}
 $('sac').onchange=e=>{S.sac=+e.target.value;upd();};
 const toggleMode=m=>{S.mode=S.mode===m?'none':m;modeChanged();};
 $('mFree').onclick=()=>toggleMode('free');
