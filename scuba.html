@@ -990,7 +990,11 @@ layout();syncForm();recompute();modeChanged();
 const H=document.getElementById('tutHand'),BOX=document.getElementById('tutBox');
 let TOK=0,IDX=0,ON=false,VOICE=true,AUTO=false;
 const SS=window.speechSynthesis;
-function koVoice(){try{const v=SS.getVoices();return v.find(x=>/^ko/i.test(x.lang))||null;}catch(e){return null;}}
+let VSEL;
+function koVoice(){if(VSEL!==undefined)return VSEL;try{const all=SS.getVoices();if(!all.length)return null;
+  const ko=all.filter(x=>/^ko/i.test(x.lang)&&!/eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|bad news|bells|boing|bubbles|cellos|jester|organ|superstar|trinoids|whisper|wobble|zarvox/i.test(x.name));
+  const pref=['Yuna','유나','Sora','Google 한국의','SunHi','Heami','InJoon'];
+  VSEL=ko.find(x=>pref.some(p=>x.name.includes(p)))||ko.find(x=>x.default)||ko.find(x=>x.localService)||ko[0]||null;}catch(e){VSEL=null;}return VSEL;}
 function spokenText(html){
   let t=html.replace(/<br\s*\/?>/g,'. ').replace(/<[^>]+>/g,'').replace(/[①-⑳]/g,'').replace(/→/g,', ').replace(/·/g,', ').replace(/—/g,', ');
   t=t.replace(/GF High/g,'지에프 하이').replace(/GF/g,'지에프').replace(/NDL/g,'엔디엘').replace(/50bar/g,'50바').replace(/(\d+)bar/g,'$1바').replace(/bar/g,'바')
@@ -1101,7 +1105,7 @@ const vb=document.getElementById('tutVoice'),ab=document.getElementById('tutAuto
 const syncTB=()=>{vb.classList.toggle('on',VOICE);vb.textContent=VOICE?'🔊':'🔇';ab.classList.toggle('on',AUTO);};
 vb.onclick=()=>{VOICE=!VOICE;if(!VOICE)hush();else speak(STEPS[IDX].ti+'. '+STEPS[IDX].tx);syncTB();};
 ab.onclick=()=>{AUTO=!AUTO;syncTB();if(AUTO&&!P.run&&!SS?.speaking){}};
-syncTB();try{SS&&SS.getVoices();}catch(e){}
+syncTB();try{if(SS){SS.getVoices();SS.onvoiceschanged=()=>{if(VSEL===null)VSEL=undefined;koVoice();};}}catch(e){}
 window.startTutorial=start;
 })();
 </script>
