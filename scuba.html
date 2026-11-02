@@ -310,7 +310,7 @@ ko:{
   plan:['추천 경로','그린 경로가 출수 전에 끝나면 그 지점부터, 감압 정지(3m 단위)와 5m 3분 안전정지를 넣어 계산한 상승 경로. 출수까지 다 그렸는데 5m 안전정지를 안 했으면 5m를 지나는 지점부터 안전정지 경로를 비교용으로 표시(통계는 내 경로 기준).'],
   ceil:['천장 (실링 · 상승 한계 수심)','이보다 얕게 올라가면 GF 한계를 넘는 수심. 0m면 바로 출수 가능.'],
   fast:['급상승','분당 10m보다 빠르게 올라간 구간. 기포 생성 위험이 커짐.'],
-  mod:['MOD (최대 운용 수심)','산소 분압이 1.4bar가 되는 수심. 나이트록스일 때만 표시. 이보다 깊이 가면 산소 독성 위험.'],
+  mod:['MOD (최대 운용 수심)','산소 분압이 1.2·1.4·1.6bar가 되는 수심. 진한 선(1.4)이 기준이고, 넘으면 경고. 1.2는 보수적 기준, 1.6은 비상 한계. 나이트록스일 때 그래프 범위 안에 들어오면 표시.'],
   on:['질소 흡수 중','들이마시는 질소 분압이 조직보다 높아 질소가 쌓이는 중 (주로 내려가거나 깊이 머물 때).'],
   off:['질소 배출 중','조직의 질소가 들이마시는 것보다 높아 빠져나가는 중 (주로 올라올 때·수면 휴식 중).'],
   pct:['막대 %','조직 질소분압 ÷ 수면 허용한계(GF High). 100%를 넘는 구획이 하나라도 있으면 바로 출수 불가 = 감압 필요.'],
@@ -365,7 +365,7 @@ en:{
   plan:['Suggested ascent','If your profile ends before surfacing, an ascent from that point with deco stops (3 m steps) and a 3-minute safety stop at 5 m. If you drew all the way up without a safety stop, a safety-stop path from where you pass 5 m is shown for comparison (stats still follow your profile).'],
   ceil:['Ceiling','The shallowest depth you may ascend to without exceeding the GF limit. 0 m means you can surface directly.'],
   fast:['Fast ascent','Sections where you ascended faster than 10 m/min. Raises the risk of bubble formation.'],
-  mod:['MOD (maximum operating depth)','Depth where oxygen partial pressure reaches 1.4 bar. Shown for nitrox only. Going deeper risks oxygen toxicity.'],
+  mod:['MOD (maximum operating depth)','Depths where oxygen partial pressure reaches 1.2 / 1.4 / 1.6 bar. The bold 1.4 line is the limit used for warnings; 1.2 is conservative, 1.6 is the contingency maximum. Shown when within the graph range (nitrox).'],
   on:['N₂ on-gassing','The nitrogen you breathe is at a higher pressure than in the tissue, so nitrogen is building up (mostly when descending or staying deep).'],
   off:['N₂ off-gassing','The tissue holds more nitrogen than you breathe, so it is leaving (mostly when ascending or during a surface interval).'],
   pct:['Bar %','Tissue nitrogen pressure ÷ surfacing limit (GF High). If any compartment is above 100% you cannot surface directly = deco required.'],
@@ -420,7 +420,7 @@ ja:{
   plan:['推奨経路','描いた経路が浮上前に終わった場合、その地点から減圧停止(3m刻み)と5m 3分の安全停止を入れて計算した浮上経路。浮上まで描いたのに5mの安全停止をしていない場合は、5mを通過する地点から安全停止の経路を比較用に表示(統計は自分の経路が基準)。'],
   ceil:['シーリング','これより浅く浮上すると GF の限界を超える水深。0mなら直接浮上可能。'],
   fast:['急浮上','毎分10mより速く浮上した区間。気泡ができる危険が高まる。'],
-  mod:['MOD (最大運用水深)','酸素分圧が1.4barになる水深。ナイトロックスの時のみ表示。これより深いと酸素中毒の危険。'],
+  mod:['MOD (最大運用水深)','酸素分圧が1.2・1.4・1.6barになる水深。濃い線(1.4)が基準で、超えると警告。1.2は保守的、1.6は緊急時の上限。グラフ範囲内(ナイトロックス)の時に表示。'],
   on:['窒素 吸収中','吸っている窒素の分圧が組織より高く、窒素が溜まっている状態(主に潜降中や深く留まっている時)。'],
   off:['窒素 排出中','組織の窒素が吸っているものより多く、抜けている状態(主に浮上中・水面休息中)。'],
   pct:['バー %','組織の窒素分圧 ÷ 浮上許容限界(GF High)。100%を超えるコンパートメントが一つでもあれば直接浮上不可 = 減圧が必要。'],
@@ -628,10 +628,10 @@ function drawProfile(){
       cx.strokeStyle='#db2777';cx.lineWidth=1.5;cx.beginPath();
       r.ceil5.forEach((v,k)=>{const pv=k?r.ceil5[k-1]:0,nv=r.ceil5[k+1]||0;if(v>0||pv>0){if(k&&pv<=0&&v>0)cx.moveTo(X((k-1)*5),Y(0));cx.lineTo(X(k*5),Y(v));}else if(nv>0)cx.moveTo(X(k*5),Y(v));});cx.stroke();
     }
-    const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;
-    $('lgMod').style.display=mod<DMAX?'':'none';
-    if(mod<DMAX){cx.strokeStyle='#8b5cf6';cx.setLineDash([6,4]);cx.lineWidth=1.2;cx.beginPath();cx.moveTo(G.L,Y(mod));cx.lineTo(G.L+G.W,Y(mod));cx.stroke();cx.setLineDash([]);
-      cx.fillStyle='#8b5cf6';cx.textAlign='right';cx.textBaseline='bottom';cx.fillText('MOD '+DU(mod.toFixed(1)),G.L+G.W-4,Y(mod)-2);}
+    {const mods=[[1.2,.45,[2,4],1],[1.4,1,[6,4],1.3],[1.6,.45,[2,4],1]].map(([pp,a,dash,lw])=>({pp,a,dash,lw,d:(pp/r.c.fO2-ENV.psurf)/ENV.bpm}));
+    $('lgMod').style.display=mods.some(m=>m.d<DMAX)?'':'none';
+    mods.forEach(m=>{if(m.d>=DMAX)return;cx.save();cx.globalAlpha=m.a;cx.strokeStyle='#8b5cf6';cx.setLineDash(m.dash);cx.lineWidth=m.lw;cx.beginPath();cx.moveTo(G.L,Y(m.d));cx.lineTo(G.L+G.W,Y(m.d));cx.stroke();cx.setLineDash([]);
+      cx.font=(m.pp===1.4?'600 11px':'10px')+' sans-serif';cx.fillStyle='#8b5cf6';cx.textAlign='right';cx.textBaseline='bottom';cx.fillText('MOD '+m.pp.toFixed(1)+' · '+DU(m.d.toFixed(1)),G.L+G.W-4,Y(m.d)-2);cx.restore();});}
     if(!drawing&&dv.pts.length>1){
       cx.strokeStyle='#6b7280';cx.lineWidth=1;cx.setLineDash([2,3]);cx.font='11px sans-serif';cx.fillStyle='#4b5563';
       const xn=X(Math.min(r.N,TMAX)),yd=Y(r.maxD);
