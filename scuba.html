@@ -997,9 +997,20 @@ function spokenText(html){
      .replace(/(\d+(?:\.\d+)?)\s*L(?![a-zA-Z])/g,'$1리터').replace(/(\d+)~(\d+)m\/분/g,'분당 $1에서 $2미터').replace(/(\d+)m\/분/g,'분당 $1미터').replace(/분당 (\d+)m/g,'분당 $1미터').replace(/(\d+)~(\d+)m/g,'$1에서 $2미터').replace(/(\d+)m(?![a-zA-Z])/g,'$1미터')
      .replace(/(\d+)\/(\d+)/g,'$1 $2').replace(/\(/g,', ').replace(/\)/g,', ');
   return t;}
-function speak(text){return new Promise(res=>{if(!VOICE||!SS){res();return;}
-  try{SS.cancel();const u=new SpeechSynthesisUtterance(spokenText(text));u.lang='ko-KR';const v=koVoice();if(v)u.voice=v;u.rate=0.95;
+function speak(text,onProg){return new Promise(res=>{if(!VOICE||!SS){res();return;}
+  try{SS.cancel();const sp=spokenText(text);const u=new SpeechSynthesisUtterance(sp);if(onProg)u.onboundary=ev=>{if(ev.charIndex!=null)onProg(ev.charIndex/sp.length);};u.lang='ko-KR';const v=koVoice();if(v)u.voice=v;u.rate=0.95;
     let done=false;const fin=()=>{if(!done){done=true;res();}};u.onend=fin;u.onerror=fin;setTimeout(fin,Math.max(4000,text.length*230));SS.speak(u);}catch(e){res();}});}
+// 글자를 읽는 속도에 맞춰 하나씩 표시
+let TW=null;
+function typeInit(el){const nodes=[];const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))nodes.push([n,n.nodeValue]);
+  let total=0;nodes.forEach(x=>{total+=x[1].length;x[0].nodeValue='';});
+  const show=k=>{let left=Math.round(k);for(const [nd,tx] of nodes){const c=Math.max(0,Math.min(tx.length,left));nd.nodeValue=tx.slice(0,c);left-=tx.length;}};
+  return {total,show,shown:0};}
+function typeRun(el,tok,voiced){const T0=typeInit(el);TW=T0;const cps=voiced?7.2:14;let start=performance.now(),boost=0;
+  T0.prog=p=>{boost=Math.max(boost,p*T0.total);};
+  const tick=()=>{if(TW!==T0||tok!==TOK)return;const by=(performance.now()-start)/1000*cps;T0.shown=Math.min(T0.total,Math.max(T0.shown,by,boost));T0.show(T0.shown);if(T0.shown<T0.total)requestAnimationFrame(tick);};
+  requestAnimationFrame(tick);return T0;}
+function typeAll(){if(TW){TW.shown=TW.total;TW.show(TW.total);}}
 function hush(){try{SS&&SS.cancel();}catch(e){}}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 class Stop extends Error{}
@@ -1074,7 +1085,9 @@ async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];
   document.getElementById('tutPart').textContent=st.p;document.getElementById('tutCnt').textContent=(i+1)+' / '+STEPS.length;
   document.getElementById('tutTitle').textContent=st.ti;document.getElementById('tutText').innerHTML=st.tx;
   document.getElementById('tutPrev').disabled=i===0;document.getElementById('tutNext').textContent=i===STEPS.length-1?'끝내기':'다음';
-  hush();const sp=speak(st.ti+'. '+st.tx);
+  hush();const tw=typeRun(document.getElementById('tutText'),TOK,VOICE&&!!SS);
+  const sp=speak(st.ti+'. '+st.tx,p=>tw.prog&&tw.prog(Math.max(0,(p*(st.ti.length+2+st.tx.length)-st.ti.length-2)/(st.tx.length))));
+  sp.then(()=>{if(TW===tw)typeAll();});
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
     if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
 function start(){if(ON)return;ON=true;if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
@@ -1082,6 +1095,7 @@ function end(){TOK++;ON=false;hush();BOX.style.display='none';showHand(false);st
 document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
 document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
 document.getElementById('tutEnd').onclick=end;
+document.getElementById('tutText').onclick=typeAll;
 const vb=document.getElementById('tutVoice'),ab=document.getElementById('tutAuto');
 const syncTB=()=>{vb.classList.toggle('on',VOICE);vb.textContent=VOICE?'🔊':'🔇';ab.classList.toggle('on',AUTO);};
 vb.onclick=()=>{VOICE=!VOICE;if(!VOICE)hush();else speak(STEPS[IDX].ti+'. '+STEPS[IDX].tx);syncTB();};
