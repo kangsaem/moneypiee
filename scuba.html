@@ -976,17 +976,31 @@ layout();syncForm();recompute();modeChanged();
 #tutBox .bt{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 #tutBox button{background:#374151;color:#fff;border:0}
 #tutBox button.pri{background:#e5484d}
+#tutBox .tsm{font-size:12px;padding:3px 8px;background:#4b5563}
+#tutBox .tsm.on{background:#e5484d}
 .tutHi{outline:3px solid #e5484d!important;outline-offset:2px;border-radius:6px}
 .tutBtn{font-size:11px;padding:4px 9px;background:#e5484d;color:#fff;border:0;border-radius:6px;margin-right:6px;white-space:nowrap}
 </style>
 <div id="tutHand">👆</div>
-<div id="tutBox"><div class="hd"><span id="tutPart"></span><span id="tutCnt"></span></div><div class="tt" id="tutTitle"></div><div id="tutText"></div>
+<div id="tutBox"><div class="hd"><span id="tutPart"></span><span style="display:flex;gap:6px;align-items:center"><button id="tutVoice" class="tsm">🔊</button><button id="tutAuto" class="tsm">자동 ▶</button><span id="tutCnt"></span></span></div><div class="tt" id="tutTitle"></div><div id="tutText"></div>
 <div class="bt"><button id="tutEnd">종료</button><button id="tutPrev">이전</button><button id="tutNext" class="pri">다음</button></div></div>
 <script>
 // ===== 튜토리얼 =====
 (function(){
 const H=document.getElementById('tutHand'),BOX=document.getElementById('tutBox');
-let TOK=0,IDX=0,ON=false;
+let TOK=0,IDX=0,ON=false,VOICE=true,AUTO=false;
+const SS=window.speechSynthesis;
+function koVoice(){try{const v=SS.getVoices();return v.find(x=>/^ko/i.test(x.lang))||null;}catch(e){return null;}}
+function spokenText(html){
+  let t=html.replace(/<br\s*\/?>/g,'. ').replace(/<[^>]+>/g,'').replace(/[①-⑳]/g,'').replace(/→/g,', ').replace(/·/g,', ').replace(/—/g,', ');
+  t=t.replace(/GF High/g,'지에프 하이').replace(/GF/g,'지에프').replace(/NDL/g,'엔디엘').replace(/50bar/g,'50바').replace(/(\d+)bar/g,'$1바').replace(/bar/g,'바')
+     .replace(/(\d+(?:\.\d+)?)\s*L(?![a-zA-Z])/g,'$1리터').replace(/(\d+)~(\d+)m\/분/g,'분당 $1에서 $2미터').replace(/(\d+)m\/분/g,'분당 $1미터').replace(/분당 (\d+)m/g,'분당 $1미터').replace(/(\d+)~(\d+)m/g,'$1에서 $2미터').replace(/(\d+)m(?![a-zA-Z])/g,'$1미터')
+     .replace(/(\d+)\/(\d+)/g,'$1 $2').replace(/\(/g,', ').replace(/\)/g,', ');
+  return t;}
+function speak(text){return new Promise(res=>{if(!VOICE||!SS){res();return;}
+  try{SS.cancel();const u=new SpeechSynthesisUtterance(spokenText(text));u.lang='ko-KR';const v=koVoice();if(v)u.voice=v;u.rate=0.95;
+    let done=false;const fin=()=>{if(!done){done=true;res();}};u.onend=fin;u.onerror=fin;setTimeout(fin,Math.max(4000,text.length*230));SS.speak(u);}catch(e){res();}});}
+function hush(){try{SS&&SS.cancel();}catch(e){}}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 class Stop extends Error{}
 const chk=t=>{if(t!==TOK)throw new Stop();};
@@ -1060,12 +1074,19 @@ async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];
   document.getElementById('tutPart').textContent=st.p;document.getElementById('tutCnt').textContent=(i+1)+' / '+STEPS.length;
   document.getElementById('tutTitle').textContent=st.ti;document.getElementById('tutText').innerHTML=st.tx;
   document.getElementById('tutPrev').disabled=i===0;document.getElementById('tutNext').textContent=i===STEPS.length-1?'끝내기':'다음';
-  try{st.set();showHand(i<STEPS.length-1);await st.go(t);}catch(e){if(!(e instanceof Stop))console.error(e);}}
+  hush();const sp=speak(st.ti+'. '+st.tx);
+  try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
+    if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
 function start(){if(ON)return;ON=true;if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
-function end(){TOK++;ON=false;BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
+function end(){TOK++;ON=false;hush();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
 document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
 document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
 document.getElementById('tutEnd').onclick=end;
+const vb=document.getElementById('tutVoice'),ab=document.getElementById('tutAuto');
+const syncTB=()=>{vb.classList.toggle('on',VOICE);vb.textContent=VOICE?'🔊':'🔇';ab.classList.toggle('on',AUTO);};
+vb.onclick=()=>{VOICE=!VOICE;if(!VOICE)hush();else speak(STEPS[IDX].ti+'. '+STEPS[IDX].tx);syncTB();};
+ab.onclick=()=>{AUTO=!AUTO;syncTB();if(AUTO&&!P.run&&!SS?.speaking){}};
+syncTB();try{SS&&SS.getVoices();}catch(e){}
 window.startTutorial=start;
 })();
 </script>
