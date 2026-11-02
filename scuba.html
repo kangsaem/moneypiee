@@ -1148,7 +1148,7 @@ const STEPS=[
  set:()=>setState(B2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1680,30],[780,30],t);for(const [a,b] of [[960,12],[1620,12],[1740,5],[1920,5],[1980,0]])await tapPoint(a,b,t);await sleep(400);}},
 {p:'정리',ti:'⑫ 기억할 것',tx:'하나, 핑크색 천장이 안 나오게. 무감압. 둘, 나오면 절대 침범하지 않기. 셋, 상승은 분당 9에서 10미터 이하, 5미터 3분 안전정지. 넷, 출수 때 공기 50바 이상.',
  set:()=>setState(B3,'none'),go:async t=>{await scrollTo(GRAPH(),t);showHand(false);await showRules(t);}}];
-async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];hideOverlay();
+async function run(i){IDX=i;const t=++TOK;ARMED=false;const st=STEPS[i];hideOverlay();
   document.getElementById('tutPart').textContent=st.p;document.getElementById('tutCnt').textContent=(i+1)+' / '+STEPS.length;
   document.getElementById('tutTitle').textContent=st.ti;document.getElementById('tutText').innerHTML=st.tx;
   document.getElementById('tutPrev').disabled=i===0;document.getElementById('tutNext').textContent=i===STEPS.length-1?'끝내기':'다음';
@@ -1159,13 +1159,19 @@ async function run(i){IDX=i;const t=++TOK;const st=STEPS[i];hideOverlay();
     if(i===STEPS.length-1){await sleep(400);chk(t);await playClip(clip(STEPS.length+1));chk(t);}
     DONE=t;if(i===STEPS.length-1)armBlank(t);
     if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
-let PU0=null;
-function armBlank(t){const h=e=>{if(t!==TOK){document.removeEventListener('click',h,true);return;}
+let PU0=null,ARMED=false;
+// 튜토리얼 중에는 튜토리얼 창 버튼 외 사용자 조작 막기 (스크롤은 허용)
+const BLOCK_EV=['pointerdown','pointerup','pointermove','pointerover','pointerout','mousedown','mouseup','click','dblclick','contextmenu','touchend','keydown'];
+const blocker=e=>{if(!ON||ARMED||!e.isTrusted)return;const tg=e.target;if(tg&&tg.closest&&tg.closest('#tutBox,#splash'))return;
+  if(e.type==='keydown'&&!/^(Enter| |Spacebar|ArrowUp|ArrowDown|ArrowLeft|ArrowRight)$/.test(e.key))return;
+  e.stopImmediatePropagation();if(e.cancelable&&e.type!=='pointermove'&&e.type!=='pointerover'&&e.type!=='pointerout')e.preventDefault();};
+BLOCK_EV.forEach(n=>window.addEventListener(n,blocker,{capture:true,passive:false}));
+function armBlank(t){ARMED=true;const h=e=>{if(t!==TOK){document.removeEventListener('click',h,true);return;}
     if(e.target.closest&&e.target.closest('#tutPrev,#tutVoice,#tutAuto,#splash'))return;
     document.removeEventListener('click',h,true);e.preventDefault();e.stopPropagation();end();setState(A0,'free');window.scrollTo({top:0,behavior:'smooth'});};
   setTimeout(()=>document.addEventListener('click',h,true),0);}
 function start(){if(ON)return;ON=true;if(S.pu!=='bar'){PU0=S.pu;S.pu='bar';syncForm();}try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
-function end(){TOK++;ON=false;if(PU0){S.pu=PU0;PU0=null;syncForm();recompute();}hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
+function end(){TOK++;ON=false;ARMED=false;if(PU0){S.pu=PU0;PU0=null;syncForm();recompute();}hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
 document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
 document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
 document.getElementById('tutEnd').onclick=end;
