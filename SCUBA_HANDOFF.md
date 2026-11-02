@@ -7,7 +7,7 @@
 - 제목: "DTMD 다이빙 플래너"(영 DTMD Dive Planner, 일 DTMD ダイブプランナー). 제목 아래 검은 띠에 흰 글씨 "Don’t Touch Maximum Depth"(배경 검정 55%·글자 92%, 글자 크기 = 맞춤값×0.8, 남는 폭은 자간), 띠 폭 = 제목 폭(글자 크기·자간을 JS `fitDTMD()`로 맞춤).
 - 제목(.ttl) 클릭 → 튜토리얼 중지 + 첫 화면(`showSplash()`).
 - 단위: 설정의 `#pu` = "bar · m" / "PSI · ft"(localStorage scuba_pu). 계산은 내부 미터, 표시만 환산(`isFt/DU/DS`, 정지 수심은 5ft 단위 반올림, ft 축은 20ft 간격·60/100ft 강조). 고도는 m 그대로. 튜토리얼 중엔 bar·m 고정 후 종료 시 복원.
-- 첫 화면(`#splash`): 남색 전체 배경에 큰 "튜토리얼" 버튼 + 아래 하늘색 Skip. 매 방문 표시, 언어가 ko가 아니면(#en/#ja 또는 저장된 scuba_lang) 생략. 튜토리얼 버튼 = 사용자 조작이라 녹음 재생 허용에 유리.
+- 첫 화면(`#splash`): 남색 배경 가운데 하늘색 큰 "튜토리얼" 버튼(▶·"3분 · 탭해서 시작", 테두리 펄스 애니메이션) + 아래 작은 "DTMD 다이빙 플래너", 맨 아래 테두리만 있는 작은 Skip. 매 방문 표시, 언어가 ko가 아니면(#en/#ja 또는 저장된 scuba_lang) 생략. 튜토리얼 버튼 = 사용자 조작이라 녹음 재생 허용에 유리.
 
 ## 파일
 - `scuba.html` — 본체(단일 HTML, 원본). 한·영·일 i18n(`I18N`, `tr()`, `data-i18n`), `#ko/#en/#ja`로 언어 지정. localStorage `scuba_lang`, `scuba_pu`(bar/psi).
