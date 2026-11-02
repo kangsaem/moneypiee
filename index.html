@@ -2735,7 +2735,17 @@ document.addEventListener('click', (e) => {
 }, true);
 
 let stockLegendSortMode = 'amount';
-let stockLegendValueMode = 'pct'; // 전체탭 종목 도넛 하단목록: pct <-> 평가액
+let stockLegendValueMode = 'pct'; // 전체탭 종목 도넛 하단목록: pct(비중) -> change(당일 등락률) -> amount(평가액) -> pct
+function cycleStockLegendValueMode(){
+  stockLegendValueMode = stockLegendValueMode === 'pct' ? 'change' : (stockLegendValueMode === 'change' ? 'amount' : 'pct');
+}
+// 당일 등락률 표시 = 상단 경제지표 카드와 같은 방식(▲/▼ 소수 둘째 자리, % 작게, 상승 #E87BA4 · 하락 #5FB8E0)
+function stockLegendChangeHTML(chg, isCash){
+  if(isCash || chg == null || !isFinite(chg)) return '<span style="color:var(--text-dim);font-weight:500;">-</span>';
+  const color = chg > 0 ? '#E87BA4' : (chg < 0 ? '#5FB8E0' : 'var(--text-dim)');
+  const arrow = chg > 0 ? '▲' : (chg < 0 ? '▼' : '');
+  return `<span style="color:${color};">${arrow} ${Math.abs(chg).toFixed(2)}<span style="font-size:0.6em;">%</span></span>`;
+}
 let stockSortCycleActive = null;
 const STOCK_SORT_CYCLE_FULL = ['amount', 'group', 'region', 'name'];
 const STOCK_SORT_CYCLE_NO_REGION = ['amount', 'group', 'name'];
@@ -2756,7 +2766,9 @@ function computeStockDataWithMeta(holdings, fallbackAccId){
       holdId: items[0].id,
       quantity: items[0].quantity,
       symbol: items[0].symbol,
-      listingRegion: items[0].listingRegion
+      listingRegion: items[0].listingRegion,
+      // 당일 등락률(종목 목록 비중 → 등락률 → 금액 전환용). 같은 종목이 여러 계좌에 있으면 값이 있는 첫 항목.
+      changePct: (items.find(it => it.lastChangePct != null && isFinite(it.lastChangePct)) || {}).lastChangePct ?? null
     }))
     .orderBy(['amount'], ['desc'])
     .value();
@@ -3193,12 +3205,13 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     } else {
       clickAttrs = ` style="${nameStyle}"`;
     }
-    const valueText = compactTotalMode && stockLegendValueMode === 'amount'
+    const vMode = compactTotalMode ? stockLegendValueMode : 'pct';
+    const valueText = vMode === 'amount'
       ? d.amount.toLocaleString()
-      : `${d.pct.toFixed(1)}<span class="pct-sign">%</span>`;
-    const valueTitle = compactTotalMode ? (stockLegendValueMode === 'amount' ? '평가액 보기' : '비율 보기') : '';
+      : (vMode === 'change' ? stockLegendChangeHTML(d.changePct, isCashLabel) : `${d.pct.toFixed(1)}<span class="pct-sign">%</span>`);
+    const valueTitle = compactTotalMode ? (vMode === 'amount' ? '평가액 보기' : (vMode === 'change' ? '당일 등락률 보기' : '비율 보기')) : '';
     const valueAttrs = compactTotalMode ? ` data-stock-value-toggle title="${valueTitle}"` : '';
-    const valueModeClass = compactTotalMode ? (stockLegendValueMode === 'amount' ? 'stock-value-amount' : 'stock-value-pct') : '';
+    const valueModeClass = compactTotalMode ? (vMode === 'amount' ? 'stock-value-amount' : 'stock-value-pct') : '';
     html += `<div class="legend-item"><span class="swatch" style="background:${color}"></span><span class="legend-name"${clickAttrs}>${escapeHTML(d.label)}</span><span class="legend-pct num ${valueModeClass}"${valueAttrs} style="${pctStyle}">${valueText}</span></div>`;
     if(i < data.length - 1){
       const next = data[i+1];
@@ -6036,7 +6049,7 @@ function renderPanel0(){
     panel.querySelectorAll('[data-stock-value-toggle]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
-        stockLegendValueMode = stockLegendValueMode === 'pct' ? 'amount' : 'pct';
+        cycleStockLegendValueMode();
         renderPreservingOpenChartAccordions();
       });
     });
@@ -6156,7 +6169,7 @@ function renderPanel0(){
     panel.querySelectorAll('[data-stock-value-toggle]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
-        stockLegendValueMode = stockLegendValueMode === 'pct' ? 'amount' : 'pct';
+        cycleStockLegendValueMode();
         renderPreservingOpenChartAccordions();
       });
     });
@@ -6273,7 +6286,7 @@ function renderPanel0(){
   panel.querySelectorAll('[data-stock-value-toggle]').forEach(el => {
     el.addEventListener('click', (e) => {
       e.stopPropagation();
-      stockLegendValueMode = stockLegendValueMode === 'pct' ? 'amount' : 'pct';
+      cycleStockLegendValueMode();
       render();
     });
   });
