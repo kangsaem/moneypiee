@@ -497,7 +497,8 @@ function simulate(dv,T0,c){
   // 공기: 탱크 1개(다이빙마다 가득), 수면 소모량 × 수심 압력
   const gas=new Float32Array(N+1);let bar=S.tankP,t50=-1;gas[0]=bar;
   for(let k=1;k<=N;k++){const dm=(depth[k-1]+depth[k])/2;bar-=S.sac/60*(pamb(dm)/ENV.psurf)/S.tankV;gas[k]=bar;if(t50<0&&bar<=50)t50=k;}
-  return {c,depth,snaps,anc,N,uEnd,plan,alt,ceil5,fast,viol,maxD,endT:snaps[N],gas,t50};
+  let t0=-1;for(let k=1;k<=N;k++)if(gas[k]<=0){t0=k;break;}
+  return {c,depth,snaps,anc,N,uEnd,plan,alt,ceil5,fast,viol,maxD,endT:snaps[N],gas,t50,t0};
 }
 
 // ===== 상태 =====
@@ -556,9 +557,10 @@ function drawProfile(){
     for(let s=0;s<tc;s+=5)cx.lineTo(X(s),Y(r.depth[s]));
     cx.lineTo(X(tc),Y(r.depth[Math.floor(tc)]));cx.lineTo(X(tc),Y(0));cx.closePath();
     cx.save();cx.clip();
+    if(r.t0>=0&&P.t>=r.t0){cx.fillStyle='rgba(0,0,0,.38)';cx.fillRect(G.L,G.T,G.W,G.H);}else{
     cx.fillStyle='#cfe3fb';cx.fillRect(G.L,Y(0),G.W,Y(20)-Y(0));
     cx.fillStyle='#6aaee8';cx.fillRect(G.L,Y(20),G.W,Y(30)-Y(20));
-    cx.fillStyle='#6aaee8';cx.fillRect(G.L,Y(30),G.W,Y(DMAX)-Y(30)+2);
+    cx.fillStyle='#6aaee8';cx.fillRect(G.L,Y(30),G.W,Y(DMAX)-Y(30)+2);}
     cx.restore();
   }
   cx.fillStyle='rgba(0,0,0,.12)';cx.fillRect(G.L,Y(30),G.W,Y(DMAX)-Y(30));
@@ -602,6 +604,13 @@ function drawProfile(){
   const pts=dv.pts;
   cx.strokeStyle='#1f2328';cx.lineWidth=2.4;cx.lineJoin='round';cx.beginPath();
   pts.forEach((p,i)=>i?cx.lineTo(X(p.t),Y(p.d)):cx.moveTo(X(p.t),Y(p.d)));cx.stroke();
+  if(r&&!drawing&&pts.length>1){
+    const seg=(a,b,col,w,dash)=>{if(a<0||b<=a)return;cx.strokeStyle=col;cx.lineWidth=w;cx.setLineDash(dash);cx.beginPath();for(let k=a;k<=b;k+=2)k===a?cx.moveTo(X(k),Y(r.depth[k])):cx.lineTo(X(k),Y(r.depth[k]));cx.lineTo(X(b),Y(r.depth[b]));cx.stroke();cx.setLineDash([]);};
+    const e50=r.t0>=0?r.t0:r.N;
+    if(r.t50>=0){seg(r.t50,Math.min(e50,r.uEnd),'#f97316',2.8,[]);if(r.plan)seg(Math.max(r.t50,r.uEnd),e50,'#f97316',2.6,[6,4]);}
+    if(r.t0>=0){cx.save();cx.globalCompositeOperation='source-over';seg(r.t0,r.N,'#d8dbe0',4,[]);seg(r.t0,r.N,'#b6bac2',1.6,[]);cx.restore();
+      cx.font='20px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('💀',X(r.t0),Y(r.depth[r.t0])-14);}
+  }
   if(!S.playMode&&(S.mode==='pt'||S.mode==='del')&&pts.length<300){
     const del=S.mode==='del';
     pts.forEach((p,i)=>{cx.beginPath();cx.arc(X(p.t),Y(p.d),i===drag?6:(del&&i?5:4),0,7);cx.fillStyle=i?'#fff':'#1f2328';cx.fill();cx.strokeStyle=del&&i?'#e5484d':'#1f2328';cx.lineWidth=1.6;cx.stroke();});
@@ -624,11 +633,20 @@ function drawProfile(){
     cx.font='600 10px sans-serif';cx.fillStyle=cur<=50?'#ea580c':'#1f2328';cx.textAlign='center';cx.textBaseline='top';cx.fillText(Math.round(cur),gx+gw/2,gy+gh+5);
     cx.font='9px sans-serif';cx.fillStyle='#6b7280';cx.fillText('bar',gx+gw/2,gy+gh+16);
   }
+  if(r&&dv.pts.length>1){
+    const deco=S.playMode&&P.t>0?!okAt(Array.from(r.snaps[Math.min(r.N,Math.round(P.t))]),0,r.c.hi):r.ceil5.some(v=>v>0);
+    if(deco){cx.font='800 13px sans-serif';const tw=cx.measureText('DECO').width+18,bx=G.L+6,by=G.T+4;
+      cx.fillStyle='#e5484d';cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,20,5):cx.rect(bx,by,tw,20);cx.fill();
+      cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+10.5);}
+  }
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
         const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N));cx.font='600 12px sans-serif';
-        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width)+12,th=36;let bx=L0.xn-tw-4,by=L0.yd-th-4;
-        if(bx<G.L+2)bx=G.L+2;if(by<G.T+2)by=L0.yd+4;
+        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width)+12,th=36;
+        const hits=(bx,by)=>{if(!r)return false;for(let x=bx-2;x<=bx+tw+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+th+3)return true;}return false;};
+        const cand=[[L0.xn-tw-4,L0.yd-th-4],[L0.xn+6,L0.yd-th-4],[L0.xn+6,L0.yd+4],[L0.xn-tw-4,L0.yd+4],[L0.xn+6,G.T+28],[L0.xn-tw-4,G.T+28]]
+          .map(([x,y])=>[clamp(x,G.L+2,G.L+G.W-tw-2),clamp(y,G.T+2,G.T+G.H-th-2)]);
+        let [bx,by]=cand.find(([x,y])=>!hits(x,y))||cand[0];
         cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle='#9ca3af';cx.lineWidth=1;
         cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();cx.stroke();
         cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+10.5);cx.fillText(l2,bx+6,by+26);
@@ -805,13 +823,14 @@ function drawBarsSW(T,d,c,anc){
 }
 
 // ===== 재생 =====
+const playEnd=r=>r.t0>=0?r.t0:r.N;
 function frame(ts){
   if(!P.run)return;const r=RES[S.cur];
   const dt=clamp((ts-P.last)/1000,0,0.1);P.last=ts;P.t=Math.max(0,P.t+dt*240*P.sp);
-  if(P.t>=r.N)P.t=r.N;
+  const E=playEnd(r);if(P.t>=E)P.t=E;
   const tick=Math.floor(P.t/5)*5;if(tick!==P.tick){P.tick=tick;updateStats(tick);}
   drawProfile();syncScrub();
-  if(P.t>=r.N){updateStats(r.N);stopPlay();return;}
+  if(P.t>=E){updateStats(Math.floor(E/5)*5);stopPlay();drawProfile();return;}
   requestAnimationFrame(frame);
 }
 const IC_PLAY='<svg viewBox="0 0 16 16" width="16" height="16"><path d="M4 2.5v11l9.5-5.5z" fill="currentColor"/></svg>',IC_PAUSE='<svg viewBox="0 0 16 16" width="16" height="16"><rect x="3.5" y="2.5" width="3.2" height="11" rx="1" fill="currentColor"/><rect x="9.3" y="2.5" width="3.2" height="11" rx="1" fill="currentColor"/></svg>';
@@ -820,12 +839,12 @@ function modeChanged(){cv.style.cursor=S.playMode?'ew-resize':'';if(!S.playMode)
 function startPlay(){
   const r=RES[S.cur];if(dive().pts.length<2){renderSummary();return;}
   if(!S.playMode){S.mode='none';modeChanged();}
-  if(P.t>=r.N){P.t=0;P.tick=-1;}
+  if(P.t>=playEnd(r)){P.t=0;P.tick=-1;}
   P.run=true;P.last=performance.now();$('playBtn').innerHTML=IC_PAUSE;$('playBtn').title=tr('pause');requestAnimationFrame(frame);
 }
 function stopPlay(){P.run=false;$('playBtn').innerHTML=IC_PLAY;$('playBtn').title=tr('play');}
 $('playBtn').onclick=()=>P.run?(stopPlay(),drawProfile()):startPlay();
-function seek(t){const r=RES[S.cur];P.t=clamp(t,0,r.N);P.tick=Math.floor(P.t/5)*5;updateStats(P.tick);syncScrub();drawProfile();}
+function seek(t){const r=RES[S.cur];P.t=clamp(t,0,playEnd(r));P.tick=Math.floor(P.t/5)*5;updateStats(P.tick);syncScrub();drawProfile();}
 stopPlay();
 document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{P.sp=+b.dataset.sp;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x===b));});
 
