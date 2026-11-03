@@ -1549,8 +1549,7 @@ async function dataSnap(plP){try{const pl=plP?await plP:'';await shareCanvas(awa
 // 장소: 메모의 GPS로 영어 약식(Danao, Bohol, PH) 조회(기기에 캐시), 실패하면 메모의 '장소:' 줄
 function memoGPS(m){const k=(m||'').match(/GPS\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i);return k?{lat:+k[1],lon:+k[2]}:null;}
 async function placeEN(m){const g=memoGPS(m),pp=pickPlace(m);
-  // 사용자 지명·나라 이름 줄이 있으면 그것을 영어로(한글은 로마자). 영어로 못 바꾸는 글자(한자·가나)가 남고 GPS가 있으면 GPS 영어 지명
-  if(pp.src==='user'||pp.src==='ctry'){const e=placeToEN(pp.t);if(!nonLatin(e)||!g)return e;}
+  // GPS가 있으면 GPS 영어 지명(마을, 주, 국가코드)이 우선. GPS가 없거나 조회 실패 때만 메모 지명을 영어로(나라 이름 → 코드, 한글 → 로마자)
   const fb=pp.t?placeToEN(pp.t):'';if(!g)return fb;
   const key='scuba_plEN_'+g.lat.toFixed(3)+','+g.lon.toFixed(3);try{const c=localStorage.getItem(key);if(c)return c;}catch(e){}
   try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),5000);const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=en&lat='+g.lat.toFixed(5)+'&lon='+g.lon.toFixed(5),{signal:ac.signal});clearTimeout(tm);
