@@ -124,7 +124,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 #phView .pvNav{display:flex;align-items:center;gap:18px;color:rgba(255,255,255,.8);font-size:14px;font-variant-numeric:tabular-nums}#phView .pvNav button{width:30px;height:26px;min-width:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px}#phView .pvNav svg{width:12px;height:12px;display:block}#phView .pvNav button:disabled{opacity:.25}
 #phView .pvB{display:flex;gap:10px}#phView .pvB button{min-width:84px}#phView .pvDel{background:#E31B3F;color:#fff;border-color:#E31B3F}#phView .pvSnap{background:#0ea5e9;color:#fff;border-color:#0ea5e9;font-weight:700}
 #logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
-.calNav{display:inline-flex;gap:4px}.calHd .jump,.edHd .jump{letter-spacing:-2px;font-weight:700;color:#1b4277}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
+.calNav{display:inline-flex;gap:4px}.edHd{display:grid!important;grid-template-columns:3fr 2fr;gap:8px}.edHd .calNav{position:relative;display:flex;justify-content:center;gap:4px}.edHd #logBack{position:absolute;left:0;top:0;padding:4px 6px}.edHd .jump{padding:4px 7px}/* 이전·다음 로그 버튼을 날짜 휠 열 가운데에, 달력 버튼은 왼쪽 끝 */.calHd .jump,.edHd .jump{letter-spacing:-2px;font-weight:700;color:#1b4277}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
 #logCalV{position:relative}.yearPick{position:absolute;left:50%;transform:translateX(-50%);top:40px;z-index:3;display:flex;gap:8px;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
 .yearPick .yp{position:relative;width:96px}.yearPick .lsel{left:2px;right:2px;background:#e3ebf3}
@@ -1763,7 +1763,7 @@ function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.
 window.addEventListener('scuba:diveRemoved',()=>{if(!CUR)return;const a=load(),x=a.find(v=>v.id===CUR);if(!x)return;
   if(S.start!=null){x.time=hhmm(Math.round(S.start));T=Math.round(S.start/10)*10%1440;}
   x.state=snapState();x.sum=summary();store(a);renderSum();if(open&&view==='ed'){renderWheels();renderList();}});
-function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
+function show(v){view=v;setTimeout(fitEdNav,0);$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
 function renderSum(){const n=load().reduce((a,x)=>a+((x.state&&x.state.dives&&x.state.dives.length)||1),0),t=L();$('fitBtn').textContent=t.fitB;$('fitBtn2').textContent=t.fitB;$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
 function relayout(){const cl=document.querySelector('.colL'),cr=document.querySelector('.colR'),st=$('setCard'),tb=$('tabsCard'),br=$('barsCard');if(!cl||!cr||!st||!tb||!br)return;
@@ -1837,6 +1837,9 @@ function goLogDate(dir){const t=L(),a=load(),ds=[...new Set(a.map(x=>x.date))].s
   if(!d){toast(dir<0?t.noPrev:t.noNext);return;}const x=a.filter(v=>v.date===d).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
   const [yy,mm,dd]=d.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;applyLog(x.id,true,0);}
 $('edPrev').onclick=()=>goLogDate(-1);$('edNext').onclick=()=>goLogDate(1);
+// 휠 칸이 좁아 달력 버튼과 겹치면 겹친 만큼만 이전·다음 버튼을 오른쪽으로
+function fitEdNav(){const nv=document.querySelector('.edHd .calNav');if(!nv||!nv.offsetParent)return;nv.style.paddingLeft='0px';const b=$('logBack').getBoundingClientRect(),p=$('edPrev').getBoundingClientRect(),need=b.right+4-p.left;if(need>0)nv.style.paddingLeft=Math.ceil(need*2)+'px';}
+window.addEventListener('resize',()=>setTimeout(fitEdNav,0));
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
   const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6),st=ST();S.start=st;
