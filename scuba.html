@@ -62,6 +62,20 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .setWrap>div{overflow:hidden;min-height:0}
 .setBody{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 .setHead .arr{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.calHd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.calHd b{font-size:15px}.calHd button{padding:4px 10px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:13px}
+.cal .wd{color:var(--mute);font-size:11px;padding:2px 0}.cal .wd.sun,.cal .d.sun{color:#e5484d}.cal .wd.sat,.cal .d.sat{color:#2f6fe4}
+.cal .d{position:relative;padding:7px 0 9px;border-radius:8px;cursor:pointer;font-variant-numeric:tabular-nums}
+.cal .d.today{box-shadow:inset 0 0 0 1.5px #9ca3af}.cal .d.sel{background:#0f2a3d;color:#fff!important}
+.cal .d.has::after{content:'';position:absolute;left:50%;bottom:3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#0ea5e9}
+.cal .d.sel.has::after{background:#7dd3fc}.cal .e{visibility:hidden}
+.logList{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
+.logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:13px}
+.logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logList .li .del{padding:3px 8px;font-size:12px;color:#e5484d}.logList .none{color:var(--mute);font-size:13px}
+.logForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
+.logForm input[type=text]{flex:1;min-width:140px;padding:5px 8px}.logForm .pri{background:#0f2a3d;color:#fff;border-color:#0f2a3d}
+.logMsg{font-size:12px;color:#0f9d7a}
 /* 탭 */
 .tabs{display:flex;gap:4px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
@@ -195,6 +209,22 @@ html,body{overflow-x:hidden}
   </div></div>
 </div>
 
+<div class="card" id="logCard">
+  <button class="setHead" id="logHead"><b><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span data-i18n="logT">다이빙 로그</span></b><span class="sum" id="logSum"></span><span class="arr">▾</span></button>
+  <div class="setWrap" id="logWrap"><div><div class="setBody" id="logBody">
+    <div class="calHd"><button id="calPrev" aria-label="prev">◀</button><b id="calTitle"></b><button id="calNext" aria-label="next">▶</button></div>
+    <div class="cal" id="cal"></div>
+    <div class="logList" id="logList"></div>
+    <div class="logForm">
+      <label><span data-i18n="logDate">날짜</span> <input type="date" id="logDate"></label>
+      <label><span data-i18n="logStart">입수 시각</span> <input type="time" id="logTime"></label>
+      <input type="text" id="logMemo" maxlength="40" data-i18n-ph="logMemo" placeholder="메모 (선택)">
+      <button id="logSave" class="pri" data-i18n="logSave">현재 플랜 저장</button>
+      <span id="logMsg" class="logMsg"></span>
+    </div>
+  </div></div></div>
+</div>
+
 <div class="card">
   <div class="tabs" id="tabs"></div>
 </div>
@@ -281,7 +311,7 @@ ko:{
  rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
  settings:'⚙ 설정',alt:'해발 고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
  cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:()=>(isFt()?'ft':'m')+'/분',
- draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
+ logT:'다이빙 로그',logDate:'날짜',logStart:'입수 시각',logSave:'현재 플랜 저장',draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
  disc:'교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',
@@ -337,7 +367,7 @@ en:{
  rule1:'1. Keep the pink ceiling from appearing <small>= no-decompression dive</small>',rule2:'2. If the pink ceiling appears, never cross it <small>= decompression dive</small>',
  settings:'⚙ Settings',alt:'Altitude',sealevel:'0 m (sea level)',custom:'Custom',water:'Water type',salt:'Salt',fresh:'Fresh',gas:'Gas',air21:'Air (21%)',
  cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom',asc:'Plan ascent rate',mpm:()=>(isFt()?'ft':'m')+'/min',
- draw:'Draw',points:'Points',erase:'Erase pts',sel:'Select',peHint:'Tap a point to enter its time and depth',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
+ logT:'Dive log',logDate:'Date',logStart:'Start',logSave:'Save current plan',draw:'Draw',points:'Points',erase:'Erase pts',sel:'Select',peHint:'Tap a point to enter its time and depth',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
  lgPath:'My profile',lgPlan:'Suggested',lgCeil:'Ceiling',lgFast:'Fast ascent',on:'N₂ on-gassing',off:'N₂ off-gassing',pct:'100% = surfacing limit (GF High)',
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
  disc:'For education and learning only. Do not use it to plan real dives or as a substitute for a dive computer.',
@@ -393,7 +423,7 @@ ja:{
  rule1:'1. ピンクのシーリングを出さないこと <small>= 無減圧潜水</small>',rule2:'2. ピンクのシーリングが出たら絶対に越えないこと <small>= 減圧潜水</small>',
  settings:'⚙ 設定',alt:'標高',sealevel:'0 m (海面)',custom:'直接入力',water:'水の種類',salt:'海水',fresh:'淡水',gas:'ガス',air21:'空気 (21%)',
  cons:'保守性',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'カスタム',asc:'プラン浮上速度',mpm:()=>(isFt()?'ft':'m')+'/分',
- draw:'描く',points:'点を打つ',erase:'点を消す',sel:'点を選択',peHint:'点をタップすると時間・水深を入力できます',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
+ logT:'ダイブログ',logDate:'日付',logStart:'潜水開始',logSave:'現在のプランを保存',draw:'描く',points:'点を打つ',erase:'点を消す',sel:'点を選択',peHint:'点をタップすると時間・水深を入力できます',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
  lgPath:'自分の経路',lgPlan:'推奨',lgCeil:'シーリング',lgFast:'急浮上',on:'窒素 吸収中',off:'窒素 排出中',pct:'100% = 浮上許容限界(GF High)',
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
  disc:'教育・学習用のシミュレーターです。実際のダイビング計画やダイブコンピューターの代わりに使用しないでください。',
@@ -562,7 +592,7 @@ function simulate(dv,T0,c){
 // ===== 상태 =====
 const newDive=()=>({pts:[{t:0,d:0}],si:60,undo:[],redoSnap:null});
 const PSI=14.5038;const pu=b=>S.pu==='psi'?Math.round(b*PSI/10)*10:Math.round(b);const puN=()=>S.pu==='psi'?'psi':'bar';
-const S={get playMode(){return this.mode==='none';},pu:'bar',bm:BM,alt:0,altSel:'0',water:'salt',gasSel:'21',o2:21,cons:'med',gfLo:40,gfHi:85,asc:9,tankV:12,tankP:200,sac:20,dives:[newDive()],cur:0,mode:'free',setOpen:false};
+const S={get playMode(){return this.mode==='none';},pu:'bar',bm:BM,alt:0,altSel:'0',water:'salt',gasSel:'21',o2:21,cons:'med',gfLo:40,gfHi:85,asc:9,tankV:12,tankP:200,sac:20,start:null,dives:[newDive()],cur:0,mode:'free',setOpen:false};
 let RES=[];
 const P={t:0,run:false,sp:1,last:0,tick:-1};
 const $=id=>document.getElementById(id);
@@ -705,9 +735,9 @@ function drawProfile(){
   }
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
-        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N));cx.font='600 12px sans-serif';
+        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),l3=diveClock(S.cur);cx.font='600 12px sans-serif';
         const isDeco=r&&r.ceil5.some(v=>v>0),hh=isDeco?18:0;
-        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,isDeco?48:0)+12,th=36+hh;
+        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,l3?cx.measureText(l3).width:0,isDeco?48:0)+12,th=36+hh+(l3?16:0);
         const hits=(bx,by)=>{if(!r)return false;for(let x=bx-2;x<=bx+tw+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+th+3)return true;}return false;};
         const cand=[[L0.xn-tw-4,L0.yd-th-4],[L0.xn+6,L0.yd-th-4],[L0.xn+6,L0.yd+4],[L0.xn-tw-4,L0.yd+4],[L0.xn+6,G.T+28],[L0.xn-tw-4,G.T+28]]
           .map(([x,y])=>[clamp(x,G.L+2,G.L+G.W-tw-2),clamp(y,G.T+2,G.T+G.H-th-2)]);
@@ -718,7 +748,7 @@ function drawProfile(){
         cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();if(lift){cx.restore();cx.strokeStyle='#2f6fe4';cx.lineWidth=2;}cx.stroke();
         if(isDeco){cx.save();cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.clip();cx.fillStyle='#e5484d';cx.fillRect(bx,by,tw,hh);cx.restore();
           cx.font='800 12px sans-serif';cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+hh/2+.5);cx.font='600 12px sans-serif';}
-        cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+hh+10.5);cx.fillText(l2,bx+6,by+hh+26);
+        cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+hh+10.5);cx.fillText(l2,bx+6,by+hh+26);if(l3){cx.fillStyle='#2f6fe4';cx.fillText(l3,bx+6,by+hh+42);}
       }
   }
   if(timeTag){cx.beginPath();cx.arc(timeTag.x,timeTag.y,10,0,7);cx.fillStyle='rgba(31,35,40,.18)';cx.fill();
@@ -754,6 +784,9 @@ function applyPtEd(){const pts=dive().pts;if(!(SEL>0&&SEL<pts.length))return;
 function pushUndo(){const dv=dive();dv.undo.push(JSON.stringify(dv.pts));if(dv.undo.length>60)dv.undo.shift();dv.redoSnap=null;}
 function pos(e){const b=cv.getBoundingClientRect();return {x:e.clientX-b.left,y:e.clientY-b.top};}
 const R1=v=>Math.round(v*10+1e-9)/10;
+const hhmm=m=>{m=((Math.round(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');};
+function diveStartMin(i){if(S.start==null)return null;let m=S.start;for(let j=0;j<i;j++){m+=(RES[j]?RES[j].N:0)/60+(+S.dives[j+1].si||0);}return m;}
+function diveClock(i){const m=diveStartMin(i);if(m==null||!RES[i])return '';return hhmm(m)+' → '+hhmm(m+RES[i].N/60);}
 function addFree(t,d){
   const pts=dive().pts;t=clamp(t,0,TMAX);d=R1(clamp(d,0,DMAX));if(d<1)d=0;if(t<=0)return;
   while(pts.length>1&&pts[pts.length-1].t>=t)pts.pop();
@@ -1080,7 +1113,7 @@ window.addEventListener('resize',()=>{layout();drawProfile();updateStats(P.tick<
 // 배경 영상을 수심 그래프 뒤(세로 가운데)에 배치
 function applyLang(){
   document.documentElement.lang=LANG==='ja'?'ja':LANG;document.title=tr('title');
-  document.querySelectorAll('[data-i18n]').forEach(el=>{el.innerHTML=tr(el.dataset.i18n);});if(window.fitDTMD)fitDTMD();
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.innerHTML=tr(el.dataset.i18n);});if(window.fitDTMD)fitDTMD();try{window.dispatchEvent(new Event('scuba:lang'));}catch(e){}
   document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
   $('playBtn').title=tr(P.run?'pause':'play');hidePop();
 }
@@ -1167,7 +1200,7 @@ const ctr=el=>{const r=el.getBoundingClientRect();return [r.left+r.width/2,r.top
 const cpt=(tm,d)=>{const r=cv.getBoundingClientRect();return [r.left+X(tm),r.top+Y(d)];};
 async function tapEl(el,t,click=true){const [x,y]=ctr(el);await moveTo(x,y,550,t);el.classList.add('tutHi');ripple(x,y);await sleep(220);chk(t);if(click)el.click();await sleep(380);el.classList.remove('tutHi');chk(t);}
 async function point(el,t,ms){const [x,y]=ctr(el);await moveTo(x,y,600,t);el.classList.add('tutHi');await sleep(ms||900);el.classList.remove('tutHi');chk(t);}
-function setState(pts,mode){stopPlay();SEL=-1;S.dives=[newDive()];S.cur=0;S.dives[0].pts=pts.map(([a,b])=>({t:a,d:b}));S.mode=mode||'none';S.bm='surf';
+function setState(pts,mode){stopPlay();SEL=-1;S.start=null;S.dives=[newDive()];S.cur=0;S.dives[0].pts=pts.map(([a,b])=>({t:a,d:b}));S.mode=mode||'none';S.bm='surf';
   S.alt=0;S.altSel='0';S.water='salt';S.gasSel='21';S.o2=21;S.cons='med';S.asc=9;S.tankV=12;S.tankP=200;S.sac=20;S.setOpen=false;
   syncForm();syncBM();recompute();modeChanged();}
 async function drawPath(path,t,dur){ // 그리기 모드 손 드래그
@@ -1328,6 +1361,63 @@ btn.addEventListener('click',async()=>{try{const el=await make();const blob=awai
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
 }catch(e){console.error(e);}});
 window.__snapMake=make;
+})();
+</script>
+<script>
+// ===== 다이빙 로그: 달력·날짜·입수 시각, 이 기기(localStorage)에 저장 =====
+(function(){
+const KEY='scuba_logs',MAX=50,KEYS=['water','altSel','alt','gasSel','o2','cons','gfLo','gfHi','asc','tankV','tankP','sac'];
+const $=id=>document.getElementById(id);if(!$('logCard'))return;
+const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
+const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
+const pad=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),none:'No dives on this day',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',full:'Log is full (50). Delete some first.',fail:'Could not save on this browser.',ph:'Memo (optional)',empty:'Draw a profile first.'}
+ :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',none:'この日のダイブはありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存しました',full:'ログが一杯です(50件)。先に削除してください。',fail:'このブラウザに保存できません。',ph:'メモ (任意)',empty:'先に経路を描いてください。'}
+ :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',none:'이 날 저장한 다이빙이 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장했어요',full:'로그가 가득 찼어요(50개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'메모 (선택)',empty:'먼저 경로를 그려주세요.'};
+let open=false,view=new Date(),sel=ymd(new Date());view.setDate(1);
+function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
+  let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length};}
+function renderCal(){const a=load(),t=L(),y=view.getFullYear(),m=view.getMonth();$('calTitle').textContent=t.ttl(y,m+1);
+  const has=new Set(a.map(x=>x.date));const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),today=ymd(new Date());
+  let h=t.wd.map((w,i)=>`<div class="wd${i===0?' sun':i===6?' sat':''}">${w}</div>`).join('');
+  for(let i=0;i<first;i++)h+='<div class="e">.</div>';
+  for(let d=1;d<=days;d++){const k=y+'-'+pad(m+1)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${k===sel?' sel':''}${has.has(k)?' has':''}" data-k="${k}">${d}</div>`;}
+  $('cal').innerHTML=h;$('cal').querySelectorAll('.d').forEach(el=>el.onclick=()=>{sel=el.dataset.k;$('logDate').value=sel;renderCal();renderList();});}
+function renderList(){const t=L(),a=load().filter(x=>x.date===sel).sort((p,q)=>(p.time||'').localeCompare(q.time||''));
+  $('logList').innerHTML=a.length?a.map(x=>{const st=x.time?(()=>{const [h,mi]=x.time.split(':').map(Number);return h*60+mi;})():null;
+    const clock=st!=null?`${x.time} ${t.in} → ${hhmm(st+x.sum.N0/60)} ${t.out}`:'';
+    const meta=[x.sum.maxD+'m',Math.round(x.sum.N0/60)+(LANG==='en'?' min':'분'),x.sum.gas,x.sum.nd>1?t.dives(x.sum.nd):''].filter(Boolean).join(' · ');
+    return `<div class="li" data-id="${x.id}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${x.memo?'<div class="mm">'+x.memo.replace(/[<>&]/g,'')+'</div>':''}</div><button class="del" data-id="${x.id}">${t.del}</button></div>`;}).join(''):`<div class="none">${t.none}</div>`;
+  $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id);});
+  $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.id;store(load().filter(x=>x.id!==id));renderAll();});}
+function renderSum(){const n=load().length;$('logSum').textContent=n?L().n(n):'';$('logMemo').placeholder=L().ph;}
+function renderAll(){renderSum();if(open){renderCal();renderList();}}
+function sync(){$('logWrap').classList.toggle('open',open);$('logHead').classList.toggle('open',open);if(open){renderCal();renderList();}}
+function applyLog(id){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
+  KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
+  S.dives=st.dives.map(d=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}));S.cur=0;
+  if(x.time){const [h,mi]=x.time.split(':').map(Number);S.start=h*60+mi;$('logTime').value=x.time;}else{S.start=null;$('logTime').value='';}
+  $('logDate').value=x.date;$('logMemo').value=x.memo||'';
+  if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
+  msg((LANG==='ko'?'불러옴: ':LANG==='ja'?'読込: ':'Loaded: ')+x.date+(x.time?' '+x.time:''));}
+let mt=0;function msg(t,bad){const el=$('logMsg');el.textContent=t;el.style.color=bad?'#e5484d':'';clearTimeout(mt);mt=setTimeout(()=>el.textContent='',3000);}
+$('logHead').onclick=()=>{open=!open;sync();};
+$('calPrev').onclick=()=>{view.setMonth(view.getMonth()-1);renderCal();};
+$('calNext').onclick=()=>{view.setMonth(view.getMonth()+1);renderCal();};
+$('logTime').addEventListener('input',()=>{const v=$('logTime').value;if(v){const [h,mi]=v.split(':').map(Number);S.start=h*60+mi;}else S.start=null;drawProfile();});
+$('logDate').addEventListener('change',()=>{if($('logDate').value){sel=$('logDate').value;const d=new Date(sel+'T00:00');view=new Date(d.getFullYear(),d.getMonth(),1);renderCal();renderList();}});
+$('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
+  const a=load();if(a.length>=MAX){msg(t.full,true);return;}
+  const date=$('logDate').value||ymd(new Date()),time=$('logTime').value||'';
+  const state={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}))};KEYS.forEach(k=>state[k]=S[k]);
+  a.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),date,time,memo:$('logMemo').value.trim(),saved:Date.now(),state,sum:summary()});
+  if(!store(a)){msg(t.fail,true);return;}sel=date;const d=new Date(date+'T00:00');view=new Date(d.getFullYear(),d.getMonth(),1);renderAll();msg(t.saved);};
+const lb=$('logBtn');if(lb)lb.onclick=()=>{open=true;sync();const now=new Date();if(!$('logDate').value)$('logDate').value=ymd(now);if(!$('logTime').value){$('logTime').value=pad(now.getHours())+':'+pad(now.getMinutes());S.start=now.getHours()*60+now.getMinutes();drawProfile();}
+  setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},50);};
+$('logDate').value=ymd(new Date());
+window.addEventListener('scuba:lang',renderAll);
+renderSum();
+window.__log={load,renderAll};
 })();
 </script>
 </body>
