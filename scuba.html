@@ -1655,8 +1655,10 @@ function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c
 function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].si||0);});return m;}
 // 같은 내용이면 저장 비활성, 시작 시각이 같거나 시간이 겹치면 경고 후 교체
 function cmpKey(x){const st=x.state?Object.assign({},x.state,{dives:(x.state.dives||[]).map((d,i)=>Object.assign({},d,{memo:diveMemo(x,i).trim()}))}):x.state;return [x.date,x.time||'',JSON.stringify(st)].join('|');}
-function curRec(){return {date:ymd(),time:hhmm(T),memo:'',state:snapState()};}
-function conflicts(exceptId){const s1=T,e1=T+Math.max(1,curSpan());return load().filter(x=>{if(x.id===exceptId||x.date!==ymd())return false;const s2=tmin(x.time);if(s2==null)return false;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return s1===s2||(s1<e2&&s2<e1);});}
+// 실제 시작 시각(분). FIT 등에서 온 08:53 같은 값은 그대로 유지, 휠을 돌렸을 때만 10분 단위
+const ST=()=>S.start!=null?Math.round(S.start):T;
+function curRec(){return {date:ymd(),time:hhmm(ST()),memo:'',state:snapState()};}
+function conflicts(exceptId){const s1=ST(),e1=s1+Math.max(1,curSpan());return load().filter(x=>{if(x.id===exceptId||x.date!==ymd())return false;const s2=tmin(x.time);if(s2==null)return false;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return s1===s2||(s1<e2&&s2<e1);});}
 function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasPlan=S.dives.some(d=>d.pts.length>1);const same=load().some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||same;$('logSave').title=same?t.same:'';}
 const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (d&&d.memo!=null)?d.memo:(i===0?(x.memo||''):'');};
 function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';renderPh();}
@@ -1691,8 +1693,8 @@ $('calNext').onclick=()=>{vm++;if(vm>12){vm=1;vy++;}renderCal();};
 $('logBack').onclick=()=>{vy=Y;vm=M;show('cal');};
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
   const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
-  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);S.start=T;
-  a.push({id,date:ymd(),time:hhmm(T),memo:'',saved:Date.now(),state:snapState(),sum:summary()});
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6),st=ST();S.start=st;
+  a.push({id,date:ymd(),time:hhmm(st),memo:'',saved:Date.now(),state:snapState(),sum:summary()});
   if(!store(a)){msg(t.fail,true);return;}afterSave(id);const others=cf.filter(x=>x.id!==CUR0);flash($('logSave'));};
 // 저장 아이콘: 화면 전환 없이 로그북 전체를 JSON으로 내려받기 / 폴더 아이콘: 다른 기기에서 받은 JSON 불러오기
 function flash(el,bad){if(!el)return;el.classList.remove('glow','glowBad');void el.offsetWidth;el.classList.add(bad?'glowBad':'glow');setTimeout(()=>el.classList.remove('glow','glowBad'),900);}
