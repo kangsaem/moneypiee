@@ -119,7 +119,8 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .phRow .phAdd{width:36px;height:36px;padding:0;border:1.5px dashed #9ca3af;border-radius:5px;background:rgba(255,255,255,.7);color:#6b7280;display:flex;align-items:center;justify-content:center}
 .phRow .phAdd.busy{opacity:.5;pointer-events:none}
 #phView{position:fixed;inset:0;z-index:170;background:rgba(5,15,25,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
-#phView img{max-width:100%;max-height:calc(100% - 70px);border-radius:6px;object-fit:contain}
+#phView img{max-width:100%;max-height:calc(100% - 120px);border-radius:6px;object-fit:contain}
+#phView .pvNav{display:flex;align-items:center;gap:18px;color:rgba(255,255,255,.8);font-size:14px;font-variant-numeric:tabular-nums}#phView .pvNav button{width:44px;height:36px;min-width:0;padding:0;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);font-size:22px;line-height:1}#phView .pvNav button:disabled{opacity:.25}
 #phView .pvB{display:flex;gap:10px}#phView .pvB button{min-width:84px}#phView .pvDel{background:#E31B3F;color:#fff;border-color:#E31B3F}#phView .pvSnap{background:#38bdf8;color:#fff;border-color:#38bdf8;font-weight:700}
 #logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
 .calNav{display:inline-flex;gap:4px}.calHd .jump{letter-spacing:-2px;font-weight:700;color:#1b4277}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
@@ -1921,6 +1922,11 @@ $('phIn').onchange=async()=>{const fs=[...$('phIn').files];$('phIn').value='';co
   renderPh();refreshSave();};
 async function viewPh(id){const t=PHT();let o;try{o=await PDB.get(id);}catch(e){}if(!o)return;const u=URL.createObjectURL(o.full);
   const v=document.createElement('div');v.id='phView';v.innerHTML='<img alt=""><div class="pvB"><button class="pvDel"></button><button class="pvX"></button><button class="pvSnap"></button></div>';v.querySelector('img').src=u;
+  // 사진이 2장 이상이면 하단에 ‹ 1/3 › 넘김 화살표(이미지 좌우 밀기도 됨)
+  {const ids=((S.dives[S.cur]&&S.dives[S.cur].ph)||[]),i=ids.indexOf(id);if(ids.length>1&&i>=0){const nv=document.createElement('div');nv.className='pvNav';nv.innerHTML='<button class="pvP" aria-label="prev">‹</button><span>'+(i+1)+' / '+ids.length+'</span><button class="pvN" aria-label="next">›</button>';
+    v.insertBefore(nv,v.querySelector('.pvB'));const go=k=>{if(k<0||k>=ids.length)return;v.remove();URL.revokeObjectURL(u);viewPh(ids[k]);};
+    const bp=nv.querySelector('.pvP'),bn=nv.querySelector('.pvN');bp.disabled=i===0;bn.disabled=i===ids.length-1;bp.onclick=e=>{e.stopPropagation();go(i-1);};bn.onclick=e=>{e.stopPropagation();go(i+1);};
+    let sx=null;const im=v.querySelector('img');im.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});im.addEventListener('touchend',e=>{if(sx==null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50)go(dx<0?i+1:i-1);});}}
   const done=()=>{v.remove();URL.revokeObjectURL(u);};v.onclick=e=>{if(e.target===v)done();};v.querySelector('.pvX').textContent=t.close;v.querySelector('.pvX').onclick=done;
   const PLg=window.__photoLog,dm=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';const plP=PLg?PLg.place(dm):null,imP=PLg?PLg.img(o.full).catch(()=>null):null;
   const sn=v.querySelector('.pvSnap');sn.textContent=t.snap;sn.onclick=async()=>{if(!PLg)return;sn.disabled=true;try{await PLg.make(imP,plP);}catch(e){console.error(e);}sn.disabled=false;};
