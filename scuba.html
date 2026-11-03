@@ -89,7 +89,6 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .logList{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
 .logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:13px}
 .logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.logList .li.sub{margin-left:16px;border-style:dashed}
 .logList .li.cur{border-color:#0ea5e9;box-shadow:0 0 0 1px #0ea5e9}
 .logList .li .del{padding:3px 8px;font-size:12px;color:#e5484d}.logList .none{color:var(--mute);font-size:13px}
 .logForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
@@ -1070,13 +1069,18 @@ $('bars').addEventListener('click',barTip);
 
 // ===== 설정·탭 UI =====
 const fmtSI=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
+// 다이빙 하나 삭제(탭 ×·로그북 공통). 1번을 지우면 입수 시각은 2번 시작으로 옮김
+function removeDiveAt(i){if(S.dives.length<=1||i<0||i>=S.dives.length)return false;
+  if(i===0&&S.start!=null&&RES[0]&&S.dives[1])S.start+=RES[0].N/60+(+S.dives[1].si||0);
+  S.dives.splice(i,1);S.cur=Math.max(0,Math.min(S.cur>i?S.cur-1:S.cur,S.dives.length-1));renderTabs();syncForm();recompute();
+  try{window.dispatchEvent(new CustomEvent('scuba:diveRemoved',{detail:{i}}));}catch(e){}return true;}
 function renderTabs(){
   const el=$('tabs');el.innerHTML='';
   S.dives.forEach((dv,i)=>{
     if(i>0){const c=document.createElement('button');c.className='chip';c.textContent=fmtSI(dv.si);c.dataset.tip='si';c.onclick=()=>openPicker(i);el.appendChild(c);}
     const b=document.createElement('button');b.className='tab'+(i===S.cur?' on':'');b.innerHTML=tr('dive',i+1);
     if(i===S.cur&&S.dives.length>1){const x=document.createElement('span');x.className='x';x.textContent='×';x.title=tr('delDive');
-      x.onclick=e=>{e.stopPropagation();S.dives.splice(i,1);S.cur=Math.max(0,Math.min(S.cur,S.dives.length-1));syncForm();recompute();};b.appendChild(x);}
+      x.onclick=e=>{e.stopPropagation();removeDiveAt(i);};b.appendChild(x);}
     let lp=null,fired=false;
     const cancel=()=>{clearTimeout(lp);lp=null;};
     b.addEventListener('pointerdown',()=>{fired=false;cancel();lp=setTimeout(()=>{fired=true;showPop(b,i);},500);});
@@ -1495,11 +1499,18 @@ function renderList(){const t=L(),a=dayLogs();
     return rows.map(r=>{const clock=r.st!=null?`${hhmm(r.st)} ${t.in} → ${hhmm(r.st+r.N/60)} ${t.out}`:'';
       const meta=[(multi?(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,x.sum.gas].filter(Boolean).join(' · ');
       const sel=x.id===CUR&&(!multi||r.i===S.cur);
-      return `<div class="li${sel?' cur':''}${r.i>0?' sub':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${memo1&&r.i===0?'<div class="mm">'+memo1+'</div>':''}</div>${r.i===0?`<button class="del" data-id="${x.id}">${t.del}</button>`:''}</div>`;}).join('');}).join(''):`<div class="none">${t.none}</div>`;
+      return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${memo1&&r.i===0?'<div class="mm">'+memo1+'</div>':''}</div><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;}).join('');}).join(''):`<div class="none">${t.none}</div>`;
   $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
-  $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.id;store(load().filter(x=>x.id!==id));if(CUR===id)CUR=null;renderSum();renderWheels();renderList();});
+  $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();delRow(b.dataset.id,+b.dataset.i||0);});
   if(!CUR){const f=a[0];$('logMemo').value=f?(f.memo||''):'';}
   refreshSave();}
+function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.state&&x.state.dives||[]).length;
+  if(n<=1){store(load().filter(v=>v.id!==id));if(CUR===id){CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;renderTabs();syncForm();recompute();}renderSum();renderWheels();renderList();return;}
+  if(CUR!==id)applyLog(id,true,i);removeDiveAt(i);}
+// 그래프(탭)에서 다이빙을 지우면 불러온 로그에도 반영
+window.addEventListener('scuba:diveRemoved',()=>{if(!CUR)return;const a=load(),x=a.find(v=>v.id===CUR);if(!x)return;
+  if(S.start!=null){x.time=hhmm(Math.round(S.start));T=Math.round(S.start/10)*10%1440;}
+  x.state=snapState();x.sum=summary();store(a);renderSum();if(open&&view==='ed'){renderWheels();renderList();}});
 function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}}
 function renderSum(){const n=load().length,t=L();$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
