@@ -33,11 +33,16 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 2px 12px}
 .top h1{margin:0;font-size:clamp(16px,4.6vw,19px);word-break:keep-all}
 .ttl{display:inline-flex;flex-direction:column;align-items:stretch;gap:3px}
+.ttl [data-i18n=h1]{display:inline-block;transition:transform .18s ease-in,opacity .18s;transform-origin:50% 50%;backface-visibility:hidden}
+.ttl [data-i18n=h1].flipOut{transform:perspective(400px) rotateX(90deg);opacity:.2}
+.ttl [data-i18n=h1].flipIn{transform:perspective(400px) rotateX(-90deg);opacity:.2;transition:none}
 .ttl .dtmd{display:block;background:rgba(0,0,0,.55);color:rgba(255,255,255,.92);text-shadow:none;font-weight:700;line-height:1;padding:3px 4px;white-space:nowrap;text-align:left;font-size:10px;box-sizing:border-box;overflow:hidden;width:0;min-width:100%}
 .bmode{margin-bottom:8px}
 .bmode button{font-size:12px;padding:4px 10px;--pv:4px}
 .lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85);--pv:4px}
 .lang button.on{background:#1f2328;color:#fff}
+.card.thin{padding-top:4px;padding-bottom:4px}
+.card.thin>.setHead{padding:0;min-height:18px}
 .card{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid #dcdee2;border-radius:10px;padding:12px;margin-bottom:12px}
 .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 label{color:var(--mute);font-size:12px;display:inline-flex;align-items:center;gap:6px}
@@ -62,16 +67,20 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .setWrap>div{overflow:hidden;min-height:0}
 .setBody{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 .setHead .arr{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
-.calHd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.calHd b{font-size:15px}.calHd button{padding:4px 10px}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:13px}
-.cal .wd{color:var(--mute);font-size:11px;padding:2px 0}.cal .wd.sun,.cal .d.sun{color:#e5484d}.cal .wd.sat,.cal .d.sat{color:#2f6fe4}
-.cal .d{position:relative;padding:7px 0 9px;border-radius:8px;cursor:pointer;font-variant-numeric:tabular-nums}
-.cal .d.today{box-shadow:inset 0 0 0 1.5px #9ca3af}.cal .d.sel{background:#0f2a3d;color:#fff!important}
-.cal .d.has::after{content:'';position:absolute;left:50%;bottom:3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#0ea5e9}
-.cal .d.sel.has::after{background:#7dd3fc}.cal .e{visibility:hidden}
+.lwrap{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;height:200px}
+.lsel{position:absolute;left:0;width:calc(75% - 1.5px);top:80px;height:40px;background:#e8eef3;border-radius:8px;pointer-events:none}
+.lw{position:relative;height:200px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 28%,#000 72%,transparent);mask-image:linear-gradient(transparent,#000 28%,#000 72%,transparent);overscroll-behavior:contain;touch-action:pan-y}
+.lw::-webkit-scrollbar{display:none}
+.lw .it{height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;scroll-snap-align:center;font-size:18px;font-variant-numeric:tabular-nums;color:#57606a;cursor:pointer;line-height:1.1}
+.lw .it.on{color:#1f2328;font-weight:700}.lw .it.has{color:#0284c7;font-weight:800}
+.lw .it small{font-size:10px;font-weight:500;color:inherit;opacity:.85}.lw .it small.sun{color:#e5484d}.lw .it small.sat{color:#2f6fe4}
+.lw .it.has small::after{content:' ●';color:#0ea5e9;font-size:8px}
+.lw .pad{height:80px;scroll-snap-align:none}
+#logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:8px;font-family:inherit;box-sizing:border-box;width:100%}
 .logList{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
 .logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:13px}
 .logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logList .li.cur{border-color:#0ea5e9;box-shadow:0 0 0 1px #0ea5e9}
 .logList .li .del{padding:3px 8px;font-size:12px;color:#e5484d}.logList .none{color:var(--mute);font-size:13px}
 .logForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
 .logForm input[type=text]{flex:1;min-width:140px;padding:5px 8px}.logForm .pri{background:#0f2a3d;color:#fff;border-color:#0f2a3d}
@@ -144,7 +153,7 @@ html,body{overflow-x:hidden}
 .sheet .btns{display:flex;gap:8px}.sheet .btns button{flex:1}
 @media (max-width:560px){.st .v{font-size:14px}.st{padding:5px 7px}.st .v small{display:block}.summary{font-size:11px;padding:6px 7px}.split{gap:8px}.legend{font-size:11px;gap:3px 9px}}
 
-@supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip):not(.ico){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
+@supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip):not(.ico):not(.setHead){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
 </style>
 </head>
 <body>
@@ -169,7 +178,7 @@ html,body{overflow-x:hidden}
   <div data-i18n="rule2">2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
 </div>
 
-<div class="card">
+<div class="card thin">
   <button class="setHead" id="setHead"><b data-i18n="settings">⚙ 설정</b><span class="sum" id="setSum"></span><span class="arr">▾</span></button>
   <div class="setWrap" id="setWrap"><div>
   <div class="setBody" id="setBody">
@@ -209,17 +218,17 @@ html,body{overflow-x:hidden}
   </div></div>
 </div>
 
-<div class="card" id="logCard">
-  <button class="setHead" id="logHead"><b><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span data-i18n="logT">다이빙 로그</span></b><span class="sum" id="logSum"></span><span class="arr">▾</span></button>
+<div class="card thin" id="logCard">
+  <button class="setHead" id="logHead"><b><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span data-i18n="logT">다이빙 로그북</span></b><span class="sum" id="logSum"></span><span class="arr">▾</span></button>
   <div class="setWrap" id="logWrap"><div><div class="setBody" id="logBody">
-    <div class="calHd"><button id="calPrev" aria-label="prev">◀</button><b id="calTitle"></b><button id="calNext" aria-label="next">▶</button></div>
-    <div class="cal" id="cal"></div>
+    <div class="lwrap"><div class="lsel"></div>
+      <div class="lw" id="lwY"></div><div class="lw" id="lwM"></div><div class="lw" id="lwD"></div>
+      <textarea id="logMemo" maxlength="300" placeholder="슈트 5mm&#10;웨이트 6kg&#10;기온 / 수온&#10;시야&#10;수중생물"></textarea></div>
     <div class="logList" id="logList"></div>
     <div class="logForm">
-      <label><span data-i18n="logDate">날짜</span> <input type="date" id="logDate"></label>
       <label><span data-i18n="logStart">입수 시각</span> <input type="time" id="logTime"></label>
-      <input type="text" id="logMemo" maxlength="40" data-i18n-ph="logMemo" placeholder="메모 (선택)">
       <button id="logSave" class="pri" data-i18n="logSave">현재 플랜 저장</button>
+      <button id="logUpd" class="hide"></button>
       <span id="logMsg" class="logMsg"></span>
     </div>
   </div></div></div>
@@ -311,7 +320,7 @@ ko:{
  rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
  settings:'⚙ 설정',alt:'해발 고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
  cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:()=>(isFt()?'ft':'m')+'/분',
- logT:'다이빙 로그',logDate:'날짜',logStart:'입수 시각',logSave:'현재 플랜 저장',draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
+ logT:'다이빙 로그북',logDate:'날짜',logStart:'입수 시각',logSave:'현재 플랜 저장',draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
  disc:'교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',
@@ -367,7 +376,7 @@ en:{
  rule1:'1. Keep the pink ceiling from appearing <small>= no-decompression dive</small>',rule2:'2. If the pink ceiling appears, never cross it <small>= decompression dive</small>',
  settings:'⚙ Settings',alt:'Altitude',sealevel:'0 m (sea level)',custom:'Custom',water:'Water type',salt:'Salt',fresh:'Fresh',gas:'Gas',air21:'Air (21%)',
  cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom',asc:'Plan ascent rate',mpm:()=>(isFt()?'ft':'m')+'/min',
- logT:'Dive log',logDate:'Date',logStart:'Start',logSave:'Save current plan',draw:'Draw',points:'Points',erase:'Erase pts',sel:'Select',peHint:'Tap a point to enter its time and depth',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
+ logT:'Dive logbook',logDate:'Date',logStart:'Start',logSave:'Save current plan',draw:'Draw',points:'Points',erase:'Erase pts',sel:'Select',peHint:'Tap a point to enter its time and depth',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
  lgPath:'My profile',lgPlan:'Suggested',lgCeil:'Ceiling',lgFast:'Fast ascent',on:'N₂ on-gassing',off:'N₂ off-gassing',pct:'100% = surfacing limit (GF High)',
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
  disc:'For education and learning only. Do not use it to plan real dives or as a substitute for a dive computer.',
@@ -423,7 +432,7 @@ ja:{
  rule1:'1. ピンクのシーリングを出さないこと <small>= 無減圧潜水</small>',rule2:'2. ピンクのシーリングが出たら絶対に越えないこと <small>= 減圧潜水</small>',
  settings:'⚙ 設定',alt:'標高',sealevel:'0 m (海面)',custom:'直接入力',water:'水の種類',salt:'海水',fresh:'淡水',gas:'ガス',air21:'空気 (21%)',
  cons:'保守性',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'カスタム',asc:'プラン浮上速度',mpm:()=>(isFt()?'ft':'m')+'/分',
- logT:'ダイブログ',logDate:'日付',logStart:'潜水開始',logSave:'現在のプランを保存',draw:'描く',points:'点を打つ',erase:'点を消す',sel:'点を選択',peHint:'点をタップすると時間・水深を入力できます',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
+ logT:'ダイブログブック',logDate:'日付',logStart:'潜水開始',logSave:'現在のプランを保存',draw:'描く',points:'点を打つ',erase:'点を消す',sel:'点を選択',peHint:'点をタップすると時間・水深を入力できます',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
  lgPath:'自分の経路',lgPlan:'推奨',lgCeil:'シーリング',lgFast:'急浮上',on:'窒素 吸収中',off:'窒素 排出中',pct:'100% = 浮上許容限界(GF High)',
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
  disc:'教育・学習用のシミュレーターです。実際のダイビング計画やダイブコンピューターの代わりに使用しないでください。',
@@ -630,7 +639,7 @@ const toT=x=>(x-G.L)/G.W*TMAX, toD=y=>(y-G.T)/G.H*DMAX;
 const fmt=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 
 function drawProfile(){
-  const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);let labPos=null,timeTag=null;LABBOX=null;
+  const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);let labPos=null,timeTag=null,skullAt=null;LABBOX=null;
   cx.font='11px sans-serif';cx.fillStyle='#6b7280';
   if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===60||f===100;
     cx.strokeStyle=f===0?'#9ca3af':f===100?'#e5484d':f===60?'#6b7280':'#d1d5db';cx.setLineDash(f===0?[]:hi?[6,4]:[3,4]);cx.lineWidth=hi?1.4:1;
@@ -707,7 +716,7 @@ function drawProfile(){
     const e50=r.t0>=0?r.t0:r.N;
     if(r.t50>=0){seg(r.t50,Math.min(e50,r.uEnd),'#f97316',2.8,[]);if(r.plan)seg(Math.max(r.t50,r.uEnd),e50,'#f97316',2.6,[6,4]);}
     if(r.t0>=0){cx.save();cx.globalCompositeOperation='source-over';seg(r.t0,r.N,'#d8dbe0',4,[]);seg(r.t0,r.N,'#b6bac2',1.6,[]);cx.restore();
-      cx.font='20px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('💀',X(r.t0),Y(r.depth[r.t0])-14);}
+      skullAt=[X(r.t0),Y(r.depth[r.t0])-14];}
   }
   if(!S.playMode&&(S.mode==='pt'||S.mode==='del'||S.mode==='sel')&&pts.length<300){
     const del=S.mode==='del';
@@ -753,6 +762,7 @@ function drawProfile(){
   }
   if(timeTag){cx.beginPath();cx.arc(timeTag.x,timeTag.y,10,0,7);cx.fillStyle='rgba(31,35,40,.18)';cx.fill();
     cx.beginPath();cx.arc(timeTag.x,timeTag.y,6.5,0,7);cx.fillStyle='#1f2328';cx.fill();cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke();}
+  if(skullAt){cx.save();cx.font='20px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('💀',skullAt[0],skullAt[1]);cx.restore();}
   if(hover&&!P.run&&!S.playMode&&!(LP&&LP.active)){
     const t=clamp(toT(hover.x),0,TMAX),d=clamp(toD(hover.y),0,DMAX);
     if(hover.x>=G.L&&hover.x<=G.L+G.W){
@@ -1340,7 +1350,9 @@ function lines(){const r=RES[S.cur],dv=dive(),c=r.c;const out=[];
   const w=document.getElementById('warnBox');if(w&&!w.classList.contains('hide')&&w.innerText.trim())out.push(w.innerText.trim().split('\n').join('   '));
   return out;}
 function wrap(g,text,maxW){const words=text.split(' ');const ls=[];let cur='';for(const w of words){const t=cur?cur+' '+w:w;if(g.measureText(t).width>maxW&&cur){ls.push(cur);cur=w;}else cur=t;}if(cur)ls.push(cur);return ls;}
-async function make(){hover=null;drawProfile();
+async function make(){hover=null;const m0=S.mode,t0=P.t,k0=P.tick,run0=P.run;if(P.run)stopPlay();
+  if(m0!=='none'){S.mode='none';}const rr=RES[S.cur];P.t=playEnd(rr);P.tick=Math.floor(P.t/5)*5;drawProfile();
+  try{
   const W=1080,pad=40,ff=getComputedStyle(document.body).fontFamily;const sc=(W-pad*2)/cv.clientWidth;const gh=cv.clientHeight*sc;
   const tmp=document.createElement('canvas').getContext('2d');tmp.font='500 30px '+ff;
   const L=lines(),wrapped=[];L.forEach((t,i)=>{tmp.font=(i===0?'700 34px ':'400 28px ')+ff;wrap(tmp,t,W-pad*2).forEach(x=>wrapped.push([x,i]));});
@@ -1353,7 +1365,7 @@ async function make(){hover=null;drawProfile();
   g.drawImage(cv,pad,pad+64,W-pad*2,gh);
   let y=pad+64+gh+24;wrapped.forEach(([t,i])=>{y+=46;g.font=(i===0?'700 34px ':'400 28px ')+ff;g.fillStyle=i===0?'#1f2328':/⚠/.test(t)?'#e5484d':'#4b5563';g.fillText(t,pad,y);});
   g.fillStyle='#0f2a3d';g.fillRect(0,H-60,W,60);g.fillStyle='#fff';g.font='700 28px '+ff;g.textAlign='center';g.textBaseline='middle';g.fillText('www.moneypie.kr/scuba',W/2,H-30);
-  return el;}
+  return el;}finally{S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;drawProfile();}}
 btn.addEventListener('click',async()=>{try{const el=await make();const blob=await new Promise(r=>el.toBlob(r,'image/png'));
   const d=new Date(),name='dtmd-dive-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.png';
   const file=new File([blob],name,{type:'image/png'});
@@ -1364,61 +1376,79 @@ window.__snapMake=make;
 })();
 </script>
 <script>
-// ===== 다이빙 로그: 달력·날짜·입수 시각, 이 기기(localStorage)에 저장 =====
+// ===== 다이빙 로그북: 년·월·일 휠(슬롯) + 메모, 이 기기(localStorage)에 저장 =====
 (function(){
-const KEY='scuba_logs',MAX=50,KEYS=['water','altSel','alt','gasSel','o2','cons','gfLo','gfHi','asc','tankV','tankP','sac'];
+const KEY='scuba_logs',MAX=50,KEYS=['water','altSel','alt','gasSel','o2','cons','gfLo','gfHi','asc','tankV','tankP','sac'],IH=40;
 const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
-const pad=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),none:'No dives on this day',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',full:'Log is full (50). Delete some first.',fail:'Could not save on this browser.',ph:'Memo (optional)',empty:'Draw a profile first.'}
- :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',none:'この日のダイブはありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存しました',full:'ログが一杯です(50件)。先に削除してください。',fail:'このブラウザに保存できません。',ph:'メモ (任意)',empty:'先に経路を描いてください。'}
- :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',none:'이 날 저장한 다이빙이 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장했어요',full:'로그가 가득 찼어요(50개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'메모 (선택)',empty:'먼저 경로를 그려주세요.'};
-let open=false,view=new Date(),sel=ymd(new Date());view.setDate(1);
-function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
-  let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length};}
-function renderCal(){const a=load(),t=L(),y=view.getFullYear(),m=view.getMonth();$('calTitle').textContent=t.ttl(y,m+1);
-  const has=new Set(a.map(x=>x.date));const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),today=ymd(new Date());
-  let h=t.wd.map((w,i)=>`<div class="wd${i===0?' sun':i===6?' sat':''}">${w}</div>`).join('');
-  for(let i=0;i<first;i++)h+='<div class="e">.</div>';
-  for(let d=1;d<=days;d++){const k=y+'-'+pad(m+1)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${k===sel?' sel':''}${has.has(k)?' has':''}" data-k="${k}">${d}</div>`;}
-  $('cal').innerHTML=h;$('cal').querySelectorAll('.d').forEach(el=>el.onclick=()=>{sel=el.dataset.k;$('logDate').value=sel;renderCal();renderList();});}
-function renderList(){const t=L(),a=load().filter(x=>x.date===sel).sort((p,q)=>(p.time||'').localeCompare(q.time||''));
+const pad=n=>String(n).padStart(2,'0');
+const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],y:v=>v,m:v=>v,none:'No dives on this day',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Updated',updB:'Update this log',full:'Logbook is full (50). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook'}
+ :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],y:v=>v+'年',m:v=>v+'月',none:'この日のダイブはありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存しました',upd:'更新しました',updB:'このログを更新',full:'ログブックが一杯です(50件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック'}
+ :{wd:['일','월','화','수','목','금','토'],y:v=>v+'년',m:v=>v+'월',none:'이 날 저장한 다이빙이 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장했어요',upd:'수정했어요',updB:'이 로그 수정',full:'로그북이 가득 찼어요(50개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북'};
+const now=new Date();let Y=now.getFullYear(),M=now.getMonth()+1,D=now.getDate(),open=false,CUR=null;
+const ymd=()=>Y+'-'+pad(M)+'-'+pad(D);
+const YEARS=[];for(let y=now.getFullYear()-10;y<=now.getFullYear()+2;y++)YEARS.push(y);
+// 상단 제목 플립: 플래너 ↔ 로그북
+const TT=document.querySelector('.ttl [data-i18n="h1"]');let flipT=0;
+function setTitle(anim){if(!TT)return;const txt=open?L().title:tr('h1');if(TT.textContent===txt)return;
+  if(!anim){TT.textContent=txt;window.fitDTMD&&fitDTMD();return;}
+  clearTimeout(flipT);TT.classList.add('flipOut');flipT=setTimeout(()=>{TT.textContent=open?L().title:tr('h1');window.fitDTMD&&fitDTMD();TT.classList.remove('flipOut');TT.classList.add('flipIn');requestAnimationFrame(()=>requestAnimationFrame(()=>TT.classList.remove('flipIn')));},180);}
+function fill(el,items,idx){el.innerHTML='<div class="pad"></div>'+items.map((x,i)=>`<div class="it${x.has?' has':''}${i===idx?' on':''}" data-i="${i}">${x.h}</div>`).join('')+'<div class="pad"></div>';
+  el.__n=items.length;el.__set=true;el.scrollTop=idx*IH;requestAnimationFrame(()=>{el.scrollTop=idx*IH;setTimeout(()=>{el.__set=false;},60);});}
+function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));
+  const hasY=y=>a.some(x=>x.date.startsWith(y+'-')),hasM=m=>a.some(x=>x.date.startsWith(Y+'-'+pad(m)+'-'));
+  fill($('lwY'),YEARS.map(y=>({h:t.y(y),has:hasY(y)})),YEARS.indexOf(Y));
+  fill($('lwM'),Array.from({length:12},(_,i)=>({h:t.m(i+1),has:hasM(i+1)})),M-1);
+  const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;
+  fill($('lwD'),Array.from({length:nd},(_,i)=>{const d=i+1,wd=new Date(Y,M-1,d).getDay();return {h:`${d}<small class="${wd===0?'sun':wd===6?'sat':''}">${t.wd[wd]}</small>`,has:dates.has(Y+'-'+pad(M)+'-'+pad(d))};}),D-1);}
+function mark(el,idx){el.querySelectorAll('.it').forEach((x,i)=>x.classList.toggle('on',i===idx));}
+function bindWheel(el,onPick){let tm=0;el.addEventListener('scroll',()=>{if(el.__set)return;const idx=Math.max(0,Math.min(el.__n-1,Math.round(el.scrollTop/IH)));mark(el,idx);clearTimeout(tm);tm=setTimeout(()=>onPick(idx),140);},{passive:true});
+  el.addEventListener('click',e=>{const it=e.target.closest('.it');if(!it)return;const i=+it.dataset.i;el.scrollTo({top:i*IH,behavior:'smooth'});});}
+bindWheel($('lwY'),i=>{if(YEARS[i]===Y)return;Y=YEARS[i];CUR=null;renderWheels();renderList();});
+bindWheel($('lwM'),i=>{if(i+1===M)return;M=i+1;CUR=null;renderWheels();renderList();});
+bindWheel($('lwD'),i=>{if(i+1===D)return;D=i+1;CUR=null;renderList();});
+function dayLogs(){return load().filter(x=>x.date===ymd()).sort((p,q)=>(p.time||'').localeCompare(q.time||''));}
+function renderList(){const t=L(),a=dayLogs();
   $('logList').innerHTML=a.length?a.map(x=>{const st=x.time?(()=>{const [h,mi]=x.time.split(':').map(Number);return h*60+mi;})():null;
     const clock=st!=null?`${x.time} ${t.in} → ${hhmm(st+x.sum.N0/60)} ${t.out}`:'';
-    const meta=[x.sum.maxD+'m',Math.round(x.sum.N0/60)+(LANG==='en'?' min':'분'),x.sum.gas,x.sum.nd>1?t.dives(x.sum.nd):''].filter(Boolean).join(' · ');
-    return `<div class="li" data-id="${x.id}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${x.memo?'<div class="mm">'+x.memo.replace(/[<>&]/g,'')+'</div>':''}</div><button class="del" data-id="${x.id}">${t.del}</button></div>`;}).join(''):`<div class="none">${t.none}</div>`;
+    const meta=[x.sum.maxD+'m',Math.round(x.sum.N0/60)+t.min,x.sum.gas,x.sum.nd>1?t.dives(x.sum.nd):''].filter(Boolean).join(' · ');
+    const memo1=(x.memo||'').split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,'');
+    return `<div class="li${x.id===CUR?' cur':''}" data-id="${x.id}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${memo1?'<div class="mm">'+memo1+'</div>':''}</div><button class="del" data-id="${x.id}">${t.del}</button></div>`;}).join(''):`<div class="none">${t.none}</div>`;
   $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id);});
-  $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.id;store(load().filter(x=>x.id!==id));renderAll();});}
+  $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.id;store(load().filter(x=>x.id!==id));if(CUR===id)CUR=null;renderAll();});
+  if(!CUR){const f=a[0];$('logMemo').value=f?(f.memo||''):'';}
+  $('logUpd').classList.toggle('hide',!CUR);$('logUpd').textContent=t.updB;}
 function renderSum(){const n=load().length;$('logSum').textContent=n?L().n(n):'';$('logMemo').placeholder=L().ph;}
-function renderAll(){renderSum();if(open){renderCal();renderList();}}
-function sync(){$('logWrap').classList.toggle('open',open);$('logHead').classList.toggle('open',open);if(open){renderCal();renderList();}}
+function renderAll(){renderSum();setTitle(false);if(open){renderWheels();renderList();}}
+function sync(){$('logWrap').classList.toggle('open',open);$('logHead').classList.toggle('open',open);setTitle(true);if(open){renderWheels();renderList();}}
+function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
+  let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length};}
+function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
 function applyLog(id){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
   S.dives=st.dives.map(d=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}));S.cur=0;
   if(x.time){const [h,mi]=x.time.split(':').map(Number);S.start=h*60+mi;$('logTime').value=x.time;}else{S.start=null;$('logTime').value='';}
-  $('logDate').value=x.date;$('logMemo').value=x.memo||'';
+  CUR=id;$('logMemo').value=x.memo||'';
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
-  msg((LANG==='ko'?'불러옴: ':LANG==='ja'?'読込: ':'Loaded: ')+x.date+(x.time?' '+x.time:''));}
+  renderList();msg(L().loaded+x.date+(x.time?' '+x.time:''));}
 let mt=0;function msg(t,bad){const el=$('logMsg');el.textContent=t;el.style.color=bad?'#e5484d':'';clearTimeout(mt);mt=setTimeout(()=>el.textContent='',3000);}
 $('logHead').onclick=()=>{open=!open;sync();};
-$('calPrev').onclick=()=>{view.setMonth(view.getMonth()-1);renderCal();};
-$('calNext').onclick=()=>{view.setMonth(view.getMonth()+1);renderCal();};
 $('logTime').addEventListener('input',()=>{const v=$('logTime').value;if(v){const [h,mi]=v.split(':').map(Number);S.start=h*60+mi;}else S.start=null;drawProfile();});
-$('logDate').addEventListener('change',()=>{if($('logDate').value){sel=$('logDate').value;const d=new Date(sel+'T00:00');view=new Date(d.getFullYear(),d.getMonth(),1);renderCal();renderList();}});
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
   const a=load();if(a.length>=MAX){msg(t.full,true);return;}
-  const date=$('logDate').value||ymd(new Date()),time=$('logTime').value||'';
-  const state={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}))};KEYS.forEach(k=>state[k]=S[k]);
-  a.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),date,time,memo:$('logMemo').value.trim(),saved:Date.now(),state,sum:summary()});
-  if(!store(a)){msg(t.fail,true);return;}sel=date;const d=new Date(date+'T00:00');view=new Date(d.getFullYear(),d.getMonth(),1);renderAll();msg(t.saved);};
-const lb=$('logBtn');if(lb)lb.onclick=()=>{open=true;sync();const now=new Date();if(!$('logDate').value)$('logDate').value=ymd(now);if(!$('logTime').value){$('logTime').value=pad(now.getHours())+':'+pad(now.getMinutes());S.start=now.getHours()*60+now.getMinutes();drawProfile();}
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  a.push({id,date:ymd(),time:$('logTime').value||'',memo:$('logMemo').value.trim(),saved:Date.now(),state:snapState(),sum:summary()});
+  if(!store(a)){msg(t.fail,true);return;}CUR=id;renderAll();msg(t.saved);};
+$('logUpd').onclick=()=>{const t=L(),a=load(),x=a.find(v=>v.id===CUR);if(!x)return;
+  Object.assign(x,{date:ymd(),time:$('logTime').value||'',memo:$('logMemo').value.trim(),state:snapState(),sum:summary()});if(!store(a)){msg(t.fail,true);return;}renderAll();msg(t.upd);};
+const lb=$('logBtn');if(lb)lb.onclick=()=>{if(!open){open=true;sync();}const n=new Date();if(!$('logTime').value){$('logTime').value=pad(n.getHours())+':'+pad(n.getMinutes());S.start=n.getHours()*60+n.getMinutes();drawProfile();}
   setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},50);};
-$('logDate').value=ymd(new Date());
 window.addEventListener('scuba:lang',renderAll);
 renderSum();
-window.__log={load,renderAll};
+window.__log={load,renderAll,get ymd(){return ymd();},get open(){return open;}};
 })();
 </script>
+
 </body>
 </html>
