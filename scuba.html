@@ -856,7 +856,7 @@ function drawProfile(){
         let [bx,by]=cand.find(([x,y])=>!hits(x,y))||cand[0];
         if(dv.lab){bx=G.L+2+dv.lab.fx*Math.max(0,G.W-TW-4);by=G.T+2+dv.lab.fy*Math.max(0,G.H-TH-4);}
         const SNPL=!!window.SNAP;if(SNPL){const LS=1.3;cx.save();cx.translate(G.L+G.W/2-tw*LS/2,G.T+G.H/3-th*LS/2);cx.scale(LS,LS);bx=0;by=0;LABBOX={bx,by,tw,th};}
-        else{LABBOX={bx,by,tw:TW,th:TH};cx.save();cx.translate(bx,by);cx.scale(LK,LK);bx=0;by=0;}const lift=LP&&LP.active,soft=!lift&&!SNPL;if(lift){cx.save();cx.shadowColor='rgba(0,0,0,.35)';cx.shadowBlur=10;cx.shadowOffsetY=3;}else if(soft){cx.save();cx.shadowColor='rgba(15,23,42,.18)';cx.shadowBlur=10;cx.shadowOffsetY=2;}/* 앱 화면: 연한 그림자로 살짝 떠 보이게 */
+        else{LABBOX={bx,by,tw:TW,th:TH};cx.save();cx.translate(bx,by);cx.scale(LK,LK);bx=0;by=0;}const lift=LP&&LP.active,soft=!lift&&!SNPL;if(lift){cx.save();cx.shadowColor='rgba(0,0,0,.35)';cx.shadowBlur=10;cx.shadowOffsetY=3;}else if(soft){cx.save();cx.shadowColor='rgba(15,23,42,.18)';cx.shadowBlur=10;cx.shadowOffsetX=3;cx.shadowOffsetY=3;}/* 앱 화면: 연한 그림자로 살짝 떠 보이게 */
         cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle=isDeco?'#E31B3F':'#9ca3af';cx.lineWidth=1;
         cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();if(lift){cx.restore();cx.strokeStyle='#2f6fe4';cx.lineWidth=2;}else if(soft){cx.restore();cx.strokeStyle=isDeco?'#E31B3F':'#9ca3af';cx.lineWidth=1;}cx.stroke();
         if(isDeco){cx.save();cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.clip();cx.fillStyle='#E31B3F';cx.fillRect(bx,by,tw,hh);cx.restore();
