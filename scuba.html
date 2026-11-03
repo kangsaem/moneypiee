@@ -719,12 +719,12 @@ function drawProfile(){
   // 사진 배경: 0~40m × 0~70분 영역에 다이빙 사진을 아주 옅게. 두 번째 사진, 없으면 첫 번째. 스냅샷에는 안 그림
   if(!window.SNAP){const ids=(dv&&dv.ph)||[],id=ids[1]||ids[0];const B=window.__gbg||(window.__gbg={id:null,img:null,busy:null});
     if(!id){B.id=null;B.img=null;}else if(B.id!==id&&B.busy!==id&&window.__photo){B.busy=id;window.__photo.get(id).then(o=>{if(!o||!o.full)return;const u=URL.createObjectURL(o.full),im=new Image();im.onload=()=>{
-      // 채도 없앤 밝기만 남겨 짙은 바다색(#0b3556)~밝은 바다색(#8fd6f2) 사이로 칠함
+      // 채도 없앤 밝기만 남겨 순 파란색 계열(짙은 #0028a0 ~ 밝은 #5aaaff)로 칠함
       const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const q=c.getContext('2d');q.drawImage(im,0,0);
-      try{const d=q.getImageData(0,0,c.width,c.height),px=d.data,A=[11,53,86],Bc=[143,214,242];for(let k=0;k<px.length;k+=4){const l=(0.299*px[k]+0.587*px[k+1]+0.114*px[k+2])/255;px[k]=A[0]+(Bc[0]-A[0])*l;px[k+1]=A[1]+(Bc[1]-A[1])*l;px[k+2]=A[2]+(Bc[2]-A[2])*l;}q.putImageData(d,0,0);}catch(e){}
+      try{const d=q.getImageData(0,0,c.width,c.height),px=d.data,A=[0,40,160],Bc=[90,170,255];for(let k=0;k<px.length;k+=4){const l=(0.299*px[k]+0.587*px[k+1]+0.114*px[k+2])/255;px[k]=A[0]+(Bc[0]-A[0])*l;px[k+1]=A[1]+(Bc[1]-A[1])*l;px[k+2]=A[2]+(Bc[2]-A[2])*l;}q.putImageData(d,0,0);}catch(e){}
       c.naturalWidth=c.width;c.naturalHeight=c.height;B.id=id;B.img=c;B.busy=null;drawProfile();setTimeout(()=>URL.revokeObjectURL(u),1000);};im.src=u;}).catch(()=>{B.busy=null;});}
     if(B.img&&B.id===id){const x0=X(0),x1=X(Math.min(4200,TMAX)),y0=Y(0),y1=Y(Math.min(40,DMAX)),bw=x1-x0,bh=y1-y0,im=B.img,sc=Math.max(bw/im.naturalWidth,bh/im.naturalHeight),sw=bw/sc,sh=bh/sc;
-      cx.save();cx.globalAlpha=0.2;cx.drawImage(im,(im.naturalWidth-sw)/2,(im.naturalHeight-sh)/2,sw,sh,x0,y0,bw,bh);cx.restore();}}
+      cx.save();cx.globalAlpha=0.22;cx.drawImage(im,(im.naturalWidth-sw)/2,(im.naturalHeight-sh)/2,sw,sh,x0,y0,bw,bh);cx.restore();}}
   cx.font='11px sans-serif';cx.fillStyle='#6b7280';
   const SN=!!window.SNAP;
   if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===100||(f===60&&!SN);
