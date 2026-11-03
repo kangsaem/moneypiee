@@ -714,6 +714,11 @@ const fmt=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(
 
 function drawProfile(){
   const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);let labPos=null,timeTag=null,skullAt=null;LABBOX=null;
+  // 사진 배경: 0~40m × 0~70분 영역에 다이빙 사진을 아주 옅게. 두 번째 사진, 없으면 첫 번째. 스냅샷에는 안 그림
+  if(!window.SNAP){const ids=(dv&&dv.ph)||[],id=ids[1]||ids[0];const B=window.__gbg||(window.__gbg={id:null,img:null,busy:null});
+    if(!id){B.id=null;B.img=null;}else if(B.id!==id&&B.busy!==id&&window.__photo){B.busy=id;window.__photo.get(id).then(o=>{if(!o||!o.full)return;const u=URL.createObjectURL(o.full),im=new Image();im.onload=()=>{B.id=id;B.img=im;B.busy=null;drawProfile();setTimeout(()=>URL.revokeObjectURL(u),1000);};im.src=u;}).catch(()=>{B.busy=null;});}
+    if(B.img&&B.id===id){const x0=X(0),x1=X(Math.min(4200,TMAX)),y0=Y(0),y1=Y(Math.min(40,DMAX)),bw=x1-x0,bh=y1-y0,im=B.img,sc=Math.max(bw/im.naturalWidth,bh/im.naturalHeight),sw=bw/sc,sh=bh/sc;
+      cx.save();cx.globalAlpha=0.16;cx.drawImage(im,(im.naturalWidth-sw)/2,(im.naturalHeight-sh)/2,sw,sh,x0,y0,bw,bh);cx.restore();}}
   cx.font='11px sans-serif';cx.fillStyle='#6b7280';
   const SN=!!window.SNAP;
   if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===100||(f===60&&!SN);
