@@ -1451,7 +1451,7 @@ function lines(){const r=RES[S.cur],dv=dive(),c=r.c;const out=[];
 function memoTags(m,plOv){if(!m&&!plOv)return [];m=m||'';const L=m.split('\n').map(x=>x.trim()).filter(Boolean),out=[];
   let place=null;for(const l of L){const k=l.match(/^(?:장소|포인트|지명|다이빙\s*포인트|place|point|spot|ポイント|場所)\s*[:：]?\s*(.+)$/i);if(k){place=k[1];break;}}
   if(!place)place=L.find(l=>!/\d/.test(l)&&!/(슈트|suit|웨이트|weight|기온|수온|시야|visib|gps|fit|생물|life|°|スーツ|ウェイト|透明度|水温|気温)/i.test(l)&&l.length<=24)||null;
-  if(plOv)place=plOv;if(place)out.push(place);
+  if(plOv)place=plOv;out.place=place||'';
   const su=m.match(/(?:슈트|suit|wetsuit|スーツ|ウェット)[^\n\d]*(\d+(?:\.\d+)?)\s*mm/i)||m.match(/(\d+(?:\.\d+)?)\s*mm/i);if(su)out.push((LANG==='en'?'Suit ':LANG==='ja'?'スーツ ':'슈트 ')+su[1]+'mm');
   const vi=m.match(/(?:시야|visibility|vis|透明度)\s*[:：]?\s*(\d+(?:\.\d+)?)\s*m/i);if(vi)out.push((LANG==='en'?'Vis ':LANG==='ja'?'透明度 ':'시야 ')+vi[1]+'m');
   return out;}
@@ -1472,7 +1472,7 @@ async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=
     finally{TMAX=oT;DMAX=oD;cv.width=oW;cv.height=oH;G=oG;layout();drawProfile();}}
   // 설정 한 줄(작게)
   let set1=document.getElementById('setSum').textContent;if(S.dives.length>1)set1+=' · '+(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(S.cur+1)+'/'+S.dives.length;
-  let sf=22;tmp.font='400 '+sf+'px '+ff;while(sf>14&&tmp.measureText(set1).width>W-pad*2){sf--;tmp.font='400 '+sf+'px '+ff;}
+  let sf=22;
   const bc=document.getElementById('bars'),BW=Math.round((W-pad*2)*0.5);
   const RX=pad+BW+24,RW=W-pad-RX;
   const wb=document.getElementById('warnBox'),warns=(!wb.classList.contains('hide')&&wb.innerText.trim())?wb.innerText.trim().split('\n').map(x=>x.trim()).filter(Boolean):[];
@@ -1488,12 +1488,17 @@ async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=
   const SH=Math.max(BH,RH);
   // 띠: 날짜 + 메모의 지명·슈트·시야
   const lg=window.__log,dt=(S.start!=null&&lg)?lg.ymd.replace(/-/g,'/'):'';
-  const tags=(dt?[dt]:[]).concat(memoTags(S.start!=null&&lg?lg.memo:'',plEN||''));
+  const mt=memoTags(S.start!=null&&lg?lg.memo:'',plEN||''),place=(mt&&mt.place)||'',extra=(mt||[]).slice();
   const top=pad+sf+20;
   const H=Math.round(top+gh+24+SH+34+40);
   const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
   g.fillStyle='#fff';g.fillRect(0,0,W,H);
-  g.textBaseline='alphabetic';g.fillStyle='#6b7280';g.font='400 '+sf+'px '+ff;g.textAlign='center';g.fillText(set1,W/2,pad+sf-6);g.textAlign='left';
+  // 맨 위 한 줄: 날짜(맨 왼쪽) · 설정값 / 슈트·시야 등(오른쪽)
+  {g.textBaseline='alphabetic';const yy=pad+sf-6;let x=pad;
+    if(dt){g.font='700 '+sf+'px '+ff;g.fillStyle='#1e5fbf';g.textAlign='left';g.fillText(dt,x,yy);x+=g.measureText(dt).width+18;}
+    let rw=0;const ex=extra.join('  ·  ');if(ex){g.font='700 '+sf+'px '+ff;rw=g.measureText(ex).width;g.fillStyle='#1e5fbf';g.textAlign='right';g.fillText(ex,W-pad,yy);}
+    let fs=sf;g.font='400 '+fs+'px '+ff;const mx=W-pad-(rw?rw+18:0)-x;while(fs>13&&g.measureText(set1).width>mx){fs--;g.font='400 '+fs+'px '+ff;}
+    g.fillStyle='#6b7280';g.textAlign='left';g.fillText(set1,x,yy);}
   if(gimg)g.drawImage(gimg,pad,top,W-pad*2,gh);
   const y0=top+gh+24;
   if(BH&&bcv)g.drawImage(bcv,pad,y0,BW,BH);
@@ -1506,7 +1511,7 @@ async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=
   g.font='900 24px '+ff;const bw=(g.measureText('DTMD').width+24)*1.5;g.fillStyle='#E31B3F';g.fillRect(0,H-40,bw,40);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='alphabetic';g.fillText('DTMD',bw/2,H-11);
   // DTMD 옆: 날짜·지명(파란색) / 오른쪽 끝: 주소
   g.font='400 23px '+ff;const uw=g.measureText('moneypie.kr / scuba').width;g.fillStyle='#6b7280';g.textAlign='right';g.fillText('moneypie.kr / scuba',W-36,H-12);
-  if(tags.length){let tt=tags.join('  ·  '),fs=24;g.font='700 '+fs+'px '+ff;const mx=W-36-uw-24-(bw+16);while(fs>15&&g.measureText(tt).width>mx){fs--;g.font='700 '+fs+'px '+ff;}g.fillStyle='#1e5fbf';g.textAlign='left';g.fillText(tt,bw+16,H-12);}
+  if(place){let tt=place,fs=24;g.font='700 '+fs+'px '+ff;const mx=W-36-uw-24-(bw+16);while(fs>15&&g.measureText(tt).width>mx){fs--;g.font='700 '+fs+'px '+ff;}g.fillStyle='#1e5fbf';g.textAlign='left';g.fillText(tt,bw+16,H-12);}
   g.textAlign='left';
   return el;}finally{window.SNAP=false;S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;if(LANG!==LG0){LANG=LG0;applyLang();syncForm();renderSummary();}drawProfile();updateStats(P.tick<0?0:P.tick);}}
 async function shareCanvas(el,kind){const blob=await new Promise(r=>el.toBlob(r,kind==='photo'?'image/jpeg':'image/png',.9));
