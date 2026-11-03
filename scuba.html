@@ -46,6 +46,9 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .glow{animation:glowOnce .8s ease-out 1}.glowBad{animation:glowBadK .8s ease-out 1}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
+/* 넓은 화면: 2배(780px~) = 위 그래프, 아래 왼쪽 나머지·오른쪽 질소막대/경고 / 3배(1170px~) = 왼쪽·가운데 그래프·오른쪽 3단 */
+@media (min-width:780px){.wrap{max-width:none}#mainGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"g g" "l r";column-gap:6px;align-items:start}.colL{grid-area:l;min-width:0}#graphCard{grid-area:g;min-width:0}.colR{grid-area:r;min-width:0}}
+@media (min-width:1170px){#mainGrid{grid-template-columns:minmax(300px,1fr) minmax(0,2.2fr) minmax(320px,1fr);grid-template-areas:"l g r"}}
 .card.thin{padding-top:4px;padding-bottom:4px}
 .card.thin>.setHead{padding:0;min-height:18px}
 .card{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid #dcdee2;border-radius:6px;padding:12px;margin-bottom:5px}
@@ -191,6 +194,7 @@ html,body{overflow-x:hidden}
 </style>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
+<div id="mainGrid"><div class="colL">
 <div class="ruleWrap" id="ruleWrap"><div><div class="rule">
   <div data-i18n="rule1">1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
   <div data-i18n="rule2">2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
@@ -256,11 +260,12 @@ html,body{overflow-x:hidden}
   </div></div>
 </div>
 
-<div class="card">
+<div class="card" id="tabsCard">
   <div class="tabs" id="tabs"></div>
 </div>
 
-<div class="card">
+</div>
+<div class="card" id="graphCard">
   <div class="tools">
     <span class="seg"><button id="mFree" data-i18n="draw">그리기</button><button id="mPt" data-i18n="points">점찍기</button><button id="mDel" data-i18n="erase">점지우기</button></span>
     <button id="undo" data-i18n="undo">실행취소</button>
@@ -287,7 +292,8 @@ html,body{overflow-x:hidden}
   </div>
 </div>
 
-<div class="card">
+<div class="colR">
+<div class="card" id="barsCard">
   <div class="split">
     <div>
       <div class="seg bmode"><button data-bm="surf" data-i18n="bmSurf">수면 기준</button><button data-bm="sw" data-i18n="bmSw">쉐어워터식</button></div>
@@ -318,6 +324,7 @@ html,body{overflow-x:hidden}
     </div>
   </div>
 </div>
+</div></div>
 
 <div class="foot">
   <span data-i18n="disc" style="color:#e5484d;font-weight:600">교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.</span><br><span data-i18n="disc2" style="color:#1e5fbf;font-weight:600"></span><br> <a href="mailto:kangsaem@gmail.com" style="color:#1f2328;white-space:nowrap;margin-left:6px">kangsaem@gmail.com</a><br>
