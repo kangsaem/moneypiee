@@ -29,7 +29,7 @@ html{background:#284656;overflow-x:clip}
 .wrap{max-width:1000px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left))}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#e5484d;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
-.ruleWrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .5s cubic-bezier(.55,0,1,.45)}.ruleWrap>div{overflow:hidden;min-height:0}.ruleWrap.closed{grid-template-rows:0fr}
+.ruleWrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .22s cubic-bezier(.55,0,1,.45)}.ruleWrap>div{overflow:hidden;min-height:0}.ruleWrap.closed{grid-template-rows:0fr}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 2px 12px}
 .top h1{margin:0;font-size:clamp(16px,4.6vw,19px);word-break:keep-all}
@@ -42,6 +42,8 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .bmode button{font-size:12px;padding:4px 10px;--pv:4px}
 .lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85);--pv:4px}
 .lang button.on{background:#1f2328;color:#fff}
+@keyframes glowOnce{0%{box-shadow:0 0 0 0 rgba(14,165,233,.75)}100%{box-shadow:0 0 0 16px rgba(14,165,233,0)}}@keyframes glowBadK{0%{box-shadow:0 0 0 0 rgba(229,72,77,.7)}100%{box-shadow:0 0 0 14px rgba(229,72,77,0)}}
+.glow{animation:glowOnce .8s ease-out 1}.glowBad{animation:glowBadK .8s ease-out 1}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
 .card.thin{padding-top:4px;padding-bottom:4px}
@@ -1611,19 +1613,20 @@ $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t
   const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);S.start=T;
   a.push({id,date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),saved:Date.now(),state:snapState(),sum:summary()});
-  if(!store(a)){msg(t.fail,true);return;}afterSave(id);const others=cf.filter(x=>x.id!==CUR0);if(others.length)msg(t.repl(others.length),true);else msg(cf.length?t.upd:t.saved);};
+  if(!store(a)){msg(t.fail,true);return;}afterSave(id);const others=cf.filter(x=>x.id!==CUR0);flash($('logSave'));};
 // 저장 아이콘: 화면 전환 없이 로그북 전체를 JSON으로 내려받기 / 폴더 아이콘: 다른 기기에서 받은 JSON 불러오기
+function flash(el,bad){if(!el)return;el.classList.remove('glow','glowBad');void el.offsetWidth;el.classList.add(bad?'glowBad':'glow');setTimeout(()=>el.classList.remove('glow','glowBad'),900);}
 function toast(m){let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';document.body.appendChild(el);}el.textContent=m;el.classList.add('on');clearTimeout(el.__t);el.__t=setTimeout(()=>el.classList.remove('on'),2600);}
-$('logBtn').onclick=()=>{const t=L(),a=load();if(!a.length){toast(t.noLog);return;}if(!window.confirm(t.saveQ))return;
+$('logBtn').onclick=()=>{const t=L(),a=load();if(!a.length){flash($('logBtn'),true);return;}if(!window.confirm(t.saveQ))return;
   const d=new Date(),name='dtmd-logbook-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes())+'.json';
   const blob=new Blob([JSON.stringify({app:'DTMD',kind:'logbook',v:1,exported:d.toISOString(),logs:a})],{type:'application/json'});
-  const u=URL.createObjectURL(blob),el=document.createElement('a');el.href=u;el.download=name;document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);toast(t.exp(a.length));};
+  const u=URL.createObjectURL(blob),el=document.createElement('a');el.href=u;el.download=name;document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);flash($('logBtn'));};
 $('loadBtn').onclick=()=>$('jsonIn').click();
 $('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value='';if(!f)return;const t=L();let j;
   try{j=JSON.parse(await f.text());}catch(e){toast(t.badJ);return;}
   const inc=Array.isArray(j)?j:(j&&Array.isArray(j.logs)?j.logs:null);if(!inc||!inc.every(x=>x&&x.date&&x.state&&Array.isArray(x.state.dives))){toast(t.badJ);return;}
   const a=load();let rep=0;inc.forEach(x=>{const k=a.findIndex(y=>y.id===x.id||(y.date===x.date&&(y.time||'')===(x.time||'')));if(k>=0){a[k]=x;rep++;}else a.push(x);});
-  if(a.length>MAX||!store(a)){toast(t.fail);return;}renderAll();toast(t.imp(inc.length,rep));};
+  if(a.length>MAX||!store(a)){toast(t.fail);return;}renderAll();flash($('loadBtn'));};
 $('fitBtn').onclick=()=>$('fitIn').click();$('fitBtn2').onclick=()=>$('fitIn').click();
 // FIT 불러오기: 같은 날 다이빙은 입수 시각 순으로 연속 다이빙(다이빙1·2…), 수면휴식 = 앞 출수~다음 입수, 10분 단위 내림
 $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if(!f)return;const t=L();let dives;
@@ -1649,7 +1652,7 @@ $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if
   if(!store(rest)){msg(t.fail,true);return;}
   const [yy,mm,dd]=date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');
   applyLog(id,true,seq.findIndex(d=>d.fit));const b2=load(),x=b2.find(v=>v.id===id);if(x){x.sum=summary();store(b2);}renderSum();renderWheels();renderList();
-  msg(t.fitOk(dives.length,date,hhmm(Math.floor(imp[0].s)))+(seq.length>1?' · '+t.dives(seq.length):'')+(replaced?' · '+t.repl(replaced):''));};
+  flash($('fitBtn2'));};
 window.addEventListener('scuba:lang',renderAll);
 window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
 $('logMemo').addEventListener('input',refreshSave);
