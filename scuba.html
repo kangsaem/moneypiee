@@ -112,6 +112,14 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .lw .it{position:relative;z-index:0}.lw .it.on{color:#1f2328;font-weight:700}.lw .it.has::before{content:'';position:absolute;inset:3px 4px;background:rgba(255,255,255,.5);border-radius:5px;z-index:-1}
 .lw .it small{font-size:10px;font-weight:500;color:inherit;opacity:.85}.lw .it small.sun{color:#E31B3F}.lw .it small.sat{color:#2f6fe4}
 .lw .pad{height:80px;scroll-snap-align:none}
+.memoBox{position:relative;height:200px}.memoBox #logMemo{padding-bottom:48px}
+.phRow{position:absolute;left:6px;bottom:6px;display:flex;gap:4px}
+.phRow .ph{width:36px;height:36px;padding:0;border:1px solid rgba(15,42,61,.18);border-radius:5px;overflow:hidden;background:#eef2f6 center/cover no-repeat;flex-shrink:0}
+.phRow .phAdd{width:36px;height:36px;padding:0;border:1.5px dashed #9ca3af;border-radius:5px;background:rgba(255,255,255,.7);color:#6b7280;display:flex;align-items:center;justify-content:center}
+.phRow .phAdd.busy{opacity:.5;pointer-events:none}
+#phView{position:fixed;inset:0;z-index:170;background:rgba(5,15,25,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+#phView img{max-width:100%;max-height:calc(100% - 70px);border-radius:6px;object-fit:contain}
+#phView .pvB{display:flex;gap:10px}#phView .pvB button{min-width:84px}#phView .pvDel{background:#E31B3F;color:#fff;border-color:#E31B3F}
 #logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
 .calNav{display:inline-flex;gap:4px}.calHd .jump{letter-spacing:-2px;font-weight:700;color:#1b4277}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
@@ -240,7 +248,7 @@ html.spl body>*:not(#splash){visibility:hidden}
     <div id="logEdV" class="hide">
       <div class="edHd"><button id="logBack">◀ <span id="logBackT">달력</span></button><b id="edTitle"></b></div>
       <div class="lwrap"><div class="lwheels"><div class="lsel"></div><div class="lw" id="lwM" tabindex="0"></div><div class="lw" id="lwD" tabindex="0"></div><div class="lw" id="lwT" tabindex="0"></div></div>
-        <textarea id="logMemo" maxlength="300"></textarea></div>
+        <div class="memoBox"><textarea id="logMemo" maxlength="300"></textarea><div class="phRow" id="phRow"></div><input type="file" id="phIn" accept="image/*" multiple hidden></div></div>
       <div class="logList" id="logList"></div>
       <div class="logForm"><button id="logSave" class="pri" data-i18n="logSave">현재 로그 저장</button><button id="fitBtn2" class="fitB2"></button><span></span><span id="logMsg" class="logMsg"></span></div>
     </div>
@@ -1647,13 +1655,13 @@ function curRec(){return {date:ymd(),time:hhmm(T),memo:'',state:snapState()};}
 function conflicts(exceptId){const s1=T,e1=T+Math.max(1,curSpan());return load().filter(x=>{if(x.id===exceptId||x.date!==ymd())return false;const s2=tmin(x.time);if(s2==null)return false;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return s1===s2||(s1<e2&&s2<e1);});}
 function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasPlan=S.dives.some(d=>d.pts.length>1);const same=load().some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||same;$('logSave').title=same?t.same:'';}
 const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (d&&d.memo!=null)?d.memo:(i===0?(x.memo||''):'');};
-function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';}
-function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim()}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
+function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';renderPh();}
+function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
 function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
-  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i)}));S.cur=Math.min(di||0,S.dives.length-1);
+  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[]}));S.cur=Math.min(di||0,S.dives.length-1);
   const tm=tmin(x.time);if(tm!=null){T=Math.round(tm/10)*10%1440;S.start=tm;}else S.start=null;
-  CUR=id;$('logMemo').value=S.dives[S.cur].memo||'';
+  CUR=id;$('logMemo').value=S.dives[S.cur].memo||'';renderPh();
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
   renderWheels();renderList();}
 let mt=0;function msg(t,bad){const el=view==='cal'?$('logHint'):$('logMsg');el.textContent=t;el.style.color=bad?'#b45309':'#0f9d7a';el.style.fontWeight='600';clearTimeout(mt);
@@ -1748,6 +1756,35 @@ $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if
   flash($('fitBtn2'));};
 window.addEventListener('scuba:lang',renderAll);
 window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
+// ===== 사진: 다이빙마다 최대 3장. 기기 안 IndexedDB에 줄인 사본(긴 변 1200px)과 썸네일(240px) 저장, 로그에는 id만 =====
+const PDB={db:null,open(){if(this.db)return Promise.resolve(this.db);return new Promise((ok,no)=>{const r=indexedDB.open('dtmd',1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos',{keyPath:'id'});};r.onsuccess=()=>{this.db=r.result;ok(this.db);};r.onerror=()=>no(r.error);});},
+  tx(mode,fn){return this.open().then(d=>new Promise((ok,no)=>{const t=d.transaction('photos',mode),st=t.objectStore('photos');const q=fn(st);t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error);}));},
+  put(o){return this.tx('readwrite',st=>st.put(o));},get(id){return this.tx('readonly',st=>st.get(id));},del(id){return this.tx('readwrite',st=>st.delete(id));},keys(){return this.tx('readonly',st=>st.getAllKeys());}};
+const THU=new Map();// id → 썸네일 objectURL
+async function thumbURL(id){if(THU.has(id))return THU.get(id);try{const o=await PDB.get(id);if(!o)return null;const u=URL.createObjectURL(o.thumb);THU.set(id,u);return u;}catch(e){return null;}}
+function loadImg(file){return new Promise((ok,no)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{ok(im);setTimeout(()=>URL.revokeObjectURL(u),1000);};im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'));};im.src=u;});}
+function toBlob(im,maxSide,q,square){const w0=im.naturalWidth,h0=im.naturalHeight;let sx=0,sy=0,sw=w0,sh=h0;if(square){const m=Math.min(w0,h0);sx=(w0-m)/2;sy=(h0-m)/2;sw=sh=m;}
+  const k=Math.min(1,maxSide/Math.max(sw,sh)),w=Math.round(sw*k),h=Math.round(sh*k),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,sx,sy,sw,sh,0,0,w,h);
+  return new Promise(ok=>c.toBlob(ok,'image/jpeg',q));}
+const PHT=()=>LANG==='en'?{add:'Add photo',del:'Delete',close:'Close',max:'Up to 3 photos per dive',bad:'Could not read this image',full:'Not enough storage for photos'}:LANG==='ja'?{add:'写真を追加',del:'削除',close:'閉じる',max:'写真は1ダイブ3枚まで',bad:'画像を読み込めません',full:'写真を保存する容量が足りません'}:{add:'사진 추가',del:'삭제',close:'닫기',max:'사진은 다이빙마다 3장까지',bad:'이미지를 읽을 수 없어요',full:'사진을 저장할 공간이 부족해요'};
+let phTok=0;
+async function renderPh(){const row=$('phRow');if(!row)return;const d=S.dives[S.cur],ids=(d&&d.ph)||[],tok=++phTok,t=PHT();
+  const urls=await Promise.all(ids.map(thumbURL));if(tok!==phTok)return;
+  row.innerHTML='';ids.forEach((id,k)=>{if(!urls[k])return;const b=document.createElement('button');b.className='ph';b.style.backgroundImage=`url("${urls[k]}")`;b.title=t.add;b.onclick=()=>viewPh(id);row.appendChild(b);});
+  if(ids.length<3){const a=document.createElement('button');a.className='phAdd';a.title=t.add;a.setAttribute('aria-label',t.add);a.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><path d="M12 10.5v6M9 13.5h6"/></svg>';a.onclick=()=>$('phIn').click();row.appendChild(a);}}
+$('phIn').onchange=async()=>{const fs=[...$('phIn').files];$('phIn').value='';const d=S.dives[S.cur];if(!d||!fs.length)return;const t=PHT();d.ph=d.ph||[];
+  const room=3-d.ph.length;if(fs.length>room)toast(t.max);const add=$('phRow').querySelector('.phAdd');if(add)add.classList.add('busy');
+  for(const f of fs.slice(0,Math.max(0,room))){try{const im=await loadImg(f);const [full,thumb]=await Promise.all([toBlob(im,1200,.72),toBlob(im,240,.7,true)]);
+      const id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);await PDB.put({id,full,thumb,ts:Date.now(),name:f.name||''});d.ph.push(id);}
+    catch(e){toast(e&&e.name==='QuotaExceededError'?t.full:t.bad);}}
+  renderPh();refreshSave();};
+async function viewPh(id){const t=PHT();let o;try{o=await PDB.get(id);}catch(e){}if(!o)return;const u=URL.createObjectURL(o.full);
+  const v=document.createElement('div');v.id='phView';v.innerHTML='<img alt=""><div class="pvB"><button class="pvDel"></button><button class="pvX"></button></div>';v.querySelector('img').src=u;
+  const done=()=>{v.remove();URL.revokeObjectURL(u);};v.onclick=e=>{if(e.target===v)done();};v.querySelector('.pvX').textContent=t.close;v.querySelector('.pvX').onclick=done;
+  const del=v.querySelector('.pvDel');del.textContent=t.del;del.onclick=()=>{const d=S.dives[S.cur];if(d&&d.ph)d.ph=d.ph.filter(x=>x!==id);done();renderPh();refreshSave();};document.body.appendChild(v);}
+// 시작할 때: 어느 로그에도 없는 사진(저장 안 하고 떠난 것, 지운 로그의 것) 정리
+setTimeout(async()=>{try{const used=new Set();load().forEach(x=>((x.state&&x.state.dives)||[]).forEach(d=>(d.ph||[]).forEach(id=>used.add(id))));
+  const ks=await PDB.keys();for(const k of ks)if(!used.has(k))await PDB.del(k);}catch(e){}},1500);
 $('logMemo').addEventListener('input',()=>{const d=S.dives[S.cur];if(d)d.memo=$('logMemo').value;refreshSave();});
 renderSum();setTitle(false);
 window.__log={load,renderAll,get memo(){const d=S.dives[S.cur];return (d&&d.memo)||'';},get ymd(){return ymd();},get open(){return open;},get view(){return view;},get T(){return T;}};
