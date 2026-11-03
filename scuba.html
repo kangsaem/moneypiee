@@ -58,7 +58,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 @keyframes noteK{0%{opacity:0;transform:translate(-50%,-50%) scale(.92);box-shadow:0 0 0 0 rgba(125,211,252,.85)}15%{opacity:1;transform:translate(-50%,-50%) scale(1)}55%{box-shadow:0 0 0 22px rgba(125,211,252,0);opacity:1}100%{opacity:0;box-shadow:0 0 0 22px rgba(125,211,252,0);transform:translate(-50%,-50%) scale(1)}}
 .notePop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;background:#1b4277;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;white-space:nowrap;pointer-events:none;animation:noteK 1.8s ease-out forwards}
 #saveMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#saveMenu button{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}
-#snapMenu{position:absolute;z-index:150;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:6px}#snapMenu .smData{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#snapMenu .smLab{font-size:12px;color:var(--mute);padding:2px 4px 0}#snapMenu .smRow{display:flex;gap:6px}#snapMenu .smPh{width:64px;height:64px;padding:0;border:1px solid var(--line);border-radius:6px;background:#eef2f6 center/cover no-repeat}
+#snapMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#snapMenu>button{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#snapMenu>button:disabled{opacity:.4;cursor:default}#snapMenu .smList{display:flex;flex-direction:column;gap:6px;max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.55,0,1,.45)}#snapMenu .smList.open{padding-top:2px}#snapMenu .smPh{width:118px;height:118px;padding:0;border:1px solid var(--line);border-radius:6px;background:#eef2f6 center/cover no-repeat;align-self:center;flex-shrink:0}
 #ldWarn{position:fixed;inset:0;z-index:160;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:18px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
@@ -1447,15 +1447,17 @@ function lines(){const r=RES[S.cur],dv=dive(),c=r.c;const out=[];
   const w=document.getElementById('warnBox');if(w&&!w.classList.contains('hide')&&w.innerText.trim())out.push(w.innerText.trim().split('\n').join('   '));
   return out;}
 // 메모에서 지명·슈트 두께·시야 찾기
-function memoTags(m){if(!m)return [];const L=m.split('\n').map(x=>x.trim()).filter(Boolean),out=[];
+function memoTags(m,plOv){if(!m&&!plOv)return [];m=m||'';const L=m.split('\n').map(x=>x.trim()).filter(Boolean),out=[];
   let place=null;for(const l of L){const k=l.match(/^(?:장소|포인트|지명|다이빙\s*포인트|place|point|spot|ポイント|場所)\s*[:：]?\s*(.+)$/i);if(k){place=k[1];break;}}
   if(!place)place=L.find(l=>!/\d/.test(l)&&!/(슈트|suit|웨이트|weight|기온|수온|시야|visib|gps|fit|생물|life|°|スーツ|ウェイト|透明度|水温|気温)/i.test(l)&&l.length<=24)||null;
-  if(place)out.push(place);
+  if(plOv)place=plOv;if(place)out.push(place);
   const su=m.match(/(?:슈트|suit|wetsuit|スーツ|ウェット)[^\n\d]*(\d+(?:\.\d+)?)\s*mm/i)||m.match(/(\d+(?:\.\d+)?)\s*mm/i);if(su)out.push((LANG==='en'?'Suit ':LANG==='ja'?'スーツ ':'슈트 ')+su[1]+'mm');
   const vi=m.match(/(?:시야|visibility|vis|透明度)\s*[:：]?\s*(\d+(?:\.\d+)?)\s*m/i);if(vi)out.push((LANG==='en'?'Vis ':LANG==='ja'?'透明度 ':'시야 ')+vi[1]+'m');
   return out;}
 function wrap(g,text,maxW){const words=text.split(' ');const ls=[];let cur='';for(const w of words){const t=cur?cur+' '+w:w;if(g.measureText(t).width>maxW&&cur){ls.push(cur);cur=w;}else cur=t;}if(cur)ls.push(cur);return ls;}
-async function make(){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=P.tick;if(P.run)stopPlay();
+async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=P.tick,LG0=LANG;if(P.run)stopPlay();
+  // 이미지 속 용어는 모두 영어로: 잠시 영어로 바꿔 그린 뒤 되돌림(그 사이 화면은 다시 그려지지 않음)
+  if(LANG!=='en'){LANG='en';applyLang();syncForm();renderSummary();}
   if(m0!=='none'){S.mode='none';}const rr=RES[S.cur];P.t=playEnd(rr);P.tick=Math.floor(P.t/5)*5;drawProfile();updateStats(P.tick);
   try{
   const W=1080,pad=40,ff=getComputedStyle(document.body).fontFamily;
@@ -1485,7 +1487,7 @@ async function make(){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=P.ti
   const SH=Math.max(BH,RH);
   // 띠: 날짜 + 메모의 지명·슈트·시야
   const lg=window.__log,dt=(S.start!=null&&lg)?lg.ymd.replace(/-/g,'/'):'';
-  const tags=(dt?[dt]:[]).concat(memoTags(S.start!=null&&lg?lg.memo:''));const BAND=tags.length?50:0;
+  const tags=(dt?[dt]:[]).concat(memoTags(S.start!=null&&lg?lg.memo:'',plEN||''));const BAND=tags.length?50:0;
   const top=pad+sf+20+BAND;
   const H=Math.round(top+gh+24+SH+30+60);
   const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
@@ -1503,13 +1505,13 @@ async function make(){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=P.ti
   g.fillStyle='#0f2a3d';g.fillRect(0,H-60,W,60);g.fillStyle='#fff';g.font='700 28px '+ff;g.textAlign='center';g.textBaseline='middle';g.fillText('www.moneypie.kr/scuba',W/2,H-30);
   // 좌하단 DTMD 태그(포토 로그와 같은 모양)
   g.font='900 26px '+ff;const bw=(g.measureText('DTMD').width+24)*1.5;g.fillStyle='#E31B3F';g.fillRect(0,H-60,bw,60);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText('DTMD',bw/2,H-29);g.textAlign='left';
-  return el;}finally{window.SNAP=false;S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;drawProfile();updateStats(P.tick<0?0:P.tick);}}
+  return el;}finally{window.SNAP=false;S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;if(LANG!==LG0){LANG=LG0;applyLang();syncForm();renderSummary();}drawProfile();updateStats(P.tick<0?0:P.tick);}}
 async function shareCanvas(el,kind){const blob=await new Promise(r=>el.toBlob(r,kind==='photo'?'image/jpeg':'image/png',.9));
   const d=new Date(),name='dtmd-'+(kind==='photo'?'photo':'dive')+'-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+(kind==='photo'?'.jpg':'.png');
   const file=new File([blob],name,{type:blob.type});
   if(navigator.canShare&&navigator.canShare({files:[file]})&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({files:[file],title:tr('h1')});return;}catch(e){if(e&&e.name==='AbortError')return;}}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
-async function dataSnap(){try{await shareCanvas(await make(),'data');}catch(e){console.error(e);}}
+async function dataSnap(plP){try{const pl=plP?await plP:'';await shareCanvas(await make(pl),'data');}catch(e){console.error(e);}}
 // ===== 포토 로그: 사진 위에 핵심 정보 + 흰 선 수심 그래프 + DTMD 블록 =====
 // 장소: 메모의 GPS로 영어 약식(Danao, Bohol, PH) 조회(기기에 캐시), 실패하면 메모의 '장소:' 줄
 function memoGPS(m){const k=(m||'').match(/GPS\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i);return k?{lat:+k[1],lon:+k[2]}:null;}
@@ -1538,16 +1540,20 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
   txt('moneypie.kr / scuba',W-36*k,H-20*k,23,400,'right');
   return el;}
 // 스냅샷 버튼: 사진 없는 로그 → 바로 데이터 로그 / 사진 있으면 선택창(데이터 로그 + 사진 썸네일)
-btn.addEventListener('click',async()=>{const d=S.dives[S.cur],ids=(window.__photo&&d&&d.ph)||[];
-  let m=document.getElementById('snapMenu');if(m){m.remove();return;}if(!ids.length){dataSnap();return;}
-  const memo=(d&&d.memo)||'';const plP=placeEN(memo);const imgs={};ids.forEach(id=>{imgs[id]=window.__photo.get(id).then(o=>o?loadBlobImg(o.full):null).catch(()=>null);});
-  const thumbs=await Promise.all(ids.map(id=>window.__photo.thumb(id)));
-  m=document.createElement('div');m.id='snapMenu';const T=LANG==='en'?['Data log','Photo log']:LANG==='ja'?['データログ','フォトログ']:['데이터 로그','포토 로그'];
-  const b0=document.createElement('button');b0.className='smData';b0.textContent=T[0];b0.onclick=e=>{e.stopPropagation();m.remove();dataSnap();};m.appendChild(b0);
-  const lb=document.createElement('div');lb.className='smLab';lb.textContent=T[1];m.appendChild(lb);
-  const row=document.createElement('div');row.className='smRow';ids.forEach((id,i)=>{if(!thumbs[i])return;const b=document.createElement('button');b.className='smPh';b.style.backgroundImage=`url("${thumbs[i]}")`;
-    b.onclick=async e=>{e.stopPropagation();m.remove();try{const [im,pl]=await Promise.all([imgs[id],plP]);if(!im)return;const el=photoSnap(im,pl);if(el)await shareCanvas(el,'photo');}catch(x){console.error(x);}};row.appendChild(b);});
-  m.appendChild(row);document.body.appendChild(m);const rc=btn.getBoundingClientRect(),mw=m.offsetWidth;m.style.left=Math.max(6,Math.min(innerWidth-mw-6,rc.left+rc.width/2-mw/2))+'px';m.style.top=(rc.bottom+window.scrollY+6)+'px';
+// 스냅샷 버튼 → [데이터 로그] [포토 로그] 두 버튼. 포토 로그를 누르면 아래로 사진이 펼쳐짐(사진 없으면 비활성)
+btn.addEventListener('click',async()=>{let m=document.getElementById('snapMenu');if(m){m.remove();return;}
+  const d=S.dives[S.cur],ids=(window.__photo&&d&&d.ph)||[],memo=(d&&d.memo)||'';const plP=placeEN(memo);const imgs={};
+  ids.forEach(id=>{imgs[id]=window.__photo.get(id).then(o=>o?loadBlobImg(o.full):null).catch(()=>null);});
+  const T=LANG==='en'?['Data log','Photo log']:LANG==='ja'?['データログ','フォトログ']:['데이터 로그','포토 로그'];
+  m=document.createElement('div');m.id='snapMenu';
+  const b0=document.createElement('button');b0.textContent=T[0];b0.onclick=e=>{e.stopPropagation();m.remove();dataSnap(plP);};m.appendChild(b0);
+  const b1=document.createElement('button');b1.textContent=T[1];b1.disabled=!ids.length;m.appendChild(b1);
+  const list=document.createElement('div');list.className='smList';m.appendChild(list);
+  b1.onclick=async e=>{e.stopPropagation();if(list.classList.contains('open')){list.style.maxHeight='0px';list.classList.remove('open');return;}
+    if(!list.childElementCount){const th=await Promise.all(ids.map(id=>window.__photo.thumb(id)));ids.forEach((id,i)=>{if(!th[i])return;const p=document.createElement('button');p.className='smPh';p.style.backgroundImage=`url("${th[i]}")`;
+      p.onclick=async ev=>{ev.stopPropagation();m.remove();try{const [im,pl]=await Promise.all([imgs[id],plP]);if(!im)return;const el=photoSnap(im,pl);if(el)await shareCanvas(el,'photo');}catch(x){console.error(x);}};list.appendChild(p);});}
+    list.classList.add('open');list.style.maxHeight=list.scrollHeight+'px';};
+  document.body.appendChild(m);const rc=btn.getBoundingClientRect(),mw=m.offsetWidth;m.style.left=Math.max(6,Math.min(innerWidth-mw-6,rc.left+rc.width/2-mw/2))+'px';m.style.top=(rc.bottom+window.scrollY+6)+'px';
   setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)){m.remove();document.removeEventListener('click',h);}}),0);});
 window.__photoSnap=photoSnap;
 window.__snapMake=make;
