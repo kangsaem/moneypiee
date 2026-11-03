@@ -5,7 +5,7 @@
   "start_url": "/scuba",
   "scope": "/scuba",
   "display": "standalone",
-  "background_color": "#e8204f",
+  "background_color": "#e31b3f",
   "theme_color": "#284656",
   "lang": "ko-KR",
   "icons": [
