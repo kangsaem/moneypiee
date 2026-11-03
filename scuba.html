@@ -132,7 +132,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .logList{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
 .logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:5px;background:#fff;cursor:pointer;font-size:13px}
 .logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.logList .li.cur{border:2px solid #1b4277;padding:7px 9px}.logList .li.draft{border:1.5px dashed #94a3b8;background:rgba(255,255,255,.5);color:#6b7280;padding:7.5px 9.5px}.logList .li.draft.cur{border:2px dashed #1b4277;padding:7px 9px}.logList .li.draft.empty{min-height:48px;box-sizing:border-box}#logMemo:focus{outline:none;border:2px solid #1b4277;padding:7px;padding-bottom:47px}
+.logList .li.cur{border:2px solid #1b4277;padding:7px 9px}.logList .li.draft{border:1.5px dashed #94a3b8;background:rgba(255,255,255,.5);color:#6b7280;padding:7.5px 9.5px}.logList .li.draft.cur{border:2px dashed #1b4277;padding:7px 9px}.logList .li.draft.empty{min-height:48px;box-sizing:border-box}.logList .li.edited{border-style:dashed}.logList .li .edT{font-weight:400;font-size:12px;color:#b45309}#logMemo:focus{outline:none;border:2px solid #1b4277;padding:7px;padding-bottom:47px}
 .logList .li .del{padding:4px 9px;font-size:12px;font-weight:700;color:#fff;background:#E31B3F;border-color:#E31B3F}.logList .li .dlog{padding:4px 9px;font-size:12px;font-weight:700;color:#fff;background:#1b4277;border-color:#1b4277;margin-right:-4px;white-space:nowrap}.logList .none{color:var(--mute);font-size:13px}
 .logForm{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
 .logForm input[type=text]{flex:1;min-width:140px;padding:5px 8px}.logForm .pri{background:#1b4277;color:#fff;border-color:#1b4277}
@@ -1753,7 +1753,7 @@ function timePick(tw){if(view!=='ed')return false;const day=dayLogs();if(!day.le
     const si=Math.max(1,Math.round(tw-prev.en)),lastD=S.dives[S.dives.length-1];
     if(S.dives.length>n&&lastD.pts.length<=1)lastD.si=si;else S.dives.push(Object.assign(newDive(),{si}));
     S.cur=S.dives.length-1;$('logMemo').value='';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();refreshSave();return true;}
-  if(!prev){CUR=null;S.dives=[newDive()];S.cur=0;S.start=tw;T=tw;$('logMemo').value='';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();refreshSave();return true;}
+  if(!prev){stash();CUR=null;S.dives=[newDive()];S.cur=0;S.start=tw;T=tw;$('logMemo').value='';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();refreshSave();return true;}
   return false;}
 // 휠 위치가 코드로 바뀔 때(다이빙 삭제·탭 선택 등) 이전 위치에서 가속·감속하며 돌림
 let WSPIN=null;const wTops=()=>[wM.top,wD.top,wH.top,wMi.top];
@@ -1779,7 +1779,7 @@ function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));
   const wd=new Date(Y,M-1,D).getDay();$('edTitle').textContent=t.ed(Y,M,D,t.wd[wd]);}
 function dayLogs(){return load().filter(x=>x.date===ymd()).sort((p,q)=>(p.time||'').localeCompare(q.time||''));}
 // 휠로 다른 날짜로 가면: 로그 없는 날 = 빈 다이빙 1(빈 점선 줄 하나)에서 시작, 저장하면 그 날짜·시각의 새 로그 / 로그 있는 날 = 그 날 첫 로그
-function dayChanged(){CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;$('logMemo').value='';renderPh();
+function dayChanged(){stash();dropDR(ymd());SDATE=ymd();CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;$('logMemo').value='';renderPh();
   // 로그가 있는 날: 빈 점선 줄 없이 그 날 첫 로그를 엶(새 다이빙은 '+ 다이빙 추가'로)
   {const f=dayLogs()[0];if(f){applyLog(f.id,true,0);return;}}
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();}
@@ -1799,9 +1799,18 @@ function renderList(){const t=L(),a=dayLogs(),items=[];
       const meta=[(multi?dn+(i+1):''),R1(r.maxD)+'m',Math.round(r.N/60)+t.min,gas,pend].filter(Boolean).join(' · ');
       items.push({st,h:`<div class="li draft${i===S.cur?' cur':''}" data-di="${i}"><div class="tx"><b>${hhmm(st)} → ${hhmm(st+r.N/60)}</b><div class="mm">${meta}</div></div></div>`});});
     }
+  // 같은 날 보관해 둔 다른 작업도 표시: 덧붙인/새 다이빙은 점선 줄, 고친 저장 다이빙은 '수정 중' 표시
+  if(view==='ed'&&DR.date===ymd()){const ck=CUR||'new',pend=LANG==='en'?'not saved':LANG==='ja'?'未保存':'저장 전',edt=LANG==='en'?'edited · not saved':LANG==='ja'?'編集中・未保存':'수정 중 · 저장 전',dn=LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ';
+    const src=Object.keys(DR.m).filter(k=>k!==ck).map(k=>[k,DR.m[k].s,false]);if(CUR)src.push([CUR,snapS(),true]);
+    src.forEach(([k,P,self])=>{const sv=k==='new'?null:load().find(v=>v.id===k),n0=sv?(sv.state.dives||[]).length:0;let st=P.start!=null?P.start:P.T;
+      P.dives.forEach((d,i)=>{const dur=d.pts.length>1?d.pts[d.pts.length-1].t/60:0;if(i>0)st+=(+d.si||0);if(self&&i>=n0)return;
+        if(i<n0){const sd=sv.state.dives[i];if(JSON.stringify(sd.pts)!==JSON.stringify(d.pts)||(diveMemo(sv,i)||'').trim()!==(d.memo||'').trim()||(sd.ph||[]).join()!==(d.ph||[]).join()){const it=items.find(v=>v.h.includes(`data-id="${k}" data-i="${i}"`));if(it&&!it.h.includes('edited'))it.h=it.h.replace('<div class="li','<div class="li edited').replace('</b>','</b><span class="edT"> · '+edt+'</span>');}}
+        else if(d.pts.length>1){const mx=Math.max(...d.pts.map(q=>q.d));items.push({st,h:`<div class="li draft other" data-k="${k}" data-di="${i}"><div class="tx"><b>${hhmm(st)} → ${hhmm(st+dur)}</b><div class="mm">${[(P.dives.length>1?dn+(i+1):''),R1(mx)+'m',Math.round(dur)+t.min,pend].filter(Boolean).join(' · ')}</div></div></div>`});}
+        st+=dur;});});}
   items.sort((p,q)=>(p.st==null?1e9:p.st)-(q.st==null?1e9:q.st));
   $('logList').innerHTML=items.map(v=>v.h).join('');
-  $('logList').querySelectorAll('.li.draft:not(.ph)').forEach(el=>el.onclick=()=>{S.cur=+el.dataset.di;if(typeof renderTabs==='function')renderTabs();syncForm();recompute();});
+  $('logList').querySelectorAll('.li.draft.other').forEach(el=>el.onclick=e=>{e.stopPropagation();const k=el.dataset.k,i=+el.dataset.di;if(k==='new')openNewDraft(i);else applyLog(k,true,i);});
+  $('logList').querySelectorAll('.li.draft:not(.ph):not(.other)').forEach(el=>el.onclick=()=>{S.cur=+el.dataset.di;if(typeof renderTabs==='function')renderTabs();syncForm();recompute();});
   $('logList').querySelectorAll('.dlog').forEach(b=>b.onclick=async e=>{e.stopPropagation();applyLog(b.dataset.id,false,+b.dataset.i||0);await new Promise(r=>setTimeout(r,60));window.__dataSnap&&window.__dataSnap(null);});
   $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>el.onclick=e=>{if(e.target.closest('.del,.dlog'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();askDel().then(ok=>{if(ok)delRow(b.dataset.id,+b.dataset.i||0);});});
@@ -1861,7 +1870,21 @@ function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasP
 const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (d&&d.memo!=null)?d.memo:(i===0?(x.memo||''):'');};
 function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';renderPh();}
 function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
-function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;S.mode='none';
+// ===== 같은 날짜 안의 저장 안 한 작업 보관 =====
+// 다른 로그를 열기 전에 지금 작업(그래프·메모·사진·덧붙인 다이빙)을 날짜별로 보관, 같은 날 다시 열면 그대로 복원. 날짜가 바뀌면 버림
+let DR={date:null,m:{}},SDATE=null;
+const stKey=st=>JSON.stringify({d:(st.dives||[]).map(d=>({p:d.pts,s:+d.si||0,m:(d.memo||'').trim(),f:(d.ph||[]).join(',')})),k:KEYS.map(k=>st[k])});
+function isDirty(){const sv=CUR?load().find(v=>v.id===CUR):null;
+  if(sv){const s0=Object.assign({},sv.state,{dives:(sv.state.dives||[]).map((d,i)=>Object.assign({},d,{memo:diveMemo(sv,i)}))});return stKey(s0)!==stKey(snapState())||Math.round(ST())!==tmin(sv.time);}
+  return S.dives.some(d=>d.pts.length>1||(d.memo||'').trim()||(d.ph||[]).length);}
+function stash(){if(view!=='ed'||!SDATE)return;if(DR.date!==SDATE)DR={date:SDATE,m:{}};const k=CUR||'new';if(isDirty())DR.m[k]={s:snapS(),CUR};else delete DR.m[k];}
+function dropDR(date){if(DR.date!==date)DR={date,m:{}};}
+function refreshAll(){$('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();}
+// 보관해 둔 '새 로그(아직 저장 안 함)' 열기
+function openNewDraft(i){stash();const d=DR.m.new;if(!d)return;CUR=null;putS(d.s);S.mode='none';S.cur=Math.min(i||0,S.dives.length-1);SDATE=DR.date;refreshAll();}
+function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;stash();dropDR(x.date);SDATE=x.date;
+  if(DR.m[id]){CUR=id;putS(DR.m[id].s);S.mode='none';S.cur=Math.min(di||0,S.dives.length-1);refreshAll();return;}
+  S.mode='none';
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
   S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[]}));S.cur=Math.min(di||0,S.dives.length-1);
   const tm=tmin(x.time);if(tm!=null){T=Math.floor(tm/10)*10%1440;S.start=tm;}else S.start=null;
@@ -1901,7 +1924,7 @@ $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t
   const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6),st=ST();S.start=st;
   a.push({id,date:ymd(),time:hhmm(st),memo:'',saved:Date.now(),state:snapState(),sum:summary()});
-  if(!store(a)){msg(t.fail,true);return;}afterSave(id);const others=cf.filter(x=>x.id!==CUR0);flash($('logSave'));};
+  if(!store(a)){msg(t.fail,true);return;}if(DR.date===ymd()){delete DR.m[CUR0||'new'];}SDATE=ymd();afterSave(id);const others=cf.filter(x=>x.id!==CUR0);flash($('logSave'));};
 // 저장 아이콘: 화면 전환 없이 로그북 전체(사진 포함 ZIP) 내려받기 / 폴더 아이콘: 다른 기기에서 받은 ZIP·JSON 불러오기
 function flash(el,bad){if(!el)return;el.classList.remove('glow','glowBad');void el.offsetWidth;el.classList.add(bad?'glowBad':'glow');setTimeout(()=>el.classList.remove('glow','glowBad'),900);}
 function toast(m){let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';document.body.appendChild(el);}el.textContent=m;el.classList.add('on');clearTimeout(el.__t);el.__t=setTimeout(()=>el.classList.remove('on'),2600);}
