@@ -579,11 +579,12 @@ function recompute(){
   drawProfile();updateStats(0);renderSummary();
   $('undo').disabled=!(dive().undo.length||dive().redoSnap);
   if(typeof syncPtEd==='function')syncPtEd();
+  {const dv=dive();if(dv.pts.length<2)dv.lab=null;}
 }
 
 // ===== 프로파일 그래프 =====
 const cv=$('prof'),cx=cv.getContext('2d');
-let G={},hover=null,drawing=false,drag=-1;let SEL=-1,DG=null;
+let G={},hover=null,drawing=false,drag=-1;let SEL=-1,DG=null;let LP=null,LABBOX=null;
 function layout(){
   const dpr=window.devicePixelRatio||1;
   const w=cv.parentElement.clientWidth,h=Math.round(clamp(w*0.5,260,400));
@@ -597,7 +598,7 @@ const toT=x=>(x-G.L)/G.W*TMAX, toD=y=>(y-G.T)/G.H*DMAX;
 const fmt=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 
 function drawProfile(){
-  const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);let labPos=null,timeTag=null;
+  const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);let labPos=null,timeTag=null;LABBOX=null;
   cx.font='11px sans-serif';cx.fillStyle='#6b7280';
   if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===60||f===100;
     cx.strokeStyle=f===0?'#9ca3af':f===100?'#e5484d':f===60?'#6b7280':'#d1d5db';cx.setLineDash(f===0?[]:hi?[6,4]:[3,4]);cx.lineWidth=hi?1.4:1;
@@ -709,8 +710,10 @@ function drawProfile(){
         const cand=[[L0.xn-tw-4,L0.yd-th-4],[L0.xn+6,L0.yd-th-4],[L0.xn+6,L0.yd+4],[L0.xn-tw-4,L0.yd+4],[L0.xn+6,G.T+28],[L0.xn-tw-4,G.T+28]]
           .map(([x,y])=>[clamp(x,G.L+2,G.L+G.W-tw-2),clamp(y,G.T+2,G.T+G.H-th-2)]);
         let [bx,by]=cand.find(([x,y])=>!hits(x,y))||cand[0];
+        if(dv.lab){bx=G.L+2+dv.lab.fx*Math.max(0,G.W-tw-4);by=G.T+2+dv.lab.fy*Math.max(0,G.H-th-4);}
+        LABBOX={bx,by,tw,th};const lift=LP&&LP.active;if(lift){cx.save();cx.shadowColor='rgba(0,0,0,.35)';cx.shadowBlur=10;cx.shadowOffsetY=3;}
         cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle=isDeco?'#e5484d':'#9ca3af';cx.lineWidth=1;
-        cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();cx.stroke();
+        cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();if(lift){cx.restore();cx.strokeStyle='#2f6fe4';cx.lineWidth=2;}cx.stroke();
         if(isDeco){cx.save();cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.clip();cx.fillStyle='#e5484d';cx.fillRect(bx,by,tw,hh);cx.restore();
           cx.font='800 12px sans-serif';cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+hh/2+.5);cx.font='600 12px sans-serif';}
         cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+hh+10.5);cx.fillText(l2,bx+6,by+hh+26);
@@ -718,7 +721,7 @@ function drawProfile(){
   }
   if(timeTag){cx.beginPath();cx.arc(timeTag.x,timeTag.y,10,0,7);cx.fillStyle='rgba(31,35,40,.18)';cx.fill();
     cx.beginPath();cx.arc(timeTag.x,timeTag.y,6.5,0,7);cx.fillStyle='#1f2328';cx.fill();cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke();}
-  if(hover&&!P.run&&!S.playMode){
+  if(hover&&!P.run&&!S.playMode&&!(LP&&LP.active)){
     const t=clamp(toT(hover.x),0,TMAX),d=clamp(toD(hover.y),0,DMAX);
     if(hover.x>=G.L&&hover.x<=G.L+G.W){
       cx.strokeStyle='rgba(107,114,128,.5)';cx.setLineDash([2,3]);cx.lineWidth=1;cx.beginPath();
@@ -768,7 +771,7 @@ function rdp(pts,eps){
 let raf=0;const liveRecompute=()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;recompute();});};
 
 let seeking=false;
-cv.addEventListener('pointerdown',e=>{
+function downAt(e){
   if(S.playMode){if(P.run)stopPlay();cv.setPointerCapture(e.pointerId);seeking=true;seek(toT(pos(e).x));return;}
   if(P.run)stopPlay();
   const p=pos(e);cv.setPointerCapture(e.pointerId);
@@ -783,9 +786,18 @@ cv.addEventListener('pointerdown',e=>{
       let i=pts.findIndex(x=>x.t>q.t);if(i<0)i=pts.length;pts.splice(i,0,q);drag=i;SEL=i;DG.isNew=true;DG.moved=true;}
     recompute();
   }
+}
+// 라벨 꾹 눌러 옮기기: 0.4초 안 움직이면 잡힘, 먼저 움직이면 원래 동작(그리기 등)
+const inLab=p=>LABBOX&&p.x>=LABBOX.bx-4&&p.x<=LABBOX.bx+LABBOX.tw+4&&p.y>=LABBOX.by-4&&p.y<=LABBOX.by+LABBOX.th+4;
+cv.addEventListener('pointerdown',e=>{const p=pos(e);
+  if(inLab(p)&&!P.run){cv.setPointerCapture(e.pointerId);LP={e,x:p.x,y:p.y,ox:p.x-LABBOX.bx,oy:p.y-LABBOX.by,active:false};
+    LP.timer=setTimeout(()=>{if(!LP)return;LP.active=true;try{navigator.vibrate&&navigator.vibrate(15);}catch(x){}drawProfile();},400);return;}
+  downAt(e);
 });
+function moveLab(p){const dv=dive(),b=LABBOX;if(!b)return;const fx=(p.x-LP.ox-G.L)/Math.max(1,G.W-b.tw),fy=(p.y-LP.oy-G.T)/Math.max(1,G.H-b.th);dv.lab={fx:clamp(fx,0,1),fy:clamp(fy,0,1)};drawProfile();}
 cv.addEventListener('pointermove',e=>{
   const p=pos(e);hover=p;
+  if(LP){if(LP.active){moveLab(p);return;}if(Math.hypot(p.x-LP.x,p.y-LP.y)<7)return;clearTimeout(LP.timer);const e0=LP.e;LP=null;downAt(e0);}
   if(seeking){seek(toT(p.x));return;}
   if(drawing){addFree(toT(p.x),toD(p.y));drawProfile();return;}
   if(drag>0&&DG&&!DG.moved){if(Math.hypot(p.x-DG.x,p.y-DG.y)<7){if(!P.run)drawProfile();return;}DG.moved=true;}
@@ -801,6 +813,7 @@ function trimSurface(pts){
   return pts.slice(0,k+2);
 }
 const endPtr=()=>{
+  if(LP){clearTimeout(LP.timer);const was=LP.active,e0=LP.e;LP=null;if(was){drawProfile();return;}downAt(e0);}
   seeking=false;
   if(drawing){drawing=false;const dv=dive();dv.pts=trimSurface(rdp(dv.pts,1.2));recompute();}
   if(drag>0){const dv=dive();if(DG&&!DG.moved){dv.undo.pop();drag=-1;DG=null;syncPtEd();drawProfile();return;}drag=-1;DG=null;dv.pts=trimSurface(dv.pts);recompute();}
