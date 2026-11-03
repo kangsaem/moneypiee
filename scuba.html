@@ -1566,7 +1566,8 @@ function loadBlobImg(b){return new Promise((ok,no)=>{const u=URL.createObjectURL
 function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getComputedStyle(document.body).fontFamily;
   // 원본 비율 유지, 너무 길면 세로 4:5 ~ 가로 1.91:1 범위로 가운데 자름
   let sw=im.naturalWidth,sh=im.naturalHeight,sx=0,sy=0;const ar=sw/sh;if(ar<0.8){const h2=sw/0.8;sy=(sh-h2)/2;sh=h2;}else if(ar>1.91){const w2=sh*1.91;sx=(sw-w2)/2;sw=w2;}
-  const W=Math.round(Math.min(1200,sw)),H=Math.round(W*sh/sw),k=W/1080;const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
+  // 글자·그래프 크기는 짧은 변 기준(가로 사진에서 너무 커지지 않게)
+  const W=Math.round(Math.min(1200,sw)),H=Math.round(W*sh/sw),k=Math.min(W,H)/1080;const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
   g.drawImage(im,sx,sy,sw,sh,0,0,W,H);
   // 수심 그래프(하단): 수면 = H-330k, 최대 수심까지 260k
   const N=Math.max(1,r.N),maxD=Math.max(1,r.maxD),top=H-330*k,gh=260*k,PX=t=>t/N*W,PY=d=>top+d/maxD*gh;
