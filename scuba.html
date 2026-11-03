@@ -1323,7 +1323,9 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
   let lang='ko';try{lang=localStorage.getItem('scuba_lang')||'ko';}catch(e){}const h=(location.hash||'').slice(1);if(h==='en'||h==='ja'||h==='ko')lang=h;
   const close=()=>{sp.style.display='none';};
   window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';window.scrollTo(0,0);};
-  const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';t.addEventListener('click',()=>window.showSplash());}
+  const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
+    if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
+    if(tt)tt.addEventListener('click',e=>{e.stopPropagation();window.toggleLogbook&&window.toggleLogbook();});}
   if(lang!=='ko')close();
   document.getElementById('spSkip').onclick=close;
   document.getElementById('spTut').onclick=()=>{close();window.startTutorial&&window.startTutorial();};})();
@@ -1434,6 +1436,7 @@ function applyLog(id){const x=load().find(v=>v.id===id);if(!x)return;const st=x.
   renderList();msg(L().loaded+x.date+(x.time?' '+x.time:''));}
 let mt=0;function msg(t,bad){const el=$('logMsg');el.textContent=t;el.style.color=bad?'#e5484d':'';clearTimeout(mt);mt=setTimeout(()=>el.textContent='',3000);}
 $('logHead').onclick=()=>{open=!open;sync();};
+window.toggleLogbook=()=>{open=!open;sync();if(open)setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},60);else window.scrollTo({top:0,behavior:'smooth'});};
 $('logTime').addEventListener('input',()=>{const v=$('logTime').value;if(v){const [h,mi]=v.split(':').map(Number);S.start=h*60+mi;}else S.start=null;drawProfile();});
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
   const a=load();if(a.length>=MAX){msg(t.full,true);return;}
