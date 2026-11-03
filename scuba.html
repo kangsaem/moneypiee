@@ -36,6 +36,7 @@ h1{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45)}
 html{background:#284656;overflow-x:clip}
 /* 홈 화면 앱: 반투명 상태바 아래에 단색 띠를 깔아 내용이 비쳐 흐려 보이지 않게 */
 body::before{content:'';position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:#284656;z-index:90;pointer-events:none}
+@media (display-mode:standalone){body::before{height:max(env(safe-area-inset-top),20px)}.wrap{padding-top:calc(max(env(safe-area-inset-top),20px) + 22px)!important}#splash{padding-top:max(env(safe-area-inset-top),20px)!important}}
 .wrap{max-width:1000px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) calc(6px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(6px + env(safe-area-inset-left))}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#E31B3F;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:5px;font-size:14px;font-weight:700;line-height:1.7}
@@ -51,12 +52,13 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .bmode{margin-bottom:8px}
 .bmode button{font-size:12px;padding:4px 10px;--pv:4px}
 .lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85);--pv:4px}
-.lang button.on{background:#1b4277;color:#fff}
+.lang button.on{background:#38bdf8;color:#fff;font-weight:700}
 @keyframes glowOnce{0%{box-shadow:0 0 0 0 rgba(14,165,233,.75)}100%{box-shadow:0 0 0 16px rgba(14,165,233,0)}}@keyframes glowBadK{0%{box-shadow:0 0 0 0 rgba(227,27,63,.7)}100%{box-shadow:0 0 0 14px rgba(227,27,63,0)}}
 .glow{animation:glowOnce .8s ease-out 1}.glowBad{animation:glowBadK .8s ease-out 1}
 @keyframes noteK{0%{opacity:0;transform:translate(-50%,-50%) scale(.92);box-shadow:0 0 0 0 rgba(125,211,252,.85)}15%{opacity:1;transform:translate(-50%,-50%) scale(1)}55%{box-shadow:0 0 0 22px rgba(125,211,252,0);opacity:1}100%{opacity:0;box-shadow:0 0 0 22px rgba(125,211,252,0);transform:translate(-50%,-50%) scale(1)}}
 .notePop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;background:#1b4277;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;white-space:nowrap;pointer-events:none;animation:noteK 1.8s ease-out forwards}
 #saveMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#saveMenu button{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}
+#ldWarn{position:fixed;inset:0;z-index:160;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:16px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
 /* 넓은 화면: 2배(780px~) = 위 그래프, 아래 왼쪽 나머지·오른쪽 질소막대/경고 / 3배(1170px~) = 왼쪽·가운데 그래프·오른쪽 3단 */
@@ -168,7 +170,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .summary .pl{margin-top:4px;padding-top:4px;border-top:1px solid var(--line)}
 .warn{color:var(--up)}
 .play{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 2px}
-.play .icos{display:inline-flex;gap:6px}.ico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#374151}
+.play .icos{display:inline-flex;gap:6px}.ico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#1f3d0a;background:#a3e635;border-color:#84cc16}
 .big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:34px;padding:0;flex-shrink:0;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
 /* 질소 + 통계 */
 .split{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
@@ -207,7 +209,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 #splash .sp3{color:rgba(255,255,255,.75);font-size:16px;font-weight:700;background:none;border:0;cursor:pointer;padding:6px 10px;font-family:inherit}
 #spVer{min-width:8.6em;text-align:left;font-variant-numeric:tabular-nums}
 @keyframes spIn{from{opacity:0}to{opacity:1}}#splash>*{animation:spIn .35s ease-out}#splash.out>*{opacity:0;transition:opacity .2s}
-#splash .spFoot{display:flex;align-items:center;gap:10px;margin-top:2px;color:rgba(255,255,255,.45);font-size:11px}#spReload{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0}#spReload span{display:inline-block;line-height:1}@keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}#spReload.spin{animation:reloadSpin .6s linear}
+#splash .spFoot{display:flex;align-items:center;gap:10px;margin-top:2px;color:rgba(255,255,255,.45);font-size:11px}#spReload{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0}#spReload span{display:inline-block;line-height:1}@keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}#spReload.spin{animation:reloadSpin .6s linear}#spReload.spinL{animation:reloadSpin .6s linear infinite}
 #spSkip{height:38px;padding:0 26px;border:1.5px solid rgba(125,211,252,.7);border-radius:19px;background:transparent;color:#7dd3fc;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 @keyframes spPulse{0%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,.95)}70%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 22px rgba(255,196,210,0)}100%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,0)}}
 @media (prefers-reduced-motion:reduce){#spTut{animation:none}}
@@ -680,10 +682,17 @@ function recompute(){
 // ===== 프로파일 그래프 =====
 const cv=$('prof'),cx=cv.getContext('2d');
 let G={},FS=1,hover=null,drawing=false,drag=-1;let SEL=-1,DG=null;let LP=null,LABBOX=null;
+let LSOFF=578;// 로그북 '현재 로그 저장' 버튼 바닥의 위치(메인 그리드 기준). 안 보일 때는 마지막 측정값
 function layout(){
   const dpr=window.devicePixelRatio||1;
   FS=window.matchMedia('(orientation: landscape) and (max-height: 540px) and (pointer: coarse)').matches?1.25:1;
-  const w0=cv.parentElement.clientWidth,h0=Math.round(clamp(w0*0.5,260,400)),w=w0/FS,h=h0/FS;
+  const w0=cv.parentElement.clientWidth;let h0=Math.round(clamp(w0*0.5,260,400));
+  // 가로 3단: 재생 줄의 바닥이 왼쪽 '현재 로그 저장' 버튼(로그북이 닫혀 있으면 왼쪽 단 끝)과 맞도록 그래프를 세로로 늘림
+  if(window.matchMedia('(min-width:1170px)').matches){const ls=document.getElementById('logSave'),pl=document.querySelector('#graphCard .play');
+    const mg=document.getElementById('mainGrid').getBoundingClientRect().top;if(ls&&ls.offsetParent)LSOFF=ls.getBoundingClientRect().bottom-mg;
+    if(pl){const cr=cv.getBoundingClientRect(),off=pl.getBoundingClientRect().bottom-cr.bottom,tb=mg+LSOFF;
+      h0=Math.round(clamp(tb-cr.top-off,h0,Math.max(h0,window.innerHeight*1.2)));}}
+  const w=w0/FS,h=h0/FS;
   cv.width=w0*dpr;cv.height=h0*dpr;cv.style.height=h0+'px';cx.setTransform(dpr*FS,0,0,dpr*FS,0,0);
   G={w,h,L:40,R:30,T:10,B:26};G.W=w-G.L-G.R;G.H=h-G.T-G.B;
   const bc=$('bars'),bw=bc.parentElement.clientWidth,bh=16*(bw<300?17:20)+24;
@@ -1185,6 +1194,7 @@ $('undo').onclick=()=>{const dv=dive();
   recompute();};
 $('clear').onclick=()=>{const dv=dive();if(dv.pts.length<2)return;pushUndo();dv.pts=[{t:0,d:0}];recompute();};
 window.addEventListener('resize',()=>{layout();drawProfile();updateStats(P.tick<0?0:P.tick);});
+document.addEventListener('transitionend',e=>{const id=e.target&&e.target.id;if(id==='logWrap'||id==='ruleWrap')window.dispatchEvent(new Event('resize'));});
 
 // 배경 영상을 수심 그래프 뒤(세로 가운데)에 배치
 function applyLang(){
@@ -1396,7 +1406,11 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
     if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});}
   if(lang!=='ko')close();
   document.getElementById('spSkip').onclick=close;
-  document.getElementById('spReload').onclick=e=>{const btn=e.currentTarget;btn.classList.remove('spin');void btn.offsetWidth;btn.classList.add('spin');const u=location.pathname+'?v='+Date.now()+(location.hash||'');try{if('caches' in window)caches.keys().then(k=>k.forEach(n=>caches.delete(n)));}catch(x){}setTimeout(()=>{sp.classList.add('out');setTimeout(()=>location.replace(u),200);},600);};
+  document.getElementById('spReload').onclick=e=>{const btn=e.currentTarget;if(btn.classList.contains('spinL'))return;btn.classList.remove('spin');void btn.offsetWidth;btn.classList.add('spinL');
+    // 새 버전을 먼저 받아 캐시에 넣어 둔 뒤 이동: 기다리는 동안은 지금 화면이 그대로 보이고, 이동은 캐시에서 바로 열림
+    const u=location.pathname+'?v='+Date.now();try{if('caches' in window)caches.keys().then(k=>k.forEach(n=>caches.delete(n)));}catch(x){}
+    const t0=Date.now();let gone=false;const go=()=>{if(gone)return;gone=true;setTimeout(()=>location.replace(u+(location.hash||'')),Math.max(0,600-(Date.now()-t0)));};
+    try{fetch(u,{cache:'reload'}).then(r=>r.text()).then(go,go);}catch(x){go();}setTimeout(go,5000);};
   try{const d=new Date(document.lastModified);if(!isNaN(d)){const p=n=>String(n).padStart(2,'0');document.getElementById('spVer').textContent=d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}}catch(e){}const nm=document.getElementById('spName');if(nm)nm.onclick=close;
   document.getElementById('spTut').onclick=()=>{close();window.startTutorial&&window.startTutorial();};})();
 </script>
@@ -1614,7 +1628,7 @@ function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.
 window.addEventListener('scuba:diveRemoved',()=>{if(!CUR)return;const a=load(),x=a.find(v=>v.id===CUR);if(!x)return;
   if(S.start!=null){x.time=hhmm(Math.round(S.start));T=Math.round(S.start/10)*10%1440;}
   x.state=snapState();x.sum=summary();store(a);renderSum();if(open&&view==='ed'){renderWheels();renderList();}});
-function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}}
+function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
 function renderSum(){const n=load().reduce((a,x)=>a+((x.state&&x.state.dives&&x.state.dives.length)||1),0),t=L();$('fitBtn').textContent=t.fitB;$('fitBtn2').textContent=t.fitB;$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
 function relayout(){const cl=document.querySelector('.colL'),cr=document.querySelector('.colR'),st=$('setCard'),tb=$('tabsCard'),br=$('barsCard');if(!cl||!cr||!st||!tb||!br)return;
@@ -1672,16 +1686,25 @@ function flash(el,bad){if(!el)return;el.classList.remove('glow','glowBad');void 
 function toast(m){let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';document.body.appendChild(el);}el.textContent=m;el.classList.add('on');clearTimeout(el.__t);el.__t=setTimeout(()=>el.classList.remove('on'),2600);}
 function exportBlob(){const d=new Date(),stamp=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());
   return {stamp,json:JSON.stringify({app:'DTMD',kind:'logbook',v:1,exported:d.toISOString(),logs:load()})};}
+function saveFile(){const {stamp,json}=exportBlob();const u=URL.createObjectURL(new Blob([json],{type:'application/json'})),el=document.createElement('a');el.href=u;el.download='dtmd-logbook-'+stamp+'.json';document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);}
 function saveMenu(){let m=document.getElementById('saveMenu');if(m){m.remove();return;}const t=L(),btn=$('logBtn'),r=btn.getBoundingClientRect();
   m=document.createElement('div');m.id='saveMenu';const it=(txt,fn)=>{const x=document.createElement('button');x.textContent=txt;x.onclick=e=>{e.stopPropagation();m.remove();fn();};m.appendChild(x);};
-  it(t.svFile,()=>{const {stamp,json}=exportBlob();const u=URL.createObjectURL(new Blob([json],{type:'application/json'})),el=document.createElement('a');el.href=u;el.download='dtmd-logbook-'+stamp+'.json';document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);flash(btn);});
+  it(t.svFile,()=>{saveFile();flash(btn);});
   it(t.svShare,async()=>{const {stamp,json}=exportBlob();const f=new File([json],'dtmd-logbook-'+stamp+'.txt',{type:'text/plain'});
     try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'DTMD logbook'});flash(btn);return;}}catch(e){if(e&&e.name==='AbortError')return;}
     toast(t.noShare);});
   document.body.appendChild(m);const mw=m.offsetWidth;m.style.left=Math.max(6,Math.min(innerWidth-mw-6,r.left+r.width/2-mw/2))+'px';m.style.top=(r.bottom+window.scrollY+6)+'px';
   setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)){m.remove();document.removeEventListener('click',h);}}),0);}
 $('logBtn').onclick=()=>{const a=load();if(!a.length){flash($('logBtn'),true);return;}saveMenu();};
-$('loadBtn').onclick=()=>$('jsonIn').click();
+// 불러오기 전 경고: 같은 날짜·시각 로그는 파일 내용으로 바뀌므로 먼저 저장 권장
+$('loadBtn').onclick=()=>{if(!load().length){$('jsonIn').click();return;}
+  const W=LANG==='en'?{h:'Before loading',b:'Logs with the same date and time will be replaced by the file. Save your current logbook first.',s:'Save',g:'Load'}
+   :LANG==='ja'?{h:'読み込む前に',b:'同じ日付・時刻のログはファイルの内容に置き換わります。先に今のログブックを保存してください。',s:'保存',g:'読み込む'}
+   :{h:'불러오기 전에',b:'같은 날짜·시각의 로그는 파일 내용으로 바뀝니다. 먼저 지금 로그북을 저장해 두세요.',s:'저장하기',g:'불러오기'};
+  const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><b></b><p></p><div class="lwBtns"><button class="lwS"></button><button class="lwG"></button></div></div>';
+  ov.querySelector('b').textContent=W.h;ov.querySelector('p').textContent=W.b;const bs=ov.querySelector('.lwS'),bg=ov.querySelector('.lwG');bs.textContent=W.s;bg.textContent=W.g;
+  const done=()=>ov.remove();ov.onclick=e=>{if(e.target===ov)done();};
+  bs.onclick=()=>{saveFile();flash(bs);bs.disabled=true;};bg.onclick=()=>{done();$('jsonIn').click();};document.body.appendChild(ov);};
 $('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value='';if(!f)return;const t=L();let j;
   try{j=JSON.parse(await f.text());}catch(e){toast(t.badJ);return;}
   const inc=Array.isArray(j)?j:(j&&Array.isArray(j.logs)?j.logs:null);if(!inc||!inc.every(x=>x&&x.date&&x.state&&Array.isArray(x.state.dives))){toast(t.badJ);return;}
