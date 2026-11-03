@@ -105,7 +105,8 @@ html,body{overflow-x:hidden}
 .summary .pl{margin-top:4px;padding-top:4px;border-top:1px solid var(--line)}
 .warn{color:var(--up)}
 .play{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 2px}
-.play .big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:34px;padding:0;flex-shrink:0;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
+.play .icos{display:inline-flex;gap:6px}.ico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#374151}
+.big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:34px;padding:0;flex-shrink:0;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
 /* 질소 + 통계 */
 .split{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
 .side{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -129,7 +130,7 @@ html,body{overflow-x:hidden}
 .sheet .btns{display:flex;gap:8px}.sheet .btns button{flex:1}
 @media (max-width:560px){.st .v{font-size:14px}.st{padding:5px 7px}.st .v small{display:block}.summary{font-size:11px;padding:6px 7px}.split{gap:8px}.legend{font-size:11px;gap:3px 9px}}
 
-@supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
+@supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip):not(.ico){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
 </style>
 </head>
 <body>
@@ -221,6 +222,7 @@ html,body{overflow-x:hidden}
   <div class="play">
     <button class="big" id="playBtn" title="플레이"></button>
     <span class="seg"><button data-sp="0.5">0.5×</button><button data-sp="1" class="on">1×</button><button data-sp="2">2×</button></span>
+    <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><circle cx="12" cy="13.5" r="3.5"/></svg></button><button class="ico" id="logBtn" title="로그 저장" aria-label="log"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button></span>
   </div>
 </div>
 
@@ -1289,6 +1291,44 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
   let f=20;while(f>7&&b.scrollWidth-8>w){f-=.5;b.style.fontSize=f+'px';}f=Math.max(7,f*.8);b.style.fontSize=f+'px';
   const r=document.createRange();r.selectNodeContents(b);const tw=r.getBoundingClientRect().width;b.style.letterSpacing=Math.max(0,(w-tw)/n)+'px';}
   window.fitDTMD=fit;addEventListener('resize',fit);addEventListener('load',fit);try{document.fonts.ready.then(fit);}catch(e){}fit();})();
+</script>
+<script>
+// ===== 스냅샷: 그래프 + 요약 + 사이트 주소를 PNG 한 장으로 =====
+(function(){
+const btn=document.getElementById('snapBtn');if(!btn)return;
+function lines(){const r=RES[S.cur],dv=dive(),c=r.c;const out=[];
+  const ge=r.gas[r.N],rp=r.plan||(r.alt&&r.alt.plan),deco=r.ceil5.some(v=>v>0);
+  const st=deco?tr('deco'):tr('nodeco');
+  out.push([tr('max',r.maxD.toFixed(1)),tr('total',fmt(r.N)),st,(LANG==='ko'?'출수 잔압 ':LANG==='ja'?'浮上時残圧 ':'End gas ')+(ge<=0?'0':pu(ge))+puN()].join('  ·  '));
+  out.push(document.getElementById('setSum').textContent);
+  const ex=[];if(c.fO2>0.215&&r.cns){ex.push('CNS '+Math.round(r.cns[r.N])+'%');ex.push('MOD 1.4 '+DU(((1.4/c.fO2-ENV.psurf)/ENV.bpm).toFixed(1)));}
+  if(S.dives.length>1)ex.push((LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(S.cur+1)+'/'+S.dives.length);
+  if(ex.length)out.push(ex.join('  ·  '));
+  const w=document.getElementById('warnBox');if(w&&!w.classList.contains('hide')&&w.innerText.trim())out.push(w.innerText.trim().split('\n').join('   '));
+  return out;}
+function wrap(g,text,maxW){const words=text.split(' ');const ls=[];let cur='';for(const w of words){const t=cur?cur+' '+w:w;if(g.measureText(t).width>maxW&&cur){ls.push(cur);cur=w;}else cur=t;}if(cur)ls.push(cur);return ls;}
+async function make(){hover=null;drawProfile();
+  const W=1080,pad=40,ff=getComputedStyle(document.body).fontFamily;const sc=(W-pad*2)/cv.clientWidth;const gh=cv.clientHeight*sc;
+  const tmp=document.createElement('canvas').getContext('2d');tmp.font='500 30px '+ff;
+  const L=lines(),wrapped=[];L.forEach((t,i)=>{tmp.font=(i===0?'700 34px ':'400 28px ')+ff;wrap(tmp,t,W-pad*2).forEach(x=>wrapped.push([x,i]));});
+  const H=Math.round(pad+64+gh+24+wrapped.length*46+40+60);
+  const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
+  g.fillStyle='#fff';g.fillRect(0,0,W,H);
+  g.fillStyle='#0f2a3d';g.font='800 38px '+ff;g.textBaseline='alphabetic';g.fillText(tr('h1'),pad,pad+38);
+  const d=new Date(),ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  g.fillStyle='#6b7280';g.font='400 24px '+ff;g.textAlign='right';g.fillText(ds,W-pad,pad+36);g.textAlign='left';
+  g.drawImage(cv,pad,pad+64,W-pad*2,gh);
+  let y=pad+64+gh+24;wrapped.forEach(([t,i])=>{y+=46;g.font=(i===0?'700 34px ':'400 28px ')+ff;g.fillStyle=i===0?'#1f2328':/⚠/.test(t)?'#e5484d':'#4b5563';g.fillText(t,pad,y);});
+  g.fillStyle='#0f2a3d';g.fillRect(0,H-60,W,60);g.fillStyle='#fff';g.font='700 28px '+ff;g.textAlign='center';g.textBaseline='middle';g.fillText('www.moneypie.kr/scuba',W/2,H-30);
+  return el;}
+btn.addEventListener('click',async()=>{try{const el=await make();const blob=await new Promise(r=>el.toBlob(r,'image/png'));
+  const d=new Date(),name='dtmd-dive-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.png';
+  const file=new File([blob],name,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({files:[file],title:tr('h1')});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+}catch(e){console.error(e);}});
+window.__snapMake=make;
+})();
 </script>
 </body>
 </html>
