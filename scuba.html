@@ -58,7 +58,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 @keyframes noteK{0%{opacity:0;transform:translate(-50%,-50%) scale(.92);box-shadow:0 0 0 0 rgba(125,211,252,.85)}15%{opacity:1;transform:translate(-50%,-50%) scale(1)}55%{box-shadow:0 0 0 22px rgba(125,211,252,0);opacity:1}100%{opacity:0;box-shadow:0 0 0 22px rgba(125,211,252,0);transform:translate(-50%,-50%) scale(1)}}
 .notePop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;background:#1b4277;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;white-space:nowrap;pointer-events:none;animation:noteK 1.8s ease-out forwards}
 #saveMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#saveMenu button{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}
-#ldWarn{position:fixed;inset:0;z-index:160;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:16px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
+#ldWarn{position:fixed;inset:0;z-index:160;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:18px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
 /* 넓은 화면: 2배(780px~) = 위 그래프, 아래 왼쪽 나머지·오른쪽 질소막대/경고 / 3배(1170px~) = 왼쪽·가운데 그래프·오른쪽 3단 */
@@ -170,7 +170,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .summary .pl{margin-top:4px;padding-top:4px;border-top:1px solid var(--line)}
 .warn{color:var(--up)}
 .play{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 2px}
-.play .icos{display:inline-flex;gap:6px}.ico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#1f3d0a;background:#a3e635;border-color:#84cc16}
+.play .icos{display:inline-flex;gap:6px}.ico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#1f2937;background:#fff;border-color:#d1d5db}.ico svg{width:22px;height:22px}
 .big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:34px;padding:0;flex-shrink:0;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
 /* 질소 + 통계 */
 .split{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
@@ -1687,7 +1687,10 @@ function flash(el,bad){if(!el)return;el.classList.remove('glow','glowBad');void 
 function toast(m){let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';document.body.appendChild(el);}el.textContent=m;el.classList.add('on');clearTimeout(el.__t);el.__t=setTimeout(()=>el.classList.remove('on'),2600);}
 function exportBlob(){const d=new Date(),stamp=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());
   return {stamp,json:JSON.stringify({app:'DTMD',kind:'logbook',v:1,exported:d.toISOString(),logs:load()})};}
-function saveFile(){const {stamp,json}=exportBlob();const u=URL.createObjectURL(new Blob([json],{type:'application/json'})),el=document.createElement('a');el.href=u;el.download='dtmd-logbook-'+stamp+'.json';document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);}
+// iOS 홈화면 앱은 파일 다운로드가 동작하지 않음 → 공유 시트(파일에 저장)로
+const IOS_APP=(navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches)&&(/iP(hone|ad|od)/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&'ontouchend' in document));
+function saveFile(){const {stamp,json}=exportBlob();
+  if(IOS_APP){const f=new File([json],'dtmd-logbook-'+stamp+'.json',{type:'application/json'});try{if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'DTMD logbook'}).catch(()=>{});return;}}catch(e){}}const u=URL.createObjectURL(new Blob([json],{type:'application/json'})),el=document.createElement('a');el.href=u;el.download='dtmd-logbook-'+stamp+'.json';document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);}
 function saveMenu(){let m=document.getElementById('saveMenu');if(m){m.remove();return;}const t=L(),btn=$('logBtn'),r=btn.getBoundingClientRect();
   m=document.createElement('div');m.id='saveMenu';const it=(txt,fn)=>{const x=document.createElement('button');x.textContent=txt;x.onclick=e=>{e.stopPropagation();m.remove();fn();};m.appendChild(x);};
   it(t.svFile,()=>{saveFile();flash(btn);});
@@ -1702,8 +1705,8 @@ $('loadBtn').onclick=()=>{if(!load().length){$('jsonIn').click();return;}
   const W=LANG==='en'?{h:'Before loading',b:'Logs with the same date and time will be replaced by the file. Save your current logbook first.',s:'Save',g:'Load'}
    :LANG==='ja'?{h:'読み込む前に',b:'同じ日付・時刻のログはファイルの内容に置き換わります。先に今のログブックを保存してください。',s:'保存',g:'読み込む'}
    :{h:'불러오기 전에',b:'같은 날짜·시각의 로그는 파일 내용으로 바뀝니다. 먼저 지금 로그북을 저장해 두세요.',s:'저장하기',g:'불러오기'};
-  const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><b></b><p></p><div class="lwBtns"><button class="lwS"></button><button class="lwG"></button></div></div>';
-  ov.querySelector('b').textContent=W.h;ov.querySelector('p').textContent=W.b;const bs=ov.querySelector('.lwS'),bg=ov.querySelector('.lwG');bs.textContent=W.s;bg.textContent=W.g;
+  const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><p></p><div class="lwBtns"><button class="lwS"></button><button class="lwG"></button></div></div>';
+  ov.querySelector('p').textContent=W.b;const bs=ov.querySelector('.lwS'),bg=ov.querySelector('.lwG');bs.textContent=W.s;bg.textContent=W.g;
   const done=()=>ov.remove();ov.onclick=e=>{if(e.target===ov)done();};
   bs.onclick=()=>{saveFile();flash(bs);bs.disabled=true;};bg.onclick=()=>{done();$('jsonIn').click();};document.body.appendChild(ov);};
 $('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value='';if(!f)return;const t=L();let j;
