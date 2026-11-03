@@ -59,7 +59,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .notePop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;background:#1b4277;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;white-space:nowrap;pointer-events:none;animation:noteK 1.8s ease-out forwards}
 #saveMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#saveMenu button{text-align:center;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#saveMenu button:first-child{background:#1b4277;color:#fff;font-weight:700}#saveMenu button:nth-child(2){background:#0ea5e9;color:#fff;font-weight:700}
 #snapMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#snapMenu>button{text-align:center;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#snapMenu>button:first-child{background:#1b4277;color:#fff;font-weight:700}#snapMenu>button.smPhoto{background:#0ea5e9;color:#fff;font-weight:700}#snapMenu>button.smPhoto:disabled{opacity:1;background:#e5e7eb;color:#9ca3af}#snapMenu>button:disabled{opacity:.4;cursor:default}#snapMenu .smList{display:flex;flex-direction:column;gap:6px;max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.55,0,1,.45)}#snapMenu .smList.open{padding-top:2px}#snapMenu .smPh{width:118px;height:118px;padding:0;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28);border-radius:6px;background:#eef2f6 center/cover no-repeat;align-self:center;flex-shrink:0}
-#ldWarn{position:fixed;inset:0;z-index:160;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:18px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}#ldWarn .lwD{background:#E31B3F;color:#fff;border-color:#E31B3F;font-weight:700}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
+#ldWarn{position:fixed;inset:0;z-index:180;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:18px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}#ldWarn .lwD{background:#E31B3F;color:#fff;border-color:#E31B3F;font-weight:700}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard,#tabsCard.lbMode{background:rgba(186,230,253,.92);border-color:#7dd3fc}
 /* 넓은 화면: 2배(780px~) = 위 그래프, 아래 왼쪽 나머지·오른쪽 질소막대/경고 / 3배(1170px~) = 왼쪽·가운데 그래프·오른쪽 3단 */
@@ -811,7 +811,9 @@ function drawProfile(){
     const seg=(a,b,col,w,dash)=>{if(a<0||b<=a)return;cx.strokeStyle=col;cx.lineWidth=w;cx.setLineDash(dash);cx.beginPath();for(let k=a;k<=b;k+=2)k===a?cx.moveTo(X(k),Y(r.depth[k])):cx.lineTo(X(k),Y(r.depth[k]));cx.lineTo(X(b),Y(r.depth[b]));cx.stroke();cx.setLineDash([]);};
     const e50=r.t0>=0?r.t0:r.N;
     if(r.t50>=0){seg(r.t50,Math.min(e50,r.uEnd),'#f97316',2,[]);if(r.plan)seg(Math.max(r.t50,r.uEnd),e50,'#f97316',1.9,[6,4]);}
-    if(r.t0>=0){cx.save();cx.globalCompositeOperation='source-over';seg(r.t0,r.N,'#d8dbe0',4,[]);seg(r.t0,r.N,'#b6bac2',1.6,[]);cx.restore();
+    if(r.t0>=0){cx.save();cx.globalCompositeOperation='source-over';seg(r.t0,r.N,'#d8dbe0',4,[]);seg(r.t0,r.N,'#b6bac2',1.6,[]);
+      // 공기가 떨어진 뒤에도 추천 경로(감압 정지)는 보이게: 회색 위에 초록 점선
+      if(r.plan&&r.N>r.uEnd){cx.globalAlpha=.85;seg(Math.max(r.t0,r.uEnd),r.N,'#0f9d7a',2,[6,4]);cx.globalAlpha=1;}cx.restore();
       skullAt=[X(r.t0),Y(r.depth[r.t0])-14];}
   }
   if(!S.playMode&&(S.mode==='pt'||S.mode==='del'||S.mode==='sel')&&pts.length<300){
@@ -1261,7 +1263,7 @@ layout();syncForm();recompute();modeChanged();
 #tutBox button.pri{background:#E31B3F}
 #tutBox .tsm{font-size:12px;padding:3px 8px;background:#4b5563;--pv:3px}
 #tutBox .tsm.on{background:#E31B3F}
-.tutHi{outline:3px solid #E31B3F!important;outline-offset:2px;border-radius:6px}
+.tutHi{outline:3px solid #E31B3F!important;outline-offset:2px;border-radius:6px;position:relative;z-index:30}
 .tutBtn{font-size:11px;padding:0 9px;background:#E31B3F;color:#fff;border:0;border-radius:4px;margin-right:6px;white-space:nowrap;--pv:4px;display:inline-flex;align-items:center;justify-content:center;line-height:1;height:24px;box-sizing:border-box}
 </style>
 <div id="tutHand">👆</div>
@@ -1292,12 +1294,13 @@ function speak(text,onProg){return new Promise(res=>{if(!VOICE||!SS){res();retur
 const AU=new Audio();AU.preload='auto';
 const clip=n=>'tut/ko'+String(n).padStart(2,'0')+'.mp3';
 const auProg=()=>(AU.duration&&!AU.paused)?AU.currentTime/AU.duration:null;
-function playClip(src,fallback){return new Promise(res=>{if(!VOICE){res();return;}let done=false;
+let CLIPTOK=0;
+function playClip(src,fallback){return new Promise(res=>{if(!VOICE){res();return;}let done=false;const my=++CLIPTOK;
   const fin=()=>{if(done)return;done=true;clearTimeout(to);AU.onended=AU.onerror=null;res();};
-  const fail=()=>{if(done)return;done=true;clearTimeout(to);AU.onended=AU.onerror=null;if(fallback)fallback().then(res);else res();};
+  const fail=()=>{if(done)return;done=true;clearTimeout(to);if(my!==CLIPTOK){res();return;}AU.onended=AU.onerror=null;if(fallback)fallback().then(res);else res();};
   const to=setTimeout(fin,40000);
   try{try{if(SS&&(SS.speaking||SS.pending))SS.cancel();}catch(e){}AU.pause();AU.src=src;AU.onended=fin;AU.onerror=fail;
-    const pr=AU.play();if(pr&&pr.catch)pr.catch(e=>{if(e&&e.name==='NotAllowedError')fin();else fail();});}catch(e){fail();}});}
+    const pr=AU.play();if(pr&&pr.catch)pr.catch(e=>{if(e&&(e.name==='NotAllowedError'||e.name==='AbortError'))fin();else fail();});}catch(e){fail();}});}
 // 글자를 읽는 속도에 맞춰 하나씩 표시
 let TW=null;
 function typeInit(el){const nodes=[];const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))nodes.push([n,n.nodeValue]);
@@ -1796,7 +1799,7 @@ function renderList(){const t=L(),a=dayLogs(),items=[];
   curMemoSync();if(view==='ed')syncTW();
   refreshSave();}
 // 삭제 전 확인 팝업(바깥 누르면 취소)
-function askDel(){return new Promise(ok=>{const W=LANG==='en'?{b:'Delete this dive?',c:'Cancel',d:'Delete'}:LANG==='ja'?{b:'このダイブを削除しますか?',c:'キャンセル',d:'削除'}:{b:'이 다이빙을 삭제하시겠습니까?',c:'취소',d:'삭제'};
+function askDel(kind){return new Promise(ok=>{const ph=kind==='photo',W=LANG==='en'?{b:ph?'Delete this photo?':'Delete this dive?',c:'Cancel',d:'Delete'}:LANG==='ja'?{b:ph?'この写真を削除しますか?':'このダイブを削除しますか?',c:'キャンセル',d:'削除'}:{b:ph?'이 사진을 삭제하시겠습니까?':'이 다이빙을 삭제하시겠습니까?',c:'취소',d:'삭제'};
   const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><p></p><div class="lwBtns"><button class="lwC"></button><button class="lwD"></button></div></div>';
   ov.querySelector('p').textContent=W.b;const c=ov.querySelector('.lwC'),d=ov.querySelector('.lwD');c.textContent=W.c;d.textContent=W.d;
   const done=v=>{ov.remove();ok(v);};ov.onclick=e=>{if(e.target===ov)done(false);};c.onclick=()=>done(false);d.onclick=()=>done(true);document.body.appendChild(ov);});}
@@ -2026,7 +2029,7 @@ async function viewPh(id){const t=PHT();let o;try{o=await PDB.get(id);}catch(e){
   const done=()=>{v.remove();URL.revokeObjectURL(u);};v.onclick=e=>{if(e.target===v)done();};v.querySelector('.pvX').textContent=t.close;v.querySelector('.pvX').onclick=done;
   const PLg=window.__photoLog,dm=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';const plP=PLg?PLg.place(dm):null,imP=PLg?PLg.img(o.full).catch(()=>null):null;
   const sn=v.querySelector('.pvSnap');sn.textContent=t.snap;sn.onclick=async()=>{if(!PLg)return;sn.disabled=true;try{await PLg.make(imP,plP);}catch(e){console.error(e);}sn.disabled=false;};
-  const del=v.querySelector('.pvDel');del.textContent=t.del;del.onclick=()=>{const d=S.dives[S.cur];if(d&&d.ph)d.ph=d.ph.filter(x=>x!==id);done();renderPh();refreshSave();drawProfile();};document.body.appendChild(v);}
+  const del=v.querySelector('.pvDel');del.textContent=t.del;del.onclick=()=>{askDel('photo').then(ok=>{if(!ok)return;const d=S.dives[S.cur];if(d&&d.ph)d.ph=d.ph.filter(x=>x!==id);done();renderPh();refreshSave();drawProfile();});};document.body.appendChild(v);}
 // 시작할 때: 어느 로그에도 없는 사진(저장 안 하고 떠난 것, 지운 로그의 것) 정리
 setTimeout(async()=>{try{const used=new Set();load().forEach(x=>((x.state&&x.state.dives)||[]).forEach(d=>(d.ph||[]).forEach(id=>used.add(id))));
   const ks=await PDB.keys();for(const k of ks)if(!used.has(k))await PDB.del(k);}catch(e){}},1500);
