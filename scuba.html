@@ -33,9 +33,9 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 2px 12px}
 .top h1{margin:0;font-size:clamp(16px,4.6vw,19px);word-break:keep-all}
 .ttl{display:inline-flex;flex-direction:column;align-items:stretch;gap:3px}
-.ttl [data-i18n=h1]{display:inline-block;transition:transform .18s ease-in,opacity .18s;transform-origin:50% 50%;backface-visibility:hidden}
-.ttl [data-i18n=h1].flipOut{transform:perspective(400px) rotateX(90deg);opacity:.2}
-.ttl [data-i18n=h1].flipIn{transform:perspective(400px) rotateX(-90deg);opacity:.2;transition:none}
+.ttl .fw{display:inline-block;transition:transform .18s ease-in,opacity .18s;transform-origin:50% 50%;backface-visibility:hidden}
+.ttl .fw.flipOut{transform:perspective(400px) rotateX(90deg);opacity:.2}
+.ttl .fw.flipIn{transform:perspective(400px) rotateX(-90deg);opacity:.2;transition:none}
 .ttl .dtmd{display:block;background:rgba(0,0,0,.55);color:rgba(255,255,255,.92);text-shadow:none;font-weight:700;line-height:1;padding:3px 4px;white-space:nowrap;text-align:left;font-size:10px;box-sizing:border-box;overflow:hidden;width:0;min-width:100%}
 .bmode{margin-bottom:8px}
 .bmode button{font-size:12px;padding:4px 10px;--pv:4px}
@@ -1418,9 +1418,12 @@ let Y=vy,M=vm,D=now.getDate(),T=Math.floor((now.getHours()*60+now.getMinutes())/
 const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.split(':').map(Number);return h*60+m;};
 // --- 상단 제목 플립
 const TT=document.querySelector('.ttl [data-i18n="h1"]');let flipT=0;
-function setTitle(anim){if(!TT)return;const txt=open?L().title:tr('h1');if(TT.textContent===txt)return;
-  if(!anim){TT.textContent=txt;window.fitDTMD&&fitDTMD();return;}
-  clearTimeout(flipT);TT.classList.add('flipOut');flipT=setTimeout(()=>{TT.textContent=open?L().title:tr('h1');window.fitDTMD&&fitDTMD();TT.classList.remove('flipOut');TT.classList.add('flipIn');requestAnimationFrame(()=>requestAnimationFrame(()=>TT.classList.remove('flipIn')));},180);}
+// '플래너' 낱말만 뒤집힘, 앞부분(DTMD 다이빙)은 고정
+const TW=()=>LANG==='en'?['DTMD Dive ','Planner','Logbook']:LANG==='ja'?['DTMD ダイブ','プランナー','ログブック']:['DTMD 다이빙 ','플래너','로그북'];
+function setTitle(anim){if(!TT)return;const [pre,a,b]=TW(),word=open?b:a;let fw=TT.querySelector('.fw');
+  if(!fw||!TT.textContent.startsWith(pre)){TT.innerHTML='';TT.appendChild(document.createTextNode(pre));fw=document.createElement('span');fw.className='fw';fw.textContent=word;TT.appendChild(fw);window.fitDTMD&&fitDTMD();return;}
+  if(fw.textContent===word)return;if(!anim){fw.textContent=word;window.fitDTMD&&fitDTMD();return;}
+  clearTimeout(flipT);fw.classList.add('flipOut');flipT=setTimeout(()=>{fw.textContent=open?TW()[2]:TW()[1];window.fitDTMD&&fitDTMD();fw.classList.remove('flipOut');fw.classList.add('flipIn');requestAnimationFrame(()=>requestAnimationFrame(()=>fw.classList.remove('flipIn')));},180);}
 // --- 휠: 터치는 기본 스크롤, 마우스는 끌어서 휙(관성), 방향키는 누르고 있으면 가속
 function makeWheel(el,onPick){let n=0,idx=0,tm=0,quiet=false,raf=0;
   const clampI=i=>Math.max(0,Math.min(n-1,i));
@@ -1508,7 +1511,7 @@ const lb=$('logBtn');if(lb)lb.onclick=()=>{const n=new Date();Y=n.getFullYear();
   if(!open){open=true;$('logWrap').classList.add('open');$('logHead').classList.add('open');setTitle(true);}show('ed');
   setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},50);};
 window.addEventListener('scuba:lang',renderAll);
-renderSum();
+renderSum();setTitle(false);
 window.__log={load,renderAll,get ymd(){return ymd();},get open(){return open;},get view(){return view;},get T(){return T;}};
 })();
 </script>
