@@ -51,6 +51,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .lang button.on{background:#1b4277;color:#fff}
 @keyframes glowOnce{0%{box-shadow:0 0 0 0 rgba(14,165,233,.75)}100%{box-shadow:0 0 0 16px rgba(14,165,233,0)}}@keyframes glowBadK{0%{box-shadow:0 0 0 0 rgba(229,72,77,.7)}100%{box-shadow:0 0 0 14px rgba(229,72,77,0)}}
 .glow{animation:glowOnce .8s ease-out 1}.glowBad{animation:glowBadK .8s ease-out 1}
+#saveMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:190px}#saveMenu button{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#saveMenu button:last-child{background:none;color:var(--mute);text-align:center}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
 /* 넓은 화면: 2배(780px~) = 위 그래프, 아래 왼쪽 나머지·오른쪽 질소막대/경고 / 3배(1170px~) = 왼쪽·가운데 그래프·오른쪽 3단 */
@@ -104,6 +105,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .lw .it small{font-size:10px;font-weight:500;color:inherit;opacity:.85}.lw .it small.sun{color:#e5484d}.lw .it small.sat{color:#2f6fe4}
 .lw .pad{height:80px;scroll-snap-align:none}
 #logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
+.calNav{display:inline-flex;gap:4px}.calHd .jump{letter-spacing:-2px;font-weight:700;color:#1b4277}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
 #logCalV{position:relative}.yearPick{position:absolute;left:0;right:0;top:40px;z-index:3;display:flex;gap:14px;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
 .yearPick .yp{position:relative;width:140px}.yearPick .lsel{left:0;right:0}
@@ -190,7 +192,7 @@ html,body{overflow-x:hidden}
 </style>
 </head>
 <body>
-<div id="splash"><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분 · 탭해서 시작</span></button><div class="sp3">DTMD 다이빙 플래너</div></div><button id="spSkip">Skip</button></div>
+<div id="splash"><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분 · 탭해서 시작</span></button><button class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</button></div><button id="spSkip">Skip</button></div>
 <style>
 #splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 #splash .spMid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;width:100%}
@@ -199,11 +201,11 @@ html,body{overflow-x:hidden}
 #spTut .spPlay{width:clamp(56px,18vw,96px);height:clamp(56px,18vw,96px)}
 #spTut .sp1{font-size:clamp(38px,11vw,64px);font-weight:800;letter-spacing:-1px;line-height:1.1}
 #spTut .sp2{font-size:clamp(14px,3.8vw,18px);opacity:.85;font-weight:600}
-#splash .sp3{color:rgba(255,255,255,.6);font-size:15px;font-weight:600}
+#splash .sp3{color:rgba(255,255,255,.75);font-size:16px;font-weight:700;background:none;border:0;cursor:pointer;padding:6px 10px;font-family:inherit}
 #spSkip{height:38px;padding:0 26px;border:1.5px solid rgba(125,211,252,.7);border-radius:19px;background:transparent;color:#7dd3fc;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 @keyframes spPulse{0%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 #7dd3fc99}70%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 22px #7dd3fc00}100%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 #7dd3fc00}}
 @media (prefers-reduced-motion:reduce){#spTut{animation:none}}
-@media (max-height:540px){#splash{padding-top:10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}#splash .spMid{gap:6px}#spTut{aspect-ratio:auto;width:min(80vw,520px);height:calc(100vh - 90px);height:calc(100dvh - 90px);gap:6px}#spTut .spPlay{width:44px;height:44px}#spTut .sp1{font-size:40px}#splash .sp3{display:none}}
+@media (max-height:540px){#splash{padding-top:10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}#splash .spMid{gap:6px}#spTut{aspect-ratio:auto;width:min(80vw,520px);height:calc(100vh - 90px);height:calc(100dvh - 90px);gap:6px}#spTut .spPlay{width:44px;height:44px}#spTut .sp1{font-size:40px}#splash .sp3{font-size:14px;padding:2px 8px}}
 </style>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
@@ -217,7 +219,7 @@ html,body{overflow-x:hidden}
   <button class="setHead" id="logHead"><b><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span data-i18n="logT">다이빙 로그북</span></b><span class="sum" id="logSum"></span><span class="arr">▾</span></button>
   <div class="setWrap" id="logWrap"><div><div class="setBody" id="logBody">
     <div id="logCalV">
-      <div class="calHd"><button id="calPrev" aria-label="prev">◀</button><b id="calTitle"><span id="calY" class="calY"></span> <span id="calMo"></span></b><button id="calNext" aria-label="next">▶</button></div>
+      <div class="calHd"><span class="calNav"><button id="logPrev" class="jump" aria-label="previous log">|◀</button><button id="calPrev" aria-label="prev">◀</button></span><b id="calTitle"><span id="calY" class="calY"></span> <span id="calMo"></span></b><span class="calNav"><button id="calNext" aria-label="next">▶</button><button id="logNext" class="jump" aria-label="next log">▶|</button></span></div>
       <div class="yearPick hide" id="yearPick"><div class="yp"><div class="lsel"></div><div class="lw" id="lwY" tabindex="0"></div></div><button id="yearOk">OK</button></div>
       <div class="cal" id="cal"></div>
       <div class="logHint" id="logHint"></div>
@@ -301,7 +303,7 @@ html,body{overflow-x:hidden}
   <div class="play">
     <button class="big" id="playBtn" title="플레이"></button>
     <span class="seg"><button data-sp="0.5">0.5×</button><button data-sp="1" class="on">1×</button><button data-sp="2">2×</button></span>
-    <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><circle cx="12" cy="13.5" r="3.5"/></svg></button><button class="ico" id="logBtn" title="저장(JSON)" aria-label="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button><button class="ico" id="loadBtn" title="불러오기(JSON)" aria-label="load"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 7v12h15l3-8H6l-3 8"/></svg></button><input type="file" id="jsonIn" accept=".json,application/json" hidden></span>
+    <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><circle cx="12" cy="13.5" r="3.5"/></svg></button><button class="ico" id="logBtn" title="저장(JSON)" aria-label="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button><button class="ico" id="loadBtn" title="불러오기(JSON)" aria-label="load"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 7v12h15l3-8H6l-3 8"/></svg></button><input type="file" id="jsonIn" accept=".json,.txt,application/json,text/plain" hidden></span>
   </div>
 </div>
 
@@ -1382,7 +1384,7 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
     if(tt)tt.addEventListener('click',e=>{e.stopPropagation();window.toggleLogbook&&window.toggleLogbook();});}
   if(lang!=='ko')close();
-  document.getElementById('spSkip').onclick=close;
+  document.getElementById('spSkip').onclick=close;const nm=document.getElementById('spName');if(nm)nm.onclick=close;
   document.getElementById('spTut').onclick=()=>{close();window.startTutorial&&window.startTutorial();};})();
 </script>
 <script>
@@ -1519,9 +1521,9 @@ const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
 const pad=n=>String(n).padStart(2,'0');
-const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
- :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
- :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
+const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',svFile:'Save as file',svShare:'Share (KakaoTalk, etc.)',cancel2:'Cancel',noShare:'This browser cannot share files. Save as a file instead.',noPrev:'No earlier logs',noNext:'No later logs',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
+ :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',svFile:'ファイルに保存',svShare:'共有 (LINE・KakaoTalk など)',cancel2:'キャンセル',noShare:'このブラウザはファイル共有に対応していません。ファイルに保存してください。',noPrev:'前のログはありません',noNext:'後のログはありません',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
+ :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',svFile:'파일로 저장',svShare:'공유하기 (카카오톡 등)',cancel2:'취소',noShare:'이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장해 보내 주세요.',noPrev:'이전 로그가 없습니다',noNext:'이후 로그가 없습니다',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
 const now=new Date();let vy=now.getFullYear(),vm=now.getMonth()+1;   // 달력에 보이는 달
 let Y=vy,M=vm,D=now.getDate(),T=Math.floor((now.getHours()*60+now.getMinutes())/10)*10,open=false,view='cal',CUR=null;
 const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.split(':').map(Number);return h*60+m;};
@@ -1566,7 +1568,7 @@ const wT=makeWheel($('lwT'),i=>{const v=i*10;if(v===T)return;T=v;S.start=T;drawP
 function renderCal(){const a=load(),t=L();$('calY').textContent=LANG==='en'?String(vy):LANG==='ja'?vy+'年':vy+'년';$('calMo').textContent=LANG==='en'?'.'+pad(vm):LANG==='ja'?vm+'月':vm+'월';const has=new Set(a.map(x=>x.date));
   const first=new Date(vy,vm-1,1).getDay(),days=new Date(vy,vm,0).getDate(),k0=new Date();const today=k0.getFullYear()+'-'+pad(k0.getMonth()+1)+'-'+pad(k0.getDate());
   let h=t.wd.map((w,i)=>`<div class="wd${i===0?' sun':i===6?' sat':''}">${w}</div>`).join('');for(let i=0;i<first;i++)h+='<div class="e">.</div>';
-  for(let d=1;d<=days;d++){const k=vy+'-'+pad(vm)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}" data-d="${d}">${d}</div>`;}
+  for(let d=1;d<=days;d++){const k=vy+'-'+pad(vm)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}" data-d="${d}">${d}</div>`;}
   $('cal').innerHTML=h;$('logHint').textContent='';
   $('cal').querySelectorAll('.d').forEach(el=>el.onclick=()=>{Y=vy;M=vm;D=+el.dataset.d;CUR=null;const f=dayLogs()[0];
     if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');applyLog(f.id,true);return;}
@@ -1635,6 +1637,12 @@ const YRS=[];for(let y=1990;y<=new Date().getFullYear()+5;y++)YRS.push(y);
 const wY=makeWheel($('lwY'),i=>{if(YRS[i]===vy)return;vy=YRS[i];renderCal();});
 $('calY').onclick=e=>{e.stopPropagation();const yp=$('yearPick');if(!yp.classList.contains('hide')){yp.classList.add('hide');return;}yp.classList.remove('hide');wY.set(YRS.map(y=>({h:String(y),has:load().some(x=>x.date.startsWith(y+'-'))})),Math.max(0,YRS.indexOf(vy)));setTimeout(()=>$('lwY').focus({preventScroll:true}),30);};
 $('yearOk').onclick=()=>$('yearPick').classList.add('hide');
+// 로그 있는 날로 건너뛰기: 기준 = 보고 있는 달 안의 커서 날짜, 없으면 그 달의 처음/끝
+let CJ=null;
+function jumpLog(dir){const t=L(),ds=[...new Set(load().map(x=>x.date))].sort(),mp=vy+'-'+pad(vm)+'-',inView=CJ&&CJ.startsWith(mp);
+  const n0=new Date(),td=n0.getFullYear()+'-'+pad(n0.getMonth()+1)+'-'+pad(n0.getDate());const ref=inView?CJ:td.startsWith(mp)?td:(dir<0?mp+'01':mp+pad(new Date(vy,vm,0).getDate()));const d=dir<0?ds.filter(x=>x<ref).pop():ds.find(x=>x>ref);
+  if(!d){msg(dir<0?t.noPrev:t.noNext,true);return;}CJ=d;const [yy,mm]=d.split('-').map(Number);vy=yy;vm=mm;renderCal();}
+$('logPrev').onclick=()=>jumpLog(-1);$('logNext').onclick=()=>jumpLog(1);
 $('calPrev').onclick=()=>{vm--;if(vm<1){vm=12;vy--;}renderCal();};
 $('calNext').onclick=()=>{vm++;if(vm>12){vm=1;vy++;}renderCal();};
 $('logBack').onclick=()=>{vy=Y;vm=M;show('cal');};
@@ -1646,10 +1654,18 @@ $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t
 // 저장 아이콘: 화면 전환 없이 로그북 전체를 JSON으로 내려받기 / 폴더 아이콘: 다른 기기에서 받은 JSON 불러오기
 function flash(el,bad){if(!el)return;el.classList.remove('glow','glowBad');void el.offsetWidth;el.classList.add(bad?'glowBad':'glow');setTimeout(()=>el.classList.remove('glow','glowBad'),900);}
 function toast(m){let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';document.body.appendChild(el);}el.textContent=m;el.classList.add('on');clearTimeout(el.__t);el.__t=setTimeout(()=>el.classList.remove('on'),2600);}
-$('logBtn').onclick=()=>{const t=L(),a=load();if(!a.length){flash($('logBtn'),true);return;}if(!window.confirm(t.saveQ))return;
-  const d=new Date(),name='dtmd-logbook-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes())+'.json';
-  const blob=new Blob([JSON.stringify({app:'DTMD',kind:'logbook',v:1,exported:d.toISOString(),logs:a})],{type:'application/json'});
-  const u=URL.createObjectURL(blob),el=document.createElement('a');el.href=u;el.download=name;document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);flash($('logBtn'));};
+function exportBlob(){const d=new Date(),stamp=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());
+  return {stamp,json:JSON.stringify({app:'DTMD',kind:'logbook',v:1,exported:d.toISOString(),logs:load()})};}
+function saveMenu(){let m=document.getElementById('saveMenu');if(m){m.remove();return;}const t=L(),btn=$('logBtn'),r=btn.getBoundingClientRect();
+  m=document.createElement('div');m.id='saveMenu';const it=(txt,fn)=>{const x=document.createElement('button');x.textContent=txt;x.onclick=e=>{e.stopPropagation();m.remove();fn();};m.appendChild(x);};
+  it(t.svFile,()=>{const {stamp,json}=exportBlob();const u=URL.createObjectURL(new Blob([json],{type:'application/json'})),el=document.createElement('a');el.href=u;el.download='dtmd-logbook-'+stamp+'.json';document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);flash(btn);});
+  it(t.svShare,async()=>{const {stamp,json}=exportBlob();const f=new File([json],'dtmd-logbook-'+stamp+'.txt',{type:'text/plain'});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'DTMD logbook'});flash(btn);return;}}catch(e){if(e&&e.name==='AbortError')return;}
+    toast(t.noShare);});
+  it(t.cancel2,()=>{});
+  document.body.appendChild(m);const mw=m.offsetWidth;m.style.left=Math.max(6,Math.min(innerWidth-mw-6,r.left+r.width/2-mw/2))+'px';m.style.top=(r.bottom+window.scrollY+6)+'px';
+  setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)){m.remove();document.removeEventListener('click',h);}}),0);}
+$('logBtn').onclick=()=>{const a=load();if(!a.length){flash($('logBtn'),true);return;}saveMenu();};
 $('loadBtn').onclick=()=>$('jsonIn').click();
 $('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value='';if(!f)return;const t=L();let j;
   try{j=JSON.parse(await f.text());}catch(e){toast(t.badJ);return;}
