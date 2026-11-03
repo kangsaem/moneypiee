@@ -1766,15 +1766,11 @@ function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));
   wMi.set(Array.from({length:60},(_,m)=>({h:`${pad(m)}<small>${ms}</small>`,has:starts.some(v=>v===HI*60+m)})),MI);
   const wd=new Date(Y,M-1,D).getDay();$('edTitle').textContent=t.ed(Y,M,D,t.wd[wd]);}
 function dayLogs(){return load().filter(x=>x.date===ymd()).sort((p,q)=>(p.time||'').localeCompare(q.time||''));}
-// 휠로 다른 날짜로 가면: 그 날짜의 빈 상태에서 시작(설정값은 유지). 그 날 로그는 아래 목록에서 눌러 열 수 있음. 저장하면 그 날짜·시각의 새 로그
+// 휠로 다른 날짜로 가면: 로그 없는 날 = 빈 다이빙 1(빈 점선 줄 하나)에서 시작, 저장하면 그 날짜·시각의 새 로그 / 로그 있는 날 = 그 날 첫 로그
 function dayChanged(){CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;$('logMemo').value='';renderPh();
-  if(dayLogs().length){addBlank();return;}
+  // 로그가 있는 날: 빈 점선 줄 없이 그 날 첫 로그를 엶(새 다이빙은 '+ 다이빙 추가'로)
+  {const f=dayLogs()[0];if(f){applyLog(f.id,true,0);return;}}
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();}
-// 빈 다음 다이빙 붙이기: 그 날 로그가 있으면 가장 늦게 끝나는 로그 뒤에 '다이빙 N'(수면 휴식 기본 60분), 없으면 지금 상태에 다이빙 추가
-function addBlank(){const day=dayLogs();let last=null;day.forEach(x=>{const rr=rowsOf(x),r=rr[rr.length-1];if(r&&r.st!=null&&(!last||r.st+r.N/60>last.en))last={x,en:r.st+r.N/60,n:rr.length};});
-  if(last){if(CUR!==last.x.id||S.dives.length<last.n)applyLog(last.x.id,true,last.n-1);}
-  const lastD=S.dives[S.dives.length-1];if(!(lastD&&lastD.pts.length<2&&S.dives.length>(last?last.n:0)))S.dives.push(Object.assign(newDive(),{si:60}));
-  S.cur=S.dives.length-1;$('logMemo').value='';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();refreshSave();}
 function rowsOf(x){const st=tmin(x.time),dv=(x.sum&&x.sum.dv&&x.sum.dv.length)?x.sum.dv:[{N:x.sum.N0,maxD:x.sum.maxD,si:0}];let m=st;
   return dv.map((d,i)=>{if(i>0&&m!=null)m+=dv[i-1].N/60+d.si;return {i,st:m,N:d.N,maxD:d.maxD};});}
 function renderList(){const t=L(),a=dayLogs(),items=[];
@@ -1790,11 +1786,9 @@ function renderList(){const t=L(),a=dayLogs(),items=[];
       if(d.pts.length<2||!r){blank=true;items.push({st,h:`<div class="li draft empty${i===S.cur?' cur':''}" data-di="${i}"><div class="tx"><b>&nbsp;</b><div class="mm">&nbsp;</div></div></div>`});return;}
       const meta=[(multi?dn+(i+1):''),R1(r.maxD)+'m',Math.round(r.N/60)+t.min,gas,pend].filter(Boolean).join(' · ');
       items.push({st,h:`<div class="li draft${i===S.cur?' cur':''}" data-di="${i}"><div class="tx"><b>${hhmm(st)} → ${hhmm(st+r.N/60)}</b><div class="mm">${meta}</div></div></div>`});});
-    // 빈 다이빙이 없으면 맨 끝에 빈 점선 줄 하나(누르면 다음 다이빙을 붙임)
-    if(!blank)items.push({st:1e8,h:'<div class="li draft empty ph"><div class="tx"><b>&nbsp;</b><div class="mm">&nbsp;</div></div></div>'});}
+    }
   items.sort((p,q)=>(p.st==null?1e9:p.st)-(q.st==null?1e9:q.st));
   $('logList').innerHTML=items.map(v=>v.h).join('');
-  $('logList').querySelectorAll('.li.draft.ph').forEach(el=>el.onclick=()=>addBlank());
   $('logList').querySelectorAll('.li.draft:not(.ph)').forEach(el=>el.onclick=()=>{S.cur=+el.dataset.di;if(typeof renderTabs==='function')renderTabs();syncForm();recompute();});
   $('logList').querySelectorAll('.dlog').forEach(b=>b.onclick=async e=>{e.stopPropagation();applyLog(b.dataset.id,false,+b.dataset.i||0);await new Promise(r=>setTimeout(r,60));window.__dataSnap&&window.__dataSnap(null);});
   $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>el.onclick=e=>{if(e.target.closest('.del,.dlog'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
