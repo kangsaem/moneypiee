@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" style="background:#0f2a3d">
+<html lang="ko" class="spl" style="background:#0f2a3d">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -36,7 +36,7 @@ h1{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45)}
 html{background:#284656;overflow-x:clip}
 /* 홈 화면 앱: 반투명 상태바 아래에 단색 띠를 깔아 내용이 비쳐 흐려 보이지 않게 */
 body::before{content:'';position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:#284656;z-index:90;pointer-events:none}
-@media (display-mode:standalone){body::before{height:max(env(safe-area-inset-top),20px)}.wrap{padding-top:calc(max(env(safe-area-inset-top),20px) + 22px)!important}#splash{padding-top:max(env(safe-area-inset-top),20px)!important}}
+@media (display-mode:standalone){body::before{height:max(env(safe-area-inset-top),20px)}.wrap{padding-top:calc(max(env(safe-area-inset-top),20px) + 25px)!important}#splash{padding-top:max(env(safe-area-inset-top),20px)!important}}
 .wrap{max-width:1000px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) calc(6px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(6px + env(safe-area-inset-left))}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#E31B3F;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:5px;font-size:14px;font-weight:700;line-height:1.7}
@@ -199,6 +199,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 @supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip):not(.ico):not(.setHead){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
 </style>
 <style>
+html.spl body>*:not(#splash){visibility:hidden}
 #splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 #splash .spMid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;width:100%}
 #spTut{width:min(82vw,420px);aspect-ratio:1/1.05;border:0;border-radius:28px;background:#E31B3F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,.95);animation:spPulse 1.8s ease-out infinite;-webkit-tap-highlight-color:transparent}
@@ -1399,8 +1400,8 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
   let lang='ko';try{lang=localStorage.getItem('scuba_lang')||'ko';}catch(e){}const h=(location.hash||'').slice(1);if(h==='en'||h==='ja'||h==='ko')lang=h;
   try{history.scrollRestoration='manual';}catch(e){}
   const bgReset=()=>{document.documentElement.style.background='';const m=document.querySelector('meta[name=theme-color]');if(m)m.content='#284656';};
-  const close=()=>{sp.style.display='none';bgReset();window.scrollTo(0,0);};
-  window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);};
+  const close=()=>{sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);};
+  window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);};
   const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
     if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});}
