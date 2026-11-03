@@ -225,7 +225,7 @@ html,body{overflow-x:hidden}
   <div class="setWrap" id="setWrap"><div>
   <div class="setBody" id="setBody">
     <div class="row">
-      <label><span class="tip" data-tip="alt" data-i18n="alt">해발 고도</span>
+      <label><span class="tip" data-tip="alt" data-i18n="alt">고도</span>
         <select id="altSel">
           <option value="0" data-i18n="sealevel">0 m (해수면)</option><option value="300">300 m</option><option value="600">600 m</option>
           <option value="900">900 m</option><option value="1500">1500 m</option><option value="2400">2400 m</option><option value="c" data-i18n="custom">직접 입력</option>
@@ -243,11 +243,11 @@ html,body{overflow-x:hidden}
       <label><span class="tip" data-tip="cons" data-i18n="cons">보수도</span>
         <select id="cons">
           <option value="cons" data-i18n="consH">높음 (GF 35/75)</option><option value="med" data-i18n="consM">중간 (GF 40/85)</option>
-          <option value="agg" data-i18n="consL">낮음 (GF 45/95)</option><option value="custom" data-i18n="consC">커스텀</option>
+          <option value="agg" data-i18n="consL">낮음 (GF 45/95)</option><option value="custom" data-i18n="consC">직접 입력</option>
         </select>
         <span id="gfWrap" class="hide">Low <input type="number" id="gfLo" min="10" max="100"> High <input type="number" id="gfHi" min="10" max="100"></span>
       </label>
-      <label><span class="tip" data-tip="asc" data-i18n="asc">플랜 상승속도</span> <input type="number" id="asc" min="3" max="18" step="1"> <span data-i18n="mpm">m/분</span></label>
+      <label><span class="tip" data-tip="asc" data-i18n="asc">상승속도</span> <input type="number" id="asc" min="3" max="18" step="1"> <span data-i18n="mpm">m/분</span></label>
       <label><span class="tip" data-tip="tank" data-i18n="tank">탱크</span>
         <select id="tankV"><option value="10">10 L</option><option value="11.1">11.1 L (AL80)</option><option value="12">12 L</option><option value="15">15 L</option></select>
         <select id="tankP"></select><select id="pu"><option value="bar">bar · m</option><option value="psi">PSI · ft</option></select>
@@ -347,12 +347,12 @@ const I18N={
 ko:{
  title:'DTMD 다이빙 플래너',h1:'DTMD 다이빙 플래너',
  rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
- settings:'⚙ 설정',alt:'해발 고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
- cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'커스텀',asc:'플랜 상승속도',mpm:()=>(isFt()?'ft':'m')+'/분',
+ settings:'⚙ 설정',alt:'고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
+ cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'직접 입력',asc:'상승속도',mpm:()=>(isFt()?'ft':'m')+'/분',
  logT:'다이빙 로그북',logDate:'날짜',logStart:'입수 시각',logSave:'현재 로그 저장',draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
- disc:'교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',disc2:'로그북 기능을 포함하고 있습니다. 대부분의 다이빙 컴퓨터에서 FIT 파일을 불러올 수 있습니다. 로그는 현재 사용하시는 브라우저에만 저장됩니다. 저장하기로 백업하시거나 다른 단말기 브라우저에서 이어서 사용하실 수 있습니다.',
+ disc:'교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',disc2:'로그북 기능을 포함하고 있습니다. 대부분의 다이빙 컴퓨터에서 FIT 파일을 불러올 수 있습니다. 로그는 현재 사용하는 브라우저에만 저장됩니다. 저장하기로 백업하시거나 다른 단말기 브라우저에서 이어서 사용할 수 있습니다.',
  model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 산소 독성은 CNS%만 NOAA 한도로 계산(나이트록스), 헬륨·OTU는 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
  tank:'탱크',sac:'호흡량',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:(v,m)=>`출수 잔압 ${v} (${m} 미만)`,wGas0:'공기 고갈',
  tutBtn:'튜토리얼',bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
@@ -374,11 +374,11 @@ ko:{
   gf:['수면 GF','지금 정지 없이 바로 수면에 올라간다고 칠 때, 가장 많이 쌓인 조직이 수면 한계에 얼마나 가까운지(%). 0% = 과포화 없음, 100% = 뷜만 원래 한계(M값). 설정한 GF High를 넘으면 빨간색 = 바로 출수 불가.'],
   cns:['CNS% (산소 독성 누적)','높은 산소 분압에 노출된 양을 NOAA 허용 시간 대비 %로 누적(예: 1.4bar 150분, 1.6bar 45분 = 100%). 0.5bar 이하는 쌓이지 않음. 60% 이상 주황(근접 경고), 80% 이상 빨간색. 재생 중엔 그 시점 값, 아니면 다이빙 끝 값. 수면휴식 90분마다 절반으로 줄어듦. 나이트록스일 때만 표시.'],
   po2:['PO₂ (산소 분압)','들이마시는 산소의 분압(bar). 1.4를 넘으면 빨간색 = 산소 독성 위험.'],
-  alt:['해발 고도','고도가 높으면 수면 기압이 낮아, 같은 수심이라도 감압 부담이 커짐. 그 고도에 적응된 상태로 가정.'],
+  alt:['고도','고도가 높으면 수면 기압이 낮아, 같은 수심이라도 감압 부담이 커짐. 그 고도에 적응된 상태로 가정.'],
   water:['수질','해수는 10m당 약 1.005bar, 담수는 0.981bar. 담수가 같은 수심에서 압력이 조금 낮음.'],
   gas:['기체','공기는 산소 21%·질소 79%. 나이트록스(EAN)는 산소를 늘리고 질소를 줄여 NDL이 길어지지만, 산소 독성 때문에 내려갈 수 있는 최대 수심(MOD)이 얕아짐.'],
   cons:['보수도 (GF Low/High)','그래디언트 팩터. Low는 첫 감압 정지 깊이(낮을수록 깊게 멈춤), High는 수면 도착 때 허용 한계(낮을수록 NDL 짧고 정지 길어짐). 높음 35/75 · 중간 40/85 · 낮음 45/95 (가민·쉐어워터 기본값).'],
-  asc:['플랜 상승속도','추천 플랜이 올라갈 때 쓰는 속도. 기본 분당 9m. 내가 그린 경로의 급상승 경고는 분당 10m 기준.'],
+  asc:['상승속도','추천 플랜이 올라갈 때 쓰는 속도. 기본 분당 9m. 내가 그린 경로의 급상승 경고는 분당 10m 기준.'],
   path:['내 경로','직접 그린 수심 이동. 0m에 닿으면 그 지점에서 다이빙 종료.'],
   plan:['추천 경로','그린 경로가 출수 전에 끝나면 그 지점부터, 감압 정지(3m 단위)와 5m 3분 안전정지를 넣어 계산한 상승 경로. 출수까지 다 그렸는데 5m 안전정지를 안 했으면 5m를 지나는 지점부터 안전정지 경로를 비교용으로 표시(통계는 내 경로 기준).'],
   ceil:['천장 (실링 · 상승 한계 수심)','이보다 얕게 올라가면 GF 한계를 넘는 수심. 0m면 바로 출수 가능.'],
@@ -404,7 +404,7 @@ en:{
  title:'DTMD Dive Planner',h1:'DTMD Dive Planner',
  rule1:'1. Keep the pink ceiling from appearing <small>= no-decompression dive</small>',rule2:'2. If the pink ceiling appears, never cross it <small>= decompression dive</small>',
  settings:'⚙ Settings',alt:'Altitude',sealevel:'0 m (sea level)',custom:'Custom',water:'Water type',salt:'Salt',fresh:'Fresh',gas:'Gas',air21:'Air (21%)',
- cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom',asc:'Plan ascent rate',mpm:()=>(isFt()?'ft':'m')+'/min',
+ cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom input',asc:'Ascent rate',mpm:()=>(isFt()?'ft':'m')+'/min',
  logT:'Dive logbook',logDate:'Date',logStart:'Start',logSave:'Save this log',draw:'Draw',points:'Points',erase:'Erase pts',sel:'Select',peHint:'Tap a point to enter its time and depth',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
  lgPath:'My profile',lgPlan:'Suggested',lgCeil:'Ceiling',lgFast:'Fast ascent',on:'N₂ on-gassing',off:'N₂ off-gassing',pct:'100% = surfacing limit (GF High)',
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
@@ -434,7 +434,7 @@ en:{
   water:['Water type','Salt water adds about 1.005 bar per 10 m, fresh water 0.981 bar. Fresh water gives slightly less pressure at the same depth.'],
   gas:['Gas','Air is 21% oxygen / 79% nitrogen. Nitrox (EAN) adds oxygen and reduces nitrogen, so NDLs get longer, but oxygen toxicity makes the maximum operating depth (MOD) shallower.'],
   cons:['Conservatism (GF Low/High)','Gradient factors. Low sets the depth of the first deco stop (lower = deeper stops). High sets the limit on reaching the surface (lower = shorter NDL, longer stops). High 35/75 · Medium 40/85 · Low 45/95 (Garmin and Shearwater presets).'],
-  asc:['Plan ascent rate','Ascent rate used for the suggested ascent. Default 9 m/min. The fast-ascent warning on your own profile triggers above 10 m/min.'],
+  asc:['Ascent rate','Ascent rate used for the suggested ascent. Default 9 m/min. The fast-ascent warning on your own profile triggers above 10 m/min.'],
   path:['My profile','The depth profile you drew. The dive ends where it first reaches 0 m.'],
   plan:['Suggested ascent','If your profile ends before surfacing, an ascent from that point with deco stops (3 m steps) and a 3-minute safety stop at 5 m. If you drew all the way up without a safety stop, a safety-stop path from where you pass 5 m is shown for comparison (stats still follow your profile).'],
   ceil:['Ceiling','The shallowest depth you may ascend to without exceeding the GF limit. 0 m means you can surface directly.'],
@@ -460,7 +460,7 @@ ja:{
  title:'DTMD ダイブプランナー',h1:'DTMD ダイブプランナー',
  rule1:'1. ピンクのシーリングを出さないこと <small>= 無減圧潜水</small>',rule2:'2. ピンクのシーリングが出たら絶対に越えないこと <small>= 減圧潜水</small>',
  settings:'⚙ 設定',alt:'標高',sealevel:'0 m (海面)',custom:'直接入力',water:'水の種類',salt:'海水',fresh:'淡水',gas:'ガス',air21:'空気 (21%)',
- cons:'保守性',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'カスタム',asc:'プラン浮上速度',mpm:()=>(isFt()?'ft':'m')+'/分',
+ cons:'保守性',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'直接入力',asc:'浮上速度',mpm:()=>(isFt()?'ft':'m')+'/分',
  logT:'ダイブログブック',logDate:'日付',logStart:'潜水開始',logSave:'このログを保存',draw:'描く',points:'点を打つ',erase:'点を消す',sel:'点を選択',peHint:'点をタップすると時間・水深を入力できます',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
  lgPath:'自分の経路',lgPlan:'推奨',lgCeil:'シーリング',lgFast:'急浮上',on:'窒素 吸収中',off:'窒素 排出中',pct:'100% = 浮上許容限界(GF High)',
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
@@ -490,7 +490,7 @@ ja:{
   water:['水の種類','海水は10mごとに約1.005bar、淡水は0.981bar。淡水は同じ水深で圧力がやや低い。'],
   gas:['ガス','空気は酸素21%・窒素79%。ナイトロックス(EAN)は酸素を増やし窒素を減らすためNDLが長くなるが、酸素毒性のため最大運用水深(MOD)が浅くなる。'],
   cons:['保守性 (GF Low/High)','グラディエントファクター。Low は最初の減圧停止の深さ(低いほど深く止まる)、High は水面到着時の許容限界(低いほどNDLが短く停止が長い)。高 35/75 · 中 40/85 · 低 45/95 (Garmin・Shearwater の初期値)。'],
-  asc:['プラン浮上速度','推奨プランの浮上に使う速度。初期値 毎分9m。自分の経路の急浮上警告は毎分10mが基準。'],
+  asc:['浮上速度','推奨プランの浮上に使う速度。初期値 毎分9m。自分の経路の急浮上警告は毎分10mが基準。'],
   path:['自分の経路','自分で描いた水深の動き。0mに達した地点でダイビング終了。'],
   plan:['推奨経路','描いた経路が浮上前に終わった場合、その地点から減圧停止(3m刻み)と5m 3分の安全停止を入れて計算した浮上経路。浮上まで描いたのに5mの安全停止をしていない場合は、5mを通過する地点から安全停止の経路を比較用に表示(統計は自分の経路が基準)。'],
   ceil:['シーリング','これより浅く浮上すると GF の限界を超える水深。0mなら直接浮上可能。'],
