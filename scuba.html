@@ -118,7 +118,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .phRow .ph{width:36px;height:36px;padding:0;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);border-radius:5px;overflow:hidden;background:#eef2f6 center/cover no-repeat;flex-shrink:0}
 .phRow .phAdd{width:36px;height:36px;padding:0;border:1.5px dashed #9ca3af;border-radius:5px;background:rgba(255,255,255,.7);color:#6b7280;display:flex;align-items:center;justify-content:center}
 .phRow .phAdd.busy{opacity:.5;pointer-events:none}
-#tabsCard.flipIn{animation:tabFlip .42s ease-out;transform-origin:50% 50%}@keyframes tabFlip{0%{transform:perspective(600px) rotateX(90deg);opacity:.3}100%{transform:perspective(600px) rotateX(0);opacity:1}}
+#tabsCard.flipOut{animation:tabOut .3s ease-in forwards;transform-origin:50% 50%}#tabsCard.flipIn{animation:tabIn .35s ease-out;transform-origin:50% 50%}@keyframes tabOut{0%{transform:perspective(600px) rotateX(0);opacity:1}100%{transform:perspective(600px) rotateX(-90deg);opacity:.2}}@keyframes tabIn{0%{transform:perspective(600px) rotateX(90deg);opacity:.2}100%{transform:perspective(600px) rotateX(0);opacity:1}}
 #phView{position:fixed;inset:0;z-index:170;background:rgba(5,15,25,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
 #phView img{max-width:100%;max-height:calc(100% - 120px);border-radius:6px;object-fit:contain}
 #phView .pvNav{display:flex;align-items:center;gap:18px;color:rgba(255,255,255,.8);font-size:14px;font-variant-numeric:tabular-nums}#phView .pvNav button{width:30px;height:26px;min-width:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px}#phView .pvNav svg{width:12px;height:12px;display:block}#phView .pvNav button:disabled{opacity:.25}
@@ -1756,17 +1756,18 @@ function relayout(){const cl=document.querySelector('.colL'),cr=document.querySe
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
 let LASTO=false,PLAN=null;
-function flipTabs(){const el=document.getElementById('tabsCard');if(!el)return;el.classList.remove('flipIn');void el.offsetWidth;el.classList.add('flipIn');setTimeout(()=>el.classList.remove('flipIn'),450);}
+function flipSwap(fn){const el=document.getElementById('tabsCard');if(!el){fn();return;}el.classList.remove('flipIn','flipOut');void el.offsetWidth;el.classList.add('flipOut');
+  setTimeout(()=>{fn();el.classList.remove('flipOut');void el.offsetWidth;el.classList.add('flipIn');setTimeout(()=>el.classList.remove('flipIn'),380);},300);}
 function enterLog(){PLAN={keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[]}))),cur:S.cur,start:S.start,T};
   const a=load();if(!a.length)return;const x=a.slice().sort((p,q)=>(p.date+(p.time||'')).localeCompare(q.date+(q.time||''))).pop();
-  const [yy,mm,dd]=x.date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';applyLog(x.id,true,Math.max(0,((x.state&&x.state.dives)||[]).length-1));flipTabs();}
+  const [yy,mm,dd]=x.date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';applyLog(x.id,true,Math.max(0,((x.state&&x.state.dives)||[]).length-1));}
 function leaveLog(){if(!PLAN)return;const P=PLAN;PLAN=null;KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});
   S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;CUR=null;
-  if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();flipTabs();}
+  if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();}
 // 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
 let SWT=0;
 function sync(){if(open!==LASTO){LASTO=open;const tk=++SWT,o=open,w=$('logWrap');let fired=false;
-    const run=()=>{if(fired||tk!==SWT)return;fired=true;w.removeEventListener('transitionend',te);if(o){enterLog();if(open)show(view);}else leaveLog();};
+    const run=()=>{if(fired||tk!==SWT)return;fired=true;w.removeEventListener('transitionend',te);setTimeout(()=>{if(tk!==SWT)return;flipSwap(()=>{if(o){enterLog();if(open)show(view);}else leaveLog();});},200);};
     const te=e=>{if(e.target===w&&e.propertyName==='grid-template-rows')run();};w.addEventListener('transitionend',te);setTimeout(run,380);}
   $('logWrap').classList.toggle('open',open);setTimeout(relayout,0);{const rw=document.getElementById('ruleWrap');if(rw)rw.classList.toggle('closed',open);}$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
