@@ -24,11 +24,12 @@
 *{box-sizing:border-box}
 body{background:transparent!important;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
 h1{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45)}
-.foot{background:rgba(255,255,255,.9);border-radius:10px;padding:10px 12px}
+.foot{background:rgba(255,255,255,.9);border-radius:6px;padding:10px 12px}
 html{background:#284656;overflow-x:clip}
 .wrap{max-width:1000px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left))}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
-.rule{background:#e5484d;color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
+.rule{background:#e5484d;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
+.ruleWrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .5s cubic-bezier(.55,0,1,.45)}.ruleWrap>div{overflow:hidden;min-height:0}.ruleWrap.closed{grid-template-rows:0fr}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 2px 12px}
 .top h1{margin:0;font-size:clamp(16px,4.6vw,19px);word-break:keep-all}
@@ -41,20 +42,22 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .bmode button{font-size:12px;padding:4px 10px;--pv:4px}
 .lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85);--pv:4px}
 .lang button.on{background:#1f2328;color:#fff}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
+#logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
 .card.thin{padding-top:4px;padding-bottom:4px}
 .card.thin>.setHead{padding:0;min-height:18px}
-.card{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid #dcdee2;border-radius:10px;padding:12px;margin-bottom:12px}
+.card{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid #dcdee2;border-radius:6px;padding:12px;margin-bottom:12px}
 .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 label{color:var(--mute);font-size:12px;display:inline-flex;align-items:center;gap:6px}
 select,input[type=number]{font:inherit;font-size:13px;padding:5px 6px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:var(--ink)}
 input[type=number]{width:62px}
-button{touch-action:manipulation;font:inherit;font-size:13px;padding:6px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;color:var(--ink);--pv:6px}
+button{touch-action:manipulation;font:inherit;font-size:13px;padding:6px 12px;border:1px solid #d1d5db;border-radius:4px;background:#fff;cursor:pointer;color:var(--ink);--pv:6px}
 button:disabled{opacity:.4;cursor:default}
 button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .seg{display:inline-flex}
 .seg button{border-radius:0}
-.seg button:first-child{border-radius:6px 0 0 6px}
-.seg button:last-child{border-radius:0 6px 6px 0}
+.seg button:first-child{border-radius:4px 0 0 4px}
+.seg button:last-child{border-radius:0 4px 4px 0}
 .seg button+button{margin-left:-1px}
 /* 설정 */
 .setHead{display:flex;align-items:center;gap:8px;width:100%;border:0;padding:2px 0;background:none;text-align:left;font-size:13px}
@@ -70,37 +73,41 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .calHd,.edHd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.calHd b,.edHd b{font-size:15px}.calHd button{padding:4px 10px}.edHd button{padding:4px 10px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:13px}
 .cal .wd{color:var(--mute);font-size:11px;padding:2px 0}.cal .wd.sun,.cal .d.sun{color:#e5484d}.cal .wd.sat,.cal .d.sat{color:#2f6fe4}
-.cal .d{position:relative;padding:7px 0 9px;border-radius:8px;cursor:pointer;font-variant-numeric:tabular-nums}
+.cal .d{position:relative;padding:7px 0 9px;border-radius:5px;cursor:pointer;font-variant-numeric:tabular-nums}
 .cal .d:hover{background:#eef2f6}.cal .d.today{box-shadow:inset 0 0 0 1.5px #9ca3af}
-.cal .d.has{font-weight:800;color:#0284c7}.cal .d.has::after{content:'';position:absolute;left:50%;bottom:3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#0ea5e9}
+.cal .d.has{font-weight:800;background:rgba(255,255,255,.72)}
 .cal .e{visibility:hidden}.logHint{margin-top:6px;font-size:12px;color:var(--mute);text-align:center}
 .lwrap{display:grid;grid-template-columns:3fr 2fr;gap:8px;height:200px}
 .lwheels{position:relative;display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:2px}
-.lsel{position:absolute;left:0;right:0;top:80px;height:40px;background:#e8eef3;border-radius:8px;pointer-events:none}
+.lsel{position:absolute;left:0;right:0;top:80px;height:40px;background:#e8eef3;border-radius:5px;pointer-events:none}
 .lw{position:relative;height:200px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 28%,#000 72%,transparent);mask-image:linear-gradient(transparent,#000 28%,#000 72%,transparent);overscroll-behavior:contain;touch-action:pan-y;outline:none;cursor:grab;user-select:none;-webkit-user-select:none}
-.lw:focus-visible{box-shadow:inset 0 0 0 2px #7dd3fc;border-radius:8px}.lw.drag{cursor:grabbing}
+.lw:focus-visible{box-shadow:inset 0 0 0 2px #7dd3fc;border-radius:5px}.lw.drag{cursor:grabbing}
 .lw::-webkit-scrollbar{display:none}
 .lw .it{height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;scroll-snap-align:center;font-size:18px;font-variant-numeric:tabular-nums;color:#57606a;line-height:1.1}
 .lw .it.on{color:#1f2328;font-weight:700}.lw .it.has{color:#0284c7;font-weight:800}
 .lw .it small{font-size:10px;font-weight:500;color:inherit;opacity:.85}.lw .it small.sun{color:#e5484d}.lw .it small.sat{color:#2f6fe4}
 .lw .it.has small::after{content:' ●';color:#0ea5e9;font-size:8px}
 .lw .pad{height:80px;scroll-snap-align:none}
-#logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:8px;font-family:inherit;box-sizing:border-box;width:100%}
+#logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
+.calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
+#logCalV{position:relative}.yearPick{position:absolute;left:0;right:0;top:40px;z-index:3;display:flex;gap:14px;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.yearPick .yp{position:relative;width:140px}.yearPick .lsel{left:0;right:0}
 .fitRow{display:flex;justify-content:center;margin-top:8px}.fitRow button{font-size:12px}
 .logList{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
-.logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:13px}
+.logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:5px;background:#fff;cursor:pointer;font-size:13px}
 .logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .logList .li.cur{border-color:#0ea5e9;box-shadow:0 0 0 1px #0ea5e9}
 .logList .li .del{padding:3px 8px;font-size:12px;color:#e5484d}.logList .none{color:var(--mute);font-size:13px}
-.logForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
+.logForm{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
 .logForm input[type=text]{flex:1;min-width:140px;padding:5px 8px}.logForm .pri{background:#0f2a3d;color:#fff;border-color:#0f2a3d}
+.logForm .pri{justify-self:start}.logForm .logMsg{grid-column:1/-1}
 .logMsg{font-size:12px;color:#0f9d7a}
 /* 탭 */
 .tabs{display:flex;gap:4px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
 .tabs button{flex-shrink:0;white-space:nowrap;font-size:12px;padding:5px 9px;--pv:5px}
 .tabs .tab{gap:5px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-.pop{position:absolute;z-index:20;background:#1f2328;border-radius:8px;padding:4px;display:flex;gap:4px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.pop{position:absolute;z-index:20;background:#1f2328;border-radius:5px;padding:4px;display:flex;gap:4px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
 .pop button{background:transparent;color:#fff;border:0;font-size:13px;padding:6px 12px;--pv:6px}
 .st[data-tip],.tip{cursor:help}
 .tip{text-decoration:underline dotted #b6bac2;text-underline-offset:3px}
@@ -121,7 +128,7 @@ html,body{overflow-x:hidden}
 .legend i{display:inline-block;width:16px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
 .legend i.box{height:10px;border:1.5px solid #db2777;background:#f8c4dc}
 .tools{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
-#ptEd{margin-top:8px;padding:8px 10px;border:1px solid #d0d7de;border-radius:10px;background:#f6f8fa;font-size:14px}
+#ptEd{margin-top:8px;padding:8px 10px;border:1px solid #d0d7de;border-radius:6px;background:#f6f8fa;font-size:14px}
 #ptEd .peHint{color:#57606a;font-size:13px}#ptEd.has .peHint{display:none}#ptEd:not(.has) .peRow,#ptEd:not(.has) .peSeg{display:none}
 #ptEd .peRow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 #ptEd input{width:48px;padding:4px;font-size:15px;text-align:center}#ptEd #peDep{width:58px}
@@ -131,10 +138,10 @@ html,body{overflow-x:hidden}
 .tools button{font-size:12px;padding:5px 9px;white-space:nowrap;--pv:5px}
 .play .seg button{font-size:12px;padding:5px 8px;--pv:5px}
 @media (max-width:430px){.tools{gap:4px}.tools button,.tools .seg button{padding:5px 6px;letter-spacing:-.3px;--pv:5px}}
-.summary{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.55;background:rgba(250,250,250,.6)}
+.summary{border:1px solid var(--line);border-radius:5px;padding:8px 10px;font-size:12px;line-height:1.55;background:rgba(250,250,250,.6)}
 .summary .r{display:flex;justify-content:space-between;gap:6px}
 .summary .r span:first-child{color:var(--mute)}
-.wbox{background:#e5484d;color:#fff;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;line-height:1.55}
+.wbox{background:#e5484d;color:#fff;border-radius:5px;padding:7px 10px;font-size:12px;font-weight:600;line-height:1.55}
 .summary .pl{margin-top:4px;padding-top:4px;border-top:1px solid var(--line)}
 .warn{color:var(--up)}
 .play{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 2px}
@@ -143,7 +150,7 @@ html,body{overflow-x:hidden}
 /* 질소 + 통계 */
 .split{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
 .side{display:flex;flex-direction:column;gap:6px;min-width:0}
-.st{border:1px solid #d9dce1;border-radius:8px;padding:6px 9px;background:rgba(255,255,255,.6)}
+.st{border:1px solid #d9dce1;border-radius:5px;padding:6px 9px;background:rgba(255,255,255,.6)}
 .st .k{display:block;font-size:11px;color:var(--mute);white-space:nowrap}
 .st .v{display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px}
 .st .v small{font-size:11px;font-weight:400;color:var(--mute)}
@@ -183,9 +190,29 @@ html,body{overflow-x:hidden}
 </style>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
-<div class="rule">
+<div class="ruleWrap" id="ruleWrap"><div><div class="rule">
   <div data-i18n="rule1">1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
   <div data-i18n="rule2">2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
+</div></div></div>
+
+<div class="card thin" id="logCard">
+  <button class="setHead" id="logHead"><b><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span data-i18n="logT">다이빙 로그북</span></b><span class="sum" id="logSum"></span><span class="arr">▾</span></button>
+  <div class="setWrap" id="logWrap"><div><div class="setBody" id="logBody">
+    <div id="logCalV">
+      <div class="calHd"><button id="calPrev" aria-label="prev">◀</button><b id="calTitle"><span id="calY" class="calY"></span> <span id="calMo"></span></b><button id="calNext" aria-label="next">▶</button></div>
+      <div class="yearPick hide" id="yearPick"><div class="yp"><div class="lsel"></div><div class="lw" id="lwY" tabindex="0"></div></div><button id="yearOk">OK</button></div>
+      <div class="cal" id="cal"></div>
+      <div class="logHint" id="logHint"></div>
+      <div class="fitRow"><button id="fitBtn"></button><input type="file" id="fitIn" accept=".fit" hidden></div>
+    </div>
+    <div id="logEdV" class="hide">
+      <div class="edHd"><button id="logBack">◀ <span id="logBackT">달력</span></button><b id="edTitle"></b></div>
+      <div class="lwrap"><div class="lwheels"><div class="lsel"></div><div class="lw" id="lwM" tabindex="0"></div><div class="lw" id="lwD" tabindex="0"></div><div class="lw" id="lwT" tabindex="0"></div></div>
+        <textarea id="logMemo" maxlength="300"></textarea></div>
+      <div class="logList" id="logList"></div>
+      <div class="logForm"><button id="logSave" class="pri" data-i18n="logSave">현재 로그 저장</button><button id="fitBtn2" class="fitB2"></button><span></span><span id="logMsg" class="logMsg"></span></div>
+    </div>
+  </div></div></div>
 </div>
 
 <div class="card thin">
@@ -221,30 +248,11 @@ html,body{overflow-x:hidden}
         <select id="tankP"></select><select id="pu"><option value="bar">bar · m</option><option value="psi">PSI · ft</option></select>
       </label>
       <label><span class="tip" data-tip="sac" data-i18n="sac">호흡량</span>
-        <select id="sac"><option value="15" data-i18n="sacLo">적음 (15 L/분)</option><option value="20" data-i18n="sacMd">보통 (20 L/분)</option><option value="25" data-i18n="sacHi">많음 (25 L/분)</option></select>
+        <select id="sac"><option value="15" data-i18n="sacLo">적음 (15 L/분)</option><option value="20" data-i18n="sacMd">보통 (20 L/분)</option><option value="25" data-i18n="sacHi">많음 (25 L/분)</option><option value="c" data-i18n="custom">직접 입력</option></select><input type="number" id="sacIn" class="hide" min="8" max="40" step="1" style="width:58px"> <span id="sacU" class="hide">L/min</span>
       </label>
     </div>
   </div>
   </div></div>
-</div>
-
-<div class="card thin" id="logCard">
-  <button class="setHead" id="logHead"><b><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span data-i18n="logT">다이빙 로그북</span></b><span class="sum" id="logSum"></span><span class="arr">▾</span></button>
-  <div class="setWrap" id="logWrap"><div><div class="setBody" id="logBody">
-    <div id="logCalV">
-      <div class="calHd"><button id="calPrev" aria-label="prev">◀</button><b id="calTitle"></b><button id="calNext" aria-label="next">▶</button></div>
-      <div class="cal" id="cal"></div>
-      <div class="logHint" id="logHint"></div>
-      <div class="fitRow"><button id="fitBtn"></button><input type="file" id="fitIn" accept=".fit" hidden></div>
-    </div>
-    <div id="logEdV" class="hide">
-      <div class="edHd"><button id="logBack">◀ <span id="logBackT">달력</span></button><b id="edTitle"></b></div>
-      <div class="lwrap"><div class="lwheels"><div class="lsel"></div><div class="lw" id="lwM" tabindex="0"></div><div class="lw" id="lwD" tabindex="0"></div><div class="lw" id="lwT" tabindex="0"></div></div>
-        <textarea id="logMemo" maxlength="300"></textarea></div>
-      <div class="logList" id="logList"></div>
-      <div class="logForm"><button id="logSave" class="pri" data-i18n="logSave">현재 로그 저장</button><span id="logMsg" class="logMsg"></span></div>
-    </div>
-  </div></div></div>
 </div>
 
 <div class="card">
@@ -274,7 +282,7 @@ html,body{overflow-x:hidden}
   <div class="play">
     <button class="big" id="playBtn" title="플레이"></button>
     <span class="seg"><button data-sp="0.5">0.5×</button><button data-sp="1" class="on">1×</button><button data-sp="2">2×</button></span>
-    <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><circle cx="12" cy="13.5" r="3.5"/></svg></button><button class="ico" id="logBtn" title="로그 저장" aria-label="log"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button></span>
+    <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><circle cx="12" cy="13.5" r="3.5"/></svg></button><button class="ico" id="logBtn" title="저장(JSON)" aria-label="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button><button class="ico" id="loadBtn" title="불러오기(JSON)" aria-label="load"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 7v12h15l3-8H6l-3 8"/></svg></button><input type="file" id="jsonIn" accept=".json,application/json" hidden></span>
   </div>
 </div>
 
@@ -311,7 +319,7 @@ html,body{overflow-x:hidden}
 </div>
 
 <div class="foot">
-  <span data-i18n="disc" style="color:#e5484d;font-weight:600">교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.</span> <a href="mailto:kangsaem@gmail.com" style="color:#1f2328;white-space:nowrap;margin-left:6px">kangsaem@gmail.com</a><br>
+  <span data-i18n="disc" style="color:#e5484d;font-weight:600">교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.</span><br><span data-i18n="disc2"></span><br> <a href="mailto:kangsaem@gmail.com" style="color:#1f2328;white-space:nowrap;margin-left:6px">kangsaem@gmail.com</a><br>
   <span data-i18n="model"></span>
 </div>
 </div>
@@ -336,7 +344,7 @@ ko:{
  logT:'다이빙 로그북',logDate:'날짜',logStart:'입수 시각',logSave:'현재 로그 저장',draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
- disc:'교육·학습용 시뮬레이터입니다. 실제 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',
+ disc:'교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',disc2:'로그북 기능을 포함하고 있습니다. 대부분의 다이빙 컴퓨터에서 FIT 파일을 불러올 수 있습니다. 로그는 현재 사용하시는 브라우저에만 저장됩니다. 저장하기로 백업하시거나 다른 단말기 브라우저에서 이어서 사용하실 수 있습니다.',
  model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 산소 독성은 CNS%만 NOAA 한도로 계산(나이트록스), 헬륨·OTU는 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
  tank:'탱크',sac:'호흡량',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:(v,m)=>`출수 잔압 ${v} (${m} 미만)`,wGas0:'공기 고갈',
  tutBtn:'튜토리얼',bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
@@ -392,7 +400,7 @@ en:{
  logT:'Dive logbook',logDate:'Date',logStart:'Start',logSave:'Save this log',draw:'Draw',points:'Points',erase:'Erase pts',sel:'Select',peHint:'Tap a point to enter its time and depth',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
  lgPath:'My profile',lgPlan:'Suggested',lgCeil:'Ceiling',lgFast:'Fast ascent',on:'N₂ on-gassing',off:'N₂ off-gassing',pct:'100% = surfacing limit (GF High)',
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
- disc:'For education and learning only. Do not use it to plan real dives or as a substitute for a dive computer.',
+ disc:'For education and learning only. Do not use it to plan real decompression dives or as a substitute for a dive computer.',disc2:'Includes a logbook. FIT files from most dive computers can be imported. Logs are stored only in this browser; use Save to back them up or to continue in a browser on another device.',
  model:'Model: Bühlmann ZHL-16C, 16 nitrogen compartments, Baker gradient factors, water vapour 0.0627 bar, 1-second steps. Deco stops in 3 m steps and whole minutes, last stop 3 m. A 3-minute safety stop at 5 m is included. Altitude assumes you are acclimatised. Oxygen toxicity: CNS% only, using NOAA limits (nitrox); helium and OTU are not calculated. Results can differ from real dive computers by a few minutes because of how stops are handled and rounded.',
  tank:'Tank',sac:'Breathing (SAC)',sacLo:'Low (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'High (25 L/min)',wGas:(v,m)=>`Surfacing with ${v} (below ${m})`,wGas0:'Out of air',
  tutBtn:'Tutorial (KR)',bmSurf:'Surface-based',bmSw:'Shearwater-style',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
@@ -448,7 +456,7 @@ ja:{
  logT:'ダイブログブック',logDate:'日付',logStart:'潜水開始',logSave:'このログを保存',draw:'描く',points:'点を打つ',erase:'点を消す',sel:'点を選択',peHint:'点をタップすると時間・水深を入力できます',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
  lgPath:'自分の経路',lgPlan:'推奨',lgCeil:'シーリング',lgFast:'急浮上',on:'窒素 吸収中',off:'窒素 排出中',pct:'100% = 浮上許容限界(GF High)',
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
- disc:'教育・学習用のシミュレーターです。実際のダイビング計画やダイブコンピューターの代わりに使用しないでください。',
+ disc:'教育・学習用のシミュレーターです。実際の減圧ダイビング計画やダイブコンピューターの代わりに使用しないでください。',disc2:'ログブック機能を含みます。ほとんどのダイブコンピューターのFITファイルを読み込めます。ログはこのブラウザにのみ保存されます。保存でバックアップするか、別の端末のブラウザで続けて使えます。',
  model:'計算: Bühlmann ZHL-16C 窒素16コンパートメント、Baker グラディエントファクター、水蒸気圧 0.0627 bar、1秒単位の計算。減圧停止は3 m刻み・1分単位、最終停止 3 m。5 mで3分の安全停止を含む。標高はその標高に順応した状態を想定。酸素毒性はCNS%のみNOAA限度で計算(ナイトロックス)、ヘリウム・OTUは計算しません。停止の扱いや丸め方の違いにより、実際のダイブコンピューターと数分の差が出ることがあります。',
  tank:'タンク',sac:'呼吸量',sacLo:'少ない (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'多い (25 L/分)',wGas:(v,m)=>`浮上時残圧 ${v} (${m}未満)`,wGas0:'エア切れ',
  tutBtn:'チュートリアル(韓)',bmSurf:'水面基準',bmSw:'Shearwater式',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
@@ -723,12 +731,12 @@ function drawProfile(){
     }
   }
   const pts=dv.pts;
-  cx.strokeStyle='#1f2328';cx.lineWidth=2.4;cx.lineJoin='round';cx.beginPath();
+  cx.strokeStyle='#1f2328';cx.lineWidth=1.6;cx.lineJoin='round';cx.beginPath();
   pts.forEach((p,i)=>i?cx.lineTo(X(p.t),Y(p.d)):cx.moveTo(X(p.t),Y(p.d)));cx.stroke();
   if(r&&!drawing&&pts.length>1){
     const seg=(a,b,col,w,dash)=>{if(a<0||b<=a)return;cx.strokeStyle=col;cx.lineWidth=w;cx.setLineDash(dash);cx.beginPath();for(let k=a;k<=b;k+=2)k===a?cx.moveTo(X(k),Y(r.depth[k])):cx.lineTo(X(k),Y(r.depth[k]));cx.lineTo(X(b),Y(r.depth[b]));cx.stroke();cx.setLineDash([]);};
     const e50=r.t0>=0?r.t0:r.N;
-    if(r.t50>=0){seg(r.t50,Math.min(e50,r.uEnd),'#f97316',2.8,[]);if(r.plan)seg(Math.max(r.t50,r.uEnd),e50,'#f97316',2.6,[6,4]);}
+    if(r.t50>=0){seg(r.t50,Math.min(e50,r.uEnd),'#f97316',2,[]);if(r.plan)seg(Math.max(r.t50,r.uEnd),e50,'#f97316',1.9,[6,4]);}
     if(r.t0>=0){cx.save();cx.globalCompositeOperation='source-over';seg(r.t0,r.N,'#d8dbe0',4,[]);seg(r.t0,r.N,'#b6bac2',1.6,[]);cx.restore();
       skullAt=[X(r.t0),Y(r.depth[r.t0])-14];}
   }
@@ -1104,7 +1112,7 @@ function syncForm(){
   $('altSel').value=S.altSel;$('altIn').classList.toggle('hide',S.altSel!=='c');$('altIn').value=S.alt;$('water').value=S.water;
   $('gas').value=S.gasSel;$('o2').classList.toggle('hide',S.gasSel!=='c');$('o2').value=S.o2;
   $('cons').value=S.cons;$('gfWrap').classList.toggle('hide',S.cons!=='custom');$('gfLo').value=S.gfLo;$('gfHi').value=S.gfHi;
-  $('asc').value=isFt()?Math.round(S.asc*FT):S.asc;$('asc').min=isFt()?10:3;$('asc').max=isFt()?60:18;document.querySelectorAll('[data-i18n=mpm]').forEach(e=>e.innerHTML=tr('mpm'));$('tankV').value=String(S.tankV);[150,180,200].forEach((v,i)=>{const o=$('tankP').options[i]||$('tankP').appendChild(document.createElement('option'));o.value=v;o.textContent=pu(v)+' '+puN();});$('tankP').value=String(S.tankP);$('pu').value=S.pu;$('sac').value=String(S.sac);
+  $('asc').value=isFt()?Math.round(S.asc*FT):S.asc;$('asc').min=isFt()?10:3;$('asc').max=isFt()?60:18;document.querySelectorAll('[data-i18n=mpm]').forEach(e=>e.innerHTML=tr('mpm'));$('tankV').value=String(S.tankV);[230,220,210,200,190,180,170,160,150].forEach((v,i)=>{const o=$('tankP').options[i]||$('tankP').appendChild(document.createElement('option'));o.value=v;o.textContent=pu(v)+' '+puN();});$('tankP').value=String(S.tankP);$('pu').value=S.pu;{const cs=S.sacSel==='c'||![15,20,25].includes(S.sac);$('sac').value=cs?'c':String(S.sac);$('sacIn').classList.toggle('hide',!cs);$('sacU').classList.toggle('hide',!cs);$('sacIn').value=S.sac;}
   $('setWrap').classList.toggle('open',S.setOpen);$('setHead').classList.toggle('open',S.setOpen);
   $('mFree').classList.toggle('on',S.mode==='free');$('mPt').classList.toggle('on',S.mode==='pt');$('mDel').classList.toggle('on',S.mode==='del');
   $('undo').disabled=!(dive().undo.length||dive().redoSnap);
@@ -1124,7 +1132,8 @@ $('tankV').onchange=e=>{S.tankV=+e.target.value;upd();};
 $('tankP').onchange=e=>{S.tankP=+e.target.value;upd();};
 $('pu').onchange=e=>{S.pu=e.target.value;try{localStorage.setItem('scuba_pu',S.pu);}catch(x){}upd();};
 try{const u=localStorage.getItem('scuba_pu');if(u==='psi')S.pu='psi';}catch(x){}
-$('sac').onchange=e=>{S.sac=+e.target.value;upd();};
+$('sac').onchange=e=>{const v=e.target.value;if(v==='c'){S.sacSel='c';}else{S.sacSel=v;S.sac=+v;}upd();};
+$('sacIn').onchange=e=>{S.sac=clamp(Math.round(+e.target.value)||20,8,40);S.sacSel='c';upd();};
 const toggleMode=m=>{S.mode=S.mode===m?'none':m;SEL=-1;modeChanged();};
 $('mFree').onclick=()=>toggleMode('free');
 $('mPt').onclick=()=>toggleMode('pt');
@@ -1170,7 +1179,7 @@ layout();syncForm();recompute();modeChanged();
 #tutBox .tsm{font-size:12px;padding:3px 8px;background:#4b5563;--pv:3px}
 #tutBox .tsm.on{background:#e5484d}
 .tutHi{outline:3px solid #e5484d!important;outline-offset:2px;border-radius:6px}
-.tutBtn{font-size:11px;padding:4px 9px;background:#e5484d;color:#fff;border:0;border-radius:6px;margin-right:6px;white-space:nowrap;--pv:4px}
+.tutBtn{font-size:11px;padding:4px 9px;background:#e5484d;color:#fff;border:0;border-radius:4px;margin-right:6px;white-space:nowrap;--pv:4px}
 </style>
 <div id="tutHand">👆</div>
 <div id="tutBox"><div class="hd"><span id="tutPart"></span><span style="display:flex;gap:6px;align-items:center"><button id="tutVoice" class="tsm">🔊</button><button id="tutAuto" class="tsm">자동 ▶</button><span id="tutCnt"></span></span></div><div class="tt" id="tutTitle"></div><div id="tutText"></div>
@@ -1232,7 +1241,7 @@ const cpt=(tm,d)=>{const r=cv.getBoundingClientRect();return [r.left+X(tm),r.top
 async function tapEl(el,t,click=true){const [x,y]=ctr(el);await moveTo(x,y,550,t);el.classList.add('tutHi');ripple(x,y);await sleep(220);chk(t);if(click)el.click();await sleep(380);el.classList.remove('tutHi');chk(t);}
 async function point(el,t,ms){const [x,y]=ctr(el);await moveTo(x,y,600,t);el.classList.add('tutHi');await sleep(ms||900);el.classList.remove('tutHi');chk(t);}
 function setState(pts,mode){stopPlay();SEL=-1;S.start=null;S.dives=[newDive()];S.cur=0;S.dives[0].pts=pts.map(([a,b])=>({t:a,d:b}));S.mode=mode||'none';S.bm='surf';
-  S.alt=0;S.altSel='0';S.water='salt';S.gasSel='21';S.o2=21;S.cons='med';S.asc=9;S.tankV=12;S.tankP=200;S.sac=20;S.setOpen=false;
+  S.alt=0;S.altSel='0';S.water='salt';S.gasSel='21';S.o2=21;S.cons='med';S.asc=9;S.tankV=12;S.tankP=200;S.sac=20;S.sacSel='20';S.setOpen=false;
   syncForm();syncBM();recompute();modeChanged();}
 async function drawPath(path,t,dur){ // 그리기 모드 손 드래그
   const dv=dive();dv.pts=[{t:0,d:0}];drawing=true;
@@ -1372,6 +1381,14 @@ function lines(){const r=RES[S.cur],dv=dive(),c=r.c;const out=[];
   if(ex.length)out.push(ex.join('  ·  '));
   const w=document.getElementById('warnBox');if(w&&!w.classList.contains('hide')&&w.innerText.trim())out.push(w.innerText.trim().split('\n').join('   '));
   return out;}
+// 메모에서 지명·슈트 두께·시야 찾기
+function memoTags(m){if(!m)return [];const L=m.split('\n').map(x=>x.trim()).filter(Boolean),out=[];
+  let place=null;for(const l of L){const k=l.match(/^(?:장소|포인트|지명|다이빙\s*포인트|place|point|spot|ポイント|場所)\s*[:：]?\s*(.+)$/i);if(k){place=k[1];break;}}
+  if(!place)place=L.find(l=>!/\d/.test(l)&&!/(슈트|suit|웨이트|weight|기온|수온|시야|visib|gps|fit|생물|life|°|スーツ|ウェイト|透明度|水温|気温)/i.test(l)&&l.length<=24)||null;
+  if(place)out.push(place);
+  const su=m.match(/(?:슈트|suit|wetsuit|スーツ|ウェット)[^\n\d]*(\d+(?:\.\d+)?)\s*mm/i)||m.match(/(\d+(?:\.\d+)?)\s*mm/i);if(su)out.push((LANG==='en'?'Suit ':LANG==='ja'?'スーツ ':'슈트 ')+su[1]+'mm');
+  const vi=m.match(/(?:시야|visibility|vis|透明度)\s*[:：]?\s*(\d+(?:\.\d+)?)\s*m/i);if(vi)out.push((LANG==='en'?'Vis ':LANG==='ja'?'透明度 ':'시야 ')+vi[1]+'m');
+  return out;}
 function wrap(g,text,maxW){const words=text.split(' ');const ls=[];let cur='';for(const w of words){const t=cur?cur+' '+w:w;if(g.measureText(t).width>maxW&&cur){ls.push(cur);cur=w;}else cur=t;}if(cur)ls.push(cur);return ls;}
 async function make(){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=P.tick;if(P.run)stopPlay();
   if(m0!=='none'){S.mode='none';}const rr=RES[S.cur];P.t=playEnd(rr);P.tick=Math.floor(P.t/5)*5;drawProfile();updateStats(P.tick);
@@ -1398,13 +1415,15 @@ async function make(){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=P.ti
     bcv=document.createElement('canvas');bcv.width=bc.width;bcv.height=bc.height;bcv.getContext('2d').drawImage(bc,0,0);BH=Math.round(cssH*k);
     window.BAR_RH=0;bc.height=oh;bc.style.height=os;bc.getContext('2d').setTransform(dpr,0,0,dpr,0,0);}
   const SH=Math.max(BH,RH);
-  const top=pad+52+sf+34;
+  const tags=memoTags(S.start!=null&&window.__log?window.__log.memo:'');const BAND=tags.length?50:0;
+  const top=pad+52+sf+34+BAND;
   const H=Math.round(top+gh+30+SH+40+60);
   const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
   g.fillStyle='#fff';g.fillRect(0,0,W,H);
   g.textBaseline='alphabetic';g.font='800 38px '+ff;const tw=g.measureText(title).width;g.font='700 30px '+ff;const dw=dt?g.measureText(dt).width+16:0;const tx=(W-tw-dw)/2;
   g.fillStyle='#0f2a3d';g.font='800 38px '+ff;g.fillText(title,tx,pad+38);if(dt){g.fillStyle='#2f6fe4';g.font='700 30px '+ff;g.fillText(dt,tx+tw+16,pad+37);}
   g.fillStyle='#6b7280';g.font='400 '+sf+'px '+ff;g.textAlign='center';g.fillText(set1,W/2,pad+52+sf);g.textAlign='left';
+  if(BAND){const by=pad+52+sf+16;g.fillStyle='#374151';g.fillRect(0,by,W,44);g.fillStyle='#fff';g.font='700 24px '+ff;g.textAlign='center';g.textBaseline='middle';g.fillText(tags.join('   ·   '),W/2,by+23);g.textAlign='left';g.textBaseline='alphabetic';}
   g.drawImage(cv,pad,top,W-pad*2,gh);
   const y0=top+gh+30;
   if(BH&&bcv)g.drawImage(bcv,pad,y0,BW,BH);
@@ -1470,14 +1489,14 @@ function rdpV(a,eps){if(a.length<3)return a.slice();const keep=new Uint8Array(a.
 <script>
 // ===== 다이빙 로그북: 달력 보기 → 날짜 클릭 시 월·일·시간 휠 + 메모. 이 기기(localStorage)에 저장 =====
 (function(){
-const KEY='scuba_logs',MAX=50,KEYS=['water','altSel','alt','gasSel','o2','cons','gfLo','gfHi','asc','tankV','tankP','sac'],IH=40;
+const KEY='scuba_logs',MAX=200,KEYS=['water','altSel','alt','gasSel','o2','cons','gfLo','gfHi','asc','tankV','tankP','sac','sacSel'],IH=40;
 const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
 const pad=n=>String(n).padStart(2,'0');
-const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Updated',updB:'Update this log',full:'Logbook is full (50). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',fitB:'Import FIT file',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
- :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存しました',upd:'更新しました',updB:'このログを更新',full:'ログブックが一杯です(50件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',fitB:'FITファイル読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
- :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장했어요',upd:'수정했어요',updB:'이 로그 수정',full:'로그북이 가득 찼어요(50개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',fitB:'FIT 파일 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
+const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
+ :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
+ :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
 const now=new Date();let vy=now.getFullYear(),vm=now.getMonth()+1;   // 달력에 보이는 달
 let Y=vy,M=vm,D=now.getDate(),T=Math.floor((now.getHours()*60+now.getMinutes())/10)*10,open=false,view='cal',CUR=null;
 const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.split(':').map(Number);return h*60+m;};
@@ -1519,11 +1538,11 @@ const wM=makeWheel($('lwM'),i=>{if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0)
 const wD=makeWheel($('lwD'),i=>{if(i+1===D)return;D=i+1;CUR=null;renderWheels();dayChanged();});
 const wT=makeWheel($('lwT'),i=>{const v=i*10;if(v===T)return;T=v;S.start=T;drawProfile();refreshSave();});
 // --- 달력
-function renderCal(){const a=load(),t=L();$('calTitle').textContent=t.ttl(vy,vm);const has=new Set(a.map(x=>x.date));
+function renderCal(){const a=load(),t=L();$('calY').textContent=LANG==='en'?String(vy):LANG==='ja'?vy+'年':vy+'년';$('calMo').textContent=LANG==='en'?'.'+pad(vm):LANG==='ja'?vm+'月':vm+'월';const has=new Set(a.map(x=>x.date));
   const first=new Date(vy,vm-1,1).getDay(),days=new Date(vy,vm,0).getDate(),k0=new Date();const today=k0.getFullYear()+'-'+pad(k0.getMonth()+1)+'-'+pad(k0.getDate());
   let h=t.wd.map((w,i)=>`<div class="wd${i===0?' sun':i===6?' sat':''}">${w}</div>`).join('');for(let i=0;i<first;i++)h+='<div class="e">.</div>';
   for(let d=1;d<=days;d++){const k=vy+'-'+pad(vm)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}" data-d="${d}">${d}</div>`;}
-  $('cal').innerHTML=h;$('logHint').textContent=t.hint;
+  $('cal').innerHTML=h;$('logHint').textContent='';
   $('cal').querySelectorAll('.d').forEach(el=>el.onclick=()=>{Y=vy;M=vm;D=+el.dataset.d;CUR=null;const f=dayLogs()[0];
     if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');applyLog(f.id,true);return;}
     const n=new Date();T=Math.floor((n.getHours()*60+n.getMinutes())/10)*10;S.start=T;drawProfile();show('ed');});}
@@ -1544,7 +1563,7 @@ function renderList(){const t=L(),a=dayLogs();
     return rows.map(r=>{const clock=r.st!=null?`${hhmm(r.st)} ${t.in} → ${hhmm(r.st+r.N/60)} ${t.out}`:'';
       const meta=[(multi?(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,x.sum.gas].filter(Boolean).join(' · ');
       const sel=x.id===CUR&&(!multi||r.i===S.cur);
-      return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${memo1&&r.i===0?'<div class="mm">'+memo1+'</div>':''}</div><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;}).join('');}).join(''):`<div class="none">${t.none}</div>`;
+      return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${memo1&&r.i===0?'<div class="mm">'+memo1+'</div>':''}</div><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;}).join('');}).join(''):'';
   $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();delRow(b.dataset.id,+b.dataset.i||0);});
   if(!CUR){const f=a[0];$('logMemo').value=f?(f.memo||''):'';}
@@ -1557,9 +1576,9 @@ window.addEventListener('scuba:diveRemoved',()=>{if(!CUR)return;const a=load(),x
   if(S.start!=null){x.time=hhmm(Math.round(S.start));T=Math.round(S.start/10)*10%1440;}
   x.state=snapState();x.sum=summary();store(a);renderSum();if(open&&view==='ed'){renderWheels();renderList();}});
 function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}}
-function renderSum(){const n=load().length,t=L();$('fitBtn').textContent=t.fitB;$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
+function renderSum(){const n=load().reduce((a,x)=>a+((x.state&&x.state.dives&&x.state.dives.length)||1),0),t=L();$('fitBtn').textContent=t.fitB;$('fitBtn2').textContent=t.fitB;$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
-function sync(){$('logWrap').classList.toggle('open',open);$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
+function sync(){$('logWrap').classList.toggle('open',open);{const rw=document.getElementById('ruleWrap');if(rw)rw.classList.toggle('closed',open);}$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
   let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan(),dv:RES.map((x,i)=>({N:x.N,maxD:R1(x.maxD),si:i?(+S.dives[i].si||0):0}))};}
 function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].si||0);});return m;}
@@ -1575,12 +1594,16 @@ function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;co
   const tm=tmin(x.time);if(tm!=null){T=Math.round(tm/10)*10%1440;S.start=tm;}else S.start=null;
   CUR=id;$('logMemo').value=x.memo||'';
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
-  renderWheels();renderList();if(!quiet)msg(L().loaded+x.date+(x.time?' '+x.time:''));}
+  renderWheels();renderList();}
 let mt=0;function msg(t,bad){const el=view==='cal'?$('logHint'):$('logMsg');el.textContent=t;el.style.color=bad?'#b45309':'#0f9d7a';el.style.fontWeight='600';clearTimeout(mt);
-  mt=setTimeout(()=>{$('logMsg').textContent='';const h=$('logHint');h.textContent=L().hint;h.style.color='';h.style.fontWeight='';},3500);}
+  mt=setTimeout(()=>{$('logMsg').textContent='';const h=$('logHint');h.textContent='';h.style.color='';h.style.fontWeight='';},3500);}
 function afterSave(id){vy=Y;vm=M;CUR=id||null;renderSum();renderWheels();renderList();}
 $('logHead').onclick=()=>{open=!open;sync();};
-window.toggleLogbook=()=>{open=!open;sync();if(open)setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},60);else window.scrollTo({top:0,behavior:'smooth'});};
+window.toggleLogbook=()=>{open=!open;sync();};
+const YRS=[];for(let y=1990;y<=new Date().getFullYear()+5;y++)YRS.push(y);
+const wY=makeWheel($('lwY'),i=>{if(YRS[i]===vy)return;vy=YRS[i];renderCal();});
+$('calY').onclick=e=>{e.stopPropagation();const yp=$('yearPick');if(!yp.classList.contains('hide')){yp.classList.add('hide');return;}yp.classList.remove('hide');wY.set(YRS.map(y=>({h:String(y),has:load().some(x=>x.date.startsWith(y+'-'))})),Math.max(0,YRS.indexOf(vy)));setTimeout(()=>$('lwY').focus({preventScroll:true}),30);};
+$('yearOk').onclick=()=>$('yearPick').classList.add('hide');
 $('calPrev').onclick=()=>{vm--;if(vm<1){vm=12;vy--;}renderCal();};
 $('calNext').onclick=()=>{vm++;if(vm>12){vm=1;vy++;}renderCal();};
 $('logBack').onclick=()=>{vy=Y;vm=M;show('cal');};
@@ -1589,33 +1612,49 @@ $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);S.start=T;
   a.push({id,date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),saved:Date.now(),state:snapState(),sum:summary()});
   if(!store(a)){msg(t.fail,true);return;}afterSave(id);const others=cf.filter(x=>x.id!==CUR0);if(others.length)msg(t.repl(others.length),true);else msg(cf.length?t.upd:t.saved);};
-const lb=$('logBtn');if(lb)lb.onclick=()=>{const n=new Date();Y=n.getFullYear();M=n.getMonth()+1;D=n.getDate();T=Math.floor((n.getHours()*60+n.getMinutes())/10)*10;S.start=T;CUR=null;drawProfile();
-  if(!open){open=true;$('logWrap').classList.add('open');$('logHead').classList.add('open');setTitle(true);}show('ed');
-  setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},50);};
-$('fitBtn').onclick=()=>$('fitIn').click();
+// 저장 아이콘: 화면 전환 없이 로그북 전체를 JSON으로 내려받기 / 폴더 아이콘: 다른 기기에서 받은 JSON 불러오기
+function toast(m){let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';document.body.appendChild(el);}el.textContent=m;el.classList.add('on');clearTimeout(el.__t);el.__t=setTimeout(()=>el.classList.remove('on'),2600);}
+$('logBtn').onclick=()=>{const t=L(),a=load();if(!a.length){toast(t.noLog);return;}if(!window.confirm(t.saveQ))return;
+  const d=new Date(),name='dtmd-logbook-'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes())+'.json';
+  const blob=new Blob([JSON.stringify({app:'DTMD',kind:'logbook',v:1,exported:d.toISOString(),logs:a})],{type:'application/json'});
+  const u=URL.createObjectURL(blob),el=document.createElement('a');el.href=u;el.download=name;document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);toast(t.exp(a.length));};
+$('loadBtn').onclick=()=>$('jsonIn').click();
+$('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value='';if(!f)return;const t=L();let j;
+  try{j=JSON.parse(await f.text());}catch(e){toast(t.badJ);return;}
+  const inc=Array.isArray(j)?j:(j&&Array.isArray(j.logs)?j.logs:null);if(!inc||!inc.every(x=>x&&x.date&&x.state&&Array.isArray(x.state.dives))){toast(t.badJ);return;}
+  const a=load();let rep=0;inc.forEach(x=>{const k=a.findIndex(y=>y.id===x.id||(y.date===x.date&&(y.time||'')===(x.time||'')));if(k>=0){a[k]=x;rep++;}else a.push(x);});
+  if(a.length>MAX||!store(a)){toast(t.fail);return;}renderAll();toast(t.imp(inc.length,rep));};
+$('fitBtn').onclick=()=>$('fitIn').click();$('fitBtn2').onclick=()=>$('fitIn').click();
+// FIT 불러오기: 같은 날 다이빙은 입수 시각 순으로 연속 다이빙(다이빙1·2…), 수면휴식 = 앞 출수~다음 입수, 10분 단위 내림
 $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if(!f)return;const t=L();let dives;
   let dev='';try{const o=parseFIT(await f.arrayBuffer());dev=(o.file_id[0]&&o.file_id[0][8])||(o.device_info[0]&&o.device_info[0][27])||'';dives=fitToDives(o);}catch(e){msg(t.fitErr,true);return;}
-  dives.forEach(d=>{d.pts=trimSurface(d.pts);});
-  dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);if(!dives.length){msg(t.fitNo,true);return;}
-  const d0=dives[0],off=d0.localOff!=null?d0.localOff:-new Date(d0.startUTC*1000).getTimezoneOffset()*60;
-  const loc=new Date((d0.startUTC+off)*1000),date=loc.getUTCFullYear()+'-'+pad(loc.getUTCMonth()+1)+'-'+pad(loc.getUTCDate()),time=pad(loc.getUTCHours())+':'+pad(loc.getUTCMinutes());
-  const st={dives:dives.map((d,i)=>({pts:d.pts,si:i?Math.max(10,Math.round((d.startUTC-(dives[i-1].startUTC+dives[i-1].dur))/60)):60,lab:null}))};KEYS.forEach(k=>st[k]=S[k]);
+  dives.forEach(d=>{d.pts=trimSurface(d.pts);});dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);if(!dives.length){msg(t.fitNo,true);return;}
+  const off=dives[0].localOff!=null?dives[0].localOff:-new Date(dives[0].startUTC*1000).getTimezoneOffset()*60;
+  const loc=u=>new Date((u+off)*1000);const l0=loc(dives[0].startUTC);const date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
+  const minOf=u=>{const d=loc(u);return d.getUTCHours()*60+d.getUTCMinutes()+d.getUTCSeconds()/60;};
+  const imp=dives.map(d=>({s:minOf(d.startUTC),dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true}));
+  // 같은 날 기존 다이빙 펼치기
+  const all=load(),same=all.filter(x=>x.date===date).sort((p,q)=>(p.time||'').localeCompare(q.time||''));const old=[];let base=null;
+  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null});});if(!base)base=x;});
+  const keepOld=old.filter(o=>!imp.some(n=>o.s<n.s+n.dur&&n.s<o.s+o.dur));const replaced=old.length-keepOld.length;
+  const seq=keepOld.concat(imp).sort((p,q)=>p.s-q.s);
+  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,si:i?Math.max(10,Math.floor((d.s-(seq[i-1].s+seq[i-1].dur))/10)*10):60}))};
+  KEYS.forEach(k=>st[k]=(base&&base.state&&k in base.state)?base.state[k]:S[k]);
   const tmn=Math.min(...dives.map(d=>d.tMin).filter(v=>v!=null)),tmx=Math.max(...dives.map(d=>d.tMax).filter(v=>v!=null)),g=dives[dives.length-1].gps;
-  const memo=[(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',isFinite(tmn)?(LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ')+(tmn===tmx?tmn:tmn+'~'+tmx)+'°C':'',g?('GPS '+g.lat.toFixed(5)+', '+g.lon.toFixed(5)):''].filter(Boolean).join('\n');
-  // 같은 날 시간이 겹치는 로그는 교체
-  const s1=tmin(time),e1=s1+dives.reduce((a,d,i)=>a+d.dur/60+(i?st.dives[i].si:0),0);
-  const a=load().filter(x=>{if(x.date!==date)return true;const s2=tmin(x.time);if(s2==null)return true;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return !(s1===s2||(s1<e2&&s2<e1));});
-  const removed=load().length-a.length;if(a.length>=MAX){msg(t.full,true);return;}
-  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);a.push({id,date,time,memo,saved:Date.now(),state:st,sum:{maxD:0,N:0,N0:0,gas:'',nd:dives.length,span:0},src:'fit'});
-  if(!store(a)){msg(t.fail,true);return;}
+  const memoNew=[(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',isFinite(tmn)?(LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ')+(tmn===tmx?tmn:tmn+'~'+tmx)+'°C':'',g?('GPS '+g.lat.toFixed(5)+', '+g.lon.toFixed(5)):''].filter(Boolean);
+  const memoLines=[];same.forEach(x=>(x.memo||'').split('\n').forEach(l=>{if(l&&!memoLines.includes(l))memoLines.push(l);}));memoNew.forEach(l=>{if(!memoLines.includes(l))memoLines.push(l);});
+  const rest=all.filter(x=>x.date!==date);if(rest.length>=MAX){msg(t.full,true);return;}
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  rest.push({id,date,time:hhmm(Math.floor(seq[0].s)),memo:memoLines.join('\n'),saved:Date.now(),state:st,sum:{maxD:0,N:0,N0:0,gas:'',nd:seq.length,span:0},src:'fit'});
+  if(!store(rest)){msg(t.fail,true);return;}
   const [yy,mm,dd]=date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');
-  applyLog(id,true);const b=load(),x=b.find(v=>v.id===id);if(x){x.sum=summary();store(b);}renderSum();renderWheels();renderList();
-  msg(t.fitOk(dives.length,date,time)+(removed?' · '+t.repl(removed):''));};
+  applyLog(id,true,seq.findIndex(d=>d.fit));const b2=load(),x=b2.find(v=>v.id===id);if(x){x.sum=summary();store(b2);}renderSum();renderWheels();renderList();
+  msg(t.fitOk(dives.length,date,hhmm(Math.floor(imp[0].s)))+(seq.length>1?' · '+t.dives(seq.length):'')+(replaced?' · '+t.repl(replaced):''));};
 window.addEventListener('scuba:lang',renderAll);
 window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
 $('logMemo').addEventListener('input',refreshSave);
 renderSum();setTitle(false);
-window.__log={load,renderAll,get ymd(){return ymd();},get open(){return open;},get view(){return view;},get T(){return T;}};
+window.__log={load,renderAll,get memo(){return $('logMemo').value||'';},get ymd(){return ymd();},get open(){return open;},get view(){return view;},get T(){return T;}};
 })();
 </script>
 
