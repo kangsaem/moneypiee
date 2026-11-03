@@ -80,3 +80,9 @@
 ## 작업 방식
 - 본체 원본은 세션 로컬 `/home/claude/deco.html` → `scuba.html`로 복사해 커밋했음. 새 세션에선 **저장소의 scuba.html을 원본**으로 쓰면 됨.
 - 테스트: Playwright(설치됨), `python3 -m http.server`로 띄우고 `window.startTutorial()` 호출. 음성 테스트는 `--autoplay-policy=no-user-gesture-required`.
+
+## 2026-11-03 14:15 아이콘 (홈 화면·즐겨찾기)
+- scuba.html 전용 아이콘. 빨간 다이버 깃발 + 오른쪽 아래로 하강하는 다이버(남색) + 굵은 문구 "Don’t / Touch"(오른쪽 위, Don’t는 약 2배·’ 작게) · "Maximum / Depth"(왼쪽 아래). 글꼴 Inter Black.
+- 파일: dtmd-icon-180.png(apple-touch-icon) · dtmd-icon-192/512.png(manifest) · dtmd-favicon-16/32/48.png(문구 없는 버전, 크롬 탭·즐겨찾기바) · dtmd.webmanifest(start_url·scope /scuba, short_name DTMD).
+- scuba.html head에 icon·apple-touch-icon·manifest·apple-mobile-web-app-title(DTMD) 추가. 다른 하위 페이지는 사용 안 함(사용자) → 그대로.
+- 이미 홈 화면에 추가한 아이콘은 지우고 다시 추가해야 바뀜. 브라우저 즐겨찾기 아이콘은 캐시 때문에 늦게 바뀔 수 있음.

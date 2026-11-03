@@ -1,0 +1,15 @@
+{
+  "name": "DTMD 다이빙 플래너",
+  "short_name": "DTMD",
+  "id": "/scuba",
+  "start_url": "/scuba",
+  "scope": "/scuba",
+  "display": "standalone",
+  "background_color": "#284656",
+  "theme_color": "#284656",
+  "lang": "ko-KR",
+  "icons": [
+    { "src": "/dtmd-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/dtmd-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
