@@ -26,12 +26,12 @@ body{background:transparent!important;margin:0;font-family:-apple-system,BlinkMa
 h1{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45)}
 .foot{background:rgba(255,255,255,.9);border-radius:6px;padding:10px 12px}
 html{background:#284656;overflow-x:clip}
-.wrap{max-width:1000px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left))}
+.wrap{max-width:1000px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) calc(6px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(6px + env(safe-area-inset-left))}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
-.rule{background:#e5484d;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;line-height:1.7}
+.rule{background:#e5484d;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:5px;font-size:14px;font-weight:700;line-height:1.7}
 .ruleWrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .22s cubic-bezier(.55,0,1,.45)}.ruleWrap>div{overflow:hidden;min-height:0}.ruleWrap.closed{grid-template-rows:0fr}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
-.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 2px 12px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 4px 8px}
 .top h1{margin:0;font-size:clamp(16px,4.6vw,19px);word-break:keep-all}
 .ttl{display:inline-flex;flex-direction:column;align-items:stretch;gap:3px}
 .ttl .fw{display:inline-block;transition:transform .18s ease-in,opacity .18s;transform-origin:50% 50%;backface-visibility:hidden}
@@ -48,7 +48,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 #logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
 .card.thin{padding-top:4px;padding-bottom:4px}
 .card.thin>.setHead{padding:0;min-height:18px}
-.card{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid #dcdee2;border-radius:6px;padding:12px;margin-bottom:12px}
+.card{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid #dcdee2;border-radius:6px;padding:12px;margin-bottom:5px}
 .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 label{color:var(--mute);font-size:12px;display:inline-flex;align-items:center;gap:6px}
 select,input[type=number]{font:inherit;font-size:13px;padding:5px 6px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:var(--ink)}
@@ -1134,8 +1134,11 @@ $('tankV').onchange=e=>{S.tankV=+e.target.value;upd();};
 $('tankP').onchange=e=>{S.tankP=+e.target.value;upd();};
 $('pu').onchange=e=>{S.pu=e.target.value;try{localStorage.setItem('scuba_pu',S.pu);}catch(x){}upd();};
 try{const u=localStorage.getItem('scuba_pu');if(u==='psi')S.pu='psi';}catch(x){}
-$('sac').onchange=e=>{const v=e.target.value;if(v==='c'){S.sacSel='c';}else{S.sacSel=v;S.sac=+v;}upd();};
-$('sacIn').onchange=e=>{S.sac=clamp(Math.round(+e.target.value)||20,8,40);S.sacSel='c';upd();};
+const saveSac=()=>{try{localStorage.setItem('scuba_sac',JSON.stringify({sac:S.sac,sel:S.sacSel}));}catch(x){}};
+const loadSac=()=>{try{const j=JSON.parse(localStorage.getItem('scuba_sac')||'null');if(j&&+j.sac>=8&&+j.sac<=40){S.sac=+j.sac;S.sacSel=j.sel||String(j.sac);}}catch(x){}};window.loadSac=loadSac;
+$('sac').onchange=e=>{const v=e.target.value;if(v==='c'){S.sacSel='c';}else{S.sacSel=v;S.sac=+v;}saveSac();upd();};
+$('sacIn').onchange=e=>{S.sac=clamp(Math.round(+e.target.value)||20,8,40);S.sacSel='c';saveSac();upd();};
+loadSac();
 const toggleMode=m=>{S.mode=S.mode===m?'none':m;SEL=-1;modeChanged();};
 $('mFree').onclick=()=>toggleMode('free');
 $('mPt').onclick=()=>toggleMode('pt');
@@ -1322,7 +1325,7 @@ async function run(i){IDX=i;const t=++TOK;ARMED=false;const st=STEPS[i];hideOver
   sp.then(()=>{if(TW===tw)typeAll();});
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
     if(i===STEPS.length-1){await sleep(400);chk(t);await playClip(clip(STEPS.length+1));chk(t);}
-    DONE=t;if(i===STEPS.length-1){await sleep(600);chk(t);end();setState(A0,'free');window.scrollTo({top:0,behavior:'smooth'});return;}
+    DONE=t;if(i===STEPS.length-1){await sleep(600);chk(t);end();setState(A0,'free');if(window.loadSac){loadSac();syncForm();recompute();}window.scrollTo({top:0,behavior:'smooth'});return;}
     if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
 let PU0=null,ARMED=false;
 // 튜토리얼 중에는 튜토리얼 창 버튼 외 사용자 조작 막기 (스크롤은 허용)
@@ -1333,10 +1336,10 @@ const blocker=e=>{if(!ON||ARMED||!e.isTrusted)return;const tg=e.target;if(tg&&tg
 BLOCK_EV.forEach(n=>window.addEventListener(n,blocker,{capture:true,passive:false}));
 function armBlank(t){ARMED=true;const h=e=>{if(t!==TOK){document.removeEventListener('click',h,true);return;}
     if(e.target.closest&&e.target.closest('#tutPrev,#tutVoice,#tutAuto,#splash'))return;
-    document.removeEventListener('click',h,true);e.preventDefault();e.stopPropagation();end();setState(A0,'free');window.scrollTo({top:0,behavior:'smooth'});};
+    document.removeEventListener('click',h,true);e.preventDefault();e.stopPropagation();end();setState(A0,'free');if(window.loadSac){loadSac();syncForm();recompute();}window.scrollTo({top:0,behavior:'smooth'});};
   setTimeout(()=>document.addEventListener('click',h,true),0);}
 function start(){if(ON)return;ON=true;if(S.pu!=='bar'){PU0=S.pu;S.pu='bar';syncForm();}try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
-function end(){TOK++;ON=false;ARMED=false;if(PU0){S.pu=PU0;PU0=null;syncForm();recompute();}hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
+function end(){TOK++;ON=false;ARMED=false;if(PU0){S.pu=PU0;PU0=null;}if(window.loadSac)loadSac();syncForm();recompute();hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
 document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
 document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
 document.getElementById('tutEnd').onclick=end;
