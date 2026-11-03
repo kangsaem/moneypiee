@@ -1604,7 +1604,7 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
   g.font='900 '+24*k+'px '+ff;const bw=(g.measureText('DTMD').width+24*k)*1.5,bh=40*k;g.fillStyle='#E31B3F';g.fillRect(0,H-bh,bw,bh);g.fillStyle='#fff';g.textAlign='center';g.fillText('DTMD',bw/2,H-11*k);
   txt('moneypie.kr / scuba',W-20*k,H-18*k,23,400,'right');
   // 지명: 오른쪽 아래 주소 위, 크고 굵게 오른쪽 정렬(넘치면 글자 줄임)
-  if(place){let fs=W>H?104:87;// 가로 사진은 1.2배g.font='800 '+fs*k+'px '+ff;const mx=W-20*k-(bw+24*k);while(fs>22&&g.measureText(place).width>mx){fs--;g.font='800 '+fs*k+'px '+ff;}txt(place,W-20*k,H-72*k,fs,800,'right');}
+  if(place){let fs=W>H?104:87;/* 가로 사진은 1.2배 */g.font='800 '+fs*k+'px '+ff;const mx=W-20*k-(bw+24*k);while(fs>22&&g.measureText(place).width>mx){fs--;g.font='800 '+fs*k+'px '+ff;}txt(place,W-20*k,H-72*k,fs,800,'right');}
   return el;}
 // 스냅샷 버튼: 사진 없는 로그 → 바로 데이터 로그 / 사진 있으면 선택창(데이터 로그 + 사진 썸네일)
 // 스냅샷 버튼 → [데이터 로그] [포토 로그] 두 버튼. 포토 로그를 누르면 아래로 사진이 펼쳐짐(사진 없으면 비활성)
