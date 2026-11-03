@@ -1532,6 +1532,11 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
   const N=Math.max(1,r.N),maxD=Math.max(1,r.maxD),top=H-330*k,gh=260*k,PX=t=>t/N*W,PY=d=>top+d/maxD*gh;
   const path=()=>{g.beginPath();for(let t=0;t<=N;t+=5){const d=r.depth[Math.min(N,t)]||0;t?g.lineTo(PX(t),PY(d)):g.moveTo(PX(t),PY(d));}g.lineTo(PX(N),PY(r.depth[N]||0));};
   path();g.lineTo(W,H);g.lineTo(0,H);g.closePath();const rg=g.createRadialGradient(0,H,0,0,H,760*k);rg.addColorStop(0,'rgba(14,140,230,.55)');rg.addColorStop(.55,'rgba(14,140,230,.22)');rg.addColorStop(1,'rgba(14,140,230,0)');g.fillStyle=rg;g.fill();
+  // 그래프 오른쪽: 선 바로 위만 아주 옅은 검은 그림자(위로 조금만 올라가도 사라짐, 가운데로 가며 사라짐)
+  {const oc=document.createElement('canvas');oc.width=W;oc.height=H;const o=oc.getContext('2d'),op=()=>{o.beginPath();for(let t=0;t<=N;t+=5){const d=r.depth[Math.min(N,t)]||0;t?o.lineTo(PX(t),PY(d)):o.moveTo(PX(t),PY(d));}o.lineTo(PX(N),PY(r.depth[N]||0));};
+    o.save();op();o.lineTo(W,0);o.lineTo(0,0);o.closePath();o.clip();o.filter='blur('+Math.round(22*k)+'px)';op();o.strokeStyle='#000';o.lineWidth=110*k;o.lineJoin='round';o.stroke();o.restore();
+    o.globalCompositeOperation='destination-in';const hg=o.createLinearGradient(W,0,W*0.5,0);hg.addColorStop(0,'rgba(0,0,0,1)');hg.addColorStop(1,'rgba(0,0,0,0)');o.fillStyle=hg;o.fillRect(0,0,W,H);
+    g.save();g.globalAlpha=0.2;g.drawImage(oc,0,0);g.restore();}
   path();g.strokeStyle='#fff';g.lineWidth=3*k;g.lineJoin='round';g.stroke();
   const txt=(t,x,y,size,wt,al)=>{g.font=wt+' '+size*k+'px '+ff;g.textAlign=al||'left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
   let ff2=ff;const txtF=(t,x,y,size)=>{g.font='700 '+size*k+'px '+ff2;g.textAlign='left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
@@ -1542,7 +1547,7 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
   g.font='900 '+24*k+'px '+ff;const bw=(g.measureText('DTMD').width+24*k)*1.5,bh=40*k;g.fillStyle='#E31B3F';g.fillRect(0,H-bh,bw,bh);g.fillStyle='#fff';g.textAlign='center';g.fillText('DTMD',bw/2,H-11*k);
   txt('moneypie.kr / scuba',W-20*k,H-18*k,23,400,'right');
   // 지명: 오른쪽 아래 주소 위, 크고 굵게 오른쪽 정렬(넘치면 글자 줄임)
-  if(place){let fs=58;g.font='800 '+fs*k+'px '+ff;const mx=W-20*k-(bw+24*k);while(fs>22&&g.measureText(place).width>mx){fs--;g.font='800 '+fs*k+'px '+ff;}txt(place,W-20*k,H-72*k,fs,800,'right');}
+  if(place){let fs=52;g.font='800 '+fs*k+'px '+ff;const mx=W-20*k-(bw+24*k);while(fs>22&&g.measureText(place).width>mx){fs--;g.font='800 '+fs*k+'px '+ff;}txt(place,W-20*k,H-72*k,fs,800,'right');}
   return el;}
 // 스냅샷 버튼: 사진 없는 로그 → 바로 데이터 로그 / 사진 있으면 선택창(데이터 로그 + 사진 썸네일)
 // 스냅샷 버튼 → [데이터 로그] [포토 로그] 두 버튼. 포토 로그를 누르면 아래로 사진이 펼쳐짐(사진 없으면 비활성)
