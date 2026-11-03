@@ -1577,7 +1577,7 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
   {const oc=document.createElement('canvas');oc.width=W;oc.height=H;const o=oc.getContext('2d'),op=()=>{o.beginPath();for(let t=0;t<=N;t+=5){const d=r.depth[Math.min(N,t)]||0;t?o.lineTo(PX(t),PY(d)):o.moveTo(PX(t),PY(d));}o.lineTo(PX(N),PY(r.depth[N]||0));};
     o.save();op();o.lineTo(W,0);o.lineTo(0,0);o.closePath();o.clip();o.filter='blur('+Math.round(22*k)+'px)';op();o.strokeStyle='#000';o.lineWidth=110*k;o.lineJoin='round';o.stroke();o.restore();
     o.globalCompositeOperation='destination-in';const hg=o.createLinearGradient(W,0,W*0.5,0);hg.addColorStop(0,'rgba(0,0,0,1)');hg.addColorStop(1,'rgba(0,0,0,0)');o.fillStyle=hg;o.fillRect(0,0,W,H);
-    g.save();g.globalAlpha=0.2;g.drawImage(oc,0,0);g.restore();}
+    g.save();g.globalAlpha=0.3;g.drawImage(oc,0,0);g.restore();}
   path();g.strokeStyle='#fff';g.lineWidth=3*k;g.lineJoin='round';g.stroke();
   const txt=(t,x,y,size,wt,al)=>{g.font=wt+' '+size*k+'px '+ff;g.textAlign=al||'left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
   let ff2=ff;const txtF=(t,x,y,size)=>{g.font='700 '+size*k+'px '+ff2;g.textAlign='left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
@@ -1763,7 +1763,12 @@ function enterLog(){PLAN={keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S
 function leaveLog(){if(!PLAN)return;const P=PLAN;PLAN=null;KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});
   S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;CUR=null;
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();flipTabs();}
-function sync(){if(open!==LASTO){LASTO=open;if(open)enterLog();else leaveLog();}$('logWrap').classList.toggle('open',open);setTimeout(relayout,0);{const rw=document.getElementById('ruleWrap');if(rw)rw.classList.toggle('closed',open);}$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
+// 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
+let SWT=0;
+function sync(){if(open!==LASTO){LASTO=open;const tk=++SWT,o=open,w=$('logWrap');let fired=false;
+    const run=()=>{if(fired||tk!==SWT)return;fired=true;w.removeEventListener('transitionend',te);if(o){enterLog();if(open)show(view);}else leaveLog();};
+    const te=e=>{if(e.target===w&&e.propertyName==='grid-template-rows')run();};w.addEventListener('transitionend',te);setTimeout(run,380);}
+  $('logWrap').classList.toggle('open',open);setTimeout(relayout,0);{const rw=document.getElementById('ruleWrap');if(rw)rw.classList.toggle('closed',open);}$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
   let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan(),dv:RES.map((x,i)=>({N:x.N,maxD:R1(x.maxD),si:i?(+S.dives[i].si||0):0}))};}
 function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].si||0);});return m;}
