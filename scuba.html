@@ -93,7 +93,6 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .logList .li .del{padding:3px 8px;font-size:12px;color:#e5484d}.logList .none{color:var(--mute);font-size:13px}
 .logForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
 .logForm input[type=text]{flex:1;min-width:140px;padding:5px 8px}.logForm .pri{background:#0f2a3d;color:#fff;border-color:#0f2a3d}
-.logWarn{margin-top:8px;padding:7px 10px;border-radius:8px;background:#fff4e5;color:#b45309;font-size:12px;font-weight:600;line-height:1.5}
 .logMsg{font-size:12px;color:#0f9d7a}
 /* 탭 */
 .tabs{display:flex;gap:4px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -241,8 +240,7 @@ html,body{overflow-x:hidden}
       <div class="lwrap"><div class="lwheels"><div class="lsel"></div><div class="lw" id="lwM" tabindex="0"></div><div class="lw" id="lwD" tabindex="0"></div><div class="lw" id="lwT" tabindex="0"></div></div>
         <textarea id="logMemo" maxlength="300"></textarea></div>
       <div class="logList" id="logList"></div>
-      <div class="logWarn hide" id="logWarn"></div>
-      <div class="logForm"><button id="logSave" class="pri" data-i18n="logSave">현재 로그 저장</button><button id="logUpd" class="hide"></button><span id="logMsg" class="logMsg"></span></div>
+      <div class="logForm"><button id="logSave" class="pri" data-i18n="logSave">현재 로그 저장</button><span id="logMsg" class="logMsg"></span></div>
     </div>
   </div></div></div>
 </div>
@@ -1476,7 +1474,8 @@ function renderCal(){const a=load(),t=L();$('calTitle').textContent=t.ttl(vy,vm)
   for(let d=1;d<=days;d++){const k=vy+'-'+pad(vm)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}" data-d="${d}">${d}</div>`;}
   $('cal').innerHTML=h;$('logHint').textContent=t.hint;
   $('cal').querySelectorAll('.d').forEach(el=>el.onclick=()=>{Y=vy;M=vm;D=+el.dataset.d;CUR=null;const f=dayLogs()[0];
-    if(f&&f.time){T=Math.round(tmin(f.time)/10)*10%1440;}else{const n=new Date();T=Math.floor((n.getHours()*60+n.getMinutes())/10)*10;}S.start=T;drawProfile();show('ed');});}
+    if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');applyLog(f.id,true);return;}
+    const n=new Date();T=Math.floor((n.getHours()*60+n.getMinutes())/10)*10;S.start=T;drawProfile();show('ed');});}
 // --- 편집(휠)
 function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));
   wM.set(Array.from({length:12},(_,i)=>({h:t.m(i+1),has:a.some(x=>x.date.startsWith(Y+'-'+pad(i+1)+'-'))})),M-1);
@@ -1485,7 +1484,7 @@ function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));
   wT.set(Array.from({length:144},(_,i)=>({h:hhmm(i*10),has:times.has(i*10)})),T/10);
   const wd=new Date(Y,M-1,D).getDay();$('edTitle').textContent=t.ed(Y,M,D,t.wd[wd]);}
 function dayLogs(){return load().filter(x=>x.date===ymd()).sort((p,q)=>(p.time||'').localeCompare(q.time||''));}
-function dayChanged(){renderList();}
+function dayChanged(){const f=dayLogs()[0];if(f){applyLog(f.id,true);return;}renderList();}
 function renderList(){const t=L(),a=dayLogs();
   $('logList').innerHTML=a.length?a.map(x=>{const st=tmin(x.time);const clock=st!=null?`${x.time} ${t.in} → ${hhmm(st+x.sum.N0/60)} ${t.out}`:'';
     const meta=[x.sum.maxD+'m',Math.round(x.sum.N0/60)+t.min,x.sum.gas,x.sum.nd>1?t.dives(x.sum.nd):''].filter(Boolean).join(' · ');
@@ -1494,7 +1493,7 @@ function renderList(){const t=L(),a=dayLogs();
   $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id);});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.id;store(load().filter(x=>x.id!==id));if(CUR===id)CUR=null;renderSum();renderWheels();renderList();});
   if(!CUR){const f=a[0];$('logMemo').value=f?(f.memo||''):'';}
-  $('logUpd').classList.toggle('hide',!CUR);$('logUpd').textContent=t.updB;refreshSave();}
+  refreshSave();}
 function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}}
 function renderSum(){const n=load().length,t=L();$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
@@ -1506,19 +1505,15 @@ function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].
 function cmpKey(x){return [x.date,x.time||'',(x.memo||'').trim(),JSON.stringify(x.state)].join('|');}
 function curRec(){return {date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),state:snapState()};}
 function conflicts(exceptId){const s1=T,e1=T+Math.max(1,curSpan());return load().filter(x=>{if(x.id===exceptId||x.date!==ymd())return false;const s2=tmin(x.time);if(s2==null)return false;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return s1===s2||(s1<e2&&s2<e1);});}
-function refreshSave(){if(view!=='ed')return;const t=L(),a=load(),cur=curRec(),k=cmpKey(cur),hasPlan=S.dives.some(d=>d.pts.length>1);
-  const same=a.some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||same;
-  const ux=CUR&&a.find(x=>x.id===CUR);$('logUpd').disabled=!hasPlan||(ux&&cmpKey(ux)===k);
-  const cf=hasPlan&&!same?conflicts(CUR):[];const w=$('logWarn');if(cf.length){w.textContent=t.ovl(cf.map(x=>x.time).join(', '));w.classList.remove('hide');}else w.classList.add('hide');
-  $('logSave').title=same?t.same:'';}
+function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasPlan=S.dives.some(d=>d.pts.length>1);const same=load().some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||same;$('logSave').title=same?t.same:'';}
 function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
-function applyLog(id){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
+function applyLog(id,quiet){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
   S.dives=st.dives.map(d=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}));S.cur=0;
   const tm=tmin(x.time);if(tm!=null){T=Math.round(tm/10)*10%1440;S.start=tm;}else S.start=null;
   CUR=id;$('logMemo').value=x.memo||'';
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
-  renderWheels();renderList();msg(L().loaded+x.date+(x.time?' '+x.time:''));}
+  renderWheels();renderList();if(!quiet)msg(L().loaded+x.date+(x.time?' '+x.time:''));}
 let mt=0;function msg(t,bad){const el=view==='cal'?$('logHint'):$('logMsg');el.textContent=t;el.style.color=bad?'#b45309':'#0f9d7a';el.style.fontWeight='600';clearTimeout(mt);
   mt=setTimeout(()=>{$('logMsg').textContent='';const h=$('logHint');h.textContent=L().hint;h.style.color='';h.style.fontWeight='';},3500);}
 function afterSave(id){vy=Y;vm=M;CUR=id||null;renderSum();renderWheels();renderList();}
@@ -1528,12 +1523,10 @@ $('calPrev').onclick=()=>{vm--;if(vm<1){vm=12;vy--;}renderCal();};
 $('calNext').onclick=()=>{vm++;if(vm>12){vm=1;vy++;}renderCal();};
 $('logBack').onclick=()=>{vy=Y;vm=M;show('cal');};
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
-  const cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
+  const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);S.start=T;
   a.push({id,date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),saved:Date.now(),state:snapState(),sum:summary()});
-  if(!store(a)){msg(t.fail,true);return;}afterSave(id);if(cf.length)msg(t.repl(cf.length),true);else msg(t.saved);};
-$('logUpd').onclick=()=>{const t=L(),cf=conflicts(CUR),cfIds=new Set(cf.map(x=>x.id)),a=load().filter(x=>!cfIds.has(x.id)),x=a.find(v=>v.id===CUR);if(!x)return;S.start=T;
-  Object.assign(x,{date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),state:snapState(),sum:summary()});if(!store(a)){msg(t.fail,true);return;}afterSave(x.id);if(cf.length)msg(t.repl(cf.length),true);else msg(t.upd);};
+  if(!store(a)){msg(t.fail,true);return;}afterSave(id);const others=cf.filter(x=>x.id!==CUR0);if(others.length)msg(t.repl(others.length),true);else msg(cf.length?t.upd:t.saved);};
 const lb=$('logBtn');if(lb)lb.onclick=()=>{const n=new Date();Y=n.getFullYear();M=n.getMonth()+1;D=n.getDate();T=Math.floor((n.getHours()*60+n.getMinutes())/10)*10;S.start=T;CUR=null;drawProfile();
   if(!open){open=true;$('logWrap').classList.add('open');$('logHead').classList.add('open');setTitle(true);}show('ed');
   setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},50);};
