@@ -58,7 +58,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 @keyframes noteK{0%{opacity:0;transform:translate(-50%,-50%) scale(.92);box-shadow:0 0 0 0 rgba(125,211,252,.85)}15%{opacity:1;transform:translate(-50%,-50%) scale(1)}55%{box-shadow:0 0 0 22px rgba(125,211,252,0);opacity:1}100%{opacity:0;box-shadow:0 0 0 22px rgba(125,211,252,0);transform:translate(-50%,-50%) scale(1)}}
 .notePop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;background:#1b4277;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;white-space:nowrap;pointer-events:none;animation:noteK 1.8s ease-out forwards}
 #saveMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#saveMenu button{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}
-#snapMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#snapMenu>button{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#snapMenu>button:disabled{opacity:.4;cursor:default}#snapMenu .smList{display:flex;flex-direction:column;gap:6px;max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.55,0,1,.45)}#snapMenu .smList.open{padding-top:2px}#snapMenu .smPh{width:118px;height:118px;padding:0;border:1px solid var(--line);border-radius:6px;background:#eef2f6 center/cover no-repeat;align-self:center;flex-shrink:0}
+#snapMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#snapMenu>button{text-align:center;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#snapMenu>button:disabled{opacity:.4;cursor:default}#snapMenu .smList{display:flex;flex-direction:column;gap:6px;max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.55,0,1,.45)}#snapMenu .smList.open{padding-top:2px}#snapMenu .smPh{width:118px;height:118px;padding:0;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28);border-radius:6px;background:#eef2f6 center/cover no-repeat;align-self:center;flex-shrink:0}
 #ldWarn{position:fixed;inset:0;z-index:160;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:18px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
@@ -115,7 +115,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .lw .pad{height:80px;scroll-snap-align:none}
 .memoBox{position:relative;height:200px}.memoBox #logMemo{padding-bottom:48px}
 .phRow{position:absolute;left:6px;bottom:6px;display:flex;gap:4px}
-.phRow .ph{width:36px;height:36px;padding:0;border:1px solid rgba(15,42,61,.18);border-radius:5px;overflow:hidden;background:#eef2f6 center/cover no-repeat;flex-shrink:0}
+.phRow .ph{width:36px;height:36px;padding:0;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);border-radius:5px;overflow:hidden;background:#eef2f6 center/cover no-repeat;flex-shrink:0}
 .phRow .phAdd{width:36px;height:36px;padding:0;border:1.5px dashed #9ca3af;border-radius:5px;background:rgba(255,255,255,.7);color:#6b7280;display:flex;align-items:center;justify-content:center}
 .phRow .phAdd.busy{opacity:.5;pointer-events:none}
 #phView{position:fixed;inset:0;z-index:170;background:rgba(5,15,25,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
@@ -208,6 +208,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 @supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip):not(.ico):not(.setHead){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
 </style>
 <style>
+@font-face{font-family:'League Spartan';src:url(/fonts/league-spartan-latin-700-normal.woff2) format('woff2');font-weight:700;font-display:swap}
 html.spl body>*:not(#splash){visibility:hidden}
 #splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 #splash .spMid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;width:100%}
@@ -819,7 +820,7 @@ function drawProfile(){
   }
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
-        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),l3=diveClock(S.cur);cx.font='600 12px sans-serif';
+        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),l3=diveClock(S.cur);cx.font=window.SNAP?"700 13px 'League Spartan',sans-serif":'600 12px sans-serif';
         const isDeco=r&&r.ceil5.some(v=>v>0),hh=isDeco?18:0;
         const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,l3?cx.measureText(l3).width:0,isDeco?48:0)+12,th=36+hh+(l3?16:0);
         const hits=(bx,by)=>{if(!r)return false;for(let x=bx-2;x<=bx+tw+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+th+3)return true;}return false;};
@@ -832,7 +833,7 @@ function drawProfile(){
         cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle=isDeco?'#E31B3F':'#9ca3af';cx.lineWidth=1;
         cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();if(lift){cx.restore();cx.strokeStyle='#2f6fe4';cx.lineWidth=2;}cx.stroke();
         if(isDeco){cx.save();cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.clip();cx.fillStyle='#E31B3F';cx.fillRect(bx,by,tw,hh);cx.restore();
-          cx.font='800 12px sans-serif';cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+hh/2+.5);cx.font='600 12px sans-serif';}
+          cx.font='800 12px sans-serif';cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+hh/2+.5);cx.font=window.SNAP?"700 13px 'League Spartan',sans-serif":'600 12px sans-serif';}
         cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+hh+10.5);cx.fillText(l2,bx+6,by+hh+26);if(l3){cx.fillStyle='#2f6fe4';cx.fillText(l3,bx+6,by+hh+42);}if(SNPL)cx.restore();
       }
   }
@@ -1500,7 +1501,7 @@ async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=
   if(WH){g.fillStyle='#E31B3F';g.beginPath();g.roundRect?g.roundRect(RX,ry,RW,WH,10):g.rect(RX,ry,RW,WH);g.fill();g.fillStyle='#fff';g.font='700 22px '+ff;g.textBaseline='middle';
     wl.forEach((t,i)=>g.fillText(t,RX+14,ry+10+15+i*30));ry+=WH+12;}
   const CW=(RW-8)/2;g.textBaseline='middle';tiles.forEach(([k,v,c],i)=>{const tx=RX+(i%2)*(CW+8),ty=ry+Math.floor(i/2)*50;g.fillStyle='#f3f4f6';g.beginPath();g.roundRect?g.roundRect(tx,ty,CW,44,8):g.rect(tx,ty,CW,44);g.fill();
-    g.fillStyle='#6b7280';g.font='400 19px '+ff;g.textAlign='left';g.fillText(k,tx+10,ty+22);g.fillStyle=c||'#1f2328';g.font='700 23px '+ff;g.textAlign='right';g.fillText(v,tx+CW-10,ty+23);g.textAlign='left';});
+    g.fillStyle='#6b7280';g.font='400 19px '+ff;g.textAlign='left';g.fillText(k,tx+10,ty+22);g.fillStyle=c||'#1f2328';g.font="700 25px 'League Spartan',"+ff;g.textAlign='right';g.fillText(v,tx+CW-10,ty+25);g.textAlign='left';});
   // 좌하단 DTMD 태그(포토 로그와 같은 모양)
   g.font='900 24px '+ff;const bw=(g.measureText('DTMD').width+24)*1.5;g.fillStyle='#E31B3F';g.fillRect(0,H-40,bw,40);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='alphabetic';g.fillText('DTMD',bw/2,H-11);
   // DTMD 옆: 날짜·지명(파란색) / 오른쪽 끝: 주소
@@ -1514,6 +1515,7 @@ async function shareCanvas(el,kind){const blob=await new Promise(r=>el.toBlob(r,
   if(navigator.canShare&&navigator.canShare({files:[file]})&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({files:[file],title:tr('h1')});return;}catch(e){if(e&&e.name==='AbortError')return;}}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
 async function dataSnap(plP){try{const pl=plP?await plP:'';await shareCanvas(await make(pl),'data');}catch(e){console.error(e);}}
+try{document.fonts&&document.fonts.load("700 20px 'League Spartan'");}catch(e){}
 // ===== 포토 로그: 사진 위에 핵심 정보 + 흰 선 수심 그래프 + DTMD 블록 =====
 // 장소: 메모의 GPS로 영어 약식(Danao, Bohol, PH) 조회(기기에 캐시), 실패하면 메모의 '장소:' 줄
 function memoGPS(m){const k=(m||'').match(/GPS\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i);return k?{lat:+k[1],lon:+k[2]}:null;}
@@ -1535,9 +1537,10 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
   path();g.lineTo(W,H);g.lineTo(0,H);g.closePath();const rg=g.createRadialGradient(0,H,0,0,H,760*k);rg.addColorStop(0,'rgba(14,140,230,.55)');rg.addColorStop(.55,'rgba(14,140,230,.22)');rg.addColorStop(1,'rgba(14,140,230,0)');g.fillStyle=rg;g.fill();
   path();g.strokeStyle='#fff';g.lineWidth=3*k;g.lineJoin='round';g.stroke();
   const txt=(t,x,y,size,wt,al)=>{g.font=wt+' '+size*k+'px '+ff;g.textAlign=al||'left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
+  let ff2=ff;const txtF=(t,x,y,size)=>{g.font='700 '+size*k+'px '+ff2;g.textAlign='left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
   const lg=window.__log,date=(lg?lg.ymd:'').replace(/-/g,'/'),gas=r.c.fO2>0.215?'EAN'+Math.round(r.c.fO2*100):'Air';
   const meta=[place,date,'GF'+S.gfLo+'/'+S.gfHi,gas].filter(Boolean).join('  ·  ');
-  txt(meta,44*k,66*k,26,300);txt(DU(r.maxD.toFixed(1))+'  ·  '+fmt(r.N),42*k,128*k,56,800);
+  txt(meta,44*k,66*k,26,300);{const f0=ff;ff2="'League Spartan',"+f0;}txtF(DU(r.maxD.toFixed(1))+'  ·  '+fmt(r.N),42*k,130*k,60);
   g.font='900 '+24*k+'px '+ff;const bw=(g.measureText('DTMD').width+24*k)*1.5,bh=40*k;g.fillStyle='#E31B3F';g.fillRect(0,H-bh,bw,bh);g.fillStyle='#fff';g.textAlign='center';g.fillText('DTMD',bw/2,H-11*k);
   txt('moneypie.kr / scuba',W-36*k,H-20*k,23,400,'right');
   return el;}
