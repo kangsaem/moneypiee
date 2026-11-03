@@ -183,7 +183,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .summary .pl{margin-top:4px;padding-top:4px;border-top:1px solid var(--line)}
 .warn{color:var(--up)}
 .play{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 2px}
-.play .icos{display:inline-flex;gap:6px}.ico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#1f2937;background:#0ea5e9;border-color:#0ea5e9}.ico svg{width:22px;height:22px}.ico svg rect,.ico svg circle,.ico svg path{fill:#fff}
+.play .icos{display:inline-flex;gap:6px}.ico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#1f2937;background:#2f6fe4;border-color:#2f6fe4}.ico svg{width:22px;height:22px}
 .big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:34px;padding:0;flex-shrink:0;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
 /* 질소 + 통계 */
 .split{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
@@ -328,7 +328,7 @@ html.spl body>*:not(#splash){visibility:hidden}
   <div class="play">
     <button class="big" id="playBtn" title="플레이"></button>
     <span class="seg"><button data-sp="0.5">0.5×</button><button data-sp="1" class="on">1×</button><button data-sp="2">2×</button></span>
-    <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><circle cx="12" cy="13.5" r="3.5"/></svg></button><button class="ico" id="logBtn" title="저장(사진 포함 ZIP)" aria-label="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button><button class="ico" id="loadBtn" title="불러오기(ZIP·JSON)" aria-label="load"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 7v12h15l3-8H6l-3 8"/></svg></button><input type="file" id="jsonIn" accept=".zip,.json,.txt,application/zip,application/json,text/plain" hidden></span>
+    <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8.5 7l1.5-3h4l1.5 3" fill="#fff"/><rect x="3" y="7" width="18" height="13" rx="2" fill="#fff"/><circle cx="12" cy="13.5" r="3.5" fill="#fff"/></svg></button><button class="ico" id="logBtn" title="저장(사진 포함 ZIP)" aria-label="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z" fill="#fff"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button><button class="ico" id="loadBtn" title="불러오기(ZIP·JSON)" aria-label="load"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1V19H3z" fill="#fff"/><path d="M3 19l3-8h15l-3 8z" fill="#fff"/></svg></button><input type="file" id="jsonIn" accept=".zip,.json,.txt,application/zip,application/json,text/plain" hidden></span>
   </div>
 </div>
 
