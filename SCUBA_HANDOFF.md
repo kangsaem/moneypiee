@@ -87,3 +87,5 @@
 - 파일: dtmd-icon-180.png(apple-touch-icon) · dtmd-icon-192/512.png(manifest) · dtmd-favicon-16/32/48.png(문구 없는 버전, 크롬 탭·즐겨찾기바) · dtmd.webmanifest(start_url·scope /scuba, short_name DTMD).
 - scuba.html head에 icon·apple-touch-icon·manifest·apple-mobile-web-app-title(DTMD) 추가. 다른 하위 페이지는 사용 안 함(사용자) → 그대로.
 - 이미 홈 화면에 추가한 아이콘은 지우고 다시 추가해야 바뀜. 브라우저 즐겨찾기 아이콘은 캐시 때문에 늦게 바뀔 수 있음.
+- 14:20 수정: 아이콘에 위쪽 전체·왼쪽 위 모서리 흰 반사띠(진하게) + 흰 띠 양 끝을 둥근 테두리(빨강 3.5%) 안에서 끝나게. 다이버는 두 다리·오리발 모두 보이는 버전.
+- 시작 화면(홈 화면 앱이 열릴 때): 빨간 바탕(#d3101e) + 가운데 아이콘(화면 폭 36%) 이미지 11종 `dtmd-launch/{W}x{H}.png`, scuba.html에 apple-touch-startup-image(기종별 media). manifest background_color도 빨강. iOS 버전에 따라 무시될 수 있음(효과 미확인). 이미 추가한 홈 화면 아이콘은 지우고 다시 추가해야 반영.
