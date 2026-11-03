@@ -1451,9 +1451,37 @@ function lines(){const r=RES[S.cur],dv=dive(),c=r.c;const out=[];
   const w=document.getElementById('warnBox');if(w&&!w.classList.contains('hide')&&w.innerText.trim())out.push(w.innerText.trim().split('\n').join('   '));
   return out;}
 // 메모에서 지명·슈트 두께·시야 찾기
-function memoTags(m,plOv){if(!m&&!plOv)return [];m=m||'';const L=m.split('\n').map(x=>x.trim()).filter(Boolean),out=[];
-  let place=null;for(const l of L){const k=l.match(/^(?:장소|포인트|지명|다이빙\s*포인트|place|point|spot|ポイント|場所)\s*[:：]?\s*(.+)$/i);if(k){place=k[1];break;}}
-  if(!place)place=L.find(l=>!/\d/.test(l)&&!/(슈트|suit|웨이트|weight|기온|수온|시야|visib|gps|fit|생물|life|°|スーツ|ウェイト|透明度|水温|気温)/i.test(l)&&l.length<=24)||null;
+// ===== 지명 고르기 =====
+// 순서: ① 사용자가 쓴 '장소/포인트/place/point/ポイント/場所…' 줄 ② 나라 이름이 든 줄 ③ (포토 로그만) GPS 영어 지명
+//       ④ FIT가 자동으로 쓴 '위치/Location/位置' 줄 ⑤ 메모 첫머리 추측(숫자·장비 단어 없는 짧은 줄)
+const PL_USER=/^(?:장소|포인트|지명|다이빙\s*포인트|place|point|spot|dive\s*site|ポイント|場所)\s*[:：]?\s*(.+)$/i,PL_AUTO=/^(?:위치|location|位置)\s*[:：]\s*(.+)$/i;
+const CTRY=[['KR','대한민국|한국','South Korea|Korea','韓国'],['PH','필리핀','Philippines','フィリピン'],['ID','인도네시아','Indonesia','インドネシア'],['TH','태국','Thailand','タイ'],['MY','말레이시아','Malaysia','マレーシア'],
+  ['VN','베트남','Vietnam|Viet Nam','ベトナム'],['JP','일본','Japan','日本'],['TW','대만','Taiwan','台湾'],['CN','중국','China','中国'],['MV','몰디브','Maldives','モルディブ'],['PW','팔라우','Palau','パラオ'],
+  ['FM','미크로네시아|축','Micronesia|Chuuk','ミクロネシア|チューク'],['GU','괌','Guam','グアム'],['MP','사이판|북마리아나','Saipan|Northern Mariana','サイパン'],['EG','이집트','Egypt','エジプト'],['MX','멕시코','Mexico','メキシコ'],
+  ['AU','호주|오스트레일리아','Australia','オーストラリア'],['FJ','피지','Fiji','フィジー'],['US','미국|하와이','USA|United States|Hawaii','アメリカ|ハワイ'],['PG','파푸아뉴기니','Papua New Guinea','パプアニューギニア'],
+  ['SB','솔로몬','Solomon','ソロモン'],['LK','스리랑카','Sri Lanka','スリランカ'],['MT','몰타','Malta','マルタ'],['HR','크로아티아','Croatia','クロアチア'],['GR','그리스','Greece','ギリシャ'],['TR','터키|튀르키예','Turkey|Türkiye','トルコ'],
+  ['EC','에콰도르|갈라파고스','Ecuador|Galapagos','エクアドル|ガラパゴス'],['BZ','벨리즈','Belize','ベリーズ'],['BS','바하마','Bahamas','バハマ'],['CU','쿠바','Cuba','キューバ'],['KH','캄보디아','Cambodia','カンボジア'],
+  ['MM','미얀마','Myanmar','ミャンマー'],['NC','뉴칼레도니아','New Caledonia','ニューカレドニア'],['PF','타히티|폴리네시아','Tahiti|Polynesia','タヒチ|ポリネシア'],['NZ','뉴질랜드','New Zealand','ニュージーランド']]
+  .map(([c,ko,en,ja])=>({c,re:new RegExp('('+ko+'|'+ja+')|\\b('+en+')\\b','gi'),kj:new RegExp(ko+'|'+ja,'g')}));
+function hasCtry(l){return CTRY.some(x=>{x.re.lastIndex=0;return x.re.test(l);});}
+function pickPlace(m){const L=(m||'').split('\n').map(x=>x.trim()).filter(Boolean);let k;
+  for(const l of L)if((k=l.match(PL_USER)))return {t:k[1].trim(),line:l,src:'user'};
+  for(const l of L)if(!/gps|\(fit\)|°/i.test(l)&&!PL_AUTO.test(l)&&l.length<=40&&hasCtry(l))return {t:l,line:l,src:'ctry'};
+  for(const l of L)if((k=l.match(PL_AUTO)))return {t:k[1].trim(),line:l,src:'auto'};
+  const g=L.find(l=>!/\d/.test(l)&&!/(슈트|suit|웨이트|weight|기온|수온|시야|visib|gps|fit|생물|life|°|スーツ|ウェイト|透明度|水温|気温)/i.test(l)&&l.length<=24);
+  return g?{t:g,line:g,src:'guess'}:{t:'',line:null,src:''};}
+// 영어로: 나라 이름 → 코드(PH 등), 한글 → 로마자(국어의 로마자 표기 기본 규칙, 단어 첫 글자 대문자)
+function romanKo(t){const I=['g','kk','n','d','tt','r','m','b','pp','s','ss','','j','jj','ch','k','t','p','h'],V=['a','ae','ya','yae','eo','e','yeo','ye','o','wa','wae','oe','yo','u','wo','we','wi','yu','eu','ui','i'],
+  F=['','k','k','k','n','n','n','t','l','k','m','l','l','l','p','l','m','p','p','t','t','ng','t','t','k','t','p','t'],
+  LI={1:'g',2:'kk',3:'ks',4:'n',5:'nj',6:'n',7:'d',8:'r',9:'lg',10:'lm',11:'lb',12:'ls',13:'lt',14:'lp',15:'r',16:'m',17:'b',18:'ps',19:'s',20:'ss',21:'ng',22:'j',23:'ch',24:'k',25:'t',26:'p',27:''};
+  const cs=[...t],sy=cs.map(ch=>{const c=ch.charCodeAt(0)-0xAC00;return c>=0&&c<=11171?{i:Math.floor(c/588),v:Math.floor(c%588/28),f:c%28}:null;});let out='';
+  cs.forEach((ch,k)=>{const x=sy[k];if(!x){out+=ch;return;}const p=sy[k-1];let ini=I[x.i];if(p&&p.f===8&&x.i===5)ini='l';out+=ini+V[x.v];
+    if(x.f){const n=sy[k+1];out+=(n&&n.i===11)?LI[x.f]:(n&&n.i===5&&x.f===8)?'l':F[x.f];}});
+  return out.replace(/(^|[\s,.\-\/(])([a-z])/g,(a,b,c)=>b+c.toUpperCase());}
+function placeToEN(t){let s=t;CTRY.forEach(x=>{s=s.replace(x.kj,x.c);});if(/[가-힣]/.test(s))s=romanKo(s);return s.replace(/\s{2,}/g,' ').trim();}
+const nonLatin=t=>/[぀-ヿ㐀-鿿가-힣]/.test(t);
+function memoTags(m,plOv){if(!m&&!plOv)return [];m=m||'';const out=[];
+  const pp=pickPlace(m);let place=pp.t;out.placeLine=pp.line;
   if(plOv)place=plOv;out.place=place||'';
   const su=m.match(/(?:슈트|suit|wetsuit|スーツ|ウェット)[^\n\d]*(\d+(?:\.\d+)?)\s*mm/i)||m.match(/(\d+(?:\.\d+)?)\s*mm/i);if(su)out.push((LANG==='en'?'Suit ':LANG==='ja'?'スーツ ':'슈트 ')+su[1]+'mm');
   const vi=m.match(/(?:시야|visibility|vis|透明度)\s*[:：]?\s*(\d+(?:\.\d+)?)\s*m/i);if(vi)out.push((LANG==='en'?'Vis ':LANG==='ja'?'透明度 ':'시야 ')+vi[1]+'m');
@@ -1479,8 +1507,7 @@ async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=
   // 맨 위: 1줄 = 날짜·지역·기체·GF·탱크(조금 큰 글씨) / 아래 최대 3줄 = 메모(지명 줄 제외, ' · '로 이음)
   const lg=window.__log,has=S.start!=null&&lg,dt=has?lg.ymd.replace(/-/g,'/'):'',memo=has?(lg.memo||''):'';
   const mt=memoTags(memo,plEN||''),place=(mt&&mt.place)||'';
-  const KEY=/^(?:장소|포인트|지명|다이빙\s*포인트|place|point|spot|ポイント|場所)\s*[:：]?/i;
-  const mrest=memo.split('\n').map(x=>x.trim()).filter(Boolean).filter(l=>!KEY.test(l)&&l!==mt.place).join('  ·  ');
+  const mrest=memo.split('\n').map(x=>x.trim()).filter(Boolean).filter(l=>!PL_USER.test(l)&&!PL_AUTO.test(l)&&l!==mt.placeLine).join('  ·  ');
   const F1=26,F2=21,L1=[dt,place,set1].filter(Boolean).join('  ·  ');
   tmp.font='400 '+F2+'px '+ff;const wrapC=(t,mw)=>{const out=[];let cur='';for(const ch of t){const n=cur+ch;if(cur&&tmp.measureText(n).width>mw&&!/[、。，．・）」』,.)]/.test(ch)){let k=cur.lastIndexOf(' ');if(k>0&&cur.length-k<12){out.push(cur.slice(0,k));cur=cur.slice(k+1)+ch;}else{out.push(cur);cur=ch.trim()?ch:'';}}else cur=n;}if(cur.trim())out.push(cur);return out;};
   let ml=mrest?wrapC(mrest,CWID):[];if(ml.length>3){ml=ml.slice(0,3);ml[2]=ml[2].replace(/.{0,2}$/,'')+'…';}
@@ -1516,7 +1543,10 @@ async function dataSnap(plP){try{const pl=plP?await plP:'';await shareCanvas(awa
 // ===== 포토 로그: 사진 위에 핵심 정보 + 흰 선 수심 그래프 + DTMD 블록 =====
 // 장소: 메모의 GPS로 영어 약식(Danao, Bohol, PH) 조회(기기에 캐시), 실패하면 메모의 '장소:' 줄
 function memoGPS(m){const k=(m||'').match(/GPS\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i);return k?{lat:+k[1],lon:+k[2]}:null;}
-async function placeEN(m){const g=memoGPS(m),fb=(()=>{const k=(m||'').match(/^(?:장소|place|場所)\s*[:：]\s*(.+)$/im);return k?k[1].trim():'';})();if(!g)return fb;
+async function placeEN(m){const g=memoGPS(m),pp=pickPlace(m);
+  // 사용자 지명·나라 이름 줄이 있으면 그것을 영어로(한글은 로마자). 영어로 못 바꾸는 글자(한자·가나)가 남고 GPS가 있으면 GPS 영어 지명
+  if(pp.src==='user'||pp.src==='ctry'){const e=placeToEN(pp.t);if(!nonLatin(e)||!g)return e;}
+  const fb=pp.t?placeToEN(pp.t):'';if(!g)return fb;
   const key='scuba_plEN_'+g.lat.toFixed(3)+','+g.lon.toFixed(3);try{const c=localStorage.getItem(key);if(c)return c;}catch(e){}
   try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),5000);const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=en&lat='+g.lat.toFixed(5)+'&lon='+g.lon.toFixed(5),{signal:ac.signal});clearTimeout(tm);
     if(!r.ok)return fb;const j=await r.json(),a=j.address||{};const loc=a.village||a.suburb||a.hamlet||a.town||a.city||a.municipality||a.county||a.island||j.name;
@@ -1620,9 +1650,9 @@ const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
 const pad=n=>String(n).padStart(2,'0');
-const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',svFile:'Save',svShare:'Share',cancel2:'Cancel',noShare:'This browser cannot share files. Save as a file instead.',noPrev:'No earlier logs',noNext:'No later logs',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
- :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',svFile:'保存',svShare:'共有',cancel2:'キャンセル',noShare:'このブラウザはファイル共有に対応していません。ファイルに保存してください。',noPrev:'前のログはありません',noNext:'後のログはありません',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
- :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',svFile:'저장하기',svShare:'공유하기',cancel2:'취소',noShare:'이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장해 보내 주세요.',noPrev:'이전 로그가 없습니다',noNext:'이후 로그가 없습니다',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
+const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Place: Blue Corner\nSuit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',svFile:'Save',svShare:'Share',cancel2:'Cancel',noShare:'This browser cannot share files. Save as a file instead.',noPrev:'No earlier logs',noNext:'No later logs',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
+ :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'場所: 青の洞窟\nスーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',svFile:'保存',svShare:'共有',cancel2:'キャンセル',noShare:'このブラウザはファイル共有に対応していません。ファイルに保存してください。',noPrev:'前のログはありません',noNext:'後のログはありません',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
+ :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'장소: 문섬\n슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',svFile:'저장하기',svShare:'공유하기',cancel2:'취소',noShare:'이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장해 보내 주세요.',noPrev:'이전 로그가 없습니다',noNext:'이후 로그가 없습니다',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
 const now=new Date();let vy=now.getFullYear(),vm=now.getMonth()+1;   // 달력에 보이는 달
 let Y=vy,M=vm,D=now.getDate(),T=Math.floor((now.getHours()*60+now.getMinutes())/10)*10,open=false,view='cal',CUR=null;
 const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.split(':').map(Number);return h*60+m;};
@@ -1805,7 +1835,7 @@ $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if
   const off=dives[0].localOff!=null?dives[0].localOff:-new Date(dives[0].startUTC*1000).getTimezoneOffset()*60;
   const loc=u=>new Date((u+off)*1000);const l0=loc(dives[0].startUTC);const date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
   const minOf=u=>{const d=loc(u);return d.getUTCHours()*60+d.getUTCMinutes()+d.getUTCSeconds()/60;};
-  const PL=LANG==='en'?'Place: ':LANG==='ja'?'場所: ':'장소: ',WT=LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ';
+  const PL=LANG==='en'?'Location: ':LANG==='ja'?'位置: ':'위치: ',WT=LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ';
   for(const d of dives){d.place=d.gps?await placeName(d.gps.lat,d.gps.lon):null;}
   const imp=dives.map(d=>({s:minOf(d.startUTC),dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true,
     memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps?('GPS '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
