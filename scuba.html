@@ -1521,7 +1521,7 @@ function applyLog(id){const x=load().find(v=>v.id===id);if(!x)return;const st=x.
   renderWheels();renderList();msg(L().loaded+x.date+(x.time?' '+x.time:''));}
 let mt=0;function msg(t,bad){const el=view==='cal'?$('logHint'):$('logMsg');el.textContent=t;el.style.color=bad?'#b45309':'#0f9d7a';el.style.fontWeight='600';clearTimeout(mt);
   mt=setTimeout(()=>{$('logMsg').textContent='';const h=$('logHint');h.textContent=L().hint;h.style.color='';h.style.fontWeight='';},3500);}
-function afterSave(){vy=Y;vm=M;renderSum();show('cal');}
+function afterSave(id){vy=Y;vm=M;CUR=id||null;renderSum();renderWheels();renderList();}
 $('logHead').onclick=()=>{open=!open;sync();};
 window.toggleLogbook=()=>{open=!open;sync();if(open)setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},60);else window.scrollTo({top:0,behavior:'smooth'});};
 $('calPrev').onclick=()=>{vm--;if(vm<1){vm=12;vy--;}renderCal();};
@@ -1531,9 +1531,9 @@ $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t
   const cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);S.start=T;
   a.push({id,date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),saved:Date.now(),state:snapState(),sum:summary()});
-  if(!store(a)){msg(t.fail,true);return;}CUR=null;afterSave();if(cf.length)msg(t.repl(cf.length),true);else msg(t.saved);};
+  if(!store(a)){msg(t.fail,true);return;}afterSave(id);if(cf.length)msg(t.repl(cf.length),true);else msg(t.saved);};
 $('logUpd').onclick=()=>{const t=L(),cf=conflicts(CUR),cfIds=new Set(cf.map(x=>x.id)),a=load().filter(x=>!cfIds.has(x.id)),x=a.find(v=>v.id===CUR);if(!x)return;S.start=T;
-  Object.assign(x,{date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),state:snapState(),sum:summary()});if(!store(a)){msg(t.fail,true);return;}CUR=null;afterSave();if(cf.length)msg(t.repl(cf.length),true);else msg(t.upd);};
+  Object.assign(x,{date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),state:snapState(),sum:summary()});if(!store(a)){msg(t.fail,true);return;}afterSave(x.id);if(cf.length)msg(t.repl(cf.length),true);else msg(t.upd);};
 const lb=$('logBtn');if(lb)lb.onclick=()=>{const n=new Date();Y=n.getFullYear();M=n.getMonth()+1;D=n.getDate();T=Math.floor((n.getHours()*60+n.getMinutes())/10)*10;S.start=T;CUR=null;drawProfile();
   if(!open){open=true;$('logWrap').classList.add('open');$('logHead').classList.add('open');setTitle(true);}show('ed');
   setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},50);};
