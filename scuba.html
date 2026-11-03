@@ -119,6 +119,8 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .phRow .phAdd{width:36px;height:36px;padding:0;border:1.5px dashed #9ca3af;border-radius:5px;background:rgba(255,255,255,.7);color:#6b7280;display:flex;align-items:center;justify-content:center}
 .phRow .phAdd.busy{opacity:.5;pointer-events:none}
 #tabsCard.flipOut{animation:tabOut .3s ease-in forwards;transform-origin:50% 50%}#tabsCard.flipIn{animation:tabIn .35s ease-out;transform-origin:50% 50%}@keyframes tabOut{0%{transform:perspective(600px) rotateX(0);opacity:1}100%{transform:perspective(600px) rotateX(-90deg);opacity:.2}}@keyframes tabIn{0%{transform:perspective(600px) rotateX(90deg);opacity:.2}100%{transform:perspective(600px) rotateX(0);opacity:1}}
+#mapPop{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:120;width:min(360px,calc(100vw - 20px));background:#fff;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.3);overflow:hidden}#mapPop .mpHd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 6px 6px 10px;background:#1b4277;color:#fff;font-size:13px;font-weight:700}#mapPop .mpT{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#mapPop .mpX{width:28px;height:28px;min-width:0;padding:0;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:20px;line-height:1;border-radius:5px;flex-shrink:0}#mapPop .mpB{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;background:#e5e7eb;touch-action:none;cursor:grab}#mapPop .mpB.drag{cursor:grabbing}#mapPop .mpTile{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}#mapPop .mpPin{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#E31B3F;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);z-index:2;pointer-events:none}#mapPop .mpAt{position:absolute;right:3px;bottom:2px;z-index:3;font-size:10px;color:#374151;background:rgba(255,255,255,.75);padding:0 3px;border-radius:2px;text-decoration:none}
+.logList .li .mapb{padding:4px 9px;font-size:12px;font-weight:700;color:#fff;background:#0ea5e9;border-color:#0ea5e9;margin-right:-4px;white-space:nowrap}
 #phView{position:fixed;inset:0;z-index:170;background:rgba(5,15,25,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
 #phView img{max-width:100%;max-height:calc(100% - 120px);border-radius:6px;object-fit:contain}
 #phView .pvNav{display:flex;align-items:center;gap:18px;color:rgba(255,255,255,.8);font-size:14px;font-variant-numeric:tabular-nums}#phView .pvNav button{width:30px;height:26px;min-width:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px}#phView .pvNav svg{width:12px;height:12px;display:block}#phView .pvNav button:disabled{opacity:.25}
@@ -1791,7 +1793,7 @@ function renderList(){const t=L(),a=dayLogs(),items=[];
     rows.forEach(r=>{items.push({st:r.st,h:(()=>{const clock=r.st!=null?`${hhmm(r.st)} → ${hhmm(r.st+r.N/60)}`:'';
       const meta=[(multi?(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,x.sum.gas].filter(Boolean).join(' · ');
       const sel=x.id===CUR&&r.i===S.cur;
-      return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${(m1=>m1?'<div class="mm">'+m1+'</div>':'')(diveMemo(x,r.i).split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,''))}</div><button class="dlog" data-id="${x.id}" data-i="${r.i}">${LANG==='en'?'Data log':LANG==='ja'?'データログ':'데이터 로그'}</button><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;})()});});});
+      return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${(m1=>m1?'<div class="mm">'+m1+'</div>':'')(diveMemo(x,r.i).split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,''))}</div>${/GPS\s*-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?/i.test(diveMemo(x,r.i)||'')?`<button class="mapb" data-id="${x.id}" data-i="${r.i}">${LANG==='en'?'Map':LANG==='ja'?'地図':'지도'}</button>`:''}<button class="dlog" data-id="${x.id}" data-i="${r.i}">${LANG==='en'?'Data log':LANG==='ja'?'データログ':'데이터 로그'}</button><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;})()});});});
   // 저장 전 다이빙도 점선 줄로 미리 보여 줌: 저장된 로그에 새로 붙인 다이빙, 또는 아직 저장 안 한 새 로그의 다이빙
   if(view==='ed'){const sv=CUR?load().find(v=>v.id===CUR):null,n0=sv?((sv.state&&sv.state.dives)||[]).length:0,multi=S.dives.length>1,gas=S.o2<=21?tr('sAir'):'EAN'+S.o2,dn=LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ',pend=LANG==='en'?'not saved':LANG==='ja'?'未保存':'저장 전';
     let blank=false;
@@ -1812,8 +1814,10 @@ function renderList(){const t=L(),a=dayLogs(),items=[];
   $('logList').innerHTML=items.map(v=>v.h).join('');
   $('logList').querySelectorAll('.li.draft.other').forEach(el=>el.onclick=e=>{e.stopPropagation();const k=el.dataset.k,i=+el.dataset.di;if(k==='new')openNewDraft(i);else applyLog(k,true,i);});
   $('logList').querySelectorAll('.li.draft:not(.ph):not(.other)').forEach(el=>el.onclick=()=>{S.cur=+el.dataset.di;if(typeof renderTabs==='function')renderTabs();syncForm();recompute();});
+  $('logList').querySelectorAll('.mapb').forEach(b=>b.onclick=e=>{e.stopPropagation();const x=load().find(v=>v.id===b.dataset.id);if(!x)return;const m=(diveMemo(x,+b.dataset.i)||'').match(/GPS\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i);if(!m)return;
+    const pl=((diveMemo(x,+b.dataset.i)||'').split('\n').map(l=>l.trim()).find(l=>/^(?:장소|포인트|위치|place|point|location|場所|位置|ポイント)\s*[:：]/i.test(l))||'').replace(/^[^:：]*[:：]\s*/,'');openMap(+m[1],+m[2],[x.date.replace(/-/g,'/'),pl].filter(Boolean).join(' · '));});
   $('logList').querySelectorAll('.dlog').forEach(b=>b.onclick=async e=>{e.stopPropagation();applyLog(b.dataset.id,false,+b.dataset.i||0);await new Promise(r=>setTimeout(r,60));window.__dataSnap&&window.__dataSnap(null);});
-  $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>el.onclick=e=>{if(e.target.closest('.del,.dlog'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
+  $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>el.onclick=e=>{if(e.target.closest('.del,.dlog,.mapb'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();askDel().then(ok=>{if(ok)delRow(b.dataset.id,+b.dataset.i||0);});});
   curMemoSync();if(view==='ed')syncTW();
   refreshSave();}
@@ -1823,6 +1827,25 @@ function askDel(kind){return new Promise(ok=>{const ph=kind==='photo',W=LANG==='
   ov.querySelector('p').textContent=W.b;const c=ov.querySelector('.lwC'),d=ov.querySelector('.lwD');c.textContent=W.c;d.textContent=W.d;
   const done=v=>{ov.remove();ok(v);};ov.onclick=e=>{if(e.target===ov)done(false);};c.onclick=()=>done(false);d.onclick=()=>done(true);document.body.appendChild(ov);});}
 window.__askDel=askDel;
+// ===== 지도(OpenStreetMap 타일) =====
+function openMap(lat,lon,title){let box=document.getElementById('mapPop');if(box)box.remove();
+  box=document.createElement('div');box.id='mapPop';box.innerHTML='<div class="mpHd"><span class="mpT"></span><button class="mpX" aria-label="close">×</button></div><div class="mpB"><div class="mpPin"></div><a class="mpAt" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a></div>';
+  box.querySelector('.mpT').textContent=title||'';document.body.appendChild(box);box.querySelector('.mpX').onclick=()=>box.remove();
+  const body=box.querySelector('.mpB'),pin=box.querySelector('.mpPin'),w=body.clientWidth,h=body.clientHeight;
+  // 가로 약 3km가 보이는 배율: 위도에 따른 m/px로 소수 줌 → 정수 줌 타일을 그 배율로 확대
+  const mpp=3000/w,zf=Math.log2(156543.03*Math.cos(lat*Math.PI/180)/mpp),z=Math.max(1,Math.min(18,Math.floor(zf))),sc=Math.pow(2,Math.min(18,zf)-z),N=Math.pow(2,z)*256;
+  const wx=(lon+180)/360*N,wy=(1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*N;let cx=wx,cy=wy;const tiles=new Map(),T=256*sc;
+  const draw=()=>{const x0=cx-w/2/sc,y0=cy-h/2/sc,tx0=Math.floor(x0/256),ty0=Math.floor(y0/256),tx1=Math.floor((cx+w/2/sc)/256),ty1=Math.floor((cy+h/2/sc)/256),keep=new Set(),n=Math.pow(2,z);
+    for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++){if(ty<0||ty>=n)continue;const k=tx+'/'+ty;keep.add(k);let im=tiles.get(k);
+      if(!im){im=new Image();im.className='mpTile';im.draggable=false;im.alt='';im.onerror=()=>{im.style.visibility='hidden';};im.src='https://tile.openstreetmap.org/'+z+'/'+(((tx%n)+n)%n)+'/'+ty+'.png';body.insertBefore(im,pin);tiles.set(k,im);}
+      im.style.left=((tx*256-cx)*sc+w/2)+'px';im.style.top=((ty*256-cy)*sc+h/2)+'px';im.style.width=im.style.height=Math.ceil(T)+1+'px';}
+    tiles.forEach((im,k)=>{if(!keep.has(k)){im.remove();tiles.delete(k);}});
+    pin.style.left=((wx-cx)*sc+w/2)+'px';pin.style.top=((wy-cy)*sc+h/2)+'px';};
+  draw();let dg=null;
+  body.addEventListener('pointerdown',e=>{if(e.target.closest('.mpAt'))return;dg={x:e.clientX,y:e.clientY,cx,cy};body.setPointerCapture(e.pointerId);body.classList.add('drag');e.preventDefault();});
+  body.addEventListener('pointermove',e=>{if(!dg)return;cx=dg.cx-(e.clientX-dg.x)/sc;cy=dg.cy-(e.clientY-dg.y)/sc;draw();});
+  const up=()=>{dg=null;body.classList.remove('drag');};body.addEventListener('pointerup',up);body.addEventListener('pointercancel',up);}
+window.__openMap=openMap;
 function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.state&&x.state.dives||[]).length;
   if(n<=1){store(load().filter(v=>v.id!==id));if(CUR===id){CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;renderTabs();syncForm();recompute();}renderSum();renderWheels();renderList();return;}
   if(CUR!==id)applyLog(id,true,i);removeDiveAt(i);}
