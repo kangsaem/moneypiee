@@ -120,7 +120,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .phRow .phAdd.busy{opacity:.5;pointer-events:none}
 #phView{position:fixed;inset:0;z-index:170;background:rgba(5,15,25,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
 #phView img{max-width:100%;max-height:calc(100% - 70px);border-radius:6px;object-fit:contain}
-#phView .pvB{display:flex;gap:10px}#phView .pvB button{min-width:84px}#phView .pvDel{background:#E31B3F;color:#fff;border-color:#E31B3F}
+#phView .pvB{display:flex;gap:10px}#phView .pvB button{min-width:84px}#phView .pvDel{background:#E31B3F;color:#fff;border-color:#E31B3F}#phView .pvSnap{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}
 #logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
 .calNav{display:inline-flex;gap:4px}.calHd .jump{letter-spacing:-2px;font-weight:700;color:#1b4277}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
@@ -325,7 +325,7 @@ html.spl body>*:not(#splash){visibility:hidden}
   <div class="play">
     <button class="big" id="playBtn" title="플레이"></button>
     <span class="seg"><button data-sp="0.5">0.5×</button><button data-sp="1" class="on">1×</button><button data-sp="2">2×</button></span>
-    <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><circle cx="12" cy="13.5" r="3.5"/></svg></button><button class="ico" id="logBtn" title="저장(JSON)" aria-label="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button><button class="ico" id="loadBtn" title="불러오기(JSON)" aria-label="load"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 7v12h15l3-8H6l-3 8"/></svg></button><input type="file" id="jsonIn" accept=".json,.txt,application/json,text/plain" hidden></span>
+    <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><circle cx="12" cy="13.5" r="3.5"/></svg></button><button class="ico" id="logBtn" title="저장(JSON)" aria-label="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button><button class="ico" id="loadBtn" title="불러오기(JSON)" aria-label="load"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v2"/><path d="M3 7v12h15l3-8H6l-3 8"/></svg></button><input type="file" id="jsonIn" accept=".json,.txt,application/json,text/plain" hidden></span>
   </div>
 </div>
 
@@ -1560,7 +1560,7 @@ btn.addEventListener('click',async()=>{let m=document.getElementById('snapMenu')
     list.classList.add('open');list.style.maxHeight=list.scrollHeight+'px';};
   document.body.appendChild(m);const rc=btn.getBoundingClientRect(),mw=m.offsetWidth;m.style.left=Math.max(6,Math.min(innerWidth-mw-6,rc.left+rc.width/2-mw/2))+'px';m.style.top=(rc.bottom+window.scrollY+6)+'px';
   setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)){m.remove();document.removeEventListener('click',h);}}),0);});
-window.__photoSnap=photoSnap;
+window.__photoSnap=photoSnap;window.__photoLog={place:placeEN,img:loadBlobImg,make:async(imP,plP)=>{const [im,pl]=await Promise.all([imP,plP]);if(!im)return;const el=photoSnap(im,pl);if(el)await shareCanvas(el,'photo');}};
 window.__snapMake=make;
 })();
 </script>
@@ -1831,7 +1831,7 @@ function loadImg(file){return new Promise((ok,no)=>{const u=URL.createObjectURL(
 function toBlob(im,maxSide,q,square){const w0=im.naturalWidth,h0=im.naturalHeight;let sx=0,sy=0,sw=w0,sh=h0;if(square){const m=Math.min(w0,h0);sx=(w0-m)/2;sy=(h0-m)/2;sw=sh=m;}
   const k=Math.min(1,maxSide/Math.max(sw,sh)),w=Math.round(sw*k),h=Math.round(sh*k),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,sx,sy,sw,sh,0,0,w,h);
   return new Promise(ok=>c.toBlob(ok,'image/jpeg',q));}
-const PHT=()=>LANG==='en'?{add:'Add photo',del:'Delete',close:'Close',max:'Up to 3 photos per dive',bad:'Could not read this image',full:'Not enough storage for photos'}:LANG==='ja'?{add:'写真を追加',del:'削除',close:'閉じる',max:'写真は1ダイブ3枚まで',bad:'画像を読み込めません',full:'写真を保存する容量が足りません'}:{add:'사진 추가',del:'삭제',close:'닫기',max:'사진은 다이빙마다 3장까지',bad:'이미지를 읽을 수 없어요',full:'사진을 저장할 공간이 부족해요'};
+const PHT=()=>LANG==='en'?{add:'Add photo',snap:'Photo log',del:'Delete',close:'Close',max:'Up to 3 photos per dive',bad:'Could not read this image',full:'Not enough storage for photos'}:LANG==='ja'?{add:'写真を追加',snap:'フォトログ',del:'削除',close:'閉じる',max:'写真は1ダイブ3枚まで',bad:'画像を読み込めません',full:'写真を保存する容量が足りません'}:{add:'사진 추가',snap:'포토 로그',del:'삭제',close:'닫기',max:'사진은 다이빙마다 3장까지',bad:'이미지를 읽을 수 없어요',full:'사진을 저장할 공간이 부족해요'};
 let phTok=0;
 async function renderPh(){const row=$('phRow');if(!row)return;const d=S.dives[S.cur],ids=(d&&d.ph)||[],tok=++phTok,t=PHT();
   const urls=await Promise.all(ids.map(thumbURL));if(tok!==phTok)return;
@@ -1844,8 +1844,10 @@ $('phIn').onchange=async()=>{const fs=[...$('phIn').files];$('phIn').value='';co
     catch(e){toast(e&&e.name==='QuotaExceededError'?t.full:t.bad);}}
   renderPh();refreshSave();};
 async function viewPh(id){const t=PHT();let o;try{o=await PDB.get(id);}catch(e){}if(!o)return;const u=URL.createObjectURL(o.full);
-  const v=document.createElement('div');v.id='phView';v.innerHTML='<img alt=""><div class="pvB"><button class="pvDel"></button><button class="pvX"></button></div>';v.querySelector('img').src=u;
+  const v=document.createElement('div');v.id='phView';v.innerHTML='<img alt=""><div class="pvB"><button class="pvDel"></button><button class="pvX"></button><button class="pvSnap"></button></div>';v.querySelector('img').src=u;
   const done=()=>{v.remove();URL.revokeObjectURL(u);};v.onclick=e=>{if(e.target===v)done();};v.querySelector('.pvX').textContent=t.close;v.querySelector('.pvX').onclick=done;
+  const PLg=window.__photoLog,dm=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';const plP=PLg?PLg.place(dm):null,imP=PLg?PLg.img(o.full).catch(()=>null):null;
+  const sn=v.querySelector('.pvSnap');sn.textContent=t.snap;sn.onclick=async()=>{if(!PLg)return;sn.disabled=true;try{await PLg.make(imP,plP);}catch(e){console.error(e);}sn.disabled=false;};
   const del=v.querySelector('.pvDel');del.textContent=t.del;del.onclick=()=>{const d=S.dives[S.cur];if(d&&d.ph)d.ph=d.ph.filter(x=>x!==id);done();renderPh();refreshSave();};document.body.appendChild(v);}
 // 시작할 때: 어느 로그에도 없는 사진(저장 안 하고 떠난 것, 지운 로그의 것) 정리
 setTimeout(async()=>{try{const used=new Set();load().forEach(x=>((x.state&&x.state.dives)||[]).forEach(d=>(d.ph||[]).forEach(id=>used.add(id))));
