@@ -124,7 +124,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 #phView .pvNav{display:flex;align-items:center;gap:18px;color:rgba(255,255,255,.8);font-size:14px;font-variant-numeric:tabular-nums}#phView .pvNav button{width:30px;height:26px;min-width:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px}#phView .pvNav svg{width:12px;height:12px;display:block}#phView .pvNav button:disabled{opacity:.25}
 #phView .pvB{display:flex;gap:10px}#phView .pvB button{min-width:84px}#phView .pvDel{background:#E31B3F;color:#fff;border-color:#E31B3F}#phView .pvSnap{background:#0ea5e9;color:#fff;border-color:#0ea5e9;font-weight:700}
 #logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
-.calNav{display:inline-flex;gap:4px}.edHd{display:grid!important;grid-template-columns:3fr 2fr;gap:8px}.edHd .calNav{position:relative;display:flex;justify-content:flex-start;gap:4px}.edHd #logBack{position:absolute;left:0;top:0;padding:4px 5px}.edHd .jump{padding:4px 5px}/* 이전·다음 로그 버튼을 날짜 휠 열 가운데에, 달력 버튼은 왼쪽 끝 */.calHd .jump,.edHd .jump{letter-spacing:-2px;font-weight:700;color:#2f6fe4}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
+.calNav{display:inline-flex;gap:4px}.edHd{display:grid!important;grid-template-columns:3fr 2fr;gap:8px}.edHd .calNav{position:relative;display:flex;justify-content:flex-start;gap:4px}.edHd #logBack{position:absolute;left:0;top:0;padding:4px 0;white-space:nowrap}.edHd .jump{padding:4px 0}/* 이전·다음 로그 버튼을 날짜 휠 열 가운데에, 달력 버튼은 왼쪽 끝 */.calHd .jump,.edHd .jump{letter-spacing:-2px;font-weight:700;color:#2f6fe4}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
 #logCalV{position:relative}.yearPick{position:absolute;left:50%;transform:translateX(-50%);top:40px;z-index:3;display:flex;gap:8px;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
 .yearPick .yp{position:relative;width:96px}.yearPick .lsel{left:2px;right:2px;background:#e3ebf3}
@@ -1849,10 +1849,11 @@ function goLogDate(dir){const t=L(),a=load(),ds=[...new Set(a.map(x=>x.date))].s
   requestAnimationFrame(()=>requestAnimationFrame(()=>{wM.spin(f0[0]);wD.spin(f0[1]);wT.spin(f0[2]);}));}
 $('edPrev').onclick=()=>goLogDate(-1);$('edNext').onclick=()=>goLogDate(1);
 // 휠 칸이 좁아 달력 버튼과 겹치면 겹친 만큼만 이전·다음 버튼을 오른쪽으로
-function fitEdNav(){const nv=document.querySelector('.edHd .calNav');if(!nv||!nv.offsetParent)return;nv.style.paddingLeft='0px';
-  // [|◀][▶|] 한 쌍의 가운데 = 일 휠(요일 글자) 가운데. 달력 버튼과 겹치면 겹친 만큼만 오른쪽으로
-  const n=nv.getBoundingClientRect(),b=$('logBack').getBoundingClientRect(),p=$('edPrev').getBoundingClientRect(),q=$('edNext').getBoundingClientRect(),d=$('lwD').getBoundingClientRect();
-  const w=q.right-p.left,want=(d.left+d.right)/2-w/2;nv.style.paddingLeft=Math.round(Math.max(want,b.right+4)-n.left)+'px';}
+function fitEdNav(){const nv=document.querySelector('.edHd .calNav');if(!nv||!nv.offsetParent)return;
+  // [◀ 달력] = 월 휠 폭, [|◀][▶|] = 일 휠 폭을 반씩. 세 버튼 사이 간격은 모두 G로 같게
+  const G=4,bk=$('logBack'),p=$('edPrev'),q=$('edNext'),n=nv.getBoundingClientRect(),d=$('lwD').getBoundingClientRect();
+  nv.style.gap=G+'px';bk.style.width=Math.max(40,Math.round(d.left-G-n.left))+'px';const w=Math.round((d.width-G)/2);p.style.width=q.style.width=w+'px';
+  nv.style.paddingLeft=Math.round(d.left-n.left)+'px';}
 window.addEventListener('resize',()=>setTimeout(fitEdNav,0));
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
   const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
