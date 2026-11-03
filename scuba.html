@@ -93,6 +93,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .logList .li .del{padding:3px 8px;font-size:12px;color:#e5484d}.logList .none{color:var(--mute);font-size:13px}
 .logForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
 .logForm input[type=text]{flex:1;min-width:140px;padding:5px 8px}.logForm .pri{background:#0f2a3d;color:#fff;border-color:#0f2a3d}
+.logWarn{margin-top:8px;padding:7px 10px;border-radius:8px;background:#fff4e5;color:#b45309;font-size:12px;font-weight:600;line-height:1.5}
 .logMsg{font-size:12px;color:#0f9d7a}
 /* 탭 */
 .tabs{display:flex;gap:4px;flex-wrap:nowrap;align-items:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -240,6 +241,7 @@ html,body{overflow-x:hidden}
       <div class="lwrap"><div class="lwheels"><div class="lsel"></div><div class="lw" id="lwM" tabindex="0"></div><div class="lw" id="lwD" tabindex="0"></div><div class="lw" id="lwT" tabindex="0"></div></div>
         <textarea id="logMemo" maxlength="300"></textarea></div>
       <div class="logList" id="logList"></div>
+      <div class="logWarn hide" id="logWarn"></div>
       <div class="logForm"><button id="logSave" class="pri" data-i18n="logSave">현재 로그 저장</button><button id="logUpd" class="hide"></button><span id="logMsg" class="logMsg"></span></div>
     </div>
   </div></div></div>
@@ -632,6 +634,7 @@ function recompute(){
   $('undo').disabled=!(dive().undo.length||dive().redoSnap);
   if(typeof syncPtEd==='function')syncPtEd();
   {const dv=dive();if(dv.pts.length<2)dv.lab=null;}
+  try{window.dispatchEvent(new Event('scuba:plan'));}catch(e){}
 }
 
 // ===== 프로파일 그래프 =====
@@ -1423,9 +1426,9 @@ const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
 const pad=n=>String(n).padStart(2,'0');
-const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Updated',updB:'Update this log',full:'Logbook is full (50). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook'}
- :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存しました',upd:'更新しました',updB:'このログを更新',full:'ログブックが一杯です(50件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック'}
- :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장했어요',upd:'수정했어요',updB:'이 로그 수정',full:'로그북이 가득 찼어요(50개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북'};
+const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Updated',updB:'Update this log',full:'Logbook is full (50). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
+ :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存しました',upd:'更新しました',updB:'このログを更新',full:'ログブックが一杯です(50件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
+ :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장했어요',upd:'수정했어요',updB:'이 로그 수정',full:'로그북이 가득 찼어요(50개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
 const now=new Date();let vy=now.getFullYear(),vm=now.getMonth()+1;   // 달력에 보이는 달
 let Y=vy,M=vm,D=now.getDate(),T=Math.floor((now.getHours()*60+now.getMinutes())/10)*10,open=false,view='cal',CUR=null;
 const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.split(':').map(Number);return h*60+m;};
@@ -1465,7 +1468,7 @@ function makeWheel(el,onPick){let n=0,idx=0,tm=0,quiet=false,raf=0;
     jump(idx);requestAnimationFrame(()=>jump(idx));}};}
 const wM=makeWheel($('lwM'),i=>{if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;CUR=null;renderWheels();dayChanged();});
 const wD=makeWheel($('lwD'),i=>{if(i+1===D)return;D=i+1;CUR=null;renderWheels();dayChanged();});
-const wT=makeWheel($('lwT'),i=>{const v=i*10;if(v===T)return;T=v;S.start=T;drawProfile();});
+const wT=makeWheel($('lwT'),i=>{const v=i*10;if(v===T)return;T=v;S.start=T;drawProfile();refreshSave();});
 // --- 달력
 function renderCal(){const a=load(),t=L();$('calTitle').textContent=t.ttl(vy,vm);const has=new Set(a.map(x=>x.date));
   const first=new Date(vy,vm-1,1).getDay(),days=new Date(vy,vm,0).getDate(),k0=new Date();const today=k0.getFullYear()+'-'+pad(k0.getMonth()+1)+'-'+pad(k0.getDate());
@@ -1491,13 +1494,23 @@ function renderList(){const t=L(),a=dayLogs();
   $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id);});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.id;store(load().filter(x=>x.id!==id));if(CUR===id)CUR=null;renderSum();renderWheels();renderList();});
   if(!CUR){const f=a[0];$('logMemo').value=f?(f.memo||''):'';}
-  $('logUpd').classList.toggle('hide',!CUR);$('logUpd').textContent=t.updB;}
-function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();}}
+  $('logUpd').classList.toggle('hide',!CUR);$('logUpd').textContent=t.updB;refreshSave();}
+function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}}
 function renderSum(){const n=load().length,t=L();$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
 function sync(){$('logWrap').classList.toggle('open',open);$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
-  let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length};}
+  let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan()};}
+function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].si||0);});return m;}
+// 같은 내용이면 저장 비활성, 시작 시각이 같거나 시간이 겹치면 경고 후 교체
+function cmpKey(x){return [x.date,x.time||'',(x.memo||'').trim(),JSON.stringify(x.state)].join('|');}
+function curRec(){return {date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),state:snapState()};}
+function conflicts(exceptId){const s1=T,e1=T+Math.max(1,curSpan());return load().filter(x=>{if(x.id===exceptId||x.date!==ymd())return false;const s2=tmin(x.time);if(s2==null)return false;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return s1===s2||(s1<e2&&s2<e1);});}
+function refreshSave(){if(view!=='ed')return;const t=L(),a=load(),cur=curRec(),k=cmpKey(cur),hasPlan=S.dives.some(d=>d.pts.length>1);
+  const same=a.some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||same;
+  const ux=CUR&&a.find(x=>x.id===CUR);$('logUpd').disabled=!hasPlan||(ux&&cmpKey(ux)===k);
+  const cf=hasPlan&&!same?conflicts(CUR):[];const w=$('logWarn');if(cf.length){w.textContent=t.ovl(cf.map(x=>x.time).join(', '));w.classList.remove('hide');}else w.classList.add('hide');
+  $('logSave').title=same?t.same:'';}
 function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
 function applyLog(id){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
@@ -1506,7 +1519,8 @@ function applyLog(id){const x=load().find(v=>v.id===id);if(!x)return;const st=x.
   CUR=id;$('logMemo').value=x.memo||'';
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
   renderWheels();renderList();msg(L().loaded+x.date+(x.time?' '+x.time:''));}
-let mt=0;function msg(t,bad){const el=$('logMsg');el.textContent=t;el.style.color=bad?'#e5484d':'';clearTimeout(mt);mt=setTimeout(()=>el.textContent='',3000);}
+let mt=0;function msg(t,bad){const el=view==='cal'?$('logHint'):$('logMsg');el.textContent=t;el.style.color=bad?'#b45309':'#0f9d7a';el.style.fontWeight='600';clearTimeout(mt);
+  mt=setTimeout(()=>{$('logMsg').textContent='';const h=$('logHint');h.textContent=L().hint;h.style.color='';h.style.fontWeight='';},3500);}
 function afterSave(){vy=Y;vm=M;renderSum();show('cal');}
 $('logHead').onclick=()=>{open=!open;sync();};
 window.toggleLogbook=()=>{open=!open;sync();if(open)setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},60);else window.scrollTo({top:0,behavior:'smooth'});};
@@ -1514,16 +1528,18 @@ $('calPrev').onclick=()=>{vm--;if(vm<1){vm=12;vy--;}renderCal();};
 $('calNext').onclick=()=>{vm++;if(vm>12){vm=1;vy++;}renderCal();};
 $('logBack').onclick=()=>{vy=Y;vm=M;show('cal');};
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
-  const a=load();if(a.length>=MAX){msg(t.full,true);return;}
+  const cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);S.start=T;
   a.push({id,date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),saved:Date.now(),state:snapState(),sum:summary()});
-  if(!store(a)){msg(t.fail,true);return;}CUR=null;afterSave();};
-$('logUpd').onclick=()=>{const t=L(),a=load(),x=a.find(v=>v.id===CUR);if(!x)return;S.start=T;
-  Object.assign(x,{date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),state:snapState(),sum:summary()});if(!store(a)){msg(t.fail,true);return;}CUR=null;afterSave();};
+  if(!store(a)){msg(t.fail,true);return;}CUR=null;afterSave();if(cf.length)msg(t.repl(cf.length),true);else msg(t.saved);};
+$('logUpd').onclick=()=>{const t=L(),cf=conflicts(CUR),cfIds=new Set(cf.map(x=>x.id)),a=load().filter(x=>!cfIds.has(x.id)),x=a.find(v=>v.id===CUR);if(!x)return;S.start=T;
+  Object.assign(x,{date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),state:snapState(),sum:summary()});if(!store(a)){msg(t.fail,true);return;}CUR=null;afterSave();if(cf.length)msg(t.repl(cf.length),true);else msg(t.upd);};
 const lb=$('logBtn');if(lb)lb.onclick=()=>{const n=new Date();Y=n.getFullYear();M=n.getMonth()+1;D=n.getDate();T=Math.floor((n.getHours()*60+n.getMinutes())/10)*10;S.start=T;CUR=null;drawProfile();
   if(!open){open=true;$('logWrap').classList.add('open');$('logHead').classList.add('open');setTitle(true);}show('ed');
   setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},50);};
 window.addEventListener('scuba:lang',renderAll);
+window.addEventListener('scuba:plan',()=>{if(open)refreshSave();});
+$('logMemo').addEventListener('input',refreshSave);
 renderSum();setTitle(false);
 window.__log={load,renderAll,get ymd(){return ymd();},get open(){return open;},get view(){return view;},get T(){return T;}};
 })();
