@@ -1867,7 +1867,7 @@ const wY=makeWheel($('lwY'),i=>{if(YRS[i]===vy)return;vy=YRS[i];renderCal();});
 $('calY').onclick=e=>{e.stopPropagation();const yp=$('yearPick');if(!yp.classList.contains('hide')){yp.classList.add('hide');return;}yp.classList.remove('hide');wY.set(YRS.map(y=>({h:String(y),has:load().some(x=>x.date.startsWith(y+'-'))})),Math.max(0,YRS.indexOf(vy)));setTimeout(()=>$('lwY').focus({preventScroll:true}),30);};
 $('yearOk').onclick=()=>$('yearPick').classList.add('hide');
 // 달력 위 안내 팝업: 바깥으로 빛이 번졌다가 사라짐
-function notePop(txt){const host=$('logCalV');host.querySelectorAll('.notePop').forEach(x=>x.remove());const n=document.createElement('div');n.className='notePop';n.textContent=txt;host.appendChild(n);setTimeout(()=>n.remove(),1900);}
+function notePop(txt,hostEl){const host=hostEl||$('logCalV');host.querySelectorAll('.notePop').forEach(x=>x.remove());const n=document.createElement('div');n.className='notePop';n.textContent=txt;host.appendChild(n);setTimeout(()=>n.remove(),1900);}
 // 로그 있는 날로 건너뛰기: 기준 = 보고 있는 달 안의 커서 날짜, 없으면 그 달의 처음/끝
 let CJ=null;
 function jumpLog(dir){const t=L(),ds=[...new Set(load().map(x=>x.date))].sort(),mp=vy+'-'+pad(vm)+'-',inView=CJ&&CJ.startsWith(mp);
@@ -1879,7 +1879,7 @@ $('calNext').onclick=()=>{vm++;if(vm>12){vm=1;vy++;}renderCal();};
 $('logBack').onclick=()=>{vy=Y;vm=M;show('cal');};
 // 이전/다음 로그 날짜의 첫 로그(가장 이른 시각, 다이빙 1)로
 function goLogDate(dir){const t=L(),a=load(),ds=[...new Set(a.map(x=>x.date))].sort(),cur=ymd(),d=dir<0?ds.filter(x=>x<cur).pop():ds.find(x=>x>cur);
-  if(!d){toast(dir<0?t.noPrev:t.noNext);return;}const x=a.filter(v=>v.date===d).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
+  if(!d){notePop(dir<0?t.noPrev:t.noNext,document.querySelector('#logEdV .lwheels'));return;}/* 달력과 같은 빛 번짐 팝업, 날짜 휠 가운데 */const x=a.filter(v=>v.date===d).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
   const [yy,mm,dd]=d.split('-').map(Number);const f0=[wM.top,wD.top,wH.top,wMi.top];Y=yy;M=mm;D=dd;vy=yy;vm=mm;applyLog(x.id,true,0);
   // 월·일·시각 휠을 이전 위치에서 새 위치까지 가속하며 돌림
   requestAnimationFrame(()=>requestAnimationFrame(()=>{wM.spin(f0[0]);wD.spin(f0[1]);wH.spin(f0[2]);wMi.spin(f0[3]);}));}
