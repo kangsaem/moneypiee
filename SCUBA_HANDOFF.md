@@ -20,6 +20,7 @@
 - 포토 로그 이미지(확정 디자인), 데이터 로그 이미지 개편(영어, 그래프 확대, 경고 칩, DTMD 태그), 숫자 폰트 League Spartan.
 
 ### 보류 중인 완성 작업 (다른 코드 수정 때 같이 main에 반영)
+- ✅ **2026-11-03 20:22 사용자 확정: 로그 보내기(데이터 로그·포토 로그) 이미지는 브랜치 `wip/datalog-redesign`의 마지막 커밋(fc9a476) 상태가 최종본.** 더 손대지 말고 그대로 main에 합칠 것.
 - **데이터 로그 이미지 개편** — 사용자 확인 완료(2026-11-03 20:11). 코드는 브랜치 `wip/datalog-redesign`(커밋 6개, scuba.html만)에 보관, main 미반영.
   - 다음에 scuba.html을 고칠 때: `git fetch origin wip/datalog-redesign && git merge origin/wip/datalog-redesign`(또는 cherry-pick) 후 함께 push, 머지 뒤 브랜치 삭제.
   - 내용: 통계 타일·질소 막대·그래프 OW/AD 글자·20~30m 진한 파랑·20m 강조선 삭제 / 설정 줄에서 해수·고도·상승 속도 삭제(기체·GF·탱크 유지)
