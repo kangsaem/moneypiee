@@ -1749,7 +1749,10 @@ function timePick(tw){if(view!=='ed')return false;const day=dayLogs();if(!day.le
     S.cur=S.dives.length-1;$('logMemo').value='';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();refreshSave();return true;}
   if(!prev){CUR=null;S.dives=[newDive()];S.cur=0;S.start=tw;T=tw;$('logMemo').value='';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();refreshSave();return true;}
   return false;}
-function syncTW(){const c=curMin();if(Math.floor(c/60)===HI&&c%60===MI)return;renderWheels();}
+// 휠 위치가 코드로 바뀔 때(다이빙 삭제·탭 선택 등) 이전 위치에서 가속·감속하며 돌림
+let WSPIN=null;const wTops=()=>[wM.top,wD.top,wH.top,wMi.top];
+function spinFrom(f){requestAnimationFrame(()=>requestAnimationFrame(()=>{wM.spin(f[0]);wD.spin(f[1]);wH.spin(f[2]);wMi.spin(f[3]);}));}
+function syncTW(){const c=curMin();if(Math.floor(c/60)===HI&&c%60===MI)return;const f=wTops();renderWheels();if(view==='ed'&&$('lwH').offsetParent)spinFrom(f);}
 // --- 달력
 function renderCal(){const a=load(),t=L();$('calY').textContent=LANG==='en'?String(vy):LANG==='ja'?vy+'年':vy+'년';$('calMo').textContent=LANG==='en'?'.'+pad(vm):LANG==='ja'?vm+'月':vm+'월';const has=new Set(a.map(x=>x.date));
   const first=new Date(vy,vm-1,1).getDay(),days=new Date(vy,vm,0).getDate(),k0=new Date();const today=k0.getFullYear()+'-'+pad(k0.getMonth()+1)+'-'+pad(k0.getDate());
@@ -1811,7 +1814,7 @@ function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.
 window.addEventListener('scuba:diveRemoved',()=>{if(!CUR)return;const a=load(),x=a.find(v=>v.id===CUR);if(!x)return;
   if(S.start!=null){x.time=hhmm(Math.round(S.start));T=Math.round(S.start/10)*10%1440;}
   x.state=snapState();x.sum=summary();store(a);renderSum();if(open&&view==='ed'){renderWheels();renderList();}});
-function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
+function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();if(WSPIN){const f=WSPIN;WSPIN=null;spinFrom(f);}}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
 function renderSum(){const n=load().reduce((a,x)=>a+((x.state&&x.state.dives&&x.state.dives.length)||1),0),t=L();$('fitBtn').textContent=t.fitB;$('fitBtn2').textContent=t.fitB;$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
 function relayout(){const cl=document.querySelector('.colL'),cr=document.querySelector('.colR'),st=$('setCard'),tb=$('tabsCard'),br=$('barsCard');if(!cl||!cr||!st||!tb||!br)return;
@@ -1830,7 +1833,7 @@ function enterLog(){PLAN=snapS();$('tabsCard').classList.add('lbMode');
   if(LOGST){const L0=LOGST;LOGST=null;putS(L0.s);CUR=L0.CUR&&load().some(v=>v.id===L0.CUR)?L0.CUR:null;Y=L0.Y;M=L0.M;D=L0.D;vy=L0.vy;vm=L0.vm;view=L0.view;
     $('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();return;}
   const a=load();if(!a.length)return;const ld=a.map(v=>v.date).sort().pop(),x=a.filter(v=>v.date===ld).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
-  const [yy,mm,dd]=x.date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';applyLog(x.id,true,0);}
+  const [yy,mm,dd]=x.date.split('-').map(Number);WSPIN=[(M-1)*IH,(D-1)*IH,Math.floor(((T%1440)+1440)%1440/60)*IH,(((T%60)+60)%60)*IH];/* 첫 진입: 오늘(플래너) 위치에서 돌려 도착 */Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';applyLog(x.id,true,0);}
 function leaveLog(){$('tabsCard').classList.remove('lbMode');if(!PLAN)return;LOGST={s:snapS(),CUR,Y,M,D,vy,vm,view};const P=PLAN;PLAN=null;putS(P);CUR=null;
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();}
 // 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
