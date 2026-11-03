@@ -143,7 +143,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .tabs .chip{border-radius:999px;padding:4px 7px;font-size:11px;color:var(--mute);background:#f3f4f6;border-color:#e5e7eb}
 .tabs .add{border-style:dashed;color:var(--mute)}
 canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:contain}
-html,body{overflow-x:hidden}
+html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .legend{display:flex;flex-wrap:wrap;gap:4px 11px;font-size:12px;color:var(--mute);margin-top:8px}
 .legend i{display:inline-block;width:16px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
 .legend i.box{height:10px;border:1.5px solid #db2777;background:#f8c4dc}
@@ -195,9 +195,9 @@ html,body{overflow-x:hidden}
 </style>
 </head>
 <body>
-<div id="splash"><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분 · 탭해서 시작</span></button><button class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</button></div><button id="spSkip">Skip</button></div>
+<div id="splash"><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분 · 탭해서 시작</span></button><button class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</button></div><button id="spSkip">Skip</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg> 새로고침</button><span id="spVer"></span></div></div>
 <style>
-#splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
+#splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 #splash .spMid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;width:100%}
 #spTut{width:min(82vw,420px);aspect-ratio:1/1.05;border:0;border-radius:28px;background:#E31B3F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 #E31B3F99;animation:spPulse 1.8s ease-out infinite;-webkit-tap-highlight-color:transparent}
 #spTut:active{transform:scale(.97)}
@@ -205,6 +205,7 @@ html,body{overflow-x:hidden}
 #spTut .sp1{font-size:clamp(38px,11vw,64px);font-weight:800;letter-spacing:-1px;line-height:1.1}
 #spTut .sp2{font-size:clamp(14px,3.8vw,18px);opacity:.85;font-weight:600}
 #splash .sp3{color:rgba(255,255,255,.75);font-size:16px;font-weight:700;background:none;border:0;cursor:pointer;padding:6px 10px;font-family:inherit}
+#splash .spFoot{display:flex;align-items:center;gap:10px;margin-top:10px;color:rgba(255,255,255,.45);font-size:11px}#spReload{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.75);border-radius:14px;padding:4px 11px;font-size:12px;font-family:inherit;cursor:pointer}
 #spSkip{height:38px;padding:0 26px;border:1.5px solid rgba(125,211,252,.7);border-radius:19px;background:transparent;color:#7dd3fc;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 @keyframes spPulse{0%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 #E31B3F99}70%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 22px #E31B3F00}100%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 #E31B3F00}}
 @media (prefers-reduced-motion:reduce){#spTut{animation:none}}
@@ -1386,9 +1387,11 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
   window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';window.scrollTo(0,0);};
   const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
-    if(tt)tt.addEventListener('click',e=>{e.stopPropagation();window.toggleLogbook&&window.toggleLogbook();});}
+    if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});}
   if(lang!=='ko')close();
-  document.getElementById('spSkip').onclick=close;const nm=document.getElementById('spName');if(nm)nm.onclick=close;
+  document.getElementById('spSkip').onclick=close;
+  document.getElementById('spReload').onclick=()=>{const u=location.pathname+'?v='+Date.now()+(location.hash||'');try{if('caches' in window)caches.keys().then(k=>k.forEach(n=>caches.delete(n)));}catch(e){}location.replace(u);};
+  try{const d=new Date(document.lastModified);if(!isNaN(d)){const p=n=>String(n).padStart(2,'0');document.getElementById('spVer').textContent='업데이트 '+d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}}catch(e){}const nm=document.getElementById('spName');if(nm)nm.onclick=close;
   document.getElementById('spTut').onclick=()=>{close();window.startTutorial&&window.startTutorial();};})();
 </script>
 <script>
