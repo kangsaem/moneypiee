@@ -1,5 +1,7 @@
 
 /* 머니파이 다크 테마 그대로: 한 장짜리 표 + 조건 칩 + 짧은 메모 */
+/* 2026-11-03: 아이폰 가로 → 세로로 돌릴 때 사파리가 글자를 키우던 문제(자동 글자 크기 조정 끔, 머니파이 index와 같음) */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 :root{
   --bg:#1E1F22; --surface:#28292D; --surface2:#313338; --border:#3D3E43;
   --text:#E8ECF3; --text-dim:#9A9BA1; --sub:#C9C9C9;
