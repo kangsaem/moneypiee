@@ -1712,7 +1712,13 @@ function makeWheel(el,onPick){let n=0,idx=0,tm=0,quiet=false,raf=0;
     if(!e.repeat)held=performance.now();const sp=e.repeat?Math.min(8,1+Math.floor((performance.now()-held)/350)):1;const i=clampI(idx+dir*sp);jump(i);pick(i);});
   el.addEventListener('click',e=>{if(e.pointerType==='mouse')return;const it=e.target.closest('.it');if(!it)return;el.scrollTo({top:+it.dataset.i*IH,behavior:'smooth'});});
   return {set(items,i){n=items.length;idx=clampI(i);el.innerHTML='<div class="pad"></div>'+items.map((x,k)=>`<div class="it${x.has?' has':''}${k===idx?' on':''}" data-i="${k}">${x.h}</div>`).join('')+'<div class="pad"></div>';
-    jump(idx);requestAnimationFrame(()=>jump(idx));}};}
+    jump(idx);requestAnimationFrame(()=>jump(idx));},
+    get top(){return el.scrollTop;},
+    // from(이전 스크롤 위치)에서 지금 칸까지 가속·감속하며 돌림(onPick은 부르지 않음)
+    spin(from){cancelAnimationFrame(raf);const to=idx*IH,dist=Math.abs(to-from);if(dist<1)return;const dur=Math.min(900,320+dist*1.2),t0=performance.now();
+      quiet=true;el.style.scrollSnapType='none';el.scrollTop=from;
+      const step=ts=>{const u=Math.min(1,(ts-t0)/dur),e=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;el.scrollTop=from+(to-from)*e;
+        if(u<1)raf=requestAnimationFrame(step);else{el.scrollTop=to;el.style.scrollSnapType='';mark(idx);requestAnimationFrame(()=>{quiet=false;});}};raf=requestAnimationFrame(step);}};}
 const wM=makeWheel($('lwM'),i=>{if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;CUR=null;renderWheels();dayChanged();});
 const wD=makeWheel($('lwD'),i=>{if(i+1===D)return;D=i+1;CUR=null;renderWheels();dayChanged();});
 // 시간 휠은 선택한 다이빙의 시작 시각(10분 단위 내림)을 보여 줌. 돌리면 그만큼 로그 시작 시각(T)을 옮김
@@ -1838,7 +1844,9 @@ $('logBack').onclick=()=>{vy=Y;vm=M;show('cal');};
 // 이전/다음 로그 날짜의 첫 로그(가장 이른 시각, 다이빙 1)로
 function goLogDate(dir){const t=L(),a=load(),ds=[...new Set(a.map(x=>x.date))].sort(),cur=ymd(),d=dir<0?ds.filter(x=>x<cur).pop():ds.find(x=>x>cur);
   if(!d){toast(dir<0?t.noPrev:t.noNext);return;}const x=a.filter(v=>v.date===d).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
-  const [yy,mm,dd]=d.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;applyLog(x.id,true,0);}
+  const [yy,mm,dd]=d.split('-').map(Number);const f0=[wM.top,wD.top,wT.top];Y=yy;M=mm;D=dd;vy=yy;vm=mm;applyLog(x.id,true,0);
+  // 월·일·시각 휠을 이전 위치에서 새 위치까지 가속하며 돌림
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{wM.spin(f0[0]);wD.spin(f0[1]);wT.spin(f0[2]);}));}
 $('edPrev').onclick=()=>goLogDate(-1);$('edNext').onclick=()=>goLogDate(1);
 // 휠 칸이 좁아 달력 버튼과 겹치면 겹친 만큼만 이전·다음 버튼을 오른쪽으로
 function fitEdNav(){const nv=document.querySelector('.edHd .calNav');if(!nv||!nv.offsetParent)return;nv.style.paddingLeft='0px';
