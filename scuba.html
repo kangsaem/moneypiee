@@ -685,8 +685,11 @@ function recompute(){
     RES[i]=simulate(S.dives[i],T,c);
     {const prev=i>0?RES[i-1].cns[RES[i-1].N]*Math.pow(0.5,clamp(+S.dives[i].si||0,10,1440)/90):0;RES[i].cns=calcCNS(RES[i],prev);}
   }
-  stopPlay();P.t=0;P.tick=-1;if(typeof syncScrub==='function')syncScrub();
-  drawProfile();updateStats(0);renderSummary();
+  stopPlay();P.t=0;P.tick=-1;
+  // 로그북에서 로그를 볼 때는 타임라인을 출수 끝까지 채운 상태가 기본
+  if(window.__LOGEND&&S.playMode&&RES[S.cur]){P.t=playEnd(RES[S.cur]);P.tick=Math.floor(P.t/5)*5;}
+  if(typeof syncScrub==='function')syncScrub();
+  drawProfile();updateStats(P.tick<0?0:P.tick);renderSummary();
   $('undo').disabled=!(dive().undo.length||dive().redoSnap);
   if(typeof syncPtEd==='function')syncPtEd();
   {const dv=dive();if(dv.pts.length<2)dv.lab=null;}
@@ -1814,7 +1817,7 @@ function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.
 window.addEventListener('scuba:diveRemoved',()=>{if(!CUR)return;const a=load(),x=a.find(v=>v.id===CUR);if(!x)return;
   if(S.start!=null){x.time=hhmm(Math.round(S.start));T=Math.round(S.start/10)*10%1440;}
   x.state=snapState();x.sum=summary();store(a);renderSum();if(open&&view==='ed'){renderWheels();renderList();}});
-function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();if(WSPIN){const f=WSPIN;WSPIN=null;spinFrom(f);}}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
+function show(v){view=v;window.__LOGEND=open&&v==='ed';if(window.__LOGEND&&S.playMode&&RES[S.cur])setTimeout(()=>{if(window.__LOGEND&&S.playMode&&RES[S.cur])seek(playEnd(RES[S.cur]));},0);$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();if(WSPIN){const f=WSPIN;WSPIN=null;spinFrom(f);}}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
 function renderSum(){const n=load().reduce((a,x)=>a+((x.state&&x.state.dives&&x.state.dives.length)||1),0),t=L();$('fitBtn').textContent=t.fitB;$('fitBtn2').textContent=t.fitB;$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
 function relayout(){const cl=document.querySelector('.colL'),cr=document.querySelector('.colR'),st=$('setCard'),tb=$('tabsCard'),br=$('barsCard');if(!cl||!cr||!st||!tb||!br)return;
@@ -1824,8 +1827,8 @@ function relayout(){const cl=document.querySelector('.colL'),cr=document.querySe
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
 let LASTO=false,PLAN=null,LOGST=null;
-const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[]}))),cur:S.cur,start:S.start,T});
-const putS=P=>{KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;};
+const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[]}))),cur:S.cur,start:S.start,T,mode:S.mode});
+const putS=P=>{KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;if(P.mode)S.mode=P.mode;};
 function flipSwap(fn){const el=document.getElementById('tabsCard');if(!el){fn();return;}el.classList.remove('flipIn','flipOut');void el.offsetWidth;el.classList.add('flipOut');
   setTimeout(()=>{fn();el.classList.remove('flipOut');void el.offsetWidth;el.classList.add('flipIn');setTimeout(()=>el.classList.remove('flipIn'),380);},300);}
 function enterLog(){PLAN=snapS();$('tabsCard').classList.add('lbMode');
@@ -1838,7 +1841,7 @@ function leaveLog(){$('tabsCard').classList.remove('lbMode');if(!PLAN)return;LOG
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();}
 // 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
 let SWT=0;
-function sync(){if(open!==LASTO){LASTO=open;const tk=++SWT,o=open,w=$('logWrap');let fired=false;
+function sync(){if(!open)window.__LOGEND=false;if(open!==LASTO){LASTO=open;const tk=++SWT,o=open,w=$('logWrap');let fired=false;
     const run=()=>{if(fired||tk!==SWT)return;fired=true;w.removeEventListener('transitionend',te);setTimeout(()=>{if(tk!==SWT)return;flipSwap(()=>{if(o){enterLog();if(open)show(view);}else leaveLog();});},200);};
     const te=e=>{if(e.target===w&&e.propertyName==='grid-template-rows')run();};w.addEventListener('transitionend',te);setTimeout(run,380);}
   $('logWrap').classList.toggle('open',open);setTimeout(relayout,0);{const rw=document.getElementById('ruleWrap');if(rw)rw.classList.toggle('closed',open);}$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
@@ -1855,7 +1858,7 @@ function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasP
 const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (d&&d.memo!=null)?d.memo:(i===0?(x.memo||''):'');};
 function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';renderPh();}
 function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
-function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
+function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;S.mode='none';
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
   S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[]}));S.cur=Math.min(di||0,S.dives.length-1);
   const tm=tmin(x.time);if(tm!=null){T=Math.floor(tm/10)*10%1440;S.start=tm;}else S.start=null;
