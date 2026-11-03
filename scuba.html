@@ -193,9 +193,6 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 
 @supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip):not(.ico):not(.setHead){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
 </style>
-</head>
-<body>
-<div id="splash"><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분 · 탭해서 시작</span></button><button class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</button></div><button id="spSkip">Skip</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div>
 <style>
 #splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 #splash .spMid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;width:100%}
@@ -205,12 +202,16 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 #spTut .sp1{font-size:clamp(38px,11vw,64px);font-weight:800;letter-spacing:-1px;line-height:1.1}
 #spTut .sp2{font-size:clamp(14px,3.8vw,18px);opacity:.85;font-weight:600}
 #splash .sp3{color:rgba(255,255,255,.75);font-size:16px;font-weight:700;background:none;border:0;cursor:pointer;padding:6px 10px;font-family:inherit}
-#splash .spFoot{display:flex;align-items:center;gap:10px;margin-top:10px;color:rgba(255,255,255,.45);font-size:11px}#spReload{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0}#spReload span{display:inline-block;line-height:1}@keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}#spReload.spin span{animation:reloadSpin .6s linear}
+#spVer{min-width:8.6em;text-align:left;font-variant-numeric:tabular-nums}
+#splash .spFoot{display:flex;align-items:center;gap:10px;margin-top:2px;color:rgba(255,255,255,.45);font-size:11px}#spReload{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0}#spReload span{display:inline-block;line-height:1}@keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}#spReload.spin span{animation:reloadSpin .6s linear}
 #spSkip{height:38px;padding:0 26px;border:1.5px solid rgba(125,211,252,.7);border-radius:19px;background:transparent;color:#7dd3fc;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 @keyframes spPulse{0%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,.95)}70%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 22px rgba(255,196,210,0)}100%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,0)}}
 @media (prefers-reduced-motion:reduce){#spTut{animation:none}}
-@media (max-height:540px){#splash{padding-top:10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}#splash .spMid{gap:6px}#spTut{aspect-ratio:auto;width:min(80vw,520px);height:calc(100vh - 90px);height:calc(100dvh - 90px);gap:6px}#spTut .spPlay{width:44px;height:44px}#spTut .sp1{font-size:40px}#splash .sp3{font-size:14px;padding:2px 8px}}
+@media (max-height:540px){#splash{padding-top:10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}#splash .spMid{gap:6px}#spTut{aspect-ratio:auto;width:min(80vw,520px);height:calc(100vh - 150px);height:calc(100dvh - 150px);gap:6px}#spTut .spPlay{width:44px;height:44px}#spTut .sp1{font-size:40px}#splash .sp3{font-size:14px;padding:2px 8px}}
 </style>
+</head>
+<body>
+<div id="splash"><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분 · 탭해서 시작</span></button><button class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><button id="spSkip">Skip</button></div>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
 <div id="mainGrid"><div class="colL">
