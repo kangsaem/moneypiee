@@ -1168,7 +1168,7 @@ function renderTabs(){
     if(i>0){const c=document.createElement('button');c.className='chip';c.textContent=fmtSI(dv.si);c.dataset.tip='si';c.onclick=()=>openPicker(i);el.appendChild(c);}
     const b=document.createElement('button');b.className='tab'+(i===S.cur?' on':'');b.innerHTML=tr('dive',i+1);
     if(i===S.cur&&S.dives.length>1){const x=document.createElement('span');x.className='x';x.textContent='×';x.title=tr('delDive');
-      x.onclick=e=>{e.stopPropagation();removeDiveAt(i);};b.appendChild(x);}
+      x.onclick=e=>{e.stopPropagation();const go=()=>removeDiveAt(i);if(window.__askDel)window.__askDel('dive').then(ok=>{if(ok)go();});else go();};b.appendChild(x);}
     let lp=null,fired=false;
     const cancel=()=>{clearTimeout(lp);lp=null;};
     b.addEventListener('pointerdown',()=>{fired=false;cancel();lp=setTimeout(()=>{fired=true;showPop(b,i);},500);});
@@ -1754,10 +1754,11 @@ function renderList(){const t=L(),a=dayLogs();
   curMemoSync();if(view==='ed')syncTW();
   refreshSave();}
 // 삭제 전 확인 팝업(바깥 누르면 취소)
-function askDel(){return new Promise(ok=>{const W=LANG==='en'?{b:'Delete this dive log?',c:'Cancel',d:'Delete'}:LANG==='ja'?{b:'このダイブログを削除しますか?',c:'キャンセル',d:'削除'}:{b:'이 다이빙 로그를 삭제하시겠습니까?',c:'취소',d:'삭제'};
+function askDel(kind){return new Promise(ok=>{const dv=kind==='dive',W=LANG==='en'?{b:dv?'Delete this dive?':'Delete this dive log?',c:'Cancel',d:'Delete'}:LANG==='ja'?{b:dv?'このダイブを削除しますか?':'このダイブログを削除しますか?',c:'キャンセル',d:'削除'}:{b:dv?'이 다이빙을 삭제하시겠습니까?':'이 다이빙 로그를 삭제하시겠습니까?',c:'취소',d:'삭제'};
   const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><p></p><div class="lwBtns"><button class="lwC"></button><button class="lwD"></button></div></div>';
   ov.querySelector('p').textContent=W.b;const c=ov.querySelector('.lwC'),d=ov.querySelector('.lwD');c.textContent=W.c;d.textContent=W.d;
   const done=v=>{ov.remove();ok(v);};ov.onclick=e=>{if(e.target===ov)done(false);};c.onclick=()=>done(false);d.onclick=()=>done(true);document.body.appendChild(ov);});}
+window.__askDel=askDel;
 function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.state&&x.state.dives||[]).length;
   if(n<=1){store(load().filter(v=>v.id!==id));if(CUR===id){CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;renderTabs();syncForm();recompute();}renderSum();renderWheels();renderList();return;}
   if(CUR!==id)applyLog(id,true,i);removeDiveAt(i);}
