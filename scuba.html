@@ -58,6 +58,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 @keyframes noteK{0%{opacity:0;transform:translate(-50%,-50%) scale(.92);box-shadow:0 0 0 0 rgba(125,211,252,.85)}15%{opacity:1;transform:translate(-50%,-50%) scale(1)}55%{box-shadow:0 0 0 22px rgba(125,211,252,0);opacity:1}100%{opacity:0;box-shadow:0 0 0 22px rgba(125,211,252,0);transform:translate(-50%,-50%) scale(1)}}
 .notePop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;background:#1b4277;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;white-space:nowrap;pointer-events:none;animation:noteK 1.8s ease-out forwards}
 #saveMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#saveMenu button{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}
+#snapMenu{position:absolute;z-index:150;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:6px}#snapMenu .smData{text-align:left;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#snapMenu .smLab{font-size:12px;color:var(--mute);padding:2px 4px 0}#snapMenu .smRow{display:flex;gap:6px}#snapMenu .smPh{width:64px;height:64px;padding:0;border:1px solid var(--line);border-radius:6px;background:#eef2f6 center/cover no-repeat}
 #ldWarn{position:fixed;inset:0;z-index:160;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:18px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard{background:rgba(186,230,253,.92);border-color:#7dd3fc}
@@ -1497,12 +1498,52 @@ async function make(){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=P.ti
     g.fillStyle='#6b7280';g.font='400 22px '+ff;g.textAlign='left';g.fillText(k,RX+12,ty+22);g.fillStyle=c||'#1f2328';g.font='700 26px '+ff;g.textAlign='right';g.fillText(v,RX+RW-12,ty+23);g.textAlign='left';});
   g.fillStyle='#0f2a3d';g.fillRect(0,H-60,W,60);g.fillStyle='#fff';g.font='700 28px '+ff;g.textAlign='center';g.textBaseline='middle';g.fillText('www.moneypie.kr/scuba',W/2,H-30);
   return el;}finally{window.SNAP=false;S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;drawProfile();updateStats(P.tick<0?0:P.tick);}}
-btn.addEventListener('click',async()=>{try{const el=await make();const blob=await new Promise(r=>el.toBlob(r,'image/png'));
-  const d=new Date(),name='dtmd-dive-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.png';
-  const file=new File([blob],name,{type:'image/png'});
+async function shareCanvas(el,kind){const blob=await new Promise(r=>el.toBlob(r,kind==='photo'?'image/jpeg':'image/png',.9));
+  const d=new Date(),name='dtmd-'+(kind==='photo'?'photo':'dive')+'-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+(kind==='photo'?'.jpg':'.png');
+  const file=new File([blob],name,{type:blob.type});
   if(navigator.canShare&&navigator.canShare({files:[file]})&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({files:[file],title:tr('h1')});return;}catch(e){if(e&&e.name==='AbortError')return;}}
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
-}catch(e){console.error(e);}});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
+async function dataSnap(){try{await shareCanvas(await make(),'data');}catch(e){console.error(e);}}
+// ===== 포토 로그: 사진 위에 핵심 정보 + 흰 선 수심 그래프 + DTMD 블록 =====
+// 장소: 메모의 GPS로 영어 약식(Danao, Bohol, PH) 조회(기기에 캐시), 실패하면 메모의 '장소:' 줄
+function memoGPS(m){const k=(m||'').match(/GPS\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i);return k?{lat:+k[1],lon:+k[2]}:null;}
+async function placeEN(m){const g=memoGPS(m),fb=(()=>{const k=(m||'').match(/^(?:장소|place|場所)\s*[:：]\s*(.+)$/im);return k?k[1].trim():'';})();if(!g)return fb;
+  const key='scuba_plEN_'+g.lat.toFixed(3)+','+g.lon.toFixed(3);try{const c=localStorage.getItem(key);if(c)return c;}catch(e){}
+  try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),5000);const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=en&lat='+g.lat.toFixed(5)+'&lon='+g.lon.toFixed(5),{signal:ac.signal});clearTimeout(tm);
+    if(!r.ok)return fb;const j=await r.json(),a=j.address||{};const loc=a.village||a.suburb||a.hamlet||a.town||a.city||a.municipality||a.county||a.island||j.name;
+    const reg=(a.state||a.province||a.region||a.archipelago||'').replace(/\s+(Province|Prefecture|State|Region)$/i,'');const cc=(a.country_code||'').toUpperCase();
+    const parts=[];[loc,reg,cc].forEach(v=>{if(v&&!parts.includes(v))parts.push(v);});const out=parts.join(', ');if(out){try{localStorage.setItem(key,out);}catch(e){}}return out||fb;}catch(e){return fb;}}
+function loadBlobImg(b){return new Promise((ok,no)=>{const u=URL.createObjectURL(b),im=new Image();im.onload=()=>{ok(im);setTimeout(()=>URL.revokeObjectURL(u),1000);};im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'));};im.src=u;});}
+function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getComputedStyle(document.body).fontFamily;
+  // 원본 비율 유지, 너무 길면 세로 4:5 ~ 가로 1.91:1 범위로 가운데 자름
+  let sw=im.naturalWidth,sh=im.naturalHeight,sx=0,sy=0;const ar=sw/sh;if(ar<0.8){const h2=sw/0.8;sy=(sh-h2)/2;sh=h2;}else if(ar>1.91){const w2=sh*1.91;sx=(sw-w2)/2;sw=w2;}
+  const W=Math.round(Math.min(1200,sw)),H=Math.round(W*sh/sw),k=W/1080;const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
+  g.drawImage(im,sx,sy,sw,sh,0,0,W,H);
+  // 수심 그래프(하단): 수면 = H-330k, 최대 수심까지 260k
+  const N=Math.max(1,r.N),maxD=Math.max(1,r.maxD),top=H-330*k,gh=260*k,PX=t=>t/N*W,PY=d=>top+d/maxD*gh;
+  const path=()=>{g.beginPath();for(let t=0;t<=N;t+=5){const d=r.depth[Math.min(N,t)]||0;t?g.lineTo(PX(t),PY(d)):g.moveTo(PX(t),PY(d));}g.lineTo(PX(N),PY(r.depth[N]||0));};
+  path();g.lineTo(W,H);g.lineTo(0,H);g.closePath();const rg=g.createRadialGradient(0,H,0,0,H,760*k);rg.addColorStop(0,'rgba(14,140,230,.55)');rg.addColorStop(.55,'rgba(14,140,230,.22)');rg.addColorStop(1,'rgba(14,140,230,0)');g.fillStyle=rg;g.fill();
+  path();g.strokeStyle='#fff';g.lineWidth=3*k;g.lineJoin='round';g.stroke();
+  const txt=(t,x,y,size,wt,al)=>{g.font=wt+' '+size*k+'px '+ff;g.textAlign=al||'left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
+  const lg=window.__log,date=(lg?lg.ymd:'').replace(/-/g,'/'),gas=r.c.fO2>0.215?'EAN'+Math.round(r.c.fO2*100):'Air';
+  const meta=[place,date,'GF'+S.gfLo+'/'+S.gfHi,gas].filter(Boolean).join('  ·  ');
+  txt(meta,44*k,66*k,26,300);txt(DU(r.maxD.toFixed(1))+'  ·  '+fmt(r.N),42*k,128*k,56,800);
+  g.font='900 '+24*k+'px '+ff;const bw=(g.measureText('DTMD').width+24*k)*1.5,bh=40*k;g.fillStyle='#E31B3F';g.fillRect(0,H-bh,bw,bh);g.fillStyle='#fff';g.textAlign='center';g.fillText('DTMD',bw/2,H-11*k);
+  txt('moneypie.kr / scuba',W-36*k,H-20*k,23,400,'right');
+  return el;}
+// 스냅샷 버튼: 사진 없는 로그 → 바로 데이터 로그 / 사진 있으면 선택창(데이터 로그 + 사진 썸네일)
+btn.addEventListener('click',async()=>{const d=S.dives[S.cur],ids=(window.__photo&&d&&d.ph)||[];
+  let m=document.getElementById('snapMenu');if(m){m.remove();return;}if(!ids.length){dataSnap();return;}
+  const memo=(d&&d.memo)||'';const plP=placeEN(memo);const imgs={};ids.forEach(id=>{imgs[id]=window.__photo.get(id).then(o=>o?loadBlobImg(o.full):null).catch(()=>null);});
+  const thumbs=await Promise.all(ids.map(id=>window.__photo.thumb(id)));
+  m=document.createElement('div');m.id='snapMenu';const T=LANG==='en'?['Data log','Photo log']:LANG==='ja'?['データログ','フォトログ']:['데이터 로그','포토 로그'];
+  const b0=document.createElement('button');b0.className='smData';b0.textContent=T[0];b0.onclick=e=>{e.stopPropagation();m.remove();dataSnap();};m.appendChild(b0);
+  const lb=document.createElement('div');lb.className='smLab';lb.textContent=T[1];m.appendChild(lb);
+  const row=document.createElement('div');row.className='smRow';ids.forEach((id,i)=>{if(!thumbs[i])return;const b=document.createElement('button');b.className='smPh';b.style.backgroundImage=`url("${thumbs[i]}")`;
+    b.onclick=async e=>{e.stopPropagation();m.remove();try{const [im,pl]=await Promise.all([imgs[id],plP]);if(!im)return;const el=photoSnap(im,pl);if(el)await shareCanvas(el,'photo');}catch(x){console.error(x);}};row.appendChild(b);});
+  m.appendChild(row);document.body.appendChild(m);const rc=btn.getBoundingClientRect(),mw=m.offsetWidth;m.style.left=Math.max(6,Math.min(innerWidth-mw-6,rc.left+rc.width/2-mw/2))+'px';m.style.top=(rc.bottom+window.scrollY+6)+'px';
+  setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)){m.remove();document.removeEventListener('click',h);}}),0);});
+window.__photoSnap=photoSnap;
 window.__snapMake=make;
 })();
 </script>
@@ -1767,6 +1808,7 @@ const PDB={db:null,open(){if(this.db)return Promise.resolve(this.db);return new 
   tx(mode,fn){return this.open().then(d=>new Promise((ok,no)=>{const t=d.transaction('photos',mode),st=t.objectStore('photos');const q=fn(st);t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error);}));},
   put(o){return this.tx('readwrite',st=>st.put(o));},get(id){return this.tx('readonly',st=>st.get(id));},del(id){return this.tx('readwrite',st=>st.delete(id));},keys(){return this.tx('readonly',st=>st.getAllKeys());}};
 const THU=new Map();// id → 썸네일 objectURL
+window.__photo={get:id=>PDB.get(id),thumb:id=>thumbURL(id)};
 async function thumbURL(id){if(THU.has(id))return THU.get(id);try{const o=await PDB.get(id);if(!o)return null;const u=URL.createObjectURL(o.thumb);THU.set(id,u);return u;}catch(e){return null;}}
 function loadImg(file){return new Promise((ok,no)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{ok(im);setTimeout(()=>URL.revokeObjectURL(u),1000);};im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'));};im.src=u;});}
 function toBlob(im,maxSide,q,square){const w0=im.naturalWidth,h0=im.naturalHeight;let sx=0,sy=0,sw=w0,sh=h0;if(square){const m=Math.min(w0,h0);sx=(w0-m)/2;sy=(h0-m)/2;sw=sh=m;}
