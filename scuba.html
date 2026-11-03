@@ -89,6 +89,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .logList{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
 .logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:13px}
 .logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logList .li.sub{margin-left:16px;border-style:dashed}
 .logList .li.cur{border-color:#0ea5e9;box-shadow:0 0 0 1px #0ea5e9}
 .logList .li .del{padding:3px 8px;font-size:12px;color:#e5484d}.logList .none{color:var(--mute);font-size:13px}
 .logForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
@@ -1481,17 +1482,21 @@ function renderCal(){const a=load(),t=L();$('calTitle').textContent=t.ttl(vy,vm)
 function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));
   wM.set(Array.from({length:12},(_,i)=>({h:t.m(i+1),has:a.some(x=>x.date.startsWith(Y+'-'+pad(i+1)+'-'))})),M-1);
   const nd=new Date(Y,M,0).getDate();wD.set(Array.from({length:nd},(_,i)=>{const d=i+1,wd=new Date(Y,M-1,d).getDay();return {h:`${d}<small class="${wd===0?'sun':wd===6?'sat':''}">${t.wd[wd]}</small>`,has:dates.has(Y+'-'+pad(M)+'-'+pad(d))};}),D-1);
-  const times=new Set(dayLogs().map(x=>x.time?Math.round(tmin(x.time)/10)*10:-1));
+  const times=new Set();dayLogs().forEach(x=>rowsOf(x).forEach(r=>{if(r.st!=null)times.add(Math.round(r.st/10)*10%1440);}));
   wT.set(Array.from({length:144},(_,i)=>({h:hhmm(i*10),has:times.has(i*10)})),T/10);
   const wd=new Date(Y,M-1,D).getDay();$('edTitle').textContent=t.ed(Y,M,D,t.wd[wd]);}
 function dayLogs(){return load().filter(x=>x.date===ymd()).sort((p,q)=>(p.time||'').localeCompare(q.time||''));}
 function dayChanged(){const f=dayLogs()[0];if(f){applyLog(f.id,true);return;}renderList();}
+function rowsOf(x){const st=tmin(x.time),dv=(x.sum&&x.sum.dv&&x.sum.dv.length)?x.sum.dv:[{N:x.sum.N0,maxD:x.sum.maxD,si:0}];let m=st;
+  return dv.map((d,i)=>{if(i>0&&m!=null)m+=dv[i-1].N/60+d.si;return {i,st:m,N:d.N,maxD:d.maxD};});}
 function renderList(){const t=L(),a=dayLogs();
-  $('logList').innerHTML=a.length?a.map(x=>{const st=tmin(x.time);const clock=st!=null?`${x.time} ${t.in} → ${hhmm(st+x.sum.N0/60)} ${t.out}`:'';
-    const meta=[x.sum.maxD+'m',Math.round(x.sum.N0/60)+t.min,x.sum.gas,x.sum.nd>1?t.dives(x.sum.nd):''].filter(Boolean).join(' · ');
+  $('logList').innerHTML=a.length?a.map(x=>{const rows=rowsOf(x),multi=rows.length>1;
     const memo1=(x.memo||'').split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,'');
-    return `<div class="li${x.id===CUR?' cur':''}" data-id="${x.id}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${memo1?'<div class="mm">'+memo1+'</div>':''}</div><button class="del" data-id="${x.id}">${t.del}</button></div>`;}).join(''):`<div class="none">${t.none}</div>`;
-  $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id);});
+    return rows.map(r=>{const clock=r.st!=null?`${hhmm(r.st)} ${t.in} → ${hhmm(r.st+r.N/60)} ${t.out}`:'';
+      const meta=[(multi?(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,x.sum.gas].filter(Boolean).join(' · ');
+      const sel=x.id===CUR&&(!multi||r.i===S.cur);
+      return `<div class="li${sel?' cur':''}${r.i>0?' sub':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${memo1&&r.i===0?'<div class="mm">'+memo1+'</div>':''}</div>${r.i===0?`<button class="del" data-id="${x.id}">${t.del}</button>`:''}</div>`;}).join('');}).join(''):`<div class="none">${t.none}</div>`;
+  $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.id;store(load().filter(x=>x.id!==id));if(CUR===id)CUR=null;renderSum();renderWheels();renderList();});
   if(!CUR){const f=a[0];$('logMemo').value=f?(f.memo||''):'';}
   refreshSave();}
@@ -1500,7 +1505,7 @@ function renderSum(){const n=load().length,t=L();$('logSum').textContent=n?t.n(n
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
 function sync(){$('logWrap').classList.toggle('open',open);$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
-  let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan()};}
+  let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan(),dv:RES.map((x,i)=>({N:x.N,maxD:R1(x.maxD),si:i?(+S.dives[i].si||0):0}))};}
 function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].si||0);});return m;}
 // 같은 내용이면 저장 비활성, 시작 시각이 같거나 시간이 겹치면 경고 후 교체
 function cmpKey(x){return [x.date,x.time||'',(x.memo||'').trim(),JSON.stringify(x.state)].join('|');}
@@ -1508,9 +1513,9 @@ function curRec(){return {date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim()
 function conflicts(exceptId){const s1=T,e1=T+Math.max(1,curSpan());return load().filter(x=>{if(x.id===exceptId||x.date!==ymd())return false;const s2=tmin(x.time);if(s2==null)return false;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return s1===s2||(s1<e2&&s2<e1);});}
 function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasPlan=S.dives.some(d=>d.pts.length>1);const same=load().some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||same;$('logSave').title=same?t.same:'';}
 function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
-function applyLog(id,quiet){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
+function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
-  S.dives=st.dives.map(d=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}));S.cur=0;
+  S.dives=st.dives.map(d=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}));S.cur=Math.min(di||0,S.dives.length-1);
   const tm=tmin(x.time);if(tm!=null){T=Math.round(tm/10)*10%1440;S.start=tm;}else S.start=null;
   CUR=id;$('logMemo').value=x.memo||'';
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
@@ -1532,7 +1537,7 @@ const lb=$('logBtn');if(lb)lb.onclick=()=>{const n=new Date();Y=n.getFullYear();
   if(!open){open=true;$('logWrap').classList.add('open');$('logHead').classList.add('open');setTitle(true);}show('ed');
   setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},50);};
 window.addEventListener('scuba:lang',renderAll);
-window.addEventListener('scuba:plan',()=>{if(open)refreshSave();});
+window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
 $('logMemo').addEventListener('input',refreshSave);
 renderSum();setTitle(false);
 window.__log={load,renderAll,get ymd(){return ymd();},get open(){return open;},get view(){return view;},get T(){return T;}};
