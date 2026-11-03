@@ -827,7 +827,7 @@ function drawProfile(){
           .map(([x,y])=>[clamp(x,G.L+2,G.L+G.W-tw-2),clamp(y,G.T+2,G.T+G.H-th-2)]);
         let [bx,by]=cand.find(([x,y])=>!hits(x,y))||cand[0];
         if(dv.lab){bx=G.L+2+dv.lab.fx*Math.max(0,G.W-tw-4);by=G.T+2+dv.lab.fy*Math.max(0,G.H-th-4);}
-        const SNPL=!!window.SNAP;if(SNPL){const LS=1.8;cx.save();cx.translate(G.L+G.W/2-tw*LS/2,G.T+G.H/2-th*LS/2);cx.scale(LS,LS);bx=0;by=0;}
+        const SNPL=!!window.SNAP;if(SNPL){const LS=1.3;cx.save();cx.translate(G.L+G.W/2-tw*LS/2,G.T+G.H/2-th*LS/2);cx.scale(LS,LS);bx=0;by=0;}
         LABBOX={bx,by,tw,th};const lift=LP&&LP.active;if(lift){cx.save();cx.shadowColor='rgba(0,0,0,.35)';cx.shadowBlur=10;cx.shadowOffsetY=3;}
         cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle=isDeco?'#E31B3F':'#9ca3af';cx.lineWidth=1;
         cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();if(lift){cx.restore();cx.strokeStyle='#2f6fe4';cx.lineWidth=2;}cx.stroke();
@@ -1487,13 +1487,12 @@ async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=
   const SH=Math.max(BH,RH);
   // 띠: 날짜 + 메모의 지명·슈트·시야
   const lg=window.__log,dt=(S.start!=null&&lg)?lg.ymd.replace(/-/g,'/'):'';
-  const tags=(dt?[dt]:[]).concat(memoTags(S.start!=null&&lg?lg.memo:'',plEN||''));const BAND=tags.length?50:0;
-  const top=pad+sf+20+BAND;
-  const H=Math.round(top+gh+24+SH+30+60);
+  const tags=(dt?[dt]:[]).concat(memoTags(S.start!=null&&lg?lg.memo:'',plEN||''));
+  const top=pad+sf+20;
+  const H=Math.round(top+gh+24+SH+34+40);
   const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
   g.fillStyle='#fff';g.fillRect(0,0,W,H);
   g.textBaseline='alphabetic';g.fillStyle='#6b7280';g.font='400 '+sf+'px '+ff;g.textAlign='center';g.fillText(set1,W/2,pad+sf-6);g.textAlign='left';
-  if(BAND){const by=pad+sf+6;g.fillStyle='#1e5fbf';g.fillRect(0,by,W,44);g.fillStyle='#fff';g.font='700 24px '+ff;g.textAlign='center';g.textBaseline='middle';g.fillText(tags.join('   ·   '),W/2,by+23);g.textAlign='left';g.textBaseline='alphabetic';}
   if(gimg)g.drawImage(gimg,pad,top,W-pad*2,gh);
   const y0=top+gh+24;
   if(BH&&bcv)g.drawImage(bcv,pad,y0,BW,BH);
@@ -1502,9 +1501,12 @@ async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=
     wl.forEach((t,i)=>g.fillText(t,RX+14,ry+10+15+i*30));ry+=WH+12;}
   const CW=(RW-8)/2;g.textBaseline='middle';tiles.forEach(([k,v,c],i)=>{const tx=RX+(i%2)*(CW+8),ty=ry+Math.floor(i/2)*50;g.fillStyle='#f3f4f6';g.beginPath();g.roundRect?g.roundRect(tx,ty,CW,44,8):g.rect(tx,ty,CW,44);g.fill();
     g.fillStyle='#6b7280';g.font='400 19px '+ff;g.textAlign='left';g.fillText(k,tx+10,ty+22);g.fillStyle=c||'#1f2328';g.font='700 23px '+ff;g.textAlign='right';g.fillText(v,tx+CW-10,ty+23);g.textAlign='left';});
-  g.fillStyle='#0f2a3d';g.fillRect(0,H-60,W,60);g.fillStyle='#fff';g.font='700 28px '+ff;g.textAlign='center';g.textBaseline='middle';g.fillText('www.moneypie.kr/scuba',W/2,H-30);
   // 좌하단 DTMD 태그(포토 로그와 같은 모양)
-  g.font='900 26px '+ff;const bw=(g.measureText('DTMD').width+24)*1.5;g.fillStyle='#E31B3F';g.fillRect(0,H-60,bw,60);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText('DTMD',bw/2,H-29);g.textAlign='left';
+  g.font='900 24px '+ff;const bw=(g.measureText('DTMD').width+24)*1.5;g.fillStyle='#E31B3F';g.fillRect(0,H-40,bw,40);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='alphabetic';g.fillText('DTMD',bw/2,H-11);
+  // DTMD 옆: 날짜·지명(파란색) / 오른쪽 끝: 주소
+  g.font='400 23px '+ff;const uw=g.measureText('moneypie.kr / scuba').width;g.fillStyle='#6b7280';g.textAlign='right';g.fillText('moneypie.kr / scuba',W-36,H-12);
+  if(tags.length){let tt=tags.join('  ·  '),fs=24;g.font='700 '+fs+'px '+ff;const mx=W-36-uw-24-(bw+16);while(fs>15&&g.measureText(tt).width>mx){fs--;g.font='700 '+fs+'px '+ff;}g.fillStyle='#1e5fbf';g.textAlign='left';g.fillText(tt,bw+16,H-12);}
+  g.textAlign='left';
   return el;}finally{window.SNAP=false;S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;if(LANG!==LG0){LANG=LG0;applyLang();syncForm();renderSummary();}drawProfile();updateStats(P.tick<0?0:P.tick);}}
 async function shareCanvas(el,kind){const blob=await new Promise(r=>el.toBlob(r,kind==='photo'?'image/jpeg':'image/png',.9));
   const d=new Date(),name='dtmd-'+(kind==='photo'?'photo':'dive')+'-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+(kind==='photo'?'.jpg':'.png');
