@@ -755,7 +755,7 @@ function drawProfile(){
     const tc=Math.min(P.t,r.N);cx.beginPath();cx.moveTo(X(0),Y(0));
     for(let s=0;s<tc;s+=5)cx.lineTo(X(s),Y(r.depth[s]));
     cx.lineTo(X(tc),Y(r.depth[Math.floor(tc)]));cx.lineTo(X(tc),Y(0));cx.closePath();
-    cx.save();cx.clip();if(!window.SNAP)cx.globalAlpha=0.9;// 앱 화면: 채색면은 투명도 10%(배경 사진이 살짝 비치게), 선은 그대로
+    cx.save();cx.clip();if(!window.SNAP)cx.globalAlpha=0.8;// 앱 화면: 채색면은 투명도 20%(배경 사진이 살짝 비치게), 선은 그대로
     {
     cx.fillStyle='#cfe3fb';cx.fillRect(G.L,Y(0),G.W,Y(20)-Y(0));
     cx.fillStyle=window.SNAP?'#cfe3fb':'#6aaee8';cx.fillRect(G.L,Y(20),G.W,Y(30)-Y(20));
