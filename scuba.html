@@ -1368,8 +1368,13 @@ async function make(){hover=null;const m0=S.mode,t0=P.t,k0=P.tick;if(P.run)stopP
   try{
   const W=1080,pad=40,ff=getComputedStyle(document.body).fontFamily;const sc=(W-pad*2)/cv.clientWidth;const gh=cv.clientHeight*sc;
   const tmp=document.createElement('canvas').getContext('2d');
-  const L=lines().filter(t=>!/⚠/.test(t)),wrapped=[];L.forEach((t,i)=>{tmp.font=(i===0?'700 34px ':'400 28px ')+ff;wrap(tmp,t,W-pad*2).forEach(x=>wrapped.push([x,i]));});
-  // 아래: 왼쪽 질소 막대, 오른쪽 경고 + 통계
+  // 제목: 입수 날짜·시각이 있으면 '로그북 + 날짜', 없으면 '플래너'
+  const T3=LANG==='en'?['DTMD Dive ','Planner','Logbook']:LANG==='ja'?['DTMD ダイブ','プランナー','ログブック']:['DTMD 다이빙 ','플래너','로그북'];
+  const hasDT=S.start!=null,lg=window.__log;const dt=hasDT?((lg?lg.ymd:'')+' '+hhmm(diveStartMin(S.cur))).trim():'';
+  const title=T3[0]+(hasDT?T3[2]:T3[1]);
+  // 설정 한 줄(작게)
+  let set1=document.getElementById('setSum').textContent;if(S.dives.length>1)set1+=' · '+(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(S.cur+1)+'/'+S.dives.length;
+  let sf=22;tmp.font='400 '+sf+'px '+ff;while(sf>14&&tmp.measureText(set1).width>W-pad*2){sf--;tmp.font='400 '+sf+'px '+ff;}
   const bc=document.getElementById('bars'),BW=Math.round((W-pad*2)*0.56),BH=bc.clientWidth?Math.round(bc.clientHeight*BW/bc.clientWidth):0;
   const RX=pad+BW+24,RW=W-pad-RX;
   const wb=document.getElementById('warnBox'),warns=(!wb.classList.contains('hide')&&wb.innerText.trim())?wb.innerText.trim().split('\n').map(x=>x.trim()).filter(Boolean):[];
@@ -1377,14 +1382,15 @@ async function make(){hover=null;const m0=S.mode,t0=P.t,k0=P.tick;if(P.run)stopP
   const WH=wl.length?wl.length*34+24:0;
   const tiles=[...document.querySelectorAll('.side .st')].filter(e=>!e.classList.contains('hide')&&e.offsetParent!==null).map(e=>{const v=e.querySelector('.v');return [e.querySelector('.k').textContent.trim(),v.textContent.trim(),getComputedStyle(v).color];});
   const TH=tiles.length*50;const SH=Math.max(BH,WH+(WH?14:0)+TH);
-  const H=Math.round(pad+64+gh+20+wrapped.length*46+30+SH+40+60);
+  const top=pad+52+sf+34;
+  const H=Math.round(top+gh+30+SH+40+60);
   const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
   g.fillStyle='#fff';g.fillRect(0,0,W,H);
-  g.fillStyle='#0f2a3d';g.font='800 38px '+ff;g.textBaseline='alphabetic';g.fillText(tr('h1'),pad,pad+38);
-  if(S.start!=null){const lg=window.__log;const ds=(lg?lg.ymd:'')+' '+hhmm(diveStartMin(S.cur));g.fillStyle='#2f6fe4';g.font='700 28px '+ff;g.textAlign='right';g.fillText(ds.trim(),W-pad,pad+36);g.textAlign='left';}
-  g.drawImage(cv,pad,pad+64,W-pad*2,gh);
-  let y=pad+64+gh+20;wrapped.forEach(([t,i])=>{y+=46;g.font=(i===0?'700 34px ':'400 28px ')+ff;g.fillStyle=i===0?'#1f2328':'#4b5563';g.fillText(t,pad,y);});
-  y+=30;const y0=y;
+  g.textBaseline='alphabetic';g.fillStyle='#0f2a3d';g.font='800 38px '+ff;g.fillText(title,pad,pad+38);
+  if(hasDT){const tw=g.measureText(title).width;g.fillStyle='#2f6fe4';g.font='700 30px '+ff;g.fillText(dt,pad+tw+16,pad+37);}
+  g.fillStyle='#6b7280';g.font='400 '+sf+'px '+ff;g.fillText(set1,pad,pad+52+sf);
+  g.drawImage(cv,pad,top,W-pad*2,gh);
+  const y0=top+gh+30;
   if(BH)g.drawImage(bc,pad,y0,BW,BH);
   let ry=y0;
   if(WH){g.fillStyle='#e5484d';g.beginPath();g.roundRect?g.roundRect(RX,ry,RW,WH,12):g.rect(RX,ry,RW,WH);g.fill();g.fillStyle='#fff';g.font='700 24px '+ff;g.textBaseline='middle';
