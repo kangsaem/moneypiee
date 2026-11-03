@@ -740,6 +740,7 @@ function drawProfile(){
     timeTag={x,t,y:Y(d)};
   }
   cx.restore();
+  if(window.SNAP)timeTag=null;
   if(timeTag){const lab='◀ '+fmt(timeTag.t)+' ▶';cx.font='600 11px sans-serif';const tw=cx.measureText(lab).width+10;
     let bx=clamp(timeTag.x-tw/2,G.L,G.L+G.W-tw),ty=timeTag.y<G.T+40?G.T+G.H-22:G.T+2;cx.fillStyle='#1f2328';cx.beginPath();cx.roundRect?cx.roundRect(bx,ty,tw,18,9):cx.rect(bx,ty,tw,18);cx.fill();
     cx.fillStyle='#fff';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(lab,bx+5,ty+9.5);}
@@ -1363,7 +1364,7 @@ function lines(){const r=RES[S.cur],dv=dive(),c=r.c;const out=[];
   const w=document.getElementById('warnBox');if(w&&!w.classList.contains('hide')&&w.innerText.trim())out.push(w.innerText.trim().split('\n').join('   '));
   return out;}
 function wrap(g,text,maxW){const words=text.split(' ');const ls=[];let cur='';for(const w of words){const t=cur?cur+' '+w:w;if(g.measureText(t).width>maxW&&cur){ls.push(cur);cur=w;}else cur=t;}if(cur)ls.push(cur);return ls;}
-async function make(){hover=null;const m0=S.mode,t0=P.t,k0=P.tick;if(P.run)stopPlay();
+async function make(){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=P.tick;if(P.run)stopPlay();
   if(m0!=='none'){S.mode='none';}const rr=RES[S.cur];P.t=playEnd(rr);P.tick=Math.floor(P.t/5)*5;drawProfile();updateStats(P.tick);
   try{
   const W=1080,pad=40,ff=getComputedStyle(document.body).fontFamily;const sc=(W-pad*2)/cv.clientWidth;const gh=cv.clientHeight*sc;
@@ -1404,7 +1405,7 @@ async function make(){hover=null;const m0=S.mode,t0=P.t,k0=P.tick;if(P.run)stopP
   g.textBaseline='middle';tiles.forEach(([k,v,c],i)=>{const ty=ry+i*50;g.fillStyle='#f3f4f6';g.beginPath();g.roundRect?g.roundRect(RX,ty,RW,44,8):g.rect(RX,ty,RW,44);g.fill();
     g.fillStyle='#6b7280';g.font='400 22px '+ff;g.textAlign='left';g.fillText(k,RX+12,ty+22);g.fillStyle=c||'#1f2328';g.font='700 26px '+ff;g.textAlign='right';g.fillText(v,RX+RW-12,ty+23);g.textAlign='left';});
   g.fillStyle='#0f2a3d';g.fillRect(0,H-60,W,60);g.fillStyle='#fff';g.font='700 28px '+ff;g.textAlign='center';g.textBaseline='middle';g.fillText('www.moneypie.kr/scuba',W/2,H-30);
-  return el;}finally{S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;drawProfile();updateStats(P.tick<0?0:P.tick);}}
+  return el;}finally{window.SNAP=false;S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;drawProfile();updateStats(P.tick<0?0:P.tick);}}
 btn.addEventListener('click',async()=>{try{const el=await make();const blob=await new Promise(r=>el.toBlob(r,'image/png'));
   const d=new Date(),name='dtmd-dive-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.png';
   const file=new File([blob],name,{type:'image/png'});
