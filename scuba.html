@@ -1537,7 +1537,8 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
   let ff2=ff;const txtF=(t,x,y,size)=>{g.font='700 '+size*k+'px '+ff2;g.textAlign='left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
   const lg=window.__log,date=(lg?lg.ymd:'').replace(/-/g,'/'),gas=r.c.fO2>0.215?'EAN'+Math.round(r.c.fO2*100):'Air';
   const meta=[place,date,'GF'+S.gfLo+'/'+S.gfHi,gas].filter(Boolean).join('  ·  ');
-  txt(meta,44*k,66*k,26,300);{const f0=ff;ff2="'Helvetica Neue',Helvetica,Arial,"+f0;}txtF(DU(r.maxD.toFixed(1))+'  ·  '+fmt(r.N),42*k,130*k,60);
+  // 좌상단 글자: 2026-11-03 사용자 요청으로 1.2배(26→31, 60→72)
+  txt(meta,44*k,79*k,31.2,300);{const f0=ff;ff2="'Helvetica Neue',Helvetica,Arial,"+f0;}txtF(DU(r.maxD.toFixed(1))+'  ·  '+fmt(r.N),42*k,156*k,72);
   g.font='900 '+24*k+'px '+ff;const bw=(g.measureText('DTMD').width+24*k)*1.5,bh=40*k;g.fillStyle='#E31B3F';g.fillRect(0,H-bh,bw,bh);g.fillStyle='#fff';g.textAlign='center';g.fillText('DTMD',bw/2,H-11*k);
   txt('moneypie.kr / scuba',W-36*k,H-20*k,23,400,'right');
   return el;}
