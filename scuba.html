@@ -321,7 +321,7 @@ html,body{overflow-x:hidden}
 </div>
 
 <div class="foot">
-  <span data-i18n="disc" style="color:#e5484d;font-weight:600">교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.</span><br><span data-i18n="disc2"></span><br> <a href="mailto:kangsaem@gmail.com" style="color:#1f2328;white-space:nowrap;margin-left:6px">kangsaem@gmail.com</a><br>
+  <span data-i18n="disc" style="color:#e5484d;font-weight:600">교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.</span><br><span data-i18n="disc2" style="color:#1e5fbf;font-weight:600"></span><br> <a href="mailto:kangsaem@gmail.com" style="color:#1f2328;white-space:nowrap;margin-left:6px">kangsaem@gmail.com</a><br>
   <span data-i18n="model"></span>
 </div>
 </div>
@@ -1561,14 +1561,13 @@ function rowsOf(x){const st=tmin(x.time),dv=(x.sum&&x.sum.dv&&x.sum.dv.length)?x
   return dv.map((d,i)=>{if(i>0&&m!=null)m+=dv[i-1].N/60+d.si;return {i,st:m,N:d.N,maxD:d.maxD};});}
 function renderList(){const t=L(),a=dayLogs();
   $('logList').innerHTML=a.length?a.map(x=>{const rows=rowsOf(x),multi=rows.length>1;
-    const memo1=(x.memo||'').split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,'');
     return rows.map(r=>{const clock=r.st!=null?`${hhmm(r.st)} ${t.in} → ${hhmm(r.st+r.N/60)} ${t.out}`:'';
       const meta=[(multi?(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,x.sum.gas].filter(Boolean).join(' · ');
       const sel=x.id===CUR&&(!multi||r.i===S.cur);
-      return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${memo1&&r.i===0?'<div class="mm">'+memo1+'</div>':''}</div><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;}).join('');}).join(''):'';
+      return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${(m1=>m1?'<div class="mm">'+m1+'</div>':'')(diveMemo(x,r.i).split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,''))}</div><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;}).join('');}).join(''):'';
   $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();delRow(b.dataset.id,+b.dataset.i||0);});
-  if(!CUR){const f=a[0];$('logMemo').value=f?(f.memo||''):'';}
+  curMemoSync();
   refreshSave();}
 function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.state&&x.state.dives||[]).length;
   if(n<=1){store(load().filter(v=>v.id!==id));if(CUR===id){CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;renderTabs();syncForm();recompute();}renderSum();renderWheels();renderList();return;}
@@ -1585,16 +1584,18 @@ function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c
   let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan(),dv:RES.map((x,i)=>({N:x.N,maxD:R1(x.maxD),si:i?(+S.dives[i].si||0):0}))};}
 function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].si||0);});return m;}
 // 같은 내용이면 저장 비활성, 시작 시각이 같거나 시간이 겹치면 경고 후 교체
-function cmpKey(x){return [x.date,x.time||'',(x.memo||'').trim(),JSON.stringify(x.state)].join('|');}
-function curRec(){return {date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),state:snapState()};}
+function cmpKey(x){const st=x.state?Object.assign({},x.state,{dives:(x.state.dives||[]).map((d,i)=>Object.assign({},d,{memo:diveMemo(x,i).trim()}))}):x.state;return [x.date,x.time||'',JSON.stringify(st)].join('|');}
+function curRec(){return {date:ymd(),time:hhmm(T),memo:'',state:snapState()};}
 function conflicts(exceptId){const s1=T,e1=T+Math.max(1,curSpan());return load().filter(x=>{if(x.id===exceptId||x.date!==ymd())return false;const s2=tmin(x.time);if(s2==null)return false;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return s1===s2||(s1<e2&&s2<e1);});}
 function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasPlan=S.dives.some(d=>d.pts.length>1);const same=load().some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||same;$('logSave').title=same?t.same:'';}
-function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
+const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (d&&d.memo!=null)?d.memo:(i===0?(x.memo||''):'');};
+function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';}
+function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim()}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
 function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
-  S.dives=st.dives.map(d=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null}));S.cur=Math.min(di||0,S.dives.length-1);
+  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i)}));S.cur=Math.min(di||0,S.dives.length-1);
   const tm=tmin(x.time);if(tm!=null){T=Math.round(tm/10)*10%1440;S.start=tm;}else S.start=null;
-  CUR=id;$('logMemo').value=x.memo||'';
+  CUR=id;$('logMemo').value=S.dives[S.cur].memo||'';
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
   renderWheels();renderList();}
 let mt=0;function msg(t,bad){const el=view==='cal'?$('logHint'):$('logMsg');el.textContent=t;el.style.color=bad?'#b45309':'#0f9d7a';el.style.fontWeight='600';clearTimeout(mt);
@@ -1612,7 +1613,7 @@ $('logBack').onclick=()=>{vy=Y;vm=M;show('cal');};
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
   const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);S.start=T;
-  a.push({id,date:ymd(),time:hhmm(T),memo:$('logMemo').value.trim(),saved:Date.now(),state:snapState(),sum:summary()});
+  a.push({id,date:ymd(),time:hhmm(T),memo:'',saved:Date.now(),state:snapState(),sum:summary()});
   if(!store(a)){msg(t.fail,true);return;}afterSave(id);const others=cf.filter(x=>x.id!==CUR0);flash($('logSave'));};
 // 저장 아이콘: 화면 전환 없이 로그북 전체를 JSON으로 내려받기 / 폴더 아이콘: 다른 기기에서 받은 JSON 불러오기
 function flash(el,bad){if(!el)return;el.classList.remove('glow','glowBad');void el.offsetWidth;el.classList.add(bad?'glowBad':'glow');setTimeout(()=>el.classList.remove('glow','glowBad'),900);}
@@ -1628,6 +1629,12 @@ $('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value=''
   const a=load();let rep=0;inc.forEach(x=>{const k=a.findIndex(y=>y.id===x.id||(y.date===x.date&&(y.time||'')===(x.time||'')));if(k>=0){a[k]=x;rep++;}else a.push(x);});
   if(a.length>MAX||!store(a)){toast(t.fail);return;}renderAll();flash($('loadBtn'));};
 $('fitBtn').onclick=()=>$('fitIn').click();$('fitBtn2').onclick=()=>$('fitIn').click();
+// GPS → 지역 이름(OpenStreetMap Nominatim). 실패하면 null
+async function placeName(lat,lon){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),6000);
+  const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&lat='+lat.toFixed(5)+'&lon='+lon.toFixed(5)+'&accept-language='+(LANG==='en'?'en':LANG==='ja'?'ja':'ko'),{signal:ac.signal});clearTimeout(tm);
+  if(!r.ok)return null;const j=await r.json(),a=j.address||{};const loc=a.village||a.suburb||a.hamlet||a.town||a.city||a.municipality||a.county||a.island||j.name;
+  const reg=a.state||a.province||a.region||a.archipelago,cty=a.country;const parts=[];[loc,reg,(cty&&!/^(대한민국|South Korea|韓国)$/.test(cty))?cty:null].forEach(v=>{if(v&&!parts.includes(v))parts.push(v);});
+  return parts.length?parts.join(', '):null;}catch(e){return null;}}
 // FIT 불러오기: 같은 날 다이빙은 입수 시각 순으로 연속 다이빙(다이빙1·2…), 수면휴식 = 앞 출수~다음 입수, 10분 단위 내림
 $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if(!f)return;const t=L();let dives;
   let dev='';try{const o=parseFIT(await f.arrayBuffer());dev=(o.file_id[0]&&o.file_id[0][8])||(o.device_info[0]&&o.device_info[0][27])||'';dives=fitToDives(o);}catch(e){msg(t.fitErr,true);return;}
@@ -1635,29 +1642,29 @@ $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if
   const off=dives[0].localOff!=null?dives[0].localOff:-new Date(dives[0].startUTC*1000).getTimezoneOffset()*60;
   const loc=u=>new Date((u+off)*1000);const l0=loc(dives[0].startUTC);const date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
   const minOf=u=>{const d=loc(u);return d.getUTCHours()*60+d.getUTCMinutes()+d.getUTCSeconds()/60;};
-  const imp=dives.map(d=>({s:minOf(d.startUTC),dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true}));
+  const PL=LANG==='en'?'Place: ':LANG==='ja'?'場所: ':'장소: ',WT=LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ';
+  for(const d of dives){d.place=d.gps?await placeName(d.gps.lat,d.gps.lon):null;}
+  const imp=dives.map(d=>({s:minOf(d.startUTC),dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true,
+    memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps?('GPS '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
   // 같은 날 기존 다이빙 펼치기
   const all=load(),same=all.filter(x=>x.date===date).sort((p,q)=>(p.time||'').localeCompare(q.time||''));const old=[];let base=null;
-  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null});});if(!base)base=x;});
+  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i)});});if(!base)base=x;});
   const keepOld=old.filter(o=>!imp.some(n=>o.s<n.s+n.dur&&n.s<o.s+o.dur));const replaced=old.length-keepOld.length;
   const seq=keepOld.concat(imp).sort((p,q)=>p.s-q.s);
-  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,si:i?Math.max(10,Math.floor((d.s-(seq[i-1].s+seq[i-1].dur))/10)*10):60}))};
+  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',si:i?Math.max(10,Math.floor((d.s-(seq[i-1].s+seq[i-1].dur))/10)*10):60}))};
   KEYS.forEach(k=>st[k]=(base&&base.state&&k in base.state)?base.state[k]:S[k]);
-  const tmn=Math.min(...dives.map(d=>d.tMin).filter(v=>v!=null)),tmx=Math.max(...dives.map(d=>d.tMax).filter(v=>v!=null)),g=dives[dives.length-1].gps;
-  const memoNew=[(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',isFinite(tmn)?(LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ')+(tmn===tmx?tmn:tmn+'~'+tmx)+'°C':'',g?('GPS '+g.lat.toFixed(5)+', '+g.lon.toFixed(5)):''].filter(Boolean);
-  const memoLines=[];same.forEach(x=>(x.memo||'').split('\n').forEach(l=>{if(l&&!memoLines.includes(l))memoLines.push(l);}));memoNew.forEach(l=>{if(!memoLines.includes(l))memoLines.push(l);});
   const rest=all.filter(x=>x.date!==date);if(rest.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-  rest.push({id,date,time:hhmm(Math.floor(seq[0].s)),memo:memoLines.join('\n'),saved:Date.now(),state:st,sum:{maxD:0,N:0,N0:0,gas:'',nd:seq.length,span:0},src:'fit'});
+  rest.push({id,date,time:hhmm(Math.floor(seq[0].s)),memo:'',saved:Date.now(),state:st,sum:{maxD:0,N:0,N0:0,gas:'',nd:seq.length,span:0},src:'fit'});
   if(!store(rest)){msg(t.fail,true);return;}
   const [yy,mm,dd]=date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');
   applyLog(id,true,seq.findIndex(d=>d.fit));const b2=load(),x=b2.find(v=>v.id===id);if(x){x.sum=summary();store(b2);}renderSum();renderWheels();renderList();
   flash($('fitBtn2'));};
 window.addEventListener('scuba:lang',renderAll);
 window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
-$('logMemo').addEventListener('input',refreshSave);
+$('logMemo').addEventListener('input',()=>{const d=S.dives[S.cur];if(d)d.memo=$('logMemo').value;refreshSave();});
 renderSum();setTitle(false);
-window.__log={load,renderAll,get memo(){return $('logMemo').value||'';},get ymd(){return ymd();},get open(){return open;},get view(){return view;},get T(){return T;}};
+window.__log={load,renderAll,get memo(){const d=S.dives[S.cur];return (d&&d.memo)||'';},get ymd(){return ymd();},get open(){return open;},get view(){return view;},get T(){return T;}};
 })();
 </script>
 
