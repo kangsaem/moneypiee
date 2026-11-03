@@ -1599,7 +1599,11 @@ function makeWheel(el,onPick){let n=0,idx=0,tm=0,quiet=false,raf=0;
     jump(idx);requestAnimationFrame(()=>jump(idx));}};}
 const wM=makeWheel($('lwM'),i=>{if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;CUR=null;renderWheels();dayChanged();});
 const wD=makeWheel($('lwD'),i=>{if(i+1===D)return;D=i+1;CUR=null;renderWheels();dayChanged();});
-const wT=makeWheel($('lwT'),i=>{const v=i*10;if(v===T)return;T=v;S.start=T;drawProfile();refreshSave();});
+// 시간 휠은 선택한 다이빙의 시작 시각(10분 단위 내림)을 보여 줌. 돌리면 그만큼 로그 시작 시각(T)을 옮김
+function dOff(){let o=0;for(let k=1;k<=S.cur&&k<S.dives.length;k++)o+=(RES[k-1]?RES[k-1].N/60:0)+(+S.dives[k].si||0);return o;}
+const twIdx=()=>((Math.floor(((S.start!=null?S.start:T)+dOff())/10)%144)+144)%144;let TWI=-1;
+const wT=makeWheel($('lwT'),i=>{if(i===TWI)return;TWI=i;T=((Math.round((i*10-dOff())/10)*10)%1440+1440)%1440;S.start=T;drawProfile();refreshSave();});
+function syncTW(){const i=twIdx();if(i===TWI)return;TWI=i;renderWheels();}
 // --- 달력
 function renderCal(){const a=load(),t=L();$('calY').textContent=LANG==='en'?String(vy):LANG==='ja'?vy+'年':vy+'년';$('calMo').textContent=LANG==='en'?'.'+pad(vm):LANG==='ja'?vm+'月':vm+'월';const has=new Set(a.map(x=>x.date));
   const first=new Date(vy,vm-1,1).getDay(),days=new Date(vy,vm,0).getDate(),k0=new Date();const today=k0.getFullYear()+'-'+pad(k0.getMonth()+1)+'-'+pad(k0.getDate());
@@ -1613,8 +1617,8 @@ function renderCal(){const a=load(),t=L();$('calY').textContent=LANG==='en'?Stri
 function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));
   wM.set(Array.from({length:12},(_,i)=>({h:t.m(i+1),has:a.some(x=>x.date.startsWith(Y+'-'+pad(i+1)+'-'))})),M-1);
   const nd=new Date(Y,M,0).getDate();wD.set(Array.from({length:nd},(_,i)=>{const d=i+1,wd=new Date(Y,M-1,d).getDay();return {h:`${d}<small class="${wd===0?'sun':wd===6?'sat':''}">${t.wd[wd]}</small>`,has:dates.has(Y+'-'+pad(M)+'-'+pad(d))};}),D-1);
-  const times=new Set();dayLogs().forEach(x=>rowsOf(x).forEach(r=>{if(r.st!=null)times.add(Math.round(r.st/10)*10%1440);}));
-  wT.set(Array.from({length:144},(_,i)=>({h:hhmm(i*10),has:times.has(i*10)})),T/10);
+  const times=new Set();dayLogs().forEach(x=>rowsOf(x).forEach(r=>{if(r.st!=null)times.add(Math.floor(r.st/10)*10%1440);}));
+  TWI=twIdx();wT.set(Array.from({length:144},(_,i)=>({h:hhmm(i*10),has:times.has(i*10)})),TWI);
   const wd=new Date(Y,M-1,D).getDay();$('edTitle').textContent=t.ed(Y,M,D,t.wd[wd]);}
 function dayLogs(){return load().filter(x=>x.date===ymd()).sort((p,q)=>(p.time||'').localeCompare(q.time||''));}
 function dayChanged(){const f=dayLogs()[0];if(f){applyLog(f.id,true);return;}renderList();}
@@ -1628,7 +1632,7 @@ function renderList(){const t=L(),a=dayLogs();
       return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${(m1=>m1?'<div class="mm">'+m1+'</div>':'')(diveMemo(x,r.i).split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,''))}</div><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;}).join('');}).join(''):'';
   $('logList').querySelectorAll('.li').forEach(el=>el.onclick=e=>{if(e.target.closest('.del'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();delRow(b.dataset.id,+b.dataset.i||0);});
-  curMemoSync();
+  curMemoSync();if(view==='ed')syncTW();
   refreshSave();}
 function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.state&&x.state.dives||[]).length;
   if(n<=1){store(load().filter(v=>v.id!==id));if(CUR===id){CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;renderTabs();syncForm();recompute();}renderSum();renderWheels();renderList();return;}
@@ -1660,7 +1664,7 @@ function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d
 function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
   S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[]}));S.cur=Math.min(di||0,S.dives.length-1);
-  const tm=tmin(x.time);if(tm!=null){T=Math.round(tm/10)*10%1440;S.start=tm;}else S.start=null;
+  const tm=tmin(x.time);if(tm!=null){T=Math.floor(tm/10)*10%1440;S.start=tm;}else S.start=null;
   CUR=id;$('logMemo').value=S.dives[S.cur].memo||'';renderPh();
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
   renderWheels();renderList();}
