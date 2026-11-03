@@ -1589,7 +1589,10 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
   // 수심 그래프(하단): 수면 = H-330k, 최대 수심까지 260k
   const N=Math.max(1,r.N),maxD=Math.max(1,r.maxD),top=H-330*k,gh=260*k,PX=t=>t/N*W,PY=d=>top+d/maxD*gh;
   const path=()=>{g.beginPath();for(let t=0;t<=N;t+=5){const d=r.depth[Math.min(N,t)]||0;t?g.lineTo(PX(t),PY(d)):g.moveTo(PX(t),PY(d));}g.lineTo(PX(N),PY(r.depth[N]||0));};
-  path();g.lineTo(W,H);g.lineTo(0,H);g.closePath();const rg=g.createRadialGradient(0,H,0,0,H,760*k);rg.addColorStop(0,'rgba(14,140,230,.55)');rg.addColorStop(.55,'rgba(14,140,230,.22)');rg.addColorStop(1,'rgba(14,140,230,0)');g.fillStyle=rg;g.fill();
+  path();g.lineTo(W,H);g.lineTo(0,H);g.closePath();const rg=g.createRadialGradient(0,H,0,0,H,760*k);rg.addColorStop(0,'rgba(14,140,230,.55)');rg.addColorStop(.55,'rgba(14,140,230,.22)');rg.addColorStop(1,'rgba(14,140,230,0)');g.fillStyle=rg;
+  // 합성 모드 자동 선택: 왼쪽 아래(가로 절반 × 그래프 영역)에서 아주 어두운 픽셀(밝기 25% 미만) 비율이 20% 이상이면 Add(lighter), 아니면 Multiply
+  let dark=0;try{const by=Math.round(top),d=g.getImageData(0,by,Math.max(1,Math.round(W/2)),Math.max(1,H-by)).data;let n=0,c=0;for(let i=0;i<d.length;i+=16){if(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]<63.75)c++;n++;}dark=n?c/n:0;}catch(e){}
+  window.__PLDARK=dark;g.save();g.globalCompositeOperation=dark>=0.2?'lighter':'multiply';g.fill();g.restore();
   // 그래프 오른쪽: 선 바로 위만 아주 옅은 검은 그림자(위로 조금만 올라가도 사라짐, 가운데로 가며 사라짐)
   {const oc=document.createElement('canvas');oc.width=W;oc.height=H;const o=oc.getContext('2d'),op=()=>{o.beginPath();for(let t=0;t<=N;t+=5){const d=r.depth[Math.min(N,t)]||0;t?o.lineTo(PX(t),PY(d)):o.moveTo(PX(t),PY(d));}o.lineTo(PX(N),PY(r.depth[N]||0));};
     o.save();op();o.lineTo(W,0);o.lineTo(0,0);o.closePath();o.clip();
