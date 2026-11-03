@@ -88,6 +88,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .setWrap.open{grid-template-rows:1fr}
 .setWrap>div{overflow:hidden;min-height:0}
 .setBody{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+#logCard .setBody{margin-top:4px;border-top:1.5px solid #6b7280}
 .setHead .arr{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 .calHd,.edHd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.calHd b,.edHd b{font-size:15px}.calHd button{padding:4px 10px}.edHd button{padding:4px 10px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:13px}
@@ -347,8 +348,8 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 </div></div>
 
 <div class="foot">
-  <span data-i18n="disc" style="color:#E31B3F;font-weight:600">교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.</span><br><span data-i18n="disc2" style="color:#1e5fbf;font-weight:600"></span> <a href="mailto:kangsaem@gmail.com" style="color:#1f2328;white-space:nowrap;margin-left:4px">kangsaem@gmail.com</a>
-  <details class="footMore"><summary data-i18n="more">계산 방식 자세히</summary><span data-i18n="model"></span></details>
+  <span data-i18n="disc" style="color:#E31B3F;font-weight:600">교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.</span> <span data-i18n="disc2" style="color:#1e5fbf;font-weight:600"></span> <a href="mailto:kangsaem@gmail.com" style="color:#1f2328;white-space:nowrap;margin-left:4px">kangsaem@gmail.com</a>
+  <details class="footMore"><summary data-i18n="more">계산 방식</summary><span data-i18n="model"></span></details>
 </div>
 </div>
 
@@ -372,7 +373,7 @@ ko:{
  logT:'다이빙 로그북',logDate:'날짜',logStart:'입수 시각',logSave:'현재 로그 저장',draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
- disc:'교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',more:'계산 방식 자세히',disc2:'로그북 기능을 포함하고 있습니다. 대부분의 다이빙 컴퓨터에서 FIT 파일을 불러올 수 있습니다. 로그는 현재 사용하는 브라우저에만 저장됩니다. 저장하기로 백업하시거나 다른 단말기 브라우저에서 이어서 사용할 수 있습니다.',
+ disc:'교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',more:'계산 방식',disc2:'로그북 기능을 포함하고 있습니다. 대부분의 다이빙 컴퓨터에서 FIT 파일을 불러올 수 있습니다. 로그는 현재 사용하는 브라우저에만 저장됩니다. 저장하기로 백업하시거나 다른 단말기 브라우저에서 이어서 사용할 수 있습니다.',
  model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 산소 독성은 CNS%만 NOAA 한도로 계산(나이트록스), 헬륨·OTU는 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
  tank:'탱크',sac:'호흡량',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:(v,m)=>`출수 잔압 ${v} (${m} 미만)`,wGas0:'공기 고갈',
  tutBtn:'튜토리얼',bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
@@ -428,7 +429,7 @@ en:{
  logT:'Dive logbook',logDate:'Date',logStart:'Start',logSave:'Save this log',draw:'Draw',points:'Points',erase:'Erase pts',sel:'Select',peHint:'Tap a point to enter its time and depth',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
  lgPath:'My profile',lgPlan:'Suggested',lgCeil:'Ceiling',lgFast:'Fast ascent',on:'N₂ on-gassing',off:'N₂ off-gassing',pct:'100% = surfacing limit (GF High)',
  elapsed:'Elapsed',depth:'Depth',surfGF:'Surface GF',
- disc:'For education and learning only. Do not use it to plan real decompression dives or as a substitute for a dive computer.',more:'Calculation details',disc2:'Includes a logbook. FIT files from most dive computers can be imported. Logs are stored only in this browser; use Save to back them up or to continue in a browser on another device.',
+ disc:'For education and learning only. Do not use it to plan real decompression dives or as a substitute for a dive computer.',more:'Calculation',disc2:'Includes a logbook. FIT files from most dive computers can be imported. Logs are stored only in this browser; use Save to back them up or to continue in a browser on another device.',
  model:'Model: Bühlmann ZHL-16C, 16 nitrogen compartments, Baker gradient factors, water vapour 0.0627 bar, 1-second steps. Deco stops in 3 m steps and whole minutes, last stop 3 m. A 3-minute safety stop at 5 m is included. Altitude assumes you are acclimatised. Oxygen toxicity: CNS% only, using NOAA limits (nitrox); helium and OTU are not calculated. Results can differ from real dive computers by a few minutes because of how stops are handled and rounded.',
  tank:'Tank',sac:'Breathing (SAC)',sacLo:'Low (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'High (25 L/min)',wGas:(v,m)=>`Surfacing with ${v} (below ${m})`,wGas0:'Out of air',
  tutBtn:'Tutorial (KR)',bmSurf:'Surface-based',bmSw:'Shearwater-style',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
@@ -484,7 +485,7 @@ ja:{
  logT:'ダイブログブック',logDate:'日付',logStart:'潜水開始',logSave:'このログを保存',draw:'描く',points:'点を打つ',erase:'点を消す',sel:'点を選択',peHint:'点をタップすると時間・水深を入力できます',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
  lgPath:'自分の経路',lgPlan:'推奨',lgCeil:'シーリング',lgFast:'急浮上',on:'窒素 吸収中',off:'窒素 排出中',pct:'100% = 浮上許容限界(GF High)',
  elapsed:'経過時間',depth:'水深',surfGF:'水面 GF',
- disc:'教育・学習用のシミュレーターです。実際の減圧ダイビング計画やダイブコンピューターの代わりに使用しないでください。',more:'計算方法の詳細',disc2:'ログブック機能を含みます。ほとんどのダイブコンピューターのFITファイルを読み込めます。ログはこのブラウザにのみ保存されます。保存でバックアップするか、別の端末のブラウザで続けて使えます。',
+ disc:'教育・学習用のシミュレーターです。実際の減圧ダイビング計画やダイブコンピューターの代わりに使用しないでください。',more:'計算方法',disc2:'ログブック機能を含みます。ほとんどのダイブコンピューターのFITファイルを読み込めます。ログはこのブラウザにのみ保存されます。保存でバックアップするか、別の端末のブラウザで続けて使えます。',
  model:'計算: Bühlmann ZHL-16C 窒素16コンパートメント、Baker グラディエントファクター、水蒸気圧 0.0627 bar、1秒単位の計算。減圧停止は3 m刻み・1分単位、最終停止 3 m。5 mで3分の安全停止を含む。標高はその標高に順応した状態を想定。酸素毒性はCNS%のみNOAA限度で計算(ナイトロックス)、ヘリウム・OTUは計算しません。停止の扱いや丸め方の違いにより、実際のダイブコンピューターと数分の差が出ることがあります。',
  tank:'タンク',sac:'呼吸量',sacLo:'少ない (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'多い (25 L/分)',wGas:(v,m)=>`浮上時残圧 ${v} (${m}未満)`,wGas0:'エア切れ',
  tutBtn:'チュートリアル(韓)',bmSurf:'水面基準',bmSw:'Shearwater式',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
@@ -1641,6 +1642,7 @@ let mt=0;function msg(t,bad){const el=view==='cal'?$('logHint'):$('logMsg');el.t
 function afterSave(id){vy=Y;vm=M;CUR=id||null;renderSum();renderWheels();renderList();}
 $('logHead').onclick=()=>{open=!open;sync();};
 window.toggleLogbook=()=>{open=!open;sync();};
+{const rw=document.querySelector('#ruleWrap .rule');if(rw){rw.style.cursor='pointer';rw.addEventListener('click',()=>{if(!open){open=true;sync();}});}}
 const YRS=[];for(let y=1990;y<=new Date().getFullYear()+5;y++)YRS.push(y);
 const wY=makeWheel($('lwY'),i=>{if(YRS[i]===vy)return;vy=YRS[i];renderCal();});
 $('calY').onclick=e=>{e.stopPropagation();const yp=$('yearPick');if(!yp.classList.contains('hide')){yp.classList.add('hide');return;}yp.classList.remove('hide');wY.set(YRS.map(y=>({h:String(y),has:load().some(x=>x.date.startsWith(y+'-'))})),Math.max(0,YRS.indexOf(vy)));setTimeout(()=>$('lwY').focus({preventScroll:true}),30);};
