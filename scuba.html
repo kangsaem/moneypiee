@@ -208,7 +208,6 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 @supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip):not(.ico):not(.setHead){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
 </style>
 <style>
-@font-face{font-family:'League Spartan';src:url(/fonts/league-spartan-latin-700-normal.woff2) format('woff2');font-weight:700;font-display:swap}
 html.spl body>*:not(#splash){visibility:hidden}
 #splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 #splash .spMid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;width:100%}
@@ -716,12 +715,13 @@ const fmt=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(
 function drawProfile(){
   const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);let labPos=null,timeTag=null,skullAt=null;LABBOX=null;
   cx.font='11px sans-serif';cx.fillStyle='#6b7280';
-  if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===60||f===100;
-    cx.strokeStyle=f===0?'#9ca3af':f===100?'#E31B3F':f===60?'#6b7280':'#d1d5db';cx.setLineDash(f===0?[]:hi?[6,4]:[3,4]);cx.lineWidth=hi?1.4:1;
+  const SN=!!window.SNAP;
+  if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===100||(f===60&&!SN);
+    cx.strokeStyle=f===0?'#9ca3af':f===100?'#E31B3F':(f===60&&!SN)?'#6b7280':'#d1d5db';cx.setLineDash(f===0?[]:hi?[6,4]:[3,4]);cx.lineWidth=hi?1.4:1;
     cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
     cx.textAlign='right';cx.textBaseline='middle';cx.fillText(f+'ft',G.L-6,Y(d));}}
-  else for(let d=0;d<=DMAX;d+=5){
-    cx.strokeStyle=d===0?'#9ca3af':d===30?'#E31B3F':d===20?'#6b7280':'#d1d5db';cx.setLineDash(d===0?[]:d===20||d===30?[6,4]:[3,4]);cx.lineWidth=d===20||d===30?1.4:1;
+  else for(let d=0;d<=DMAX;d+=5){const a20=d===20&&!SN;
+    cx.strokeStyle=d===0?'#9ca3af':d===30?'#E31B3F':a20?'#6b7280':'#d1d5db';cx.setLineDash(d===0?[]:a20||d===30?[6,4]:[3,4]);cx.lineWidth=a20||d===30?1.4:1;
     cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
     cx.textAlign='right';cx.textBaseline='middle';cx.fillText(d+'m',G.L-6,Y(d));
   }
@@ -739,7 +739,7 @@ function drawProfile(){
     cx.save();cx.clip();
     {
     cx.fillStyle='#cfe3fb';cx.fillRect(G.L,Y(0),G.W,Y(20)-Y(0));
-    cx.fillStyle='#6aaee8';cx.fillRect(G.L,Y(20),G.W,Y(30)-Y(20));
+    cx.fillStyle=window.SNAP?'#cfe3fb':'#6aaee8';cx.fillRect(G.L,Y(20),G.W,Y(30)-Y(20));
     cx.fillStyle='#6aaee8';cx.fillRect(G.L,Y(30),G.W,Y(DMAX)-Y(30)+2);}
     cx.restore();
     if(r.t0>=0&&P.t>=r.t0){cx.beginPath();cx.moveTo(X(r.t0),Y(0));for(let k=r.t0;k<=r.N;k+=5)cx.lineTo(X(k),Y(r.depth[k]));cx.lineTo(X(r.N),Y(r.depth[r.N]));cx.lineTo(X(r.N),Y(0));cx.closePath();
@@ -747,7 +747,7 @@ function drawProfile(){
   }
   cx.fillStyle='rgba(0,0,0,.12)';cx.fillRect(G.L,Y(30),G.W,Y(DMAX)-Y(30));
   cx.font='700 16px sans-serif';cx.fillStyle='rgba(31,35,40,.16)';cx.textAlign='center';cx.textBaseline='middle';
-  cx.fillText('OW',X(1200),Y(15));cx.fillText('AD',X(1800),Y(25));
+  if(!window.SNAP){cx.fillText('OW',X(1200),Y(15));cx.fillText('AD',X(1800),Y(25));}
   if(r){
     if(r.ceil5.some(v=>v>0)){
       cx.beginPath();cx.moveTo(X(0),Y(0));
@@ -820,7 +820,7 @@ function drawProfile(){
   }
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
-        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),l3=diveClock(S.cur);cx.font=window.SNAP?"700 13px 'League Spartan',sans-serif":'600 12px sans-serif';
+        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),l3=diveClock(S.cur);cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';
         const isDeco=r&&r.ceil5.some(v=>v>0),hh=isDeco?18:0;
         const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,l3?cx.measureText(l3).width:0,isDeco?48:0)+12,th=36+hh+(l3?16:0);
         const hits=(bx,by)=>{if(!r)return false;for(let x=bx-2;x<=bx+tw+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+th+3)return true;}return false;};
@@ -833,8 +833,11 @@ function drawProfile(){
         cx.fillStyle='rgba(255,255,255,.92)';cx.strokeStyle=isDeco?'#E31B3F':'#9ca3af';cx.lineWidth=1;
         cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.fill();if(lift){cx.restore();cx.strokeStyle='#2f6fe4';cx.lineWidth=2;}cx.stroke();
         if(isDeco){cx.save();cx.beginPath();cx.roundRect?cx.roundRect(bx,by,tw,th,4):cx.rect(bx,by,tw,th);cx.clip();cx.fillStyle='#E31B3F';cx.fillRect(bx,by,tw,hh);cx.restore();
-          cx.font='800 12px sans-serif';cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+hh/2+.5);cx.font=window.SNAP?"700 13px 'League Spartan',sans-serif":'600 12px sans-serif';}
-        cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(l1,bx+6,by+hh+10.5);cx.fillText(l2,bx+6,by+hh+26);if(l3){cx.fillStyle='#2f6fe4';cx.fillText(l3,bx+6,by+hh+42);}if(SNPL)cx.restore();
+          cx.font='800 12px sans-serif';cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+hh/2+.5);cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';}
+        cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';
+        // 글자 위·아래 여백을 같게: 실제 글자 윤곽(첫 줄 위끝·마지막 줄 아래끝) 기준으로 세로 위치 보정
+        let sh=0;{const yl=l3?42:26,ml=cx.measureText(l3||l2),m1=cx.measureText(l1);if(m1.actualBoundingBoxAscent!=null){const tg=10.5-m1.actualBoundingBoxAscent,bg=(th-hh)-(yl+ml.actualBoundingBoxDescent);sh=(bg-tg)/2;}}
+        cx.fillText(l1,bx+6,by+hh+10.5+sh);cx.fillText(l2,bx+6,by+hh+26+sh);if(l3){cx.fillStyle='#2f6fe4';cx.fillText(l3,bx+6,by+hh+42+sh);}if(SNPL)cx.restore();
       }
   }
   if(timeTag){cx.beginPath();cx.arc(timeTag.x,timeTag.y,10,0,7);cx.fillStyle='rgba(31,35,40,.18)';cx.fill();
@@ -1448,17 +1451,43 @@ function lines(){const r=RES[S.cur],dv=dive(),c=r.c;const out=[];
   const w=document.getElementById('warnBox');if(w&&!w.classList.contains('hide')&&w.innerText.trim())out.push(w.innerText.trim().split('\n').join('   '));
   return out;}
 // 메모에서 지명·슈트 두께·시야 찾기
-function memoTags(m,plOv){if(!m&&!plOv)return [];m=m||'';const L=m.split('\n').map(x=>x.trim()).filter(Boolean),out=[];
-  let place=null;for(const l of L){const k=l.match(/^(?:장소|포인트|지명|다이빙\s*포인트|place|point|spot|ポイント|場所)\s*[:：]?\s*(.+)$/i);if(k){place=k[1];break;}}
-  if(!place)place=L.find(l=>!/\d/.test(l)&&!/(슈트|suit|웨이트|weight|기온|수온|시야|visib|gps|fit|생물|life|°|スーツ|ウェイト|透明度|水温|気温)/i.test(l)&&l.length<=24)||null;
+// ===== 지명 고르기 =====
+// 순서: ① 사용자가 쓴 '장소/포인트/place/point/ポイント/場所…' 줄 ② 나라 이름이 든 줄 ③ (포토 로그만) GPS 영어 지명
+//       ④ FIT가 자동으로 쓴 '위치/Location/位置' 줄 ⑤ 메모 첫머리 추측(숫자·장비 단어 없는 짧은 줄)
+const PL_USER=/^(?:장소|포인트|지명|다이빙\s*포인트|place|point|spot|dive\s*site|ポイント|場所)\s*[:：]?\s*(.+)$/i,PL_AUTO=/^(?:위치|location|位置)\s*[:：]\s*(.+)$/i;
+const CTRY=[['KR','대한민국|한국','South Korea|Korea','韓国'],['PH','필리핀','Philippines','フィリピン'],['ID','인도네시아','Indonesia','インドネシア'],['TH','태국','Thailand','タイ'],['MY','말레이시아','Malaysia','マレーシア'],
+  ['VN','베트남','Vietnam|Viet Nam','ベトナム'],['JP','일본','Japan','日本'],['TW','대만','Taiwan','台湾'],['CN','중국','China','中国'],['MV','몰디브','Maldives','モルディブ'],['PW','팔라우','Palau','パラオ'],
+  ['FM','미크로네시아|축','Micronesia|Chuuk','ミクロネシア|チューク'],['GU','괌','Guam','グアム'],['MP','사이판|북마리아나','Saipan|Northern Mariana','サイパン'],['EG','이집트','Egypt','エジプト'],['MX','멕시코','Mexico','メキシコ'],
+  ['AU','호주|오스트레일리아','Australia','オーストラリア'],['FJ','피지','Fiji','フィジー'],['US','미국|하와이','USA|United States|Hawaii','アメリカ|ハワイ'],['PG','파푸아뉴기니','Papua New Guinea','パプアニューギニア'],
+  ['SB','솔로몬','Solomon','ソロモン'],['LK','스리랑카','Sri Lanka','スリランカ'],['MT','몰타','Malta','マルタ'],['HR','크로아티아','Croatia','クロアチア'],['GR','그리스','Greece','ギリシャ'],['TR','터키|튀르키예','Turkey|Türkiye','トルコ'],
+  ['EC','에콰도르|갈라파고스','Ecuador|Galapagos','エクアドル|ガラパゴス'],['BZ','벨리즈','Belize','ベリーズ'],['BS','바하마','Bahamas','バハマ'],['CU','쿠바','Cuba','キューバ'],['KH','캄보디아','Cambodia','カンボジア'],
+  ['MM','미얀마','Myanmar','ミャンマー'],['NC','뉴칼레도니아','New Caledonia','ニューカレドニア'],['PF','타히티|폴리네시아','Tahiti|Polynesia','タヒチ|ポリネシア'],['NZ','뉴질랜드','New Zealand','ニュージーランド']]
+  .map(([c,ko,en,ja])=>({c,re:new RegExp('('+ko+'|'+ja+')|\\b('+en+')\\b','gi'),kj:new RegExp(ko+'|'+ja,'g')}));
+function hasCtry(l){return CTRY.some(x=>{x.re.lastIndex=0;return x.re.test(l);});}
+function pickPlace(m){const L=(m||'').split('\n').map(x=>x.trim()).filter(Boolean);let k;
+  for(const l of L)if((k=l.match(PL_USER)))return {t:k[1].trim(),line:l,src:'user'};
+  for(const l of L)if(!/gps|\(fit\)|°/i.test(l)&&!PL_AUTO.test(l)&&l.length<=40&&hasCtry(l))return {t:l,line:l,src:'ctry'};
+  for(const l of L)if((k=l.match(PL_AUTO)))return {t:k[1].trim(),line:l,src:'auto'};
+  const g=L.find(l=>!/\d/.test(l)&&!/(슈트|suit|웨이트|weight|기온|수온|시야|visib|gps|fit|생물|life|°|スーツ|ウェイト|透明度|水温|気温)/i.test(l)&&l.length<=24);
+  return g?{t:g,line:g,src:'guess'}:{t:'',line:null,src:''};}
+// 영어로: 나라 이름 → 코드(PH 등), 한글 → 로마자(국어의 로마자 표기 기본 규칙, 단어 첫 글자 대문자)
+function romanKo(t){const I=['g','kk','n','d','tt','r','m','b','pp','s','ss','','j','jj','ch','k','t','p','h'],V=['a','ae','ya','yae','eo','e','yeo','ye','o','wa','wae','oe','yo','u','wo','we','wi','yu','eu','ui','i'],
+  F=['','k','k','k','n','n','n','t','l','k','m','l','l','l','p','l','m','p','p','t','t','ng','t','t','k','t','p','t'],
+  LI={1:'g',2:'kk',3:'ks',4:'n',5:'nj',6:'n',7:'d',8:'r',9:'lg',10:'lm',11:'lb',12:'ls',13:'lt',14:'lp',15:'r',16:'m',17:'b',18:'ps',19:'s',20:'ss',21:'ng',22:'j',23:'ch',24:'k',25:'t',26:'p',27:''};
+  const cs=[...t],sy=cs.map(ch=>{const c=ch.charCodeAt(0)-0xAC00;return c>=0&&c<=11171?{i:Math.floor(c/588),v:Math.floor(c%588/28),f:c%28}:null;});let out='';
+  cs.forEach((ch,k)=>{const x=sy[k];if(!x){out+=ch;return;}const p=sy[k-1];let ini=I[x.i];if(p&&p.f===8&&x.i===5)ini='l';out+=ini+V[x.v];
+    if(x.f){const n=sy[k+1];out+=(n&&n.i===11)?LI[x.f]:(n&&n.i===5&&x.f===8)?'l':F[x.f];}});
+  return out.replace(/(^|[\s,.\-\/(])([a-z])/g,(a,b,c)=>b+c.toUpperCase());}
+function placeToEN(t){let s=t;CTRY.forEach(x=>{s=s.replace(x.kj,x.c);});if(/[가-힣]/.test(s))s=romanKo(s);return s.replace(/\s{2,}/g,' ').trim();}
+const nonLatin=t=>/[぀-ヿ㐀-鿿가-힣]/.test(t);
+function memoTags(m,plOv){if(!m&&!plOv)return [];m=m||'';const out=[];
+  const pp=pickPlace(m);let place=pp.t;out.placeLine=pp.line;
   if(plOv)place=plOv;out.place=place||'';
   const su=m.match(/(?:슈트|suit|wetsuit|スーツ|ウェット)[^\n\d]*(\d+(?:\.\d+)?)\s*mm/i)||m.match(/(\d+(?:\.\d+)?)\s*mm/i);if(su)out.push((LANG==='en'?'Suit ':LANG==='ja'?'スーツ ':'슈트 ')+su[1]+'mm');
   const vi=m.match(/(?:시야|visibility|vis|透明度)\s*[:：]?\s*(\d+(?:\.\d+)?)\s*m/i);if(vi)out.push((LANG==='en'?'Vis ':LANG==='ja'?'透明度 ':'시야 ')+vi[1]+'m');
   return out;}
 function wrap(g,text,maxW){const words=text.split(' ');const ls=[];let cur='';for(const w of words){const t=cur?cur+' '+w:w;if(g.measureText(t).width>maxW&&cur){ls.push(cur);cur=w;}else cur=t;}if(cur)ls.push(cur);return ls;}
 async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=P.tick,LG0=LANG;if(P.run)stopPlay();
-  // 이미지 속 용어는 모두 영어로: 잠시 영어로 바꿔 그린 뒤 되돌림(그 사이 화면은 다시 그려지지 않음)
-  if(LANG!=='en'){LANG='en';applyLang();syncForm();renderSummary();}
   if(m0!=='none'){S.mode='none';}const rr=RES[S.cur];P.t=playEnd(rr);P.tick=Math.floor(P.t/5)*5;drawProfile();updateStats(P.tick);
   try{
   const W=1080,pad=40,ff=getComputedStyle(document.body).fontFamily;
@@ -1470,59 +1499,54 @@ async function make(plEN){hover=null;window.SNAP=true;const m0=S.mode,t0=P.t,k0=
       G={w:GW,h:GH,L:40,R:30,T:10,B:26};G.W=G.w-G.L-G.R;G.H=G.h-G.T-G.B;drawProfile();
       gimg=document.createElement('canvas');gimg.width=cv.width;gimg.height=cv.height;gimg.getContext('2d').drawImage(cv,0,0);}
     finally{TMAX=oT;DMAX=oD;cv.width=oW;cv.height=oH;G=oG;layout();drawProfile();}}
-  // 설정 한 줄(작게)
-  let set1=document.getElementById('setSum').textContent;if(S.dives.length>1)set1+=' · '+(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(S.cur+1)+'/'+S.dives.length;
-  let sf=22;
-  const bc=document.getElementById('bars'),BW=Math.round((W-pad*2)*0.5);
-  const RX=pad+BW+24,RW=W-pad-RX;
-  const wb=document.getElementById('warnBox'),warns=(!wb.classList.contains('hide')&&wb.innerText.trim())?wb.innerText.trim().split('\n').map(x=>x.trim()).filter(Boolean):[];
-  // 경고·위반은 각각 칩으로(텍스트 길이만큼), 오른쪽 열 안에서 줄바꿈
-  tmp.font='700 20px '+ff;const CHH=36,CHG=8,chips=[];{let cx0=0,cy0=0;warns.forEach(t0=>{let t=t0;while(tmp.measureText(t).width+28>RW&&t.length>4)t=t.slice(0,-2);if(t!==t0)t=t.slice(0,-1)+'…';const w=tmp.measureText(t).width+28;
-    if(cx0&&cx0+w>RW){cx0=0;cy0+=CHH+CHG;}chips.push({t,x:cx0,y:cy0,w});cx0+=w+CHG;});}
-  const WH=chips.length?chips[chips.length-1].y+CHH:0;
-  const tiles=[...document.querySelectorAll('.side .st')].filter(e=>!e.classList.contains('hide')&&e.offsetParent!==null).map(e=>{const v=e.querySelector('.v');return [e.querySelector('.k').textContent.trim(),v.textContent.trim(),getComputedStyle(v).color];});
-  const TR=Math.ceil(tiles.length/2),TH=TR*50,RH=WH+(WH?12:0)+TH;
-  // 질소 막대: 가늘고 촘촘하게, 오른쪽 열 높이에 맞춤
-  let BH=0,bcv=null;if(bc.clientWidth){const k=BW/bc.clientWidth,dpr=window.devicePixelRatio||1,cssH=Math.max(100,RH/k),rh=Math.max(5,(cssH-24)/16);
-    const ow=bc.width,oh=bc.height,os=bc.style.height;bc.height=Math.round(cssH*dpr);bc.getContext('2d').setTransform(dpr,0,0,dpr,0,0);window.BAR_RH=rh;updateStats(P.tick);
-    bcv=document.createElement('canvas');bcv.width=bc.width;bcv.height=bc.height;bcv.getContext('2d').drawImage(bc,0,0);BH=Math.round(cssH*k);
-    window.BAR_RH=0;bc.height=oh;bc.style.height=os;bc.getContext('2d').setTransform(dpr,0,0,dpr,0,0);}
-  const SH=Math.max(BH,RH);
-  // 띠: 날짜 + 메모의 지명·슈트·시야
-  const lg=window.__log,dt=(S.start!=null&&lg)?lg.ymd.replace(/-/g,'/'):'';
-  const mt=memoTags(S.start!=null&&lg?lg.memo:'',plEN||''),place=(mt&&mt.place)||'',extra=(mt||[]).slice();
-  const top=pad+sf+20;
-  const H=Math.round(top+gh+24+SH+34+40);
+  // 설정 한 줄(작게): 기체 · GF · 탱크 (· 다이빙 n/N) — 해수/고도/상승 속도는 넣지 않음
+  const c0=cfg();let set1=(S.o2<=21?tr('sAir'):'EAN'+S.o2)+' · GF '+Math.round(c0.lo*100)+'/'+Math.round(c0.hi*100)+' · '+S.tankV+'L '+pu(S.tankP)+puN();
+  if(S.dives.length>1)set1+=' · '+(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(S.cur+1)+'/'+S.dives.length;
+  const CWID=W-pad*2,HV="700 {}px 'Helvetica Neue',Helvetica,Arial,"+ff,hv=n=>HV.replace('{}',n);
+  const wb=document.getElementById('warnBox'),warns=((!wb.classList.contains('hide')&&wb.innerText.trim())?wb.innerText.trim().split('\n').map(x=>x.replace(/^⚠\s*/,'').trim()).filter(Boolean):[]);
+  // 맨 위: 1줄 = 날짜·지역·기체·GF·탱크(조금 큰 글씨) / 아래 최대 3줄 = 메모(지명 줄 제외, ' · '로 이음)
+  const lg=window.__log,has=S.start!=null&&lg,dt=has?lg.ymd.replace(/-/g,'/'):'',memo=has?(lg.memo||''):'';
+  const mt=memoTags(memo,plEN||''),place=(mt&&mt.place)||'';
+  const mrest=memo.split('\n').map(x=>x.trim()).filter(Boolean).filter(l=>!PL_USER.test(l)&&!PL_AUTO.test(l)&&l!==mt.placeLine).join('  ·  ');
+  const F1=26,F2=21,L1=[dt,place,set1].filter(Boolean).join('  ·  ');
+  tmp.font='400 '+F2+'px '+ff;const wrapC=(t,mw)=>{const out=[];let cur='';for(const ch of t){const n=cur+ch;if(cur&&tmp.measureText(n).width>mw&&!/[、。，．・）」』,.)]/.test(ch)){let k=cur.lastIndexOf(' ');if(k>0&&cur.length-k<12){out.push(cur.slice(0,k));cur=cur.slice(k+1)+ch;}else{out.push(cur);cur=ch.trim()?ch:'';}}else cur=n;}if(cur.trim())out.push(cur);return out;};
+  let ml=mrest?wrapC(mrest,CWID):[];if(ml.length>3){ml=ml.slice(0,3);ml[2]=ml[2].replace(/.{0,2}$/,'')+'…';}
+  const LH1=F1+12,LH2=F2+9,top=pad+LH1+LH2*ml.length,BARH=40;
+  // 하단: DTMD 태그(좌하단) + 경고 칸(경고마다 따로, 같은 색·높이, 간격 4px)
+  //  1층 = DTMD 옆에서 오른쪽으로, 주소 앞을 넘으면 다음 줄로 / 2층부터 = 위로 올라가 오른쪽 끝부터 왼쪽으로
+  tmp.font='900 24px '+ff;const bw=(tmp.measureText('DTMD').width+24)*1.5;tmp.font='400 23px '+ff;const uw=tmp.measureText('moneypie.kr / scuba').width;
+  const WF=hv(21),WP=24,GAP=4,wx=bw+GAP*2,lim0=W-14-uw-16-wx,limN=W-pad;tmp.font=WF;
+  const rows=[];{let cur=[],used=0;warns.forEach(t=>{const w=Math.min(tmp.measureText(t).width+WP,limN),lim=rows.length?limN:lim0;
+    if(cur.length&&used+GAP+w>lim){rows.push(cur);cur=[];used=0;}cur.push({t,w});used+=(cur.length>1?GAP:0)+w;});if(cur.length)rows.push(cur);}
+  const H=Math.round(top+gh-12+BARH*Math.max(1,rows.length)+GAP*Math.max(0,rows.length-1));
   const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
   g.fillStyle='#fff';g.fillRect(0,0,W,H);
-  // 맨 위 한 줄: 날짜 · 설정값 · 슈트·시야를 한 줄로 가운데 정렬
-  {const line=[dt,set1].concat(extra).filter(Boolean).join('  ·  ');let fs=sf;g.font='400 '+fs+'px '+ff;while(fs>13&&g.measureText(line).width>W-pad*2){fs--;g.font='400 '+fs+'px '+ff;}
-    g.textBaseline='alphabetic';g.fillStyle='#6b7280';g.textAlign='center';g.fillText(line,W/2,pad+sf-6);g.textAlign='left';}
-  if(gimg)g.drawImage(gimg,pad,top,W-pad*2,gh);
-  const y0=top+gh+24;
-  if(BH&&bcv)g.drawImage(bcv,pad,y0,BW,BH);
-  let ry=y0;
-  if(WH){g.font='700 20px '+ff;g.textBaseline='middle';chips.forEach(c=>{g.fillStyle='#E31B3F';g.beginPath();g.roundRect?g.roundRect(RX+c.x,ry+c.y,c.w,CHH,CHH/2):g.rect(RX+c.x,ry+c.y,c.w,CHH);g.fill();g.fillStyle='#fff';g.textAlign='left';g.fillText(c.t,RX+c.x+14,ry+c.y+CHH/2+1);});ry+=WH+12;}
-  const CW=(RW-8)/2;g.textBaseline='middle';tiles.forEach(([k,v,c],i)=>{const tx=RX+(i%2)*(CW+8),ty=ry+Math.floor(i/2)*50;g.fillStyle='#f3f4f6';g.beginPath();g.roundRect?g.roundRect(tx,ty,CW,44,8):g.rect(tx,ty,CW,44);g.fill();
-    g.fillStyle='#6b7280';g.font='400 19px '+ff;g.textAlign='left';g.fillText(k,tx+10,ty+22);g.fillStyle=c||'#1f2328';g.font="700 25px 'League Spartan',"+ff;g.textAlign='right';g.fillText(v,tx+CW-10,ty+25);g.textAlign='left';});
-  // 좌하단 DTMD 태그(포토 로그와 같은 모양)
-  g.font='900 24px '+ff;const bw=(g.measureText('DTMD').width+24)*1.5;g.fillStyle='#E31B3F';g.fillRect(0,H-40,bw,40);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='alphabetic';g.fillText('DTMD',bw/2,H-11);
-  // DTMD 옆: 날짜·지명(파란색) / 오른쪽 끝: 주소
-  g.font='400 23px '+ff;const uw=g.measureText('moneypie.kr / scuba').width;g.fillStyle='#6b7280';g.textAlign='right';g.fillText('moneypie.kr / scuba',W-14,H-12);
-  if(place){let tt=place,fs=24;g.font='700 '+fs+'px '+ff;const mx=W-14-uw-24-(bw+16);while(fs>15&&g.measureText(tt).width>mx){fs--;g.font='700 '+fs+'px '+ff;}g.fillStyle='#1e5fbf';g.textAlign='left';g.fillText(tt,bw+16,H-12);}
+  g.textBaseline='alphabetic';g.textAlign='center';
+  {let fs=F1;g.font=hv(fs);while(fs>14&&g.measureText(L1).width>CWID){fs--;g.font=hv(fs);}g.fillStyle='#374151';g.fillText(L1,W/2,pad+F1-10);}
+  g.font='400 '+F2+'px '+ff;g.fillStyle='#6b7280';ml.forEach((l,i)=>g.fillText(l,W/2,pad+LH1+LH2*i+F2-8));g.textAlign='left';
+  if(gimg)g.drawImage(gimg,pad,top,CWID,gh);
+  g.font='900 24px '+ff;g.fillStyle='#E31B3F';g.fillRect(0,H-BARH,bw,BARH);g.fillStyle='#fff';g.textAlign='center';g.fillText('DTMD',bw/2,H-11);
+  g.font='400 23px '+ff;g.fillStyle='#6b7280';g.textAlign='right';g.fillText('moneypie.kr / scuba',W-14,H-12);
+  g.font=WF;g.textBaseline='middle';g.textAlign='left';
+  rows.forEach((r,i)=>{const y=H-BARH*(i+1)-GAP*i;let x;if(i===0)x=wx;else{const tw=r.reduce((s0,c)=>s0+c.w,0)+GAP*(r.length-1);x=W-tw;}
+    r.forEach(c=>{let tt=c.t;while(g.measureText(tt).width+WP>c.w+.5&&tt.length>2)tt=tt.slice(0,-2)+'…';g.fillStyle='#E31B3F';g.fillRect(x,y,c.w,BARH);g.fillStyle='#fff';g.fillText(tt,x+WP/2,y+BARH/2+1);x+=c.w+GAP;});});
+  g.textBaseline='alphabetic';
   g.textAlign='left';
-  return el;}finally{window.SNAP=false;S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;if(LANG!==LG0){LANG=LG0;applyLang();syncForm();renderSummary();}drawProfile();updateStats(P.tick<0?0:P.tick);}}
+  return el;}finally{window.SNAP=false;S.mode=m0;P.t=t0;P.tick=k0;if(m0!=='none')P.t=0;drawProfile();updateStats(P.tick<0?0:P.tick);}}
 async function shareCanvas(el,kind){const blob=await new Promise(r=>el.toBlob(r,kind==='photo'?'image/jpeg':'image/png',.9));
   const d=new Date(),name='dtmd-'+(kind==='photo'?'photo':'dive')+'-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+(kind==='photo'?'.jpg':'.png');
   const file=new File([blob],name,{type:blob.type});
   if(navigator.canShare&&navigator.canShare({files:[file]})&&/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({files:[file],title:tr('h1')});return;}catch(e){if(e&&e.name==='AbortError')return;}}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
 async function dataSnap(plP){try{const pl=plP?await plP:'';await shareCanvas(await make(pl),'data');}catch(e){console.error(e);}}
-try{document.fonts&&document.fonts.load("700 20px 'League Spartan'");}catch(e){}
+
 // ===== 포토 로그: 사진 위에 핵심 정보 + 흰 선 수심 그래프 + DTMD 블록 =====
 // 장소: 메모의 GPS로 영어 약식(Danao, Bohol, PH) 조회(기기에 캐시), 실패하면 메모의 '장소:' 줄
 function memoGPS(m){const k=(m||'').match(/GPS\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i);return k?{lat:+k[1],lon:+k[2]}:null;}
-async function placeEN(m){const g=memoGPS(m),fb=(()=>{const k=(m||'').match(/^(?:장소|place|場所)\s*[:：]\s*(.+)$/im);return k?k[1].trim():'';})();if(!g)return fb;
+async function placeEN(m){const g=memoGPS(m),pp=pickPlace(m);
+  // 사용자 지명·나라 이름 줄이 있으면 그것을 영어로(한글은 로마자). 영어로 못 바꾸는 글자(한자·가나)가 남고 GPS가 있으면 GPS 영어 지명
+  if(pp.src==='user'||pp.src==='ctry'){const e=placeToEN(pp.t);if(!nonLatin(e)||!g)return e;}
+  const fb=pp.t?placeToEN(pp.t):'';if(!g)return fb;
   const key='scuba_plEN_'+g.lat.toFixed(3)+','+g.lon.toFixed(3);try{const c=localStorage.getItem(key);if(c)return c;}catch(e){}
   try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),5000);const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=en&lat='+g.lat.toFixed(5)+'&lon='+g.lon.toFixed(5),{signal:ac.signal});clearTimeout(tm);
     if(!r.ok)return fb;const j=await r.json(),a=j.address||{};const loc=a.village||a.suburb||a.hamlet||a.town||a.city||a.municipality||a.county||a.island||j.name;
@@ -1538,14 +1562,22 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
   const N=Math.max(1,r.N),maxD=Math.max(1,r.maxD),top=H-330*k,gh=260*k,PX=t=>t/N*W,PY=d=>top+d/maxD*gh;
   const path=()=>{g.beginPath();for(let t=0;t<=N;t+=5){const d=r.depth[Math.min(N,t)]||0;t?g.lineTo(PX(t),PY(d)):g.moveTo(PX(t),PY(d));}g.lineTo(PX(N),PY(r.depth[N]||0));};
   path();g.lineTo(W,H);g.lineTo(0,H);g.closePath();const rg=g.createRadialGradient(0,H,0,0,H,760*k);rg.addColorStop(0,'rgba(14,140,230,.55)');rg.addColorStop(.55,'rgba(14,140,230,.22)');rg.addColorStop(1,'rgba(14,140,230,0)');g.fillStyle=rg;g.fill();
+  // 그래프 오른쪽: 선 바로 위만 아주 옅은 검은 그림자(위로 조금만 올라가도 사라짐, 가운데로 가며 사라짐)
+  {const oc=document.createElement('canvas');oc.width=W;oc.height=H;const o=oc.getContext('2d'),op=()=>{o.beginPath();for(let t=0;t<=N;t+=5){const d=r.depth[Math.min(N,t)]||0;t?o.lineTo(PX(t),PY(d)):o.moveTo(PX(t),PY(d));}o.lineTo(PX(N),PY(r.depth[N]||0));};
+    o.save();op();o.lineTo(W,0);o.lineTo(0,0);o.closePath();o.clip();o.filter='blur('+Math.round(22*k)+'px)';op();o.strokeStyle='#000';o.lineWidth=110*k;o.lineJoin='round';o.stroke();o.restore();
+    o.globalCompositeOperation='destination-in';const hg=o.createLinearGradient(W,0,W*0.5,0);hg.addColorStop(0,'rgba(0,0,0,1)');hg.addColorStop(1,'rgba(0,0,0,0)');o.fillStyle=hg;o.fillRect(0,0,W,H);
+    g.save();g.globalAlpha=0.2;g.drawImage(oc,0,0);g.restore();}
   path();g.strokeStyle='#fff';g.lineWidth=3*k;g.lineJoin='round';g.stroke();
   const txt=(t,x,y,size,wt,al)=>{g.font=wt+' '+size*k+'px '+ff;g.textAlign=al||'left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
   let ff2=ff;const txtF=(t,x,y,size)=>{g.font='700 '+size*k+'px '+ff2;g.textAlign='left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=10*k;g.shadowOffsetY=1*k;g.fillText(t,x,y);g.shadowColor='transparent';g.shadowBlur=0;g.shadowOffsetY=0;};
   const lg=window.__log,date=(lg?lg.ymd:'').replace(/-/g,'/'),gas=r.c.fO2>0.215?'EAN'+Math.round(r.c.fO2*100):'Air';
-  const meta=[place,date,'GF'+S.gfLo+'/'+S.gfHi,gas].filter(Boolean).join('  ·  ');
-  txt(meta,44*k,66*k,26,300);{const f0=ff;ff2="'League Spartan',"+f0;}txtF(DU(r.maxD.toFixed(1))+'  ·  '+fmt(r.N),42*k,130*k,60);
+  const meta=[date,'GF'+S.gfLo+'/'+S.gfHi,gas].filter(Boolean).join('  ·  ');
+  // 좌상단 글자: 2026-11-03 사용자 요청으로 1.2배(26→31, 60→72)
+  txt(meta,44*k,79*k,31.2,300);{const f0=ff;ff2="'Helvetica Neue',Helvetica,Arial,"+f0;}txtF(DU(r.maxD.toFixed(1)),42*k,156*k,72);txtF(fmt(r.N),42*k,236*k,72);
   g.font='900 '+24*k+'px '+ff;const bw=(g.measureText('DTMD').width+24*k)*1.5,bh=40*k;g.fillStyle='#E31B3F';g.fillRect(0,H-bh,bw,bh);g.fillStyle='#fff';g.textAlign='center';g.fillText('DTMD',bw/2,H-11*k);
-  txt('moneypie.kr / scuba',W-36*k,H-20*k,23,400,'right');
+  txt('moneypie.kr / scuba',W-20*k,H-18*k,23,400,'right');
+  // 지명: 오른쪽 아래 주소 위, 크고 굵게 오른쪽 정렬(넘치면 글자 줄임)
+  if(place){let fs=52;g.font='800 '+fs*k+'px '+ff;const mx=W-20*k-(bw+24*k);while(fs>22&&g.measureText(place).width>mx){fs--;g.font='800 '+fs*k+'px '+ff;}txt(place,W-20*k,H-72*k,fs,800,'right');}
   return el;}
 // 스냅샷 버튼: 사진 없는 로그 → 바로 데이터 로그 / 사진 있으면 선택창(데이터 로그 + 사진 썸네일)
 // 스냅샷 버튼 → [데이터 로그] [포토 로그] 두 버튼. 포토 로그를 누르면 아래로 사진이 펼쳐짐(사진 없으면 비활성)
@@ -1554,7 +1586,7 @@ btn.addEventListener('click',async()=>{let m=document.getElementById('snapMenu')
   ids.forEach(id=>{imgs[id]=window.__photo.get(id).then(o=>o?loadBlobImg(o.full):null).catch(()=>null);});
   const T=LANG==='en'?['Data log','Photo log']:LANG==='ja'?['データログ','フォトログ']:['데이터 로그','포토 로그'];
   m=document.createElement('div');m.id='snapMenu';
-  const b0=document.createElement('button');b0.textContent=T[0];b0.onclick=e=>{e.stopPropagation();m.remove();dataSnap(plP);};m.appendChild(b0);
+  const b0=document.createElement('button');b0.textContent=T[0];b0.onclick=e=>{e.stopPropagation();m.remove();dataSnap(null);};m.appendChild(b0);
   const b1=document.createElement('button');b1.className='smPhoto';b1.textContent=T[1];b1.disabled=!ids.length;m.appendChild(b1);
   const list=document.createElement('div');list.className='smList';m.appendChild(list);
   b1.onclick=async e=>{e.stopPropagation();if(list.classList.contains('open')){list.style.maxHeight='0px';list.classList.remove('open');return;}
@@ -1618,9 +1650,9 @@ const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
 const pad=n=>String(n).padStart(2,'0');
-const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',svFile:'Save',svShare:'Share',cancel2:'Cancel',noShare:'This browser cannot share files. Save as a file instead.',noPrev:'No earlier logs',noNext:'No later logs',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
- :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',svFile:'保存',svShare:'共有',cancel2:'キャンセル',noShare:'このブラウザはファイル共有に対応していません。ファイルに保存してください。',noPrev:'前のログはありません',noNext:'後のログはありません',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
- :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',svFile:'저장하기',svShare:'공유하기',cancel2:'취소',noShare:'이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장해 보내 주세요.',noPrev:'이전 로그가 없습니다',noNext:'이후 로그가 없습니다',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
+const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Place: Blue Corner\nSuit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',svFile:'Save',svShare:'Share',cancel2:'Cancel',noShare:'This browser cannot share files. Save as a file instead.',noPrev:'No earlier logs',noNext:'No later logs',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
+ :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'場所: 青の洞窟\nスーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',svFile:'保存',svShare:'共有',cancel2:'キャンセル',noShare:'このブラウザはファイル共有に対応していません。ファイルに保存してください。',noPrev:'前のログはありません',noNext:'後のログはありません',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
+ :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'장소: 문섬\n슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',svFile:'저장하기',svShare:'공유하기',cancel2:'취소',noShare:'이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장해 보내 주세요.',noPrev:'이전 로그가 없습니다',noNext:'이후 로그가 없습니다',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
 const now=new Date();let vy=now.getFullYear(),vm=now.getMonth()+1;   // 달력에 보이는 달
 let Y=vy,M=vm,D=now.getDate(),T=Math.floor((now.getHours()*60+now.getMinutes())/10)*10,open=false,view='cal',CUR=null;
 const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.split(':').map(Number);return h*60+m;};
@@ -1803,7 +1835,7 @@ $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if
   const off=dives[0].localOff!=null?dives[0].localOff:-new Date(dives[0].startUTC*1000).getTimezoneOffset()*60;
   const loc=u=>new Date((u+off)*1000);const l0=loc(dives[0].startUTC);const date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
   const minOf=u=>{const d=loc(u);return d.getUTCHours()*60+d.getUTCMinutes()+d.getUTCSeconds()/60;};
-  const PL=LANG==='en'?'Place: ':LANG==='ja'?'場所: ':'장소: ',WT=LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ';
+  const PL=LANG==='en'?'Location: ':LANG==='ja'?'位置: ':'위치: ',WT=LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ';
   for(const d of dives){d.place=d.gps?await placeName(d.gps.lat,d.gps.lon):null;}
   const imp=dives.map(d=>({s:minOf(d.startUTC),dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true,
     memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps?('GPS '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
