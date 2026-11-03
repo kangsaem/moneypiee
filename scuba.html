@@ -1724,7 +1724,24 @@ const wD=makeWheel($('lwD'),i=>{if(i+1===D)return;D=i+1;CUR=null;renderWheels();
 // 시간 휠은 선택한 다이빙의 시작 시각(10분 단위 내림)을 보여 줌. 돌리면 그만큼 로그 시작 시각(T)을 옮김
 function dOff(){let o=0;for(let k=1;k<=S.cur&&k<S.dives.length;k++)o+=(RES[k-1]?RES[k-1].N/60:0)+(+S.dives[k].si||0);return o;}
 const twIdx=()=>((Math.floor(((S.start!=null?S.start:T)+dOff())/10)%144)+144)%144;let TWI=-1;
-const wT=makeWheel($('lwT'),i=>{if(i===TWI)return;TWI=i;T=((Math.round((i*10-dOff())/10)*10)%1440+1440)%1440;S.start=T;drawProfile();refreshSave();});
+const wT=makeWheel($('lwT'),i=>{if(i===TWI)return;TWI=i;if(timePick(i*10))return;T=((Math.round((i*10-dOff())/10)*10)%1440+1440)%1440;S.start=T;drawProfile();refreshSave();});
+// 시간 휠로 같은 날 다른 시각을 고르면:
+//  · 저장된 다른 다이빙 시간 안 → 그 다이빙을 엶(지금 보는 다이빙 안이면 예전처럼 시작 시각 조정)
+//  · 어떤 로그의 마지막 다이빙이 끝난 뒤 → 그 로그에 빈 '다이빙 N'을 붙임(수면 휴식 = 앞 다이빙 끝 ~ 고른 시각). 저장하면 그 로그에 다이빙이 이어짐
+//  · 그 날 첫 로그보다 앞 → 빈 새 로그
+//  · 저장 안 한 새 그림을 그리는 중이면 → 예전처럼 시작 시각만 옮김
+function timePick(tw){if(view!=='ed')return false;const day=dayLogs();if(!day.length)return false;const cd=S.dives[S.cur];
+  if(!CUR&&S.dives.some(d=>d.pts.length>1))return false;
+  const rows=[];day.forEach(x=>{const rr=rowsOf(x);rr.forEach((r,k)=>{if(r.st!=null)rows.push({x,i:r.i,st:r.st,en:r.st+r.N/60,last:k===rr.length-1});});});if(!rows.length)return false;
+  const hit=rows.find(r=>tw>=Math.floor(r.st/10)*10&&tw<r.en);
+  if(hit){if(CUR===hit.x.id&&S.cur===hit.i)return false;/* 지금 다이빙 안에서 돌리면 예전처럼 시작 시각 조정 */applyLog(hit.x.id,true,hit.i);return true;}
+  const prev=rows.filter(r=>r.en<=tw+10).sort((p,q)=>q.en-p.en)[0];
+  if(prev&&prev.last){const n=(prev.x.state.dives||[]).length;if(CUR!==prev.x.id||S.dives.length<n)applyLog(prev.x.id,true,n-1);
+    const si=Math.max(1,Math.round(tw-prev.en)),lastD=S.dives[S.dives.length-1];
+    if(S.dives.length>n&&lastD.pts.length<=1)lastD.si=si;else S.dives.push(Object.assign(newDive(),{si}));
+    S.cur=S.dives.length-1;$('logMemo').value='';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();refreshSave();return true;}
+  if(!prev){CUR=null;S.dives=[newDive()];S.cur=0;S.start=tw;T=tw;$('logMemo').value='';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();refreshSave();return true;}
+  return false;}
 function syncTW(){const i=twIdx();if(i===TWI)return;TWI=i;renderWheels();}
 // --- 달력
 function renderCal(){const a=load(),t=L();$('calY').textContent=LANG==='en'?String(vy):LANG==='ja'?vy+'年':vy+'년';$('calMo').textContent=LANG==='en'?'.'+pad(vm):LANG==='ja'?vm+'月':vm+'월';const has=new Set(a.map(x=>x.date));
