@@ -846,9 +846,10 @@ function drawProfile(){
   }
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
-        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),l3=diveClock(S.cur);cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';
+        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),SN0=!!window.SNAP,l3=SN0?diveClock(S.cur):diveClock(S.cur).replace(' → ','\u2009→\u2009'),F3=SN0?null:'600 11px sans-serif';/* 앱 화면: 입수→출수 줄은 화살표 간격 좁게·글자 11px */cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';
         const isDeco=r&&r.ceil5.some(v=>v>0),hh=isDeco?18:0;
-        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,l3?cx.measureText(l3).width:0,isDeco?48:0)+12,th=36+hh+(l3?16:0),LK=1.1,TW=tw*LK,TH=th*LK;// 팝업 1.1배(앱 화면만, 데이터 로그 이미지는 그대로 1.3)
+        const w3=l3?(()=>{if(!F3)return cx.measureText(l3).width;const f0=cx.font;cx.font=F3;const w=cx.measureText(l3).width;cx.font=f0;return w;})():0;
+        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,w3,isDeco?48:0)+12,th=36+hh+(l3?16:0),LK=1.1,TW=tw*LK,TH=th*LK;// 팝업 1.1배(앱 화면만, 데이터 로그 이미지는 그대로 1.3)
         const hits=(bx,by)=>{if(!r)return false;for(let x=bx-2;x<=bx+TW+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+TH+3)return true;}return false;};
         const cand=[[L0.xn-TW-4,L0.yd-TH-4],[L0.xn+6,L0.yd-TH-4],[L0.xn+6,L0.yd+4],[L0.xn-TW-4,L0.yd+4],[L0.xn+6,G.T+28],[L0.xn-TW-4,G.T+28]]
           .map(([x,y])=>[clamp(x,G.L+2,G.L+G.W-TW-2),clamp(y,G.T+2,G.T+G.H-TH-2)]);
@@ -862,8 +863,8 @@ function drawProfile(){
           cx.font='800 12px sans-serif';cx.fillStyle='#fff';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('DECO',bx+tw/2,by+hh/2+.5);cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';}
         cx.fillStyle='#1f2328';cx.textAlign='left';cx.textBaseline='middle';
         // 글자 위·아래 여백을 같게: 실제 글자 윤곽(첫 줄 위끝·마지막 줄 아래끝) 기준으로 세로 위치 보정
-        let sh=0;{const yl=l3?42:26,ml=cx.measureText(l3||l2),m1=cx.measureText(l1);if(m1.actualBoundingBoxAscent!=null){const tg=10.5-m1.actualBoundingBoxAscent,bg=(th-hh)-(yl+ml.actualBoundingBoxDescent);sh=(bg-tg)/2;}}
-        cx.fillText(l1,bx+6,by+hh+10.5+sh);cx.fillText(l2,bx+6,by+hh+26+sh);if(l3){cx.fillStyle='#2f6fe4';cx.fillText(l3,bx+6,by+hh+42+sh);}cx.restore();
+        let sh=0;{const yl=l3?42:26,m1=cx.measureText(l1),f0=cx.font;if(l3&&F3)cx.font=F3;const ml=cx.measureText(l3||l2);cx.font=f0;if(m1.actualBoundingBoxAscent!=null){const tg=10.5-m1.actualBoundingBoxAscent,bg=(th-hh)-(yl+ml.actualBoundingBoxDescent);sh=(bg-tg)/2;}}
+        cx.fillText(l1,bx+6,by+hh+10.5+sh);cx.fillText(l2,bx+6,by+hh+26+sh);if(l3){cx.fillStyle='#2f6fe4';if(F3)cx.font=F3;cx.fillText(l3,bx+6,by+hh+42+sh);}cx.restore();
       }
   }
   if(timeTag){cx.beginPath();cx.arc(timeTag.x,timeTag.y,10,0,7);cx.fillStyle='rgba(31,35,40,.18)';cx.fill();
