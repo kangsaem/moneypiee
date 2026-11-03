@@ -1768,14 +1768,18 @@ function relayout(){const cl=document.querySelector('.colL'),cr=document.querySe
   window.dispatchEvent(new Event('resize'));}
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
-let LASTO=false,PLAN=null;
+let LASTO=false,PLAN=null,LOGST=null;
+const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[]}))),cur:S.cur,start:S.start,T});
+const putS=P=>{KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;};
 function flipSwap(fn){const el=document.getElementById('tabsCard');if(!el){fn();return;}el.classList.remove('flipIn','flipOut');void el.offsetWidth;el.classList.add('flipOut');
   setTimeout(()=>{fn();el.classList.remove('flipOut');void el.offsetWidth;el.classList.add('flipIn');setTimeout(()=>el.classList.remove('flipIn'),380);},300);}
-function enterLog(){PLAN={keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[]}))),cur:S.cur,start:S.start,T};
+function enterLog(){PLAN=snapS();
+  // 로그북에서 작업하다 플래너로 갔다 온 경우: 그때 보던 로그·날짜·수정 중인 내용 그대로
+  if(LOGST){const L0=LOGST;LOGST=null;putS(L0.s);CUR=L0.CUR&&load().some(v=>v.id===L0.CUR)?L0.CUR:null;Y=L0.Y;M=L0.M;D=L0.D;vy=L0.vy;vm=L0.vm;view=L0.view;
+    $('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();return;}
   const a=load();if(!a.length)return;const x=a.slice().sort((p,q)=>(p.date+(p.time||'')).localeCompare(q.date+(q.time||''))).pop();
   const [yy,mm,dd]=x.date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';applyLog(x.id,true,Math.max(0,((x.state&&x.state.dives)||[]).length-1));}
-function leaveLog(){if(!PLAN)return;const P=PLAN;PLAN=null;KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});
-  S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;CUR=null;
+function leaveLog(){if(!PLAN)return;LOGST={s:snapS(),CUR,Y,M,D,vy,vm,view};const P=PLAN;PLAN=null;putS(P);CUR=null;
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();}
 // 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
 let SWT=0;
