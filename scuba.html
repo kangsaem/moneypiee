@@ -1760,7 +1760,7 @@ function renderList(){const t=L(),a=dayLogs();
   curMemoSync();if(view==='ed')syncTW();
   refreshSave();}
 // 삭제 전 확인 팝업(바깥 누르면 취소)
-function askDel(kind){return new Promise(ok=>{const dv=kind==='dive',W=LANG==='en'?{b:dv?'Delete this dive?':'Delete this dive log?',c:'Cancel',d:'Delete'}:LANG==='ja'?{b:dv?'このダイブを削除しますか?':'このダイブログを削除しますか?',c:'キャンセル',d:'削除'}:{b:dv?'이 다이빙을 삭제하시겠습니까?':'이 다이빙 로그를 삭제하시겠습니까?',c:'취소',d:'삭제'};
+function askDel(){return new Promise(ok=>{const W=LANG==='en'?{b:'Delete this dive?',c:'Cancel',d:'Delete'}:LANG==='ja'?{b:'このダイブを削除しますか?',c:'キャンセル',d:'削除'}:{b:'이 다이빙을 삭제하시겠습니까?',c:'취소',d:'삭제'};
   const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><p></p><div class="lwBtns"><button class="lwC"></button><button class="lwD"></button></div></div>';
   ov.querySelector('p').textContent=W.b;const c=ov.querySelector('.lwC'),d=ov.querySelector('.lwD');c.textContent=W.c;d.textContent=W.d;
   const done=v=>{ov.remove();ok(v);};ov.onclick=e=>{if(e.target===ov)done(false);};c.onclick=()=>done(false);d.onclick=()=>done(true);document.body.appendChild(ov);});}
