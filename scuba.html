@@ -86,6 +86,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .lw .it.has small::after{content:' ●';color:#0ea5e9;font-size:8px}
 .lw .pad{height:80px;scroll-snap-align:none}
 #logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:8px;font-family:inherit;box-sizing:border-box;width:100%}
+.fitRow{display:flex;justify-content:center;margin-top:8px}.fitRow button{font-size:12px}
 .logList{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
 .logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:13px}
 .logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -234,6 +235,7 @@ html,body{overflow-x:hidden}
       <div class="calHd"><button id="calPrev" aria-label="prev">◀</button><b id="calTitle"></b><button id="calNext" aria-label="next">▶</button></div>
       <div class="cal" id="cal"></div>
       <div class="logHint" id="logHint"></div>
+      <div class="fitRow"><button id="fitBtn"></button><input type="file" id="fitIn" accept=".fit" hidden></div>
     </div>
     <div id="logEdV" class="hide">
       <div class="edHd"><button id="logBack">◀ <span id="logBackT">달력</span></button><b id="edTitle"></b></div>
@@ -1423,6 +1425,49 @@ window.__snapMake=make;
 })();
 </script>
 <script>
+// ===== FIT(다이브 컴퓨터·스마트워치) 파일 해석 =====
+// 최소 FIT 디코더: 필요한 메시지만 해석(파일ID·세션·랩·기록·이벤트·활동·다이브요약·기기정보)
+function parseFIT(buf){const dv=new DataView(buf),u8=new Uint8Array(buf);
+  const hs=u8[0];if(buf.byteLength<12||String.fromCharCode(u8[8],u8[9],u8[10],u8[11])!=='.FIT')throw new Error('FIT 파일이 아니에요');
+  const dataEnd=Math.min(buf.byteLength,hs+dv.getUint32(4,true));let p=hs;const defs={},out={file_id:[],session:[],lap:[],record:[],event:[],activity:[],dive_summary:[],device_info:[],unknown:{}};
+  const NAMES={0:'file_id',18:'session',19:'lap',20:'record',21:'event',34:'activity',268:'dive_summary',23:'device_info'};
+  const INV={0:0xFF,1:0x7F,2:0xFF,0x83:0x7FFF,0x84:0xFFFF,0x85:0x7FFFFFFF,0x86:0xFFFFFFFF,0x8C:0xFFFFFFFF,0x8B:0xFFFF,0x0A:0,0x0D:0xFF};
+  let lastTs=0;
+  const rd=(bt,off,size,le)=>{const b=bt&0x1F;
+    if(bt===7){let s='';for(let i=0;i<size;i++){const c=u8[off+i];if(!c)break;s+=String.fromCharCode(c);}try{return decodeURIComponent(escape(s));}catch(e){return s;}}
+    if(size===1)return bt===1?dv.getInt8(off):dv.getUint8(off);
+    if(size===2)return (bt===0x83)?dv.getInt16(off,le):dv.getUint16(off,le);
+    if(size===4){if(bt===0x85)return dv.getInt32(off,le);if(bt===0x88)return dv.getFloat32(off,le);return dv.getUint32(off,le);}
+    if(size===8&&bt===0x89)return dv.getFloat64(off,le);
+    return null;};
+  while(p<dataEnd){const h=u8[p++];
+    if(h&0x80){const lt=(h>>5)&3,off=h&0x1F,d=defs[lt];if(!d)throw new Error('정의 없음');
+      let ts=(lastTs&~0x1F)+off;if(off<(lastTs&0x1F))ts+=0x20;lastTs=ts;const m=readData(d);m[253]=ts;push(d,m);continue;}
+    const lt=h&0x0F;
+    if(h&0x40){const le=u8[p+1]===0;const gm=le?dv.getUint16(p+2,true):dv.getUint16(p+2,false);const nf=u8[p+4];p+=5;const f=[];
+      for(let i=0;i<nf;i++){f.push([u8[p],u8[p+1],u8[p+2]]);p+=3;}let dev=[];if(h&0x20){const nd=u8[p++];for(let i=0;i<nd;i++){dev.push([u8[p],u8[p+1],u8[p+2]]);p+=3;}}
+      defs[lt]={gm,le,f,dev};continue;}
+    const d=defs[lt];if(!d)throw new Error('정의 없음');const m=readData(d);if(m[253]!=null)lastTs=m[253];push(d,m);}
+  function readData(d){const m={};for(const [n,s,bt] of d.f){const v=rd(bt,p,s,d.le);p+=s;if(v===null)continue;const inv=INV[bt];if(bt!==7&&inv!==undefined&&v===inv)continue;m[n]=v;}for(const [,s] of d.dev)p+=s;return m;}
+  function push(d,m){const nm=NAMES[d.gm];if(nm)out[nm].push(m);else out.unknown[d.gm]=(out.unknown[d.gm]||0)+1;}
+  return out;}
+const FIT_EPOCH=631065600;
+// FIT → 다이빙 목록(세션별): 1초 수심 기록을 0.3m 오차 안에서 점으로 줄임
+function fitToDives(o){const E=FIT_EPOCH,ses=o.session.length?o.session:[{2:o.record[0]&&o.record[0][253],253:o.record.length&&o.record[o.record.length-1][253]}];
+  const act=o.activity[0],off=(act&&act[5]!=null&&act[253]!=null)?act[5]-act[253]:null;   // 현지시각 - UTC (초)
+  return ses.map(s=>{const st=s[2],en=s[253];const rs=o.record.filter(r=>r[253]>=st&&r[253]<=en&&r[92]!=null);
+    const raw=[{t:0,d:0}];rs.forEach(r=>{const t=r[253]-st;if(t>0)raw.push({t,d:r[92]/1000});});
+    const keep=rdpV(raw,0.3).map(q=>({t:Math.round(q.t),d:Math.round(Math.max(0,q.d)*10)/10}));
+    const temps=rs.map(r=>r[13]).filter(v=>v!=null),gps=rs.filter(r=>r[0]!=null&&r[1]!=null);
+    const g=gps.length?gps[gps.length-1]:null;const sc=180/2147483648;
+    return {startUTC:st+E,localOff:off,dur:en-st,maxD:Math.max(0,...rs.map(r=>r[92]/1000)),pts:keep,nRaw:rs.length,
+      tMin:temps.length?Math.min(...temps):null,tMax:temps.length?Math.max(...temps):null,
+      gps:g?{lat:g[0]*sc,lon:g[1]*sc}:null,sport:s[5],sub:s[6]};});}
+function rdpV(a,eps){if(a.length<3)return a.slice();const keep=new Uint8Array(a.length);keep[0]=keep[a.length-1]=1;const st=[[0,a.length-1]];
+  while(st.length){const [i,j]=st.pop();let mx=-1,mi=-1;const A=a[i],B=a[j];for(let k=i+1;k<j;k++){const u=(a[k].t-A.t)/((B.t-A.t)||1),dd=Math.abs(a[k].d-(A.d+(B.d-A.d)*u));if(dd>mx){mx=dd;mi=k;}}
+    if(mx>eps){keep[mi]=1;st.push([i,mi],[mi,j]);}}return a.filter((_,k)=>keep[k]);}
+</script>
+<script>
 // ===== 다이빙 로그북: 달력 보기 → 날짜 클릭 시 월·일·시간 휠 + 메모. 이 기기(localStorage)에 저장 =====
 (function(){
 const KEY='scuba_logs',MAX=50,KEYS=['water','altSel','alt','gasSel','o2','cons','gfLo','gfHi','asc','tankV','tankP','sac'],IH=40;
@@ -1430,9 +1475,9 @@ const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
 const pad=n=>String(n).padStart(2,'0');
-const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Updated',updB:'Update this log',full:'Logbook is full (50). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
- :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存しました',upd:'更新しました',updB:'このログを更新',full:'ログブックが一杯です(50件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
- :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장했어요',upd:'수정했어요',updB:'이 로그 수정',full:'로그북이 가득 찼어요(50개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
+const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Updated',updB:'Update this log',full:'Logbook is full (50). Delete some first.',fail:'Could not save on this browser.',ph:'Suit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',fitB:'Import FIT file',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
+ :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存しました',upd:'更新しました',updB:'このログを更新',full:'ログブックが一杯です(50件)。',fail:'このブラウザに保存できません。',ph:'スーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',fitB:'FITファイル読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
+ :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장했어요',upd:'수정했어요',updB:'이 로그 수정',full:'로그북이 가득 찼어요(50개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',fitB:'FIT 파일 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
 const now=new Date();let vy=now.getFullYear(),vm=now.getMonth()+1;   // 달력에 보이는 달
 let Y=vy,M=vm,D=now.getDate(),T=Math.floor((now.getHours()*60+now.getMinutes())/10)*10,open=false,view='cal',CUR=null;
 const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.split(':').map(Number);return h*60+m;};
@@ -1512,7 +1557,7 @@ window.addEventListener('scuba:diveRemoved',()=>{if(!CUR)return;const a=load(),x
   if(S.start!=null){x.time=hhmm(Math.round(S.start));T=Math.round(S.start/10)*10%1440;}
   x.state=snapState();x.sum=summary();store(a);renderSum();if(open&&view==='ed'){renderWheels();renderList();}});
 function show(v){view=v;$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();}}
-function renderSum(){const n=load().length,t=L();$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
+function renderSum(){const n=load().length,t=L();$('fitBtn').textContent=t.fitB;$('logSum').textContent=n?t.n(n):'';$('logMemo').placeholder=t.ph;$('logBackT').textContent=t.back;}
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
 function sync(){$('logWrap').classList.toggle('open',open);$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
@@ -1547,6 +1592,25 @@ $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t
 const lb=$('logBtn');if(lb)lb.onclick=()=>{const n=new Date();Y=n.getFullYear();M=n.getMonth()+1;D=n.getDate();T=Math.floor((n.getHours()*60+n.getMinutes())/10)*10;S.start=T;CUR=null;drawProfile();
   if(!open){open=true;$('logWrap').classList.add('open');$('logHead').classList.add('open');setTitle(true);}show('ed');
   setTimeout(()=>{$('logCard').scrollIntoView({behavior:'smooth',block:'start'});},50);};
+$('fitBtn').onclick=()=>$('fitIn').click();
+$('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if(!f)return;const t=L();let dives;
+  let dev='';try{const o=parseFIT(await f.arrayBuffer());dev=(o.file_id[0]&&o.file_id[0][8])||(o.device_info[0]&&o.device_info[0][27])||'';dives=fitToDives(o);}catch(e){msg(t.fitErr,true);return;}
+  dives.forEach(d=>{d.pts=trimSurface(d.pts);});
+  dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);if(!dives.length){msg(t.fitNo,true);return;}
+  const d0=dives[0],off=d0.localOff!=null?d0.localOff:-new Date(d0.startUTC*1000).getTimezoneOffset()*60;
+  const loc=new Date((d0.startUTC+off)*1000),date=loc.getUTCFullYear()+'-'+pad(loc.getUTCMonth()+1)+'-'+pad(loc.getUTCDate()),time=pad(loc.getUTCHours())+':'+pad(loc.getUTCMinutes());
+  const st={dives:dives.map((d,i)=>({pts:d.pts,si:i?Math.max(10,Math.round((d.startUTC-(dives[i-1].startUTC+dives[i-1].dur))/60)):60,lab:null}))};KEYS.forEach(k=>st[k]=S[k]);
+  const tmn=Math.min(...dives.map(d=>d.tMin).filter(v=>v!=null)),tmx=Math.max(...dives.map(d=>d.tMax).filter(v=>v!=null)),g=dives[dives.length-1].gps;
+  const memo=[(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',isFinite(tmn)?(LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ')+(tmn===tmx?tmn:tmn+'~'+tmx)+'°C':'',g?('GPS '+g.lat.toFixed(5)+', '+g.lon.toFixed(5)):''].filter(Boolean).join('\n');
+  // 같은 날 시간이 겹치는 로그는 교체
+  const s1=tmin(time),e1=s1+dives.reduce((a,d,i)=>a+d.dur/60+(i?st.dives[i].si:0),0);
+  const a=load().filter(x=>{if(x.date!==date)return true;const s2=tmin(x.time);if(s2==null)return true;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return !(s1===s2||(s1<e2&&s2<e1));});
+  const removed=load().length-a.length;if(a.length>=MAX){msg(t.full,true);return;}
+  const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);a.push({id,date,time,memo,saved:Date.now(),state:st,sum:{maxD:0,N:0,N0:0,gas:'',nd:dives.length,span:0},src:'fit'});
+  if(!store(a)){msg(t.fail,true);return;}
+  const [yy,mm,dd]=date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');
+  applyLog(id,true);const b=load(),x=b.find(v=>v.id===id);if(x){x.sum=summary();store(b);}renderSum();renderWheels();renderList();
+  msg(t.fitOk(dives.length,date,time)+(removed?' · '+t.repl(removed):''));};
 window.addEventListener('scuba:lang',renderAll);
 window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
 $('logMemo').addEventListener('input',refreshSave);
