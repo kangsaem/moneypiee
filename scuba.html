@@ -58,7 +58,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 @keyframes noteK{0%{opacity:0;transform:translate(-50%,-50%) scale(.92);box-shadow:0 0 0 0 rgba(125,211,252,.85)}15%{opacity:1;transform:translate(-50%,-50%) scale(1)}55%{box-shadow:0 0 0 22px rgba(125,211,252,0);opacity:1}100%{opacity:0;box-shadow:0 0 0 22px rgba(125,211,252,0);transform:translate(-50%,-50%) scale(1)}}
 .notePop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;background:#1b4277;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;white-space:nowrap;pointer-events:none;animation:noteK 1.8s ease-out forwards}
 #saveMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#saveMenu button{text-align:center;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#saveMenu button:first-child{background:#1b4277;color:#fff;font-weight:700}#saveMenu button:nth-child(2){background:#0ea5e9;color:#fff;font-weight:700}
-#snapMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#snapMenu>button{text-align:center;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#snapMenu>button:first-child{background:#1b4277;color:#fff;font-weight:700}#snapMenu>button.smPhoto,#snapMenu>button.smPhoto:disabled{opacity:1;background:#0ea5e9;color:#fff;font-weight:700}#snapMenu>button:disabled{opacity:.4;cursor:default}#snapMenu .smList{display:flex;flex-direction:column;gap:6px;max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.55,0,1,.45)}#snapMenu .smList.open{padding-top:2px}#snapMenu .smPh{width:118px;height:118px;padding:0;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28);border-radius:6px;background:#eef2f6 center/cover no-repeat;align-self:center;flex-shrink:0}
+#snapMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#snapMenu>button{text-align:center;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#snapMenu>button:first-child{background:#1b4277;color:#fff;font-weight:700}#snapMenu>button.smPhoto{background:#0ea5e9;color:#fff;font-weight:700}#snapMenu>button.smPhoto:disabled{opacity:1;background:#e5e7eb;color:#9ca3af}#snapMenu>button:disabled{opacity:.4;cursor:default}#snapMenu .smList{display:flex;flex-direction:column;gap:6px;max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.55,0,1,.45)}#snapMenu .smList.open{padding-top:2px}#snapMenu .smPh{width:118px;height:118px;padding:0;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28);border-radius:6px;background:#eef2f6 center/cover no-repeat;align-self:center;flex-shrink:0}
 #ldWarn{position:fixed;inset:0;z-index:160;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:18px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}#ldWarn .lwD{background:#E31B3F;color:#fff;border-color:#E31B3F;font-weight:700}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard,#tabsCard.lbMode{background:rgba(186,230,253,.92);border-color:#7dd3fc}
@@ -124,7 +124,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 #phView .pvNav{display:flex;align-items:center;gap:18px;color:rgba(255,255,255,.8);font-size:14px;font-variant-numeric:tabular-nums}#phView .pvNav button{width:30px;height:26px;min-width:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px}#phView .pvNav svg{width:12px;height:12px;display:block}#phView .pvNav button:disabled{opacity:.25}
 #phView .pvB{display:flex;gap:10px}#phView .pvB button{min-width:84px}#phView .pvDel{background:#E31B3F;color:#fff;border-color:#E31B3F}#phView .pvSnap{background:#0ea5e9;color:#fff;border-color:#0ea5e9;font-weight:700}
 #logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
-.calNav{display:inline-flex;gap:4px}.calHd .jump{letter-spacing:-2px;font-weight:700;color:#1b4277}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
+.calNav{display:inline-flex;gap:4px}.calHd .jump,.edHd .jump{letter-spacing:-2px;font-weight:700;color:#1b4277}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
 #logCalV{position:relative}.yearPick{position:absolute;left:50%;transform:translateX(-50%);top:40px;z-index:3;display:flex;gap:8px;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
 .yearPick .yp{position:relative;width:96px}.yearPick .lsel{left:2px;right:2px;background:#e3ebf3}
@@ -258,19 +258,19 @@ html.spl body>*:not(#splash){visibility:hidden}
         </select>
         <input type="number" id="o2" class="hide" min="21" max="40" step="1">
       </label>
-      <label><span class="tip" data-tip="cons" data-i18n="cons">보수도</span>
+      <label><span class="tip" data-tip="cons" data-i18n="cons">보수</span>
         <select id="cons">
           <option value="cons" data-i18n="consH">높음 (GF 35/75)</option><option value="med" data-i18n="consM">중간 (GF 40/85)</option>
           <option value="agg" data-i18n="consL">낮음 (GF 45/95)</option><option value="custom" data-i18n="consC">직접 입력</option>
         </select>
         <span id="gfWrap" class="hide">Low <input type="number" id="gfLo" min="10" max="100"> High <input type="number" id="gfHi" min="10" max="100"></span>
       </label>
-      <label><span class="tip" data-tip="asc" data-i18n="asc">상승속도</span> <input type="number" id="asc" min="3" max="18" step="1"> <span data-i18n="mpm">m/분</span></label>
+      <label><span class="tip" data-tip="asc" data-i18n="asc">상승</span> <input type="number" id="asc" min="3" max="18" step="1"> <span data-i18n="mpm">m/분</span></label>
       <label><span class="tip" data-tip="tank" data-i18n="tank">탱크</span>
         <select id="tankV"><option value="10">10 L</option><option value="11.1">11.1 L (AL80)</option><option value="12">12 L</option><option value="15">15 L</option></select>
         <select id="tankP"></select><select id="pu"><option value="bar">bar · m</option><option value="psi">PSI · ft</option></select>
       </label>
-      <label><span class="tip" data-tip="sac" data-i18n="sac">호흡량</span>
+      <label><span class="tip" data-tip="sac" data-i18n="sac">호흡</span>
         <select id="sac"><option value="15" data-i18n="sacLo">적음 (15 L/분)</option><option value="20" data-i18n="sacMd">보통 (20 L/분)</option><option value="25" data-i18n="sacHi">많음 (25 L/분)</option><option value="c" data-i18n="custom">직접 입력</option></select><input type="number" id="sacIn" class="hide" min="8" max="40" step="1" style="width:58px"> <span id="sacU" class="hide">L/min</span>
       </label>
     </div>
@@ -289,7 +289,7 @@ html.spl body>*:not(#splash){visibility:hidden}
       <div class="fitRow"><button id="fitBtn"></button><input type="file" id="fitIn" accept=".fit" hidden></div>
     </div>
     <div id="logEdV" class="hide">
-      <div class="edHd"><button id="logBack">◀ <span id="logBackT">달력</span></button><b id="edTitle"></b></div>
+      <div class="edHd"><span class="calNav"><button id="logBack">◀ <span id="logBackT">달력</span></button><button id="edPrev" class="jump" aria-label="previous log date">|◀</button><button id="edNext" class="jump" aria-label="next log date">▶|</button></span><b id="edTitle"></b></div>
       <div class="lwrap"><div class="lwheels"><div class="lsel"></div><div class="lw" id="lwM" tabindex="0"></div><div class="lw" id="lwD" tabindex="0"></div><div class="lw" id="lwT" tabindex="0"></div></div>
         <div class="memoBox"><textarea id="logMemo" maxlength="300"></textarea><div class="phRow" id="phRow"></div><input type="file" id="phIn" accept="image/*" multiple hidden></div></div>
       <div class="logList" id="logList"></div>
@@ -386,13 +386,13 @@ ko:{
  title:'DTMD 다이빙 플래너',h1:'DTMD 다이빙 플래너',
  rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
  settings:'⚙ 설정',alt:'고도',sealevel:'0 m (해수면)',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기 (21%)',
- cons:'보수도',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'직접 입력',asc:'상승속도',mpm:()=>(isFt()?'ft':'m')+'/분',
+ cons:'보수',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'직접 입력',asc:'상승',mpm:()=>(isFt()?'ft':'m')+'/분',
  logT:'로그북',logDate:'날짜',logStart:'입수 시각',logSave:'현재 로그 저장',draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'경과 시간',depth:'수심',surfGF:'수면 GF',
  disc:'교육·학습용 시뮬레이터입니다. 실제 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 마세요.',more:'계산 방식',disc2:'로그북 기능을 포함하고 있습니다. 대부분의 다이빙 컴퓨터에서 FIT 파일을 불러올 수 있습니다. 로그는 현재 사용하는 브라우저에만 저장됩니다. 저장하기로 백업하시거나 다른 단말기 브라우저에서 이어서 사용할 수 있습니다.',
  model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 산소 독성은 CNS%만 NOAA 한도로 계산(나이트록스), 헬륨·OTU는 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
- tank:'탱크',sac:'호흡량',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:(v,m)=>`출수 잔압 ${v}`,wGas0:'공기 고갈',
+ tank:'탱크',sac:'호흡',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:(v,m)=>`출수 잔압 ${v}`,wGas0:'공기 고갈',
  tutBtn:'튜토리얼',bmSurf:'수면 기준',bmSw:'쉐어워터식',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
  siTitle:'수면휴식 시간',hUnit:'시간',minUnit:'분',cancel:'취소',ok:'확인',
  axisMin:m=>m+'분',max:v=>`최대 ${DU(v)}`,total:v=>`총 ${v}`,
@@ -1781,8 +1781,8 @@ function enterLog(){PLAN=snapS();$('tabsCard').classList.add('lbMode');
   // 로그북에서 작업하다 플래너로 갔다 온 경우: 그때 보던 로그·날짜·수정 중인 내용 그대로
   if(LOGST){const L0=LOGST;LOGST=null;putS(L0.s);CUR=L0.CUR&&load().some(v=>v.id===L0.CUR)?L0.CUR:null;Y=L0.Y;M=L0.M;D=L0.D;vy=L0.vy;vm=L0.vm;view=L0.view;
     $('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();return;}
-  const a=load();if(!a.length)return;const x=a.slice().sort((p,q)=>(p.date+(p.time||'')).localeCompare(q.date+(q.time||''))).pop();
-  const [yy,mm,dd]=x.date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';applyLog(x.id,true,Math.max(0,((x.state&&x.state.dives)||[]).length-1));}
+  const a=load();if(!a.length)return;const ld=a.map(v=>v.date).sort().pop(),x=a.filter(v=>v.date===ld).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
+  const [yy,mm,dd]=x.date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';applyLog(x.id,true,0);}
 function leaveLog(){$('tabsCard').classList.remove('lbMode');if(!PLAN)return;LOGST={s:snapS(),CUR,Y,M,D,vy,vm,view};const P=PLAN;PLAN=null;putS(P);CUR=null;
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();}
 // 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
@@ -1832,6 +1832,11 @@ $('logPrev').onclick=()=>jumpLog(-1);$('logNext').onclick=()=>jumpLog(1);
 $('calPrev').onclick=()=>{vm--;if(vm<1){vm=12;vy--;}renderCal();};
 $('calNext').onclick=()=>{vm++;if(vm>12){vm=1;vy++;}renderCal();};
 $('logBack').onclick=()=>{vy=Y;vm=M;show('cal');};
+// 이전/다음 로그 날짜의 첫 로그(가장 이른 시각, 다이빙 1)로
+function goLogDate(dir){const t=L(),a=load(),ds=[...new Set(a.map(x=>x.date))].sort(),cur=ymd(),d=dir<0?ds.filter(x=>x<cur).pop():ds.find(x=>x>cur);
+  if(!d){toast(dir<0?t.noPrev:t.noNext);return;}const x=a.filter(v=>v.date===d).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
+  const [yy,mm,dd]=d.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;applyLog(x.id,true,0);}
+$('edPrev').onclick=()=>goLogDate(-1);$('edNext').onclick=()=>goLogDate(1);
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
   const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6),st=ST();S.start=st;
