@@ -1370,7 +1370,7 @@ async function make(){hover=null;const m0=S.mode,t0=P.t,k0=P.tick;if(P.run)stopP
   const tmp=document.createElement('canvas').getContext('2d');
   // 제목: 입수 날짜·시각이 있으면 '로그북 + 날짜', 없으면 '플래너'
   const T3=LANG==='en'?['DTMD Dive ','Planner','Logbook']:LANG==='ja'?['DTMD ダイブ','プランナー','ログブック']:['DTMD 다이빙 ','플래너','로그북'];
-  const hasDT=S.start!=null,lg=window.__log;const dt=hasDT?((lg?lg.ymd:'')+' '+hhmm(diveStartMin(S.cur))).trim():'';
+  const hasDT=S.start!=null,lg=window.__log;const dt=hasDT&&lg?lg.ymd:'';
   const title=T3[0]+(hasDT?T3[2]:T3[1]);
   // 설정 한 줄(작게)
   let set1=document.getElementById('setSum').textContent;if(S.dives.length>1)set1+=' · '+(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(S.cur+1)+'/'+S.dives.length;
@@ -1386,9 +1386,9 @@ async function make(){hover=null;const m0=S.mode,t0=P.t,k0=P.tick;if(P.run)stopP
   const H=Math.round(top+gh+30+SH+40+60);
   const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
   g.fillStyle='#fff';g.fillRect(0,0,W,H);
-  g.textBaseline='alphabetic';g.fillStyle='#0f2a3d';g.font='800 38px '+ff;g.fillText(title,pad,pad+38);
-  if(hasDT){const tw=g.measureText(title).width;g.fillStyle='#2f6fe4';g.font='700 30px '+ff;g.fillText(dt,pad+tw+16,pad+37);}
-  g.fillStyle='#6b7280';g.font='400 '+sf+'px '+ff;g.fillText(set1,pad,pad+52+sf);
+  g.textBaseline='alphabetic';g.font='800 38px '+ff;const tw=g.measureText(title).width;g.font='700 30px '+ff;const dw=dt?g.measureText(dt).width+16:0;const tx=(W-tw-dw)/2;
+  g.fillStyle='#0f2a3d';g.font='800 38px '+ff;g.fillText(title,tx,pad+38);if(dt){g.fillStyle='#2f6fe4';g.font='700 30px '+ff;g.fillText(dt,tx+tw+16,pad+37);}
+  g.fillStyle='#6b7280';g.font='400 '+sf+'px '+ff;g.textAlign='center';g.fillText(set1,W/2,pad+52+sf);g.textAlign='left';
   g.drawImage(cv,pad,top,W-pad*2,gh);
   const y0=top+gh+30;
   if(BH)g.drawImage(bc,pad,y0,BW,BH);
