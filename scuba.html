@@ -1927,8 +1927,8 @@ function makeWheel(el,onPick){let n=0,idx=0,tm=0,quiet=false,raf=0;
       quiet=true;spinning=true;el.style.scrollSnapType='none';el.scrollTop=from;
       const step=ts=>{const u=Math.min(1,(ts-t0)/dur),e=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;el.scrollTop=from+(to-from)*e;
         if(u<1)raf=requestAnimationFrame(step);else{el.scrollTop=to;el.style.scrollSnapType='';mark(idx);requestAnimationFrame(()=>{spinning=false;quiet=false;clearTimeout(tm);});}};raf=requestAnimationFrame(step);}};}
-const wM=makeWheel($('lwM'),i=>{if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;CUR=null;renderWheels();dayChanged();});
-const wD=makeWheel($('lwD'),i=>{if(i+1===D)return;D=i+1;CUR=null;renderWheels();dayChanged();});
+const wM=makeWheel($('lwM'),i=>{if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;renderWheels();dayChanged();});
+const wD=makeWheel($('lwD'),i=>{if(i+1===D)return;D=i+1;renderWheels();dayChanged();});
 // 시간 휠은 선택한 다이빙의 시작 시각(10분 단위 내림)을 보여 줌. 돌리면 그만큼 로그 시작 시각(T)을 옮김
 function dOff(){let o=0;for(let k=1;k<=S.cur&&k<S.dives.length;k++)o+=(RES[k-1]?RES[k-1].N/60:0)+(+S.dives[k].si||0);return o;}
 // 시각 = '시' 휠(24칸) + '분' 휠(1분 단위 60칸). 보이는 값 = 선택한 다이빙의 시작 시각
@@ -1975,9 +1975,9 @@ function renderCal(){const a=load(),t=L();requestAnimationFrame(fitCalTitle);if(
   if(CALW){h='';for(let i=0;i<7;i++){const x=new Date(WK0);x.setDate(x.getDate()+i);const k=ymdOf(x),oth=x.getMonth()+1!==vm;h+=`<div class="d${i===0?' sun':i===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}${oth?' oth':''}" data-k="${k}">${x.getDate()}</div>`;}}
   else for(let d=1;d<=days;d++){const k=vy+'-'+pad(vm)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}" data-k="${k}">${d}</div>`;}
   $('cal').innerHTML=h;$('logHint').textContent='';
-  $('cal').querySelectorAll('.d').forEach(el=>el.onclick=()=>{const [ky,km,kd]=el.dataset.k.split('-').map(Number);Y=ky;M=km;D=kd;CUR=null;const f=dayLogs()[0];
+  $('cal').querySelectorAll('.d').forEach(el=>el.onclick=()=>{const [ky,km,kd]=el.dataset.k.split('-').map(Number);Y=ky;M=km;D=kd;const f=dayLogs()[0];/* CUR는 여기서 지우지 않음: 지우면 applyLog의 stash가 보던 로그를 '새 로그' 임시본으로 잘못 저장(유령 점선 로그) */
     if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');applyLog(f.id,true);return;}
-    const n=new Date();T=Math.floor((n.getHours()*60+n.getMinutes())/10)*10;S.start=T;drawProfile();show('ed');});}
+    /* 로그 없는 날: 보던 로그를 비우고 새 로그(빈 점선 줄)로 */view='ed';dayChanged();const n=new Date();T=n.getHours()*60+n.getMinutes();S.start=T;drawProfile();show('ed');});}
 // --- 편집(휠)
 function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));
   wM.set(Array.from({length:12},(_,i)=>({h:t.m(i+1),has:a.some(x=>x.date.startsWith(Y+'-'+pad(i+1)+'-'))})),M-1);
