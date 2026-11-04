@@ -811,7 +811,8 @@ function drawProfile(){
     if(r.t0>=0&&P.t>=r.t0){cx.beginPath();cx.moveTo(X(r.t0),Y(0));for(let k=r.t0;k<=r.N;k+=5)cx.lineTo(X(k),Y(r.depth[k]));cx.lineTo(X(r.N),Y(r.depth[r.N]));cx.lineTo(X(r.N),Y(0));cx.closePath();
       cx.fillStyle='rgba(0,0,0,.38)';cx.fill();}
   }
-  cx.fillStyle='rgba(0,0,0,.12)';cx.fillRect(G.L,Y(30),G.W,Y(DMAX)-Y(30));
+  // 30m 아래 음영: 지도가 열린 구간은 빼고
+  cx.fillStyle='rgba(0,0,0,.12)';{const R=!window.SNAP&&GM.box,h3=Y(DMAX)-Y(30);if(R){if(R.x0>G.L)cx.fillRect(G.L,Y(30),R.x0-G.L,h3);if(R.x1<G.L+G.W)cx.fillRect(R.x1,Y(30),G.L+G.W-R.x1,h3);}else cx.fillRect(G.L,Y(30),G.W,h3);}
   cx.font='700 16px sans-serif';cx.fillStyle='rgba(31,35,40,.16)';cx.textAlign='center';cx.textBaseline='middle';
   if(!window.SNAP){cx.fillText('OW',X(1200),Y(15));cx.fillText('AD',X(1800),Y(25));}
   if(r){
