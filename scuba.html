@@ -728,7 +728,7 @@ function gbTone(c){try{const q=c.getContext('2d'),d=q.getImageData(0,0,c.width,c
   for(let k=0;k<px.length;k+=4){let l=(0.299*px[k]+0.587*px[k+1]+0.114*px[k+2])/255;l=Math.min(1,Math.max(0,(l-lo)/Math.max(.05,hi-lo)));l=l*l*(3-2*l);px[k]=A[0]+(Bc[0]-A[0])*l;px[k+1]=A[1]+(Bc[1]-A[1])*l;px[k+2]=A[2]+(Bc[2]-A[2])*l;}q.putImageData(d,0,0);}catch(e){}}
 // ===== 그래프 지도: [지도] 버튼(도구줄 오른쪽 끝). 40~70분 × 0~40m 영역에 원래 색 지도(OpenStreetMap 기본 타일, API 키 없음)를 불투명하게
 // 눈금 위·그래프 아래. 지도면 끌기 = 시점 이동, 왼쪽 끝 ◀▶ 끌기 = 왼쪽으로 넓히기/좁히기(세로 고정). +/− = 확대·축소. 위치는 정규화 좌표(0~1)
-const GM={on:false,key:null,loc:null,zf:15,ux:0,uy:0,tL:2400,tiles:new Map(),pend:false,box:null,drag:null};
+const GM={on:false,key:null,loc:null,zf:15,ux:0,uy:0,tL:2100,tiles:new Map(),pend:false,box:null,drag:null};
 // 지도: OSM 기본 타일(키 없음)에서 바다(#aad3df)만 진한 파랑(#3f7fbf)으로
 const GMST0={k:'deep',max:19,deep:true,url:(z,x,y)=>'https://tile.openstreetmap.org/'+z+'/'+x+'/'+y+'.png'};
 const gmSt=()=>GMST0;
@@ -1058,7 +1058,7 @@ document.addEventListener('touchmove',e=>{if((drawing||drag>0||seeking)&&e.cance
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
 cv.addEventListener('pointerleave',()=>{hover=null;if(!drawing&&drag<0&&!P.run)drawProfile();});
 // 지도 버튼과 +/−
-$('gmBtn').onclick=()=>{GM.on=!GM.on;drawProfile();};$('gmIn').onclick=()=>gmZoom(1);$('gmOut').onclick=()=>gmZoom(-1);
+$('gmBtn').onclick=()=>{GM.on=!GM.on;if(GM.on)GM.tL=2100;/* 켤 때마다 35분부터 */drawProfile();};$('gmIn').onclick=()=>gmZoom(1);$('gmOut').onclick=()=>gmZoom(-1);
 function gmLabel(){$('gmBtn').textContent=LANG==='en'?'Map':LANG==='ja'?'地図':'지도';}gmLabel();
 // 단축키: Ctrl/⌘+Z = 실행취소, Ctrl/⌘+S = 저장(ZIP), PrintScreen = 스냅샷. 글 입력 중엔 Ctrl+Z는 글자 되돌리기
 document.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.ctrlKey||e.metaKey,typing=/^(INPUT|TEXTAREA|SELECT)$/.test((e.target&&e.target.tagName)||'')||(e.target&&e.target.isContentEditable);
