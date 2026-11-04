@@ -750,11 +750,14 @@ function gmDraw(dv){GM.box=null;if(!gmSync(dv))return;const R=gmReg(),P=256*Math
   // 입수 IN(빨강)·출수 OUT(파랑). 둘 다 있으면 점선으로 잇고, 점 위에 다이빙 시작·종료 시각
   const L=GM.loc,ck=(diveClock(S.cur)||'').split(' → '),P2={};[['in','#E31B3F','IN',ck[0]||''],['out','#1F6FEB','OUT',ck[1]||'']].forEach(([k,c,t,tm])=>{const q=L[k]||(k==='out'&&L.dot&&!L.in&&!L.out?L:null);if(q){const u=gmU(q.lat,q.lon);P2[k]={x:sx(u.x),y:sy(u.y),c,t,tm};}});
   if(P2.in&&P2.out){cx.save();cx.setLineDash([4,3]);cx.strokeStyle='#1f2328';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(P2.in.x,P2.in.y);cx.lineTo(P2.out.x,P2.out.y);cx.stroke();cx.restore();}
-  Object.values(P2).forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,4.5,0,7);cx.fillStyle=p.c;cx.fill();cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.stroke();
-    cx.font='700 11px sans-serif';const w1=cx.measureText(p.t).width;cx.font='600 13.2px sans-serif';const w2=p.tm?cx.measureText(p.tm).width:0,bw=Math.max(w1,w2)+10,bh=p.tm?32:15,bx=clamp(p.x-bw/2,R.x0+2,R.x1-bw-2);let by=p.y-8-bh;if(by<R.y0+2)by=p.y+8;/* 위가 모자라면 점 아래에 */
+  Object.values(P2).forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,4.5,0,7);cx.fillStyle=p.c;cx.fill();cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.stroke();});
+  cx.restore();
+  // 시각·IN/OUT 상자는 지도 밖으로 나가도 그대로(잘라 넣지 않음)
+  Object.values(P2).forEach(p=>{if(p.x<R.x0||p.x>R.x1||p.y<R.y0||p.y>R.y1)return;/* 점이 지도 밖이면 상자도 안 그림 */
+    cx.font='700 11px sans-serif';const w1=cx.measureText(p.t).width;cx.font='600 13.2px sans-serif';const w2=p.tm?cx.measureText(p.tm).width:0,bw=Math.max(w1,w2)+10,bh=p.tm?32:15,bx=p.x-bw/2,by=p.y-8-bh;
     cx.fillStyle='rgba(255,255,255,.9)';cx.strokeStyle=p.c;cx.lineWidth=1;cx.beginPath();cx.roundRect?cx.roundRect(bx,by,bw,bh,3):cx.rect(bx,by,bw,bh);cx.fill();cx.stroke();
     cx.textAlign='center';cx.textBaseline='middle';if(p.tm){cx.fillStyle='#1f2328';cx.fillText(p.tm,p.x,by+10);}cx.font='700 11px sans-serif';cx.fillStyle=p.c;cx.fillText(p.t,p.x,by+bh-8);});
-  cx.restore();
+
   GM.box=R;}
 // 왼쪽 끝 손잡이 ◀▶: 그래프 선보다 위, 최대/총 팝업보다 아래에 그림
 function gmHandle(){const R=GM.box;if(!R)return;const hx=R.x0,hy=(R.y0+R.y1)/2;cx.save();cx.strokeStyle='rgba(31,35,40,.45)';cx.lineWidth=1;cx.beginPath();cx.moveTo(hx+.5,R.y0);cx.lineTo(hx+.5,R.y1);cx.stroke();
