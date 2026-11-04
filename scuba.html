@@ -97,7 +97,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .setWrap.open{grid-template-rows:1fr}
 .setWrap>div{overflow:hidden;min-height:0}
 .setBody{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-#logCard .setBody{margin-top:4px;border-top:1.5px solid #6b7280}
+#logCard .setBody{margin-top:2px;padding-top:4px;border-top:0}/* 로그북 머리 아래 가로줄 없앰, 간격 줄임 */
 .setHead .arr{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 .calHd,.edHd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.calHd b,.edHd b{font-size:15px}.calHd button{padding:4px 10px}.edHd button{padding:4px 10px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:13px}
@@ -134,7 +134,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
 #logCalV{position:relative}.yearPick{position:absolute;left:50%;transform:translateX(-50%);top:40px;z-index:3;display:flex;gap:8px;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
 .yearPick .yp{position:relative;width:96px}.yearPick .lsel{left:2px;right:2px;background:#e3ebf3}
-#logCalV .calHd{display:grid;grid-template-columns:1fr auto 1fr}#logCalV .calHd>.calNav:last-child{justify-self:end}.calMid{display:inline-flex;align-items:center;gap:6px;justify-self:center}.calMid .calMode{white-space:nowrap}.calHd .calMode{padding:4px 8px;font-size:12px;font-weight:700;color:#1b4277}.fitJ{font-size:12px!important;font-weight:800;letter-spacing:.3px;color:#1b4277}
+#logCalV .calHd{display:grid;grid-template-columns:1fr auto 1fr}#logCalV .calHd>.calNav:last-child{justify-self:end}.calMid{display:inline-flex;align-items:center;gap:6px;justify-self:center;min-width:0}#calTitle{white-space:nowrap}#calY.hideY{display:none}.calMid .calMode{white-space:nowrap}.calHd .calMode{padding:4px 8px;font-size:12px;font-weight:700;color:#1b4277}.fitJ{font-size:12px!important;font-weight:800;letter-spacing:.3px;color:#1b4277}
 .logList{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
 .logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:5px;background:#fff;cursor:pointer;font-size:13px}
 .logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -230,8 +230,8 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .play .ico{width:30px!important}.play .ico svg{width:17px!important;height:17px!important}.play #playBtn{width:48px!important}.play #playBtn svg{max-height:14px}
 #logSave,.tabs .tab,.tabs .add{height:32px!important;box-sizing:border-box!important;padding-top:0!important;padding-bottom:0!important;display:inline-flex!important;align-items:center;justify-content:center}
 .tabs .tab:has(.x){padding-right:6px!important}.tabs .x{padding:0 0 0 2px!important}
-/* 색: FIT = 주조색 빨강, 스냅샷·저장·열기 = 남색 */
-.fitJ{background:#E31B3F!important;border-color:#E31B3F!important;color:#fff!important;font-weight:700!important}
+/* 색: FIT = 남색, 스냅샷·저장·열기 = 남색 */
+.fitJ{background:#1b4277!important;border-color:#1b4277!important;color:#fff!important;font-weight:700!important}
 /* 굵은 글씨는 FIT·선택된 언어·제목만. 나머지 버튼 글자는 보통 굵기로 통일 */
 button:not(.fitJ):not(#spTut):not(.setHead):not(#ruleTab){font-weight:400!important}.lang button.on:not(#_a):not(#_b){font-weight:700!important}
 /* 질소 막대 아래 범례: 막대와 간격 줄이고 왼쪽을 '0%' 글자 왼쪽에 맞춤 */
@@ -1947,7 +1947,10 @@ const ymdOf=x=>x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate());
 function wkSetMonth(){const th=new Date(WK0);th.setDate(th.getDate()+4);vy=th.getFullYear();vm=th.getMonth()+1;}/* 주가 두 달에 걸치면 목요일이 든 달 */
 function wkDefault(){const n=new Date();WK0=(n.getFullYear()===vy&&n.getMonth()+1===vm)?wkOf(vy,vm,n.getDate()):wkOf(vy,vm,new Date(vy,vm,0).getDate());}
 function wkFits(){if(!WK0)return false;for(let i=0;i<7;i++){const x=new Date(WK0);x.setDate(x.getDate()+i);if(x.getFullYear()===vy&&x.getMonth()+1===vm)return true;}return false;}
-function renderCal(){const a=load(),t=L();if(CALW&&!wkFits()){if(CJ&&CJ.startsWith(vy+'-'+pad(vm)+'-')){const [cy,cm,cd]=CJ.split('-').map(Number);WK0=wkOf(cy,cm,cd);}else wkDefault();}
+// 달력 제목: '2026년 10월'이 한 줄에 다 안 들어가면(좁은 3단 화면 등) 연도를 숨기고 월만. 들어갈 폭이면 다시 연도 표시
+function fitCalTitle(){const y=$('calY'),hd=document.querySelector('#logCalV .calHd');if(!y||!hd||!hd.offsetParent)return;y.classList.remove('hideY');const c=hd.children,mid=hd.querySelector('.calMid');if(c.length<3||!mid)return;const nw=n=>[...n.children].reduce((a,e)=>a+e.offsetWidth+4,-4),need=mid.scrollWidth+nw(c[0])+nw(c[2])+12;/* 양옆 버튼과 겹치지 않을 폭 */if(need>hd.clientWidth)y.classList.add('hideY');}
+window.addEventListener('resize',()=>requestAnimationFrame(fitCalTitle));
+function renderCal(){const a=load(),t=L();requestAnimationFrame(fitCalTitle);if(CALW&&!wkFits()){if(CJ&&CJ.startsWith(vy+'-'+pad(vm)+'-')){const [cy,cm,cd]=CJ.split('-').map(Number);WK0=wkOf(cy,cm,cd);}else wkDefault();}
   $('calMode').textContent=CALW?(LANG==='en'?'Month':LANG==='ja'?'月表示':'월표시'):(LANG==='en'?'Week':LANG==='ja'?'週表示':'주표시');$('calY').textContent=LANG==='en'?String(vy):LANG==='ja'?vy+'年':vy+'년';$('calMo').textContent=LANG==='en'?'.'+pad(vm):LANG==='ja'?vm+'月':vm+'월';const has=new Set(a.map(x=>x.date));
   const first=new Date(vy,vm-1,1).getDay(),days=new Date(vy,vm,0).getDate(),k0=new Date();const today=k0.getFullYear()+'-'+pad(k0.getMonth()+1)+'-'+pad(k0.getDate());
   let h=t.wd.map((w,i)=>`<div class="wd${i===0?' sun':i===6?' sat':''}">${w}</div>`).join('');for(let i=0;i<first;i++)h+='<div class="e">.</div>';
