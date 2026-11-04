@@ -1388,7 +1388,7 @@ function speak(text,onProg){return new Promise(res=>{if(!VOICE||!SS){res();retur
     let done=false;const fin=()=>{if(!done){done=true;res();}};u.onend=fin;u.onerror=fin;setTimeout(fin,Math.max(3500,text.length*190));window.__tutU=u;
     const go=()=>{try{SS.resume();}catch(e){}SS.speak(u);};if(busy)setTimeout(go,150);else go();}catch(e){res();}});}
 // 녹음 음성(tut/ko01~13.mp3) — 실패 시 브라우저 음성으로 대체
-const AU=new Audio();AU.preload='auto';
+const AU=new Audio();AU.preload='auto';const CH=new Audio('tut/chime.mp3');CH.preload='auto';let CHTOK=0;
 const clip=n=>'tut/ko'+String(n).padStart(2,'0')+'.mp3';
 const auProg=()=>(AU.duration&&!AU.paused)?AU.currentTime/AU.duration:null;
 let CLIPTOK=0;
@@ -1396,7 +1396,7 @@ function playClip(src,fallback){return new Promise(res=>{if(!VOICE){res();return
   const fin=()=>{if(done)return;done=true;clearTimeout(to);AU.onended=AU.onerror=null;res();};
   const fail=()=>{if(done)return;done=true;clearTimeout(to);if(my!==CLIPTOK){res();return;}AU.onended=AU.onerror=null;if(fallback)fallback().then(res);else res();};
   const to=setTimeout(fin,40000);
-  try{try{if(SS&&(SS.speaking||SS.pending))SS.cancel();}catch(e){}AU.pause();AU.src=src;AU.onended=fin;AU.onerror=fail;
+  try{try{if(SS&&(SS.speaking||SS.pending))SS.cancel();}catch(e){}AU.pause();AU.muted=false;AU.src=src;AU.onended=fin;AU.onerror=fail;
     const pr=AU.play();if(pr&&pr.catch)pr.catch(e=>{if(e&&(e.name==='NotAllowedError'||e.name==='AbortError'))fin();else fail();});}catch(e){fail();}});}
 // 글자를 읽는 속도에 맞춰 하나씩 표시
 let TW=null;
@@ -1517,9 +1517,12 @@ function armBlank(t){ARMED=true;const h=e=>{if(t!==TOK){document.removeEventList
     document.removeEventListener('click',h,true);e.preventDefault();e.stopPropagation();end();setState(A0,'free');if(window.loadSac){loadSac();syncForm();recompute();}window.scrollTo({top:0,behavior:'smooth'});};
   setTimeout(()=>document.addEventListener('click',h,true),0);}
 function start(){if(ON)return;ON=true;if(S.pu!=='bar'){PU0=S.pu;S.pu='bar';syncForm();}try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';
-  // 시작 차임(0.9초): 누른 순간 같은 오디오로 재생해 아이폰 소리 재생 권한도 열어 둠 → 끝나면 1단계
-  let gone=false;const go=()=>{if(gone||!ON)return;gone=true;run(0);};
-  try{AU.pause();AU.onended=go;AU.onerror=go;AU.src='tut/chime.mp3';const pr=AU.play();if(pr&&pr.catch)pr.catch(go);}catch(e){go();}setTimeout(go,1500);}
+  // 시작 차임(0.9초): 차임 전용 오디오로 재생(이전 튜토리얼이 내레이션 오디오를 멈춰도 영향 없음).
+  // 같은 순간 내레이션 오디오도 무음으로 한 번 재생해 아이폰 재생 권한을 열어 둠 → 차임 끝나면 1단계
+  const tk=++CHTOK;let gone=false;const go=()=>{if(gone||!ON||tk!==CHTOK)return;gone=true;run(0);};
+  try{CH.pause();CH.currentTime=0;CH.onended=go;CH.onerror=go;const pr=CH.play();if(pr&&pr.catch)pr.catch(go);}catch(e){go();}
+  try{hush();AU.onended=AU.onerror=null;AU.muted=true;AU.src='tut/chime.mp3';const p2=AU.play();const um=()=>{try{if(/chime\.mp3$/.test(AU.src))AU.pause();}catch(e){}AU.muted=false;};if(p2&&p2.then)p2.then(um,um);else um();}catch(e){AU.muted=false;}
+  setTimeout(go,1500);}
 function end(){TOK++;ON=false;ARMED=false;if(PU0){S.pu=PU0;PU0=null;}if(window.loadSac)loadSac();syncForm();recompute();hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
 document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
 document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
@@ -1539,8 +1542,10 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
   let lang='ko';try{lang=localStorage.getItem('scuba_lang')||'ko';}catch(e){}const h=(location.hash||'').slice(1);if(h==='en'||h==='ja'||h==='ko')lang=h;
   try{history.scrollRestoration='manual';}catch(e){}
   const bgReset=()=>{document.documentElement.style.background='';const m=document.querySelector('meta[name=theme-color]');if(m)m.content='#284656';};
-  const close=()=>{sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);};
-  window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);};
+  const vid=sp.querySelector('.spVid'),vPlay=()=>{if(!vid||sp.style.display==='none')return;try{vid.muted=true;const r=vid.play();if(r&&r.catch)r.catch(()=>{});}catch(e){}};
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)vPlay();});window.addEventListener('pageshow',vPlay);
+  const close=()=>{if(vid)try{vid.pause();}catch(e){}sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);};
+  window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
   const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
     if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});}
