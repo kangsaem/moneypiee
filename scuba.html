@@ -817,7 +817,7 @@ function drawProfile(){
   // 30m 아래 음영: 지도가 열린 구간은 빼고
   cx.fillStyle='rgba(0,0,0,.12)';{const R=!window.SNAP&&GM.box,h3=Y(DMAX)-Y(30);if(R){if(R.x0>G.L)cx.fillRect(G.L,Y(30),R.x0-G.L,h3);if(R.x1<G.L+G.W)cx.fillRect(R.x1,Y(30),G.L+G.W-R.x1,h3);}else cx.fillRect(G.L,Y(30),G.W,h3);}
   cx.font='700 16px sans-serif';cx.fillStyle='rgba(31,35,40,.16)';cx.textAlign='center';cx.textBaseline='middle';
-  if(!window.SNAP){cx.fillText('OW',X(1200),Y(15));cx.fillText('AD',X(1800),Y(25));}
+  if(!window.SNAP){const R=GM.box,onMap=(x,y)=>R&&x>=R.x0-16&&x<=R.x1&&y>=R.y0&&y<=R.y1;/* 지도 위에 걸리면 안 씀 */if(!onMap(X(1200),Y(15)))cx.fillText('OW',X(1200),Y(15));if(!onMap(X(1800),Y(25)))cx.fillText('AD',X(1800),Y(25));}
   if(r){
     if(r.ceil5.some(v=>v>0)){
       cx.beginPath();cx.moveTo(X(0),Y(0));
