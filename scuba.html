@@ -189,6 +189,10 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:34px;padding:0;flex-shrink:0;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
 /* 질소 + 통계 */
 .split{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
+/* 질소 막대 카드 접기: 접으면 수면 기준 가장 긴 막대 하나(100% 넘는 부분 주황) + 가장 위험한 경고 하나 */
+.barsHd{display:flex;align-items:center;gap:8px;margin-bottom:6px}.barsHd .bmode{margin:0}.foldB{margin-left:auto;width:28px;height:26px;min-width:0;padding:0;font-size:12px;color:#6b7280;flex-shrink:0}
+.barsMini{display:none;flex:1;min-width:0;align-items:center;gap:8px}#barMini{flex:2;min-width:0;height:26px;display:block}.wmini{flex:1;min-width:0;background:#E31B3F;color:#fff;border-radius:4px;padding:4px 7px;font-size:12px;font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wmini.ok{background:#e5e7eb;color:#6b7280;font-weight:600}.wmini.deco{background:#0f9d7a}
+#barsCard.fold .bmode,#barsCard.fold .split{display:none}#barsCard.fold .barsMini{display:flex}#barsCard.fold .barsHd{margin-bottom:0}
 .side{display:flex;flex-direction:column;gap:6px;min-width:0}
 .st{border:1px solid #d9dce1;border-radius:5px;padding:6px 9px;background:rgba(255,255,255,.6)}
 .st .k{display:block;font-size:11px;color:var(--mute);white-space:nowrap}
@@ -340,9 +344,10 @@ html.spl body>*:not(#splash){visibility:hidden}
 
 <div class="colR">
 <div class="card" id="barsCard">
+  <div class="barsHd"><div class="seg bmode"><button data-bm="surf" data-i18n="bmSurf">수면 기준</button><button data-bm="sw" data-i18n="bmSw">쉐어워터식</button></div>
+    <div class="barsMini" id="barsMini"><canvas id="barMini"></canvas><div class="wmini" id="warnMini"></div></div><button id="barsFold" class="foldB" aria-label="fold">▲</button></div>
   <div class="split">
     <div>
-      <div class="seg bmode"><button data-bm="surf" data-i18n="bmSurf">수면 기준</button><button data-bm="sw" data-i18n="bmSw">쉐어워터식</button></div>
       <canvas id="bars"></canvas>
       <div class="legend" id="lgSw" style="display:none">
         <span class="tip" data-tip="swIn"><i style="border-color:#06b6d4;border-top-style:dashed"></i><span data-i18n="swIn">들이마신 질소</span></span>
@@ -1076,7 +1081,7 @@ cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));i
 function renderSummary(){
   const r=RES[S.cur],dv=dive();const el=$('summary');
   el.classList.remove('hide');$('warnBox').classList.add('hide');
-  if(dv.pts.length<2){el.innerHTML='<span style="color:var(--mute)">'+tr('empty')+'</span>';return;}
+  if(dv.pts.length<2){el.innerHTML='<span style="color:var(--mute)">'+tr('empty')+'</span>';const wm=$('warnMini');if(wm){wm.className='wmini ok';wm.textContent='-';}return;}
   const row=(k,v)=>`<div class="r"><span>${k}</span><b>${v}</b></div>`;
   let h='';
   const rp=r.plan||(r.alt&&r.alt.plan);
@@ -1096,6 +1101,15 @@ function renderSummary(){
   if(r.N>TMAX)w.push(tr('wOver',TMAX/60));
   {const ge=r.gas[r.N];if(ge<=0)w.push(tr('wGas0'));else if(ge<50)w.push(tr('wGas',pu(ge)+puN(),pu(50)));}
   $('warnBox').innerHTML=w.length?'⚠ '+w.join('<br>⚠ '):'';$('warnBox').classList.toggle('hide',!w.length);
+  {const ge=r.gas[r.N],cvN=(r.c.fO2>0.215&&r.cns)?r.cns[r.N]:0,P1=[];
+    if(ge<=0)P1.push(['w',tr('wGas0')]);else if(ge<50)P1.push(['w',tr('wGas',pu(ge)+puN(),pu(50))]);
+    if(r.maxD>mod+0.1)P1.push(['w',tr('wMod',mod.toFixed(1))]);
+    if(cvN>=80)P1.push(['w',tr('wCns',Math.round(cvN))]);else if(cvN>=60)P1.push(['w',tr('wCnsN',Math.round(cvN))]);
+    if(vc)P1.push(['w',tr('wCeil',Math.round(vc*5/60*10)/10)]);
+    if(rp&&rp.deco)P1.push(['deco','DECO']);
+    if(fc)P1.push(['w',tr('wFast')]);
+    if(r.N>TMAX)P1.push(['w',tr('wOver',TMAX/60)]);
+    const wm=$('warnMini');if(wm){const top=P1[0];wm.className='wmini'+(top?(top[0]==='deco'?' deco':''):' ok');wm.textContent=top?(top[0]==='w'?'⚠ ':'')+top[1]:(LANG==='en'?'No warnings':LANG==='ja'?'警告なし':'경고 없음');wm.title=wm.textContent;}}
   el.innerHTML=h;el.classList.toggle('hide',!h);
 }
 
@@ -1121,8 +1135,18 @@ function updateStats(s){
   {const nx=c.fO2>0.215;$('stCNS').classList.toggle('hide',!nx);if(nx&&r.cns){const v=(S.playMode&&P.t>0)?r.cns[s]:r.cns[r.N];$('sCNS').textContent=(v<10?v.toFixed(1):Math.round(v))+'%';$('sCNS').style.color=v>=80?'#E31B3F':v>=60?'#ea580c':'';}}
   drawBars(T,d,c,anc);
 }
+let BFOLD=false;try{BFOLD=localStorage.getItem('scuba_barsFold')==='1';}catch(e){}
+function syncFold(){$('barsCard').classList.toggle('fold',BFOLD);$('barsFold').textContent=BFOLD?'▼':'▲';}
+$('barsFold').onclick=()=>{BFOLD=!BFOLD;try{localStorage.setItem('scuba_barsFold',BFOLD?'1':'0');}catch(e){}syncFold();if(typeof relayout==='function')relayout();requestAnimationFrame(()=>{try{updateStats(P.tick<0?0:P.tick);}catch(e){}window.dispatchEvent(new Event('resize'));});};syncFold();
+// 접힌 상태: 수면 기준(GF High) 비율이 가장 큰 칸 하나. 0~130% 눈금, 100% 점선, 100% 넘는 부분 주황
+function drawMini(T,d,c){const bc=$('barMini');if(!bc||!BFOLD)return;const dpr=window.devicePixelRatio||1,w=bc.clientWidth,h=bc.clientHeight;if(!w)return;if(bc.width!==Math.round(w*dpr)||bc.height!==Math.round(h*dpr)){bc.width=Math.round(w*dpr);bc.height=Math.round(h*dpr);}
+  const g=bc.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);let bi=0,bv=-1;for(let i=0;i<NT;i++){const v=T[i]/allow(i,ENV.psurf,c.hi)*100;if(v>bv){bv=v;bi=i;}}
+  const pi=pin(d,c.fN2),col=pi>T[bi]+0.003?'#E31B3F':pi<T[bi]-0.003?'#2f6fe4':'#9ca3af';g.font='600 11px sans-serif';const lab=(bi+1)+' · '+Math.round(bv)+'%',lw=g.measureText(lab).width+6,L=0,W=w-lw-2,MAXP=130,px=v=>L+clamp(v,0,MAXP)/MAXP*W,y=4,bh=h-8;
+  g.fillStyle='#eef0f3';g.fillRect(L,y,W,bh);g.fillStyle=col;g.globalAlpha=.85;g.fillRect(L,y,px(Math.min(bv,100))-L,bh);if(bv>100){g.fillStyle='#f97316';g.fillRect(px(100),y,px(bv)-px(100),bh);}g.globalAlpha=1;
+  g.strokeStyle='#1f2328';g.lineWidth=1.2;g.setLineDash([3,2]);g.beginPath();g.moveTo(px(100)+.5,y-2);g.lineTo(px(100)+.5,y+bh+2);g.stroke();g.setLineDash([]);
+  g.fillStyle=bv>100?'#ea580c':'#1f2328';g.textAlign='right';g.textBaseline='middle';g.fillText(lab,w-1,h/2);}
 function drawBars(T,d,c,anc){
-  if(S.bm==='sw')return drawBarsSW(T,d,c,anc||0);
+  drawMini(T,d,c);  if(S.bm==='sw')return drawBarsSW(T,d,c,anc||0);
   const bc=$('bars'),g=bc.getContext('2d'),dpr=window.devicePixelRatio||1,w=bc.width/dpr,h=bc.height/dpr;
   const SNAPB=!!window.BAR_RH,narrow=w<300,rh=window.BAR_RH||(narrow?17:20),L=24,R=SNAPB?14:(narrow?36:40),top=2,W=w-L-R,MAXP=130;const BG=SNAPB?1:3;
   const px=v=>L+clamp(v,0,MAXP)/MAXP*W;
