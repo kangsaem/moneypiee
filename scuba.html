@@ -41,9 +41,9 @@ body::before{content:'';position:fixed;left:0;right:0;top:0;height:env(safe-area
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#E31B3F;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:5px;font-size:14px;font-weight:700;line-height:1.7;position:relative}
 /* 빨간 1·2 문구: 오른쪽(세로 가운데) [⏭] 버튼 = 화면 옆으로 빼기 → 오른쪽 가장자리 세로 탭(DTMD), 누르면 다시 펼침 */
-.rule{padding-right:46px}.rule #ruleSide{position:absolute;right:8px;top:50%;transform:translateY(-50%);height:26px;width:30px;min-width:0;padding:0;border:0;border-radius:4px;background:#fff;color:#2f6fe4;display:inline-flex;align-items:center;justify-content:center}.rule #ruleSide svg{width:13px;height:13px;display:block}
+.rule{padding-right:46px}.rule #ruleSide{position:absolute;right:8px;top:50%;transform:translateY(-50%);height:26px!important;width:30px!important;min-width:0;padding:0!important;border:1px solid var(--line);border-radius:4px;background:#fff;color:#E31B3F;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center}.rule #ruleSide svg{width:13px;height:13px;display:block}
 #ruleWrap.side{display:none}
-#ruleTab{position:fixed;right:0;top:38%;z-index:60;width:20px;height:58px;min-width:0;padding:0;border:0;border-radius:6px 0 0 6px;background:#E31B3F;color:#fff;box-shadow:-2px 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}#ruleTab.hide{display:none}#ruleTab span{display:inline-block;transform:rotate(-90deg);white-space:nowrap;font:700 11px 'Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:1.5px}
+#ruleTab{position:fixed;right:0;top:38%;z-index:60;width:20px;height:58px;min-width:0;padding:0;border:0;border-radius:6px 0 0 6px;background:#E31B3F;color:#fff;box-shadow:-2px 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}#ruleTab.hide{display:none}#ruleTab span{display:inline-block;transform:rotate(-90deg);white-space:nowrap;font:700 9px 'Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:1.5px}
 .ruleWrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .22s cubic-bezier(.55,0,1,.45)}.ruleWrap>div{overflow:hidden;min-height:0}.ruleWrap.closed{grid-template-rows:0fr}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 4px 8px}
@@ -231,7 +231,11 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 #logSave,.tabs .tab,.tabs .add{height:32px!important;box-sizing:border-box!important;padding-top:0!important;padding-bottom:0!important;display:inline-flex!important;align-items:center;justify-content:center}
 .tabs .tab:has(.x){padding-right:6px!important}.tabs .x{padding:0 0 0 2px!important}
 /* 색: FIT = 주조색 빨강, 스냅샷·저장·열기 = 남색 */
-.fitJ{background:#E31B3F!important;border-color:#E31B3F!important;color:#fff!important}
+.fitJ{background:#E31B3F!important;border-color:#E31B3F!important;color:#fff!important;font-weight:700!important}
+/* 굵은 글씨는 FIT·선택된 언어·제목만. 나머지 버튼 글자는 보통 굵기로 통일 */
+button:not(.fitJ):not(#spTut):not(.setHead):not(#ruleTab){font-weight:400!important}.lang button.on:not(#_a):not(#_b){font-weight:700!important}
+/* 질소 막대 아래 범례: 막대와 간격 줄이고 왼쪽을 '0%' 글자 왼쪽에 맞춤 */
+#barsCard .legend{margin-top:0;padding-left:15px}
 .play .ico{background:#1b4277!important;border-color:#1b4277!important}
 </style>
 <style>
