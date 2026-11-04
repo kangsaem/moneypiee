@@ -43,7 +43,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 /* 빨간 1·2 문구: 오른쪽(세로 가운데) [⏭] 버튼 = 화면 옆으로 빼기 → 오른쪽 가장자리 세로 탭(DTMD), 누르면 다시 펼침 */
 .rule{padding-right:46px}.rule #ruleSide{position:absolute;right:8px;top:50%;transform:translateY(-50%);height:26px!important;width:30px!important;min-width:0;padding:0!important;border:1px solid var(--line);border-radius:4px;background:#fff;color:#E31B3F;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center}.rule #ruleSide svg{width:13px;height:13px;display:block}
 #ruleWrap.side{display:none}
-#ruleTab{position:fixed;right:0;top:38%;z-index:60;width:20px;height:58px;min-width:0;padding:0;border:0;border-radius:6px 0 0 6px;background:#E31B3F;color:#fff;box-shadow:-2px 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}#ruleTab.hide{display:none}#ruleTab span{display:inline-block;transform:rotate(-90deg);white-space:nowrap;font:700 9px 'Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:1.5px}
+#ruleTab{position:absolute;right:0;top:0;z-index:60;width:20px;height:52px;min-width:0;padding:0;border:0;border-radius:6px 0 0 6px;background:#E31B3F;color:#fff;box-shadow:-2px 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}#ruleTab.hide{display:none}html.ruleSide .top>span{margin-right:16px}/* 옆 탭이 있으면 튜토리얼·언어 버튼을 조금 왼쪽으로 */#ruleTab span{display:inline-block;transform:rotate(-90deg);white-space:nowrap;font:700 9px 'Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:1.5px}
 .ruleWrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .22s cubic-bezier(.55,0,1,.45)}.ruleWrap>div{overflow:hidden;min-height:0}.ruleWrap.closed{grid-template-rows:0fr}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 4px 8px}
@@ -1102,7 +1102,10 @@ cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));i
 
 // ===== 빨간 1·2 문구 상태: open / side (기기에 기억) =====
 let RULE='open';try{RULE=localStorage.getItem('scuba_rule')==='side'?'side':'open';}catch(e){}
-function syncRule(){const w=$('ruleWrap'),tb=$('ruleTab');if(!w)return;w.classList.toggle('side',RULE==='side');tb.classList.toggle('hide',RULE!=='side');}
+// 옆 탭(DTMD): 화면 오른쪽 끝, 높이는 언어 버튼(KR/EN/JP) 줄의 세로 가운데에 맞춤(페이지와 함께 스크롤)
+function placeRuleTab(){const tb=$('ruleTab'),lg=document.querySelector('.top .lang');if(!tb||!lg||RULE!=='side')return;const r=lg.getBoundingClientRect();tb.style.top=Math.round(r.top+window.scrollY+r.height/2-tb.offsetHeight/2)+'px';}
+function syncRule(){const w=$('ruleWrap'),tb=$('ruleTab');if(!w)return;w.classList.toggle('side',RULE==='side');tb.classList.toggle('hide',RULE!=='side');document.documentElement.classList.toggle('ruleSide',RULE==='side');if(tb.parentNode!==document.body)document.body.appendChild(tb);requestAnimationFrame(placeRuleTab);}
+window.addEventListener('resize',()=>requestAnimationFrame(placeRuleTab));
 const setRule=v=>{RULE=v;try{localStorage.setItem('scuba_rule',v);}catch(e){}syncRule();if(typeof relayout==='function')setTimeout(relayout,0);};
 $('ruleSide').onclick=e=>{e.stopPropagation();setRule('side');};$('ruleTab').onclick=()=>setRule('open');syncRule();
 // ===== 경고: 재생 중이면 그 시각까지 생긴 것만(라이브), 아니면 다이빙 전체. 순서 = 공기 고갈 > 공기 부족 > MOD > CNS > 천장 위반 > DECO > 급상승 > 시간 초과
