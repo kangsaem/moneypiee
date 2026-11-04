@@ -20,6 +20,7 @@
 - 포토 로그 이미지(확정 디자인), 데이터 로그 이미지 개편(영어, 그래프 확대, 경고 칩, DTMD 태그), 숫자 폰트 League Spartan.
 
 ### 2026-11-03 저녁 반영 완료
+- (11/04) 로그북 첫 진입: 펼치기 시작과 함께 휠만 최근 로그 날짜·시각으로 돌림(sync, FIRSTIN/WSPUN), 그동안 점선 줄 숨김(.logList.noDraft). 펼쳐진 뒤 enterLog가 그 로그를 엶(두 번 돌지 않음)
 - (11/04) 로그북 첫 진입 순서: 펼칠 때(sync) 달력 대신 오늘·지금 휠을 먼저 보여줌 → 펼쳐진 뒤 enterLog에서 가장 최근 날짜 첫 로그로 휠을 돌려 도착(WSPIN=wTops). 로그가 없으면 오늘 새 로그
 - (11/04) 지도 종류 비교 버튼(#gmSt, −/+ 왼쪽, 지도 켰을 때만): 기본 OSM → 바다(OSM 바다색 #aad3df를 #3f7fbf로, gmDeep, CORS 안 되면 원본) → 회색(Esri Light Gray Canvas, 키 없음, 최대 z16). 선택은 localStorage scuba_mapst. 400px 이하 도구줄 간격 축소
 - (11/04) OW·AD 글자는 지도 영역에 걸리면 안 씀
