@@ -39,7 +39,12 @@ body::before{content:'';position:fixed;left:0;right:0;top:0;height:env(safe-area
 @media (display-mode:standalone){body::before{height:max(env(safe-area-inset-top),20px)}.wrap{padding-top:calc(max(env(safe-area-inset-top),20px) + 25px)!important}#splash{padding-top:max(env(safe-area-inset-top),20px)!important}}
 .wrap{max-width:1000px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) calc(6px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(6px + env(safe-area-inset-left))}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
-.rule{background:#E31B3F;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:5px;font-size:14px;font-weight:700;line-height:1.7}
+.rule{background:#E31B3F;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:5px;font-size:14px;font-weight:700;line-height:1.7;position:relative}
+/* 빨간 1·2 문구: 오른쪽 위 [▲] 접기(한 줄) / [⇥] 화면 옆으로 빼기(오른쪽 가장자리에 작은 세로 탭, 누르면 다시 펼침) */
+.rule .ruleBtns{position:absolute;top:6px;right:6px;display:flex;gap:4px}.rule .ruleBtns button{width:26px;height:24px;min-width:0;padding:0;border:0;border-radius:4px;background:rgba(255,255,255,.2);color:#fff;font-size:12px;line-height:1}
+.rule .ruleMini{display:none}.rule{padding-right:74px}.rule.fold{padding-top:4px;padding-bottom:4px}.rule.fold>div[data-i18n]{display:none}.rule.fold .ruleMini{display:block;font-size:13px;line-height:24px}.rule.fold .ruleBtns{top:4px}
+#ruleWrap.side{display:none}
+#ruleTab{position:fixed;right:0;top:38%;z-index:60;width:18px;height:72px;min-width:0;padding:0;border:0;border-radius:6px 0 0 6px;background:#E31B3F;color:#fff;box-shadow:-2px 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}#ruleTab.hide{display:none}#ruleTab span{writing-mode:vertical-rl;font-size:11px;font-weight:800;letter-spacing:1px}
 .ruleWrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .22s cubic-bezier(.55,0,1,.45)}.ruleWrap>div{overflow:hidden;min-height:0}.ruleWrap.closed{grid-template-rows:0fr}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 4px 8px}
@@ -244,10 +249,13 @@ html.spl body>*:not(#splash){visibility:hidden}
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
 <div id="mainGrid"><div class="colL">
-<div class="ruleWrap" id="ruleWrap"><div><div class="rule">
+<div class="ruleWrap" id="ruleWrap"><div><div class="rule" id="ruleBox">
+  <span class="ruleBtns"><button id="ruleFold" aria-label="fold">▲</button><button id="ruleSide" aria-label="hide to side">⇥</button></span>
+  <div class="ruleMini" id="ruleMini"></div>
   <div data-i18n="rule1">1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
   <div data-i18n="rule2">2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
 </div></div></div>
+<button id="ruleTab" class="hide" aria-label="show rules"><span></span></button>
 
 <div class="card thin" id="setCard">
   <button class="setHead" id="setHead"><b data-i18n="settings">⚙ 설정</b><span class="sum" id="setSum"></span><span class="arr">▾</span></button>
@@ -1077,6 +1085,13 @@ document.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.
 document.addEventListener('keyup',e=>{if(e.key==='PrintScreen'){const b=$('snapBtn');if(b)b.click();}});
 cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));if(h>0){pushUndo();dive().pts.splice(h,1);recompute();}});
 
+// ===== 빨간 1·2 문구 상태: open / fold / side (기기에 기억) =====
+let RULE='open';try{RULE=localStorage.getItem('scuba_rule')||'open';}catch(e){}
+function syncRule(){const b=$('ruleBox'),w=$('ruleWrap'),tb=$('ruleTab');if(!b)return;b.classList.toggle('fold',RULE==='fold');w.classList.toggle('side',RULE==='side');tb.classList.toggle('hide',RULE!=='side');
+  $('ruleFold').textContent=RULE==='fold'?'▼':'▲';$('ruleMini').textContent=LANG==='en'?'⚠ Rules 1 · 2 (ceiling)':LANG==='ja'?'⚠ ルール 1・2(天井)':'⚠ 원칙 1 · 2 (핑크색 천장)';tb.querySelector('span').textContent=LANG==='en'?'RULES':LANG==='ja'?'ルール':'원칙';}
+const setRule=v=>{RULE=v;try{localStorage.setItem('scuba_rule',v);}catch(e){}syncRule();if(typeof relayout==='function')setTimeout(relayout,0);};
+$('ruleFold').onclick=e=>{e.stopPropagation();setRule(RULE==='fold'?'open':'fold');};$('ruleSide').onclick=e=>{e.stopPropagation();setRule('side');};$('ruleTab').onclick=()=>setRule('open');
+syncRule();window.addEventListener('scuba:lang',syncRule);
 // ===== 요약 =====
 function renderSummary(){
   const r=RES[S.cur],dv=dive();const el=$('summary');
