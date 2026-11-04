@@ -40,11 +40,10 @@ body::before{content:'';position:fixed;left:0;right:0;top:0;height:env(safe-area
 .wrap{max-width:1000px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) calc(6px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(6px + env(safe-area-inset-left))}
 h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .rule{background:#E31B3F;color:#fff;border-radius:6px;padding:10px 14px;margin-bottom:5px;font-size:14px;font-weight:700;line-height:1.7;position:relative}
-/* 빨간 1·2 문구: 오른쪽 위 [▲] 접기(한 줄) / [⇥] 화면 옆으로 빼기(오른쪽 가장자리에 작은 세로 탭, 누르면 다시 펼침) */
-.rule .ruleBtns{position:absolute;top:6px;right:6px;display:flex;gap:4px}.rule .ruleBtns button{width:26px;height:24px;min-width:0;padding:0;border:0;border-radius:4px;background:rgba(255,255,255,.2);color:#fff;font-size:12px;line-height:1}
-.rule .ruleMini{display:none}.rule{padding-right:74px}.rule.fold{padding-top:4px;padding-bottom:4px}.rule.fold>div[data-i18n]{display:none}.rule.fold .ruleMini{display:block;font-size:13px;line-height:24px}.rule.fold .ruleBtns{top:4px}
+/* 빨간 1·2 문구: 오른쪽(세로 가운데) [⏭] 버튼 = 화면 옆으로 빼기 → 오른쪽 가장자리 세로 탭(DTMD), 누르면 다시 펼침 */
+.rule{padding-right:46px}.rule #ruleSide{position:absolute;right:8px;top:50%;transform:translateY(-50%);height:26px;width:30px;min-width:0;padding:0;border:0;border-radius:4px;background:#fff;color:#2f6fe4;display:inline-flex;align-items:center;justify-content:center}.rule #ruleSide svg{width:13px;height:13px;display:block}
 #ruleWrap.side{display:none}
-#ruleTab{position:fixed;right:0;top:38%;z-index:60;width:18px;height:72px;min-width:0;padding:0;border:0;border-radius:6px 0 0 6px;background:#E31B3F;color:#fff;box-shadow:-2px 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}#ruleTab.hide{display:none}#ruleTab span{writing-mode:vertical-rl;font-size:11px;font-weight:800;letter-spacing:1px}
+#ruleTab{position:fixed;right:0;top:38%;z-index:60;width:20px;height:58px;min-width:0;padding:0;border:0;border-radius:6px 0 0 6px;background:#E31B3F;color:#fff;box-shadow:-2px 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center}#ruleTab.hide{display:none}#ruleTab span{display:inline-block;transform:rotate(-90deg);white-space:nowrap;font:700 11px 'Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:1.5px}
 .ruleWrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .22s cubic-bezier(.55,0,1,.45)}.ruleWrap>div{overflow:hidden;min-height:0}.ruleWrap.closed{grid-template-rows:0fr}
 .rule small{font-weight:500;opacity:.85;font-size:12px;margin-left:4px;display:inline-block;white-space:nowrap}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 4px 8px}
@@ -135,13 +134,13 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
 #logCalV{position:relative}.yearPick{position:absolute;left:50%;transform:translateX(-50%);top:40px;z-index:3;display:flex;gap:8px;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
 .yearPick .yp{position:relative;width:96px}.yearPick .lsel{left:2px;right:2px;background:#e3ebf3}
-.calMid{display:inline-flex;align-items:center;gap:6px}.calHd .calMode{padding:4px 8px;font-size:12px;font-weight:700;color:#1b4277}.fitJ{font-size:12px!important;font-weight:800;letter-spacing:.3px;color:#1b4277}
+#logCalV .calHd{display:grid;grid-template-columns:1fr auto 1fr}#logCalV .calHd>.calNav:last-child{justify-self:end}.calMid{display:inline-flex;align-items:center;gap:6px;justify-self:center}.calMid .calMode{white-space:nowrap}.calHd .calMode{padding:4px 8px;font-size:12px;font-weight:700;color:#1b4277}.fitJ{font-size:12px!important;font-weight:800;letter-spacing:.3px;color:#1b4277}
 .logList{margin:10px 0 4px;display:flex;flex-direction:column;gap:6px}
 .logList .li{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:5px;background:#fff;cursor:pointer;font-size:13px}
 .logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .logList .li.cur{border:2px solid #1b4277;padding:7px 9px}.logList .li.draft{border:1.5px dashed #94a3b8;background:rgba(255,255,255,.5);color:#6b7280;padding:7.5px 9.5px}.logList .li.draft.cur{border:2px dashed #1b4277;padding:7px 9px}.logList .li.draft.empty{min-height:48px;box-sizing:border-box}.logList .li.edited{border-style:dashed}.logList .li .edT{font-weight:400;font-size:12px;color:#b45309}#logMemo:focus{outline:none;border:2px solid #1b4277;padding:7px;padding-bottom:47px}
 .logList .li .del{padding:4px 9px;font-size:12px;font-weight:700;color:#fff;background:#E31B3F;border-color:#E31B3F}.logList .li .dlog{padding:4px 9px;font-size:12px;font-weight:700;color:#fff;background:#1b4277;border-color:#1b4277;margin-right:-4px;white-space:nowrap}.logList .none{color:var(--mute);font-size:13px}
-.logForm{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px}
+.logForm{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:10px;font-size:13px}
 .logForm input[type=text]{flex:1;min-width:140px;padding:5px 8px}.logForm .pri{background:#1b4277;color:#fff;border-color:#1b4277}
 .logForm .pri{justify-self:start}.logForm button{white-space:nowrap}.logForm .logMsg{grid-column:1/-1}
 .logMsg{font-size:12px;color:#0f9d7a}
@@ -195,16 +194,16 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 /* 질소 + 통계 */
 .split{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
 /* 질소 막대 카드 접기: 접으면 수면 기준 가장 긴 막대 하나(100% 넘는 부분 주황) + 가장 위험한 경고 하나 */
-.barsHd{display:flex;align-items:center;gap:8px;margin-bottom:6px}.barsHd .bmode{margin:0}.foldB{margin-left:auto;width:28px;height:26px;min-width:0;padding:0;font-size:12px;color:#6b7280;flex-shrink:0}
+.barsHd{display:flex;align-items:center;gap:8px;margin-bottom:6px}.barsHd .bmode{margin:0}.foldB{margin-left:auto;width:22px;height:22px;min-width:0;padding:0;border:0!important;background:none!important;box-shadow:none!important;font-size:13px;color:var(--mute);flex-shrink:0;transition:transform .3s cubic-bezier(.2,.8,.2,1)}#barsCard:not(.fold) .foldB{transform:rotate(180deg)}/* 설정·로그북 머리의 ▾와 같은 모양 */
 .barsMini{display:none;flex:1;min-width:0;align-items:center;gap:8px}#barMini{flex:2;min-width:0;height:26px;display:block}.wmini{flex:1;min-width:0;background:#E31B3F;color:#fff;border-radius:4px;padding:4px 7px;font-size:12px;font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wmini.ok{background:#e5e7eb;color:#6b7280;font-weight:600}.wmini.deco{background:#0f9d7a}
 #barsCard.fold .bmode,#barsCard.fold .split{display:none}#barsCard.fold .barsMini{display:flex}#barsCard.fold .barsHd{margin-bottom:0}
 .side{display:flex;flex-direction:column;gap:6px;min-width:0}
-.st{border:1px solid #d9dce1;border-radius:5px;padding:6px 9px;background:rgba(255,255,255,.6)}
-.st .k{display:block;font-size:11px;color:var(--mute);white-space:nowrap}
-.st .v{display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px}
+/* 수치 칸: 이름을 숫자 앞 위쪽에 작게 붙여 한 줄로(칸 높이 줄임) */.st{border:1px solid #d9dce1;border-radius:5px;padding:4px 8px;background:rgba(255,255,255,.6);display:flex;align-items:flex-start;gap:5px;min-width:0}
+.st .k{display:block;font-size:10px;line-height:1.2;color:var(--mute);white-space:nowrap;padding-top:1px;flex-shrink:0}
+.st .v{display:block;font-size:17px;line-height:1.15;font-weight:600;font-variant-numeric:tabular-nums;min-width:0}
 .st .v small{font-size:11px;font-weight:400;color:var(--mute)}
 .footMore{margin-top:4px}.footMore summary{cursor:pointer;color:var(--mute);font-weight:600;list-style:none}.footMore summary::-webkit-details-marker{display:none}.footMore summary::after{content:' ▾'}.footMore[open] summary::after{content:' ▴'}
-.foot{font-size:11px;color:var(--mute);line-height:1.6;margin:6px 2px 30px}
+.foot{font-size:10.5px;color:var(--mute);line-height:1.6;margin:6px 2px 30px}
 .hide{display:none!important}
 /* 휠 피커 */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:10}
@@ -218,9 +217,22 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .wheel .pad{scroll-snap-align:none}
 .wheels span{position:relative;z-index:1;color:var(--mute);font-size:13px}
 .sheet .btns{display:flex;gap:8px}.sheet .btns button{flex:1}
-@media (max-width:560px){.st .v{font-size:14px}.st{padding:5px 7px}.st .v small{display:block}.summary{font-size:11px;padding:6px 7px}.split{gap:8px}.legend{font-size:11px;gap:3px 9px}}
+@media (max-width:560px){.st .v{font-size:14px}.st{padding:3px 6px}.st .v small{display:inline}.summary{font-size:11px;padding:6px 7px}.split{gap:8px}.legend{font-size:11px;gap:3px 9px}}
 
 @supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip):not(.ico):not(.setHead){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
+/* ===== 버튼 크기 두 가지로 통일(11/04) =====
+   작은 버튼 26px: 튜토리얼·KR/EN/JP, 설정 안 선택칸, 달력·날짜 머리 버튼(이전/다음 로그·◀▶·FIT·달력), 로그 줄 데이터 로그·삭제, 사진 보기 삭제·닫기·포토 로그,
+   그리기~지도·−/+, 플레이·0.5/1/2×·스냅샷/저장/열기, 수면 기준/쉐어워터식
+   큰 버튼 32px: 현재 로그 저장, 다이빙 탭·+ 다이빙 추가 */
+.tutBtn,.lang button,#setBody select,#setBody input,.calHd button,.edHd button,.logList .li .dlog,.logList .li .del,#phView .pvB button,.tools button,.play #playBtn,.play .seg button,.play .ico,.bmode button{height:26px!important;min-height:0!important;box-sizing:border-box!important;padding-top:0!important;padding-bottom:0!important;display:inline-flex!important;align-items:center;justify-content:center;font-size:12px;line-height:1}
+#setBody select,#setBody input{display:inline-block!important}
+.calHd .jump,.edHd .jump{width:30px!important}.calHd .jump svg,.edHd .jump svg{width:13px!important;height:13px!important}
+.play .ico{width:30px!important}.play .ico svg{width:17px!important;height:17px!important}.play #playBtn{width:48px!important}.play #playBtn svg{max-height:14px}
+#logSave,.tabs .tab,.tabs .add{height:32px!important;box-sizing:border-box!important;padding-top:0!important;padding-bottom:0!important;display:inline-flex!important;align-items:center;justify-content:center}
+.tabs .tab:has(.x){padding-right:6px!important}.tabs .x{padding:0 0 0 2px!important}
+/* 색: FIT = 주조색 빨강, 스냅샷·저장·열기 = 남색 */
+.fitJ{background:#E31B3F!important;border-color:#E31B3F!important;color:#fff!important}
+.play .ico{background:#1b4277!important;border-color:#1b4277!important}
 </style>
 <style>
 html.spl body>*:not(#splash){visibility:hidden}
@@ -250,12 +262,11 @@ html.spl body>*:not(#splash){visibility:hidden}
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" onclick="startTutorial()" data-i18n="tutBtn">튜토리얼</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
 <div id="mainGrid"><div class="colL">
 <div class="ruleWrap" id="ruleWrap"><div><div class="rule" id="ruleBox">
-  <span class="ruleBtns"><button id="ruleFold" aria-label="fold">▲</button><button id="ruleSide" aria-label="hide to side">⇥</button></span>
-  <div class="ruleMini" id="ruleMini"></div>
+  <button id="ruleSide" class="jump" aria-label="hide to side"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M1 1L8.4 6L1 11z" fill="currentColor"/><rect x="9.2" y="1" width="1.8" height="10" fill="currentColor"/></svg></button>
   <div data-i18n="rule1">1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
   <div data-i18n="rule2">2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small></div>
 </div></div></div>
-<button id="ruleTab" class="hide" aria-label="show rules"><span></span></button>
+<button id="ruleTab" class="hide" aria-label="show rules"><span>DTMD</span></button>
 
 <div class="card thin" id="setCard">
   <button class="setHead" id="setHead"><b data-i18n="settings">⚙ 설정</b><span class="sum" id="setSum"></span><span class="arr">▾</span></button>
@@ -305,7 +316,7 @@ html.spl body>*:not(#splash){visibility:hidden}
       <div class="yearPick hide" id="yearPick"><div class="yp"><div class="lsel"></div><div class="lw" id="lwY" tabindex="0"></div></div><button id="yearOk">OK</button></div>
       <div class="cal" id="cal"></div>
       <div class="logHint" id="logHint"></div>
-      <input type="file" id="fitIn" accept=".fit" hidden>
+      <input type="file" id="fitIn" accept=".fit" multiple hidden>
     </div>
     <div id="logEdV" class="hide">
       <div class="edHd"><span class="calNav"><button id="logBack">◀ <span id="logBackT">달력</span></button><button id="edPrev" class="jump" aria-label="previous log date"><svg viewBox="0 0 12 12" width="12" height="12"><rect x="1" y="1" width="1.8" height="10" fill="currentColor"/><path d="M11 1L3.6 6L11 11z" fill="currentColor"/></svg></button><button id="edNext" class="jump" aria-label="next log date"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M1 1L8.4 6L1 11z" fill="currentColor"/><rect x="9.2" y="1" width="1.8" height="10" fill="currentColor"/></svg></button><button id="fitBtn2" class="fitJ">FIT</button></span><b id="edTitle"></b></div>
@@ -1085,18 +1096,31 @@ document.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.
 document.addEventListener('keyup',e=>{if(e.key==='PrintScreen'){const b=$('snapBtn');if(b)b.click();}});
 cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));if(h>0){pushUndo();dive().pts.splice(h,1);recompute();}});
 
-// ===== 빨간 1·2 문구 상태: open / fold / side (기기에 기억) =====
-let RULE='open';try{RULE=localStorage.getItem('scuba_rule')||'open';}catch(e){}
-function syncRule(){const b=$('ruleBox'),w=$('ruleWrap'),tb=$('ruleTab');if(!b)return;b.classList.toggle('fold',RULE==='fold');w.classList.toggle('side',RULE==='side');tb.classList.toggle('hide',RULE!=='side');
-  $('ruleFold').textContent=RULE==='fold'?'▼':'▲';$('ruleMini').textContent=LANG==='en'?'⚠ Rules 1 · 2 (ceiling)':LANG==='ja'?'⚠ ルール 1・2(天井)':'⚠ 원칙 1 · 2 (핑크색 천장)';tb.querySelector('span').textContent=LANG==='en'?'RULES':LANG==='ja'?'ルール':'원칙';}
+// ===== 빨간 1·2 문구 상태: open / side (기기에 기억) =====
+let RULE='open';try{RULE=localStorage.getItem('scuba_rule')==='side'?'side':'open';}catch(e){}
+function syncRule(){const w=$('ruleWrap'),tb=$('ruleTab');if(!w)return;w.classList.toggle('side',RULE==='side');tb.classList.toggle('hide',RULE!=='side');}
 const setRule=v=>{RULE=v;try{localStorage.setItem('scuba_rule',v);}catch(e){}syncRule();if(typeof relayout==='function')setTimeout(relayout,0);};
-$('ruleFold').onclick=e=>{e.stopPropagation();setRule(RULE==='fold'?'open':'fold');};$('ruleSide').onclick=e=>{e.stopPropagation();setRule('side');};$('ruleTab').onclick=()=>setRule('open');
-syncRule();window.addEventListener('scuba:lang',syncRule);
+$('ruleSide').onclick=e=>{e.stopPropagation();setRule('side');};$('ruleTab').onclick=()=>setRule('open');syncRule();
+// ===== 경고: 재생 중이면 그 시각까지 생긴 것만(라이브), 아니면 다이빙 전체. 순서 = 공기 고갈 > 공기 부족 > MOD > CNS > 천장 위반 > DECO > 급상승 > 시간 초과
+function warnList(r,t){const live=t!=null;if(!live)t=r.N;t=Math.max(0,Math.min(r.N,Math.round(t)));const k5=Math.floor(t/5),out=[];
+  const ge=r.gas[t];if(ge<=0)out.push(['w',tr('wGas0')]);else if(ge<50)out.push(['w',tr('wGas',pu(ge)+puN(),pu(50))]);
+  const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;let mx=0;for(let i=0;i<=t;i+=5)mx=Math.max(mx,r.depth[i]);mx=Math.max(mx,r.depth[t]);if(mx>mod+0.1)out.push(['w',tr('wMod',mod.toFixed(1))]);
+  if(r.c.fO2>0.215&&r.cns){const cv=r.cns[t];if(cv>=80)out.push(['w',tr('wCns',Math.round(cv))]);else if(cv>=60)out.push(['w',tr('wCnsN',Math.round(cv))]);}
+  let vc=0,fc=0;for(let k=0;k<=k5&&k<r.viol.length;k++){if(r.viol[k])vc++;if(r.fast[k])fc++;}
+  if(vc)out.push(['w',tr('wCeil',Math.round(vc*5/60*10)/10)]);
+  const rp=r.plan||(r.alt&&r.alt.plan);if(live?(r.ceil5[k5]>0):(rp&&rp.deco))out.push(['deco','DECO']);
+  if(fc)out.push(['w',tr('wFast')]);
+  if(t>TMAX)out.push(['w',tr('wOver',TMAX/60)]);
+  return out;}
+function renderWarn(s){const r=RES[S.cur],dv=dive();const wb=$('warnBox'),wm=$('warnMini');if(!r||!dv||dv.pts.length<2){wb.classList.add('hide');if(wm){wm.className='wmini ok';wm.textContent='-';}return;}
+  const live=S.playMode&&P.t>0,L1=warnList(r,live?(s!=null?s:P.t):null),w=L1.filter(x=>x[0]==='w').map(x=>x[1]);
+  wb.innerHTML=w.length?'⚠ '+w.join('<br>⚠ '):'';wb.classList.toggle('hide',!w.length);
+  if(wm){const top=L1[0];wm.className='wmini'+(top?(top[0]==='deco'?' deco':''):' ok');wm.textContent=top?(top[0]==='w'?'⚠ ':'')+top[1]:(LANG==='en'?'No warnings':LANG==='ja'?'警告なし':'경고 없음');wm.title=wm.textContent;}}
 // ===== 요약 =====
 function renderSummary(){
   const r=RES[S.cur],dv=dive();const el=$('summary');
   el.classList.remove('hide');$('warnBox').classList.add('hide');
-  if(dv.pts.length<2){el.innerHTML='<span style="color:var(--mute)">'+tr('empty')+'</span>';const wm=$('warnMini');if(wm){wm.className='wmini ok';wm.textContent='-';}return;}
+  if(dv.pts.length<2){el.innerHTML='<span style="color:var(--mute)">'+tr('empty')+'</span>';renderWarn(null);return;}
   const row=(k,v)=>`<div class="r"><span>${k}</span><b>${v}</b></div>`;
   let h='';
   const rp=r.plan||(r.alt&&r.alt.plan);
@@ -1107,24 +1131,7 @@ function renderSummary(){
     const sf=rp.stops.find(s=>s.safety);
     h+=`<div>${rp.deco?'<b class="tip" data-tip="deco" style="color:#0f9d7a">'+tr('deco')+'</b><br>'+st.join(' → '):'<span class="tip" data-tip="nodeco">'+tr('nodeco')+'</span>'+(sf?'<br><span class="tip" data-tip="safety">'+tr('safety5')+'</span>':'')}<br><span class="tip" data-tip="tts" style="color:var(--mute)">${tr('toSurf',fmt(rp.t))}</span></div>`;
   }
-  const w=[];
-  const vc=r.viol.filter(Boolean).length,fc=r.fast.filter(Boolean).length;
-  if(vc)w.push(tr('wCeil',Math.round(vc*5/60*10)/10));
-  if(fc)w.push(tr('wFast'));
-  const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;if(r.maxD>mod+0.1)w.push(tr('wMod',mod.toFixed(1)));
-  if(r.c.fO2>0.215&&r.cns){const cv=r.cns[r.N];if(cv>=80)w.push(tr('wCns',Math.round(cv)));else if(cv>=60)w.push(tr('wCnsN',Math.round(cv)));}
-  if(r.N>TMAX)w.push(tr('wOver',TMAX/60));
-  {const ge=r.gas[r.N];if(ge<=0)w.push(tr('wGas0'));else if(ge<50)w.push(tr('wGas',pu(ge)+puN(),pu(50)));}
-  $('warnBox').innerHTML=w.length?'⚠ '+w.join('<br>⚠ '):'';$('warnBox').classList.toggle('hide',!w.length);
-  {const ge=r.gas[r.N],cvN=(r.c.fO2>0.215&&r.cns)?r.cns[r.N]:0,P1=[];
-    if(ge<=0)P1.push(['w',tr('wGas0')]);else if(ge<50)P1.push(['w',tr('wGas',pu(ge)+puN(),pu(50))]);
-    if(r.maxD>mod+0.1)P1.push(['w',tr('wMod',mod.toFixed(1))]);
-    if(cvN>=80)P1.push(['w',tr('wCns',Math.round(cvN))]);else if(cvN>=60)P1.push(['w',tr('wCnsN',Math.round(cvN))]);
-    if(vc)P1.push(['w',tr('wCeil',Math.round(vc*5/60*10)/10)]);
-    if(rp&&rp.deco)P1.push(['deco','DECO']);
-    if(fc)P1.push(['w',tr('wFast')]);
-    if(r.N>TMAX)P1.push(['w',tr('wOver',TMAX/60)]);
-    const wm=$('warnMini');if(wm){const top=P1[0];wm.className='wmini'+(top?(top[0]==='deco'?' deco':''):' ok');wm.textContent=top?(top[0]==='w'?'⚠ ':'')+top[1]:(LANG==='en'?'No warnings':LANG==='ja'?'警告なし':'경고 없음');wm.title=wm.textContent;}}
+  renderWarn(null);
   el.innerHTML=h;el.classList.toggle('hide',!h);
 }
 
@@ -1149,9 +1156,10 @@ function updateStats(s){
   const po2=c.fO2*pamb(d);$('sPO2').textContent=po2.toFixed(2);$('sPO2').style.color=po2>1.4?'#E31B3F':'';
   {const nx=c.fO2>0.215;$('stCNS').classList.toggle('hide',!nx);if(nx&&r.cns){const v=(S.playMode&&P.t>0)?r.cns[s]:r.cns[r.N];$('sCNS').textContent=(v<10?v.toFixed(1):Math.round(v))+'%';$('sCNS').style.color=v>=80?'#E31B3F':v>=60?'#ea580c':'';}}
   drawBars(T,d,c,anc);
+  renderWarn(s);
 }
 let BFOLD=false;try{BFOLD=localStorage.getItem('scuba_barsFold')==='1';}catch(e){}
-function syncFold(){$('barsCard').classList.toggle('fold',BFOLD);$('barsFold').textContent=BFOLD?'▼':'▲';}
+function syncFold(){$('barsCard').classList.toggle('fold',BFOLD);$('barsFold').textContent='▾';}
 $('barsFold').onclick=()=>{BFOLD=!BFOLD;try{localStorage.setItem('scuba_barsFold',BFOLD?'1':'0');}catch(e){}syncFold();if(typeof relayout==='function')relayout();requestAnimationFrame(()=>{try{updateStats(P.tick<0?0:P.tick);}catch(e){}window.dispatchEvent(new Event('resize'));});};syncFold();
 // 접힌 상태: 수면 기준(GF High) 비율이 가장 큰 칸 하나. 0~130% 눈금, 100% 점선, 100% 넘는 부분 주황
 function drawMini(T,d,c){const bc=$('barMini');if(!bc||!BFOLD)return;const dpr=window.devicePixelRatio||1,w=bc.clientWidth,h=bc.clientHeight;if(!w)return;if(bc.width!==Math.round(w*dpr)||bc.height!==Math.round(h*dpr)){bc.width=Math.round(w*dpr);bc.height=Math.round(h*dpr);}
@@ -1933,10 +1941,10 @@ function wkSetMonth(){const th=new Date(WK0);th.setDate(th.getDate()+4);vy=th.ge
 function wkDefault(){const n=new Date();WK0=(n.getFullYear()===vy&&n.getMonth()+1===vm)?wkOf(vy,vm,n.getDate()):wkOf(vy,vm,new Date(vy,vm,0).getDate());}
 function wkFits(){if(!WK0)return false;for(let i=0;i<7;i++){const x=new Date(WK0);x.setDate(x.getDate()+i);if(x.getFullYear()===vy&&x.getMonth()+1===vm)return true;}return false;}
 function renderCal(){const a=load(),t=L();if(CALW&&!wkFits()){if(CJ&&CJ.startsWith(vy+'-'+pad(vm)+'-')){const [cy,cm,cd]=CJ.split('-').map(Number);WK0=wkOf(cy,cm,cd);}else wkDefault();}
-  $('calMode').textContent=CALW?(LANG==='en'?'Month':LANG==='ja'?'月':'월'):(LANG==='en'?'Week':LANG==='ja'?'週':'주');$('calY').textContent=LANG==='en'?String(vy):LANG==='ja'?vy+'年':vy+'년';$('calMo').textContent=LANG==='en'?'.'+pad(vm):LANG==='ja'?vm+'月':vm+'월';const has=new Set(a.map(x=>x.date));
+  $('calMode').textContent=CALW?(LANG==='en'?'Month':LANG==='ja'?'月表示':'월표시'):(LANG==='en'?'Week':LANG==='ja'?'週表示':'주표시');$('calY').textContent=LANG==='en'?String(vy):LANG==='ja'?vy+'年':vy+'년';$('calMo').textContent=LANG==='en'?'.'+pad(vm):LANG==='ja'?vm+'月':vm+'월';const has=new Set(a.map(x=>x.date));
   const first=new Date(vy,vm-1,1).getDay(),days=new Date(vy,vm,0).getDate(),k0=new Date();const today=k0.getFullYear()+'-'+pad(k0.getMonth()+1)+'-'+pad(k0.getDate());
   let h=t.wd.map((w,i)=>`<div class="wd${i===0?' sun':i===6?' sat':''}">${w}</div>`).join('');for(let i=0;i<first;i++)h+='<div class="e">.</div>';
-  if(CALW){h=t.wd.map((w,i)=>`<div class="wd${i===0?' sun':i===6?' sat':''}">${w}</div>`).join('');for(let i=0;i<7;i++){const x=new Date(WK0);x.setDate(x.getDate()+i);const k=ymdOf(x),oth=x.getMonth()+1!==vm;h+=`<div class="d${i===0?' sun':i===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}${oth?' oth':''}" data-k="${k}">${x.getDate()}</div>`;}}
+  if(CALW){h='';for(let i=0;i<7;i++){const x=new Date(WK0);x.setDate(x.getDate()+i);const k=ymdOf(x),oth=x.getMonth()+1!==vm;h+=`<div class="d${i===0?' sun':i===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}${oth?' oth':''}" data-k="${k}">${x.getDate()}</div>`;}}
   else for(let d=1;d<=days;d++){const k=vy+'-'+pad(vm)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}" data-k="${k}">${d}</div>`;}
   $('cal').innerHTML=h;$('logHint').textContent='';
   $('cal').querySelectorAll('.d').forEach(el=>el.onclick=()=>{const [ky,km,kd]=el.dataset.k.split('-').map(Number);Y=ky;M=km;D=kd;CUR=null;const f=dayLogs()[0];
@@ -2242,7 +2250,12 @@ async function placeName(lat,lon){try{const ac=new AbortController(),tm=setTimeo
   const reg=a.state||a.province||a.region||a.archipelago,cty=a.country;const parts=[];[loc,reg,(cty&&!/^(대한민국|South Korea|韓国)$/.test(cty))?cty:null].forEach(v=>{if(v&&!parts.includes(v))parts.push(v);});
   return parts.length?parts.join(', '):null;}catch(e){return null;}}
 // FIT 불러오기: 같은 날 다이빙은 입수 시각 순으로 연속 다이빙(다이빙1·2…), 수면휴식 = 앞 출수~다음 입수, 1분 단위 반올림(10분 내림은 다시 불러올 때마다 시각이 밀려서 바꿈)
-$('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if(!f)return;const t=L();let dives;
+// 여러 파일: 이름(=기록 시각) 순으로 하나씩 처리, 끝나면 결과 요약
+$('fitIn').onchange=async()=>{const fs=[...$('fitIn').files].sort((a,b)=>a.name.localeCompare(b.name));$('fitIn').value='';if(!fs.length)return;
+  if(fs.length===1){await fitOne(fs[0]);return;}let ok=0,bad=0;FITQ={n:0,rep:0};for(const f of fs){const r=await fitOne(f,true);if(r)ok++;else bad++;}
+  const q=FITQ;FITQ=null;msg(LANG==='en'?`${ok} FIT files imported (${q.n} dives, ${q.rep} updated)${bad?` · ${bad} failed`:''}`:LANG==='ja'?`FIT ${ok}件 読み込み(ダイブ${q.n}・更新${q.rep})${bad?` · 失敗${bad}`:''}`:`FIT ${ok}개 불러옴(다이빙 ${q.n} · 갱신 ${q.rep})${bad?` · 실패 ${bad}`:''}`,!!bad);};
+let FITQ=null;
+async function fitOne(f,quiet){const t=L();let dives;
   let dev='';try{const o=parseFIT(await f.arrayBuffer());dev=(o.file_id[0]&&o.file_id[0][8])||(o.device_info[0]&&o.device_info[0][27])||'';dives=fitToDives(o);}catch(e){msg(t.fitErr,true);return;}
   dives.forEach(d=>{d.pts=trimSurface(d.pts);});dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);if(!dives.length){msg(t.fitNo,true);return;}
   const off=dives[0].localOff!=null?dives[0].localOff:-new Date(dives[0].startUTC*1000).getTimezoneOffset()*60;
@@ -2271,7 +2284,7 @@ $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if
   const [yy,mm,dd]=date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');
   applyLog(id,true,seq.findIndex(d=>d.fit));if(DR.date===date){const ids=new Set(load().map(v=>v.id));Object.keys(DR.m).forEach(k=>{if(k!=='new'&&!ids.has(k))delete DR.m[k];});}
   const b2=load(),x=b2.find(v=>v.id===id);if(x){x.sum=summary();store(b2);}renderSum();renderWheels();renderList();
-  flash($('fitBtn2'));};
+  flash($('fitBtn2'));if(FITQ){FITQ.n+=imp.length;FITQ.rep+=Math.min(imp.length,replaced);}return true;}
 window.addEventListener('scuba:lang',renderAll);
 window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
 // ===== 사진: 다이빙마다 최대 3장. 기기 안 IndexedDB에 줄인 사본(긴 변 1200px)과 썸네일(240px) 저장, 로그에는 id만 =====
