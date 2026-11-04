@@ -119,7 +119,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .phRow .phAdd{width:36px;height:36px;padding:0;border:1.5px dashed #9ca3af;border-radius:5px;background:rgba(255,255,255,.7);color:#6b7280;display:flex;align-items:center;justify-content:center}
 .phRow .phAdd.busy{opacity:.5;pointer-events:none}
 #tabsCard.flipOut{animation:tabOut .3s ease-in forwards;transform-origin:50% 50%}#tabsCard.flipIn{animation:tabIn .35s ease-out;transform-origin:50% 50%}@keyframes tabOut{0%{transform:perspective(600px) rotateX(0);opacity:1}100%{transform:perspective(600px) rotateX(-90deg);opacity:.2}}@keyframes tabIn{0%{transform:perspective(600px) rotateX(90deg);opacity:.2}100%{transform:perspective(600px) rotateX(0);opacity:1}}
-#mapPop{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:120;width:min(360px,calc(100vw - 20px));background:#fff;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.3);overflow:hidden}#mapPop .mpHd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 6px 6px 10px;background:#1b4277;color:#fff;font-size:13px;font-weight:700}#mapPop .mpT{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#mapPop .mpX{width:28px;height:28px;min-width:0;padding:0;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:20px;line-height:1;border-radius:5px;flex-shrink:0}#gBtns{position:absolute;z-index:5;display:flex;gap:4px}#gBtns button{min-width:0;height:22px;padding:0 8px;font-size:11px;font-weight:600;border:1px solid #c7d2e0;background:rgba(255,255,255,.85);color:#5b6b80;border-radius:4px;line-height:1}#gBtns button.on{background:#1b4277;border-color:#1b4277;color:#fff}#mapPop .mpHd{cursor:move;touch-action:none}#mapPop .mpZ{position:absolute;left:6px;top:6px;z-index:3;display:flex;flex-direction:column;gap:3px}#mapPop .mpZ button{width:28px;height:28px;min-width:0;padding:0;border:1px solid #cbd5e1;background:#fff;color:#1f2328;font-size:18px;font-weight:700;line-height:1;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.2)}#mapPop .mpRs{position:absolute;right:0;bottom:0;width:22px;height:22px;z-index:4;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 50%,rgba(27,66,119,.55) 50%,rgba(27,66,119,.55) 58%,transparent 58%,transparent 70%,rgba(27,66,119,.55) 70%,rgba(27,66,119,.55) 78%,transparent 78%)}#mapPop .mpAt{right:24px!important}#mapPop .mpB{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;background:#e5e7eb;touch-action:none;cursor:grab}#mapPop .mpB.drag{cursor:grabbing}#mapPop .mpTile{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}#mapPop .mpPin{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#E31B3F;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);z-index:2;pointer-events:none}#mapPop .mpPin.out{background:#1F6FEB}#mapPop .mpPin.in::after,#mapPop .mpPin.out::after{position:absolute;left:12px;top:-6px;font-size:10px;font-weight:700;color:#fff;background:inherit;padding:0 3px;border-radius:2px;white-space:nowrap}#mapPop .mpPin.in::after{content:'IN'}#mapPop .mpPin.out::after{content:'OUT'}#mapPop .mpSet{min-width:0;height:24px;padding:0 7px;font-size:11px;font-weight:700;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:4px;flex-shrink:0}#mapPop .mpSet.in.on{background:#E31B3F;border-color:#E31B3F}#mapPop .mpSet.out.on{background:#1F6FEB;border-color:#1F6FEB}#mapPop .mpT{flex:1}#mapPop .mpB.pick{cursor:crosshair}#mapPop.ed .mpPin{pointer-events:auto;cursor:move;touch-action:none}#mapPop.ed .mpPin::before{content:'';position:absolute;left:-12px;top:-12px;right:-12px;bottom:-12px}#mapPop .mpHint{position:absolute;left:40px;right:6px;top:6px;z-index:3;font-size:11px;font-weight:600;color:#fff;background:rgba(27,66,119,.85);padding:3px 6px;border-radius:4px;pointer-events:none}#mapPop .mpAt{position:absolute;right:3px;bottom:2px;z-index:3;font-size:10px;color:#374151;background:rgba(255,255,255,.75);padding:0 3px;border-radius:2px;text-decoration:none}
+#mapPop{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:120;width:min(360px,calc(100vw - 20px));background:#fff;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.3);overflow:hidden}#mapPop .mpHd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 6px 6px 10px;background:#1b4277;color:#fff;font-size:13px;font-weight:700}#mapPop .mpT{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#mapPop .mpX{width:28px;height:28px;min-width:0;padding:0;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:20px;line-height:1;border-radius:5px;flex-shrink:0}.gmW{margin-left:auto;display:flex;gap:4px}#gmZ{display:flex;gap:4px}.tools #gmZ button{padding:5px 0;width:26px;font-weight:700}.tools #gmBtn{background:#fff}.tools #gmBtn.on{border-color:#1b4277;color:#1b4277;font-weight:700}#mapPop .mpHd{cursor:move;touch-action:none}#mapPop .mpZ{position:absolute;left:6px;top:6px;z-index:3;display:flex;flex-direction:column;gap:3px}#mapPop .mpZ button{width:28px;height:28px;min-width:0;padding:0;border:1px solid #cbd5e1;background:#fff;color:#1f2328;font-size:18px;font-weight:700;line-height:1;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.2)}#mapPop .mpRs{position:absolute;right:0;bottom:0;width:22px;height:22px;z-index:4;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 50%,rgba(27,66,119,.55) 50%,rgba(27,66,119,.55) 58%,transparent 58%,transparent 70%,rgba(27,66,119,.55) 70%,rgba(27,66,119,.55) 78%,transparent 78%)}#mapPop .mpAt{right:24px!important}#mapPop .mpB{position:relative;width:100%;aspect-ratio:3/2;overflow:hidden;background:#e5e7eb;touch-action:none;cursor:grab}#mapPop .mpB.drag{cursor:grabbing}#mapPop .mpTile{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}#mapPop .mpPin{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#E31B3F;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);z-index:2;pointer-events:none}#mapPop .mpPin.out{background:#1F6FEB}#mapPop .mpPin.in::after,#mapPop .mpPin.out::after{position:absolute;left:12px;top:-6px;font-size:10px;font-weight:700;color:#fff;background:inherit;padding:0 3px;border-radius:2px;white-space:nowrap}#mapPop .mpPin.in::after{content:'IN'}#mapPop .mpPin.out::after{content:'OUT'}#mapPop .mpSet{min-width:0;height:24px;padding:0 7px;font-size:11px;font-weight:700;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:4px;flex-shrink:0}#mapPop .mpSet.in.on{background:#E31B3F;border-color:#E31B3F}#mapPop .mpSet.out.on{background:#1F6FEB;border-color:#1F6FEB}#mapPop .mpT{flex:1}#mapPop .mpB.pick{cursor:crosshair}#mapPop.ed .mpPin{pointer-events:auto;cursor:move;touch-action:none}#mapPop.ed .mpPin::before{content:'';position:absolute;left:-12px;top:-12px;right:-12px;bottom:-12px}#mapPop .mpHint{position:absolute;left:40px;right:6px;top:6px;z-index:3;font-size:11px;font-weight:600;color:#fff;background:rgba(27,66,119,.85);padding:3px 6px;border-radius:4px;pointer-events:none}#mapPop .mpAt{position:absolute;right:3px;bottom:2px;z-index:3;font-size:10px;color:#374151;background:rgba(255,255,255,.75);padding:0 3px;border-radius:2px;text-decoration:none}
 .logList .li .mapb{padding:4px 9px;font-size:12px;font-weight:700;color:#fff;background:#0ea5e9;border-color:#0ea5e9;margin-right:-4px;white-space:nowrap}
 #phView{position:fixed;inset:0;z-index:170;background:rgba(5,15,25,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
 #phView img{max-width:100%;max-height:calc(100% - 120px);border-radius:6px;object-fit:contain}
@@ -312,6 +312,7 @@ html.spl body>*:not(#splash){visibility:hidden}
     <span class="seg"><button id="mFree" data-i18n="draw">그리기</button><button id="mPt" data-i18n="points">점찍기</button><button id="mDel" data-i18n="erase">점지우기</button></span>
     <button id="undo" data-i18n="undo">실행취소</button>
     <button id="clear" data-i18n="clear">지우기</button>
+    <span class="gmW"><span id="gmZ" style="display:none"><button id="gmOut" aria-label="zoom out">−</button><button id="gmIn" aria-label="zoom in">+</button></span><button id="gmBtn" style="display:none"></button></span>
   </div>
   <div style="margin-top:10px"><canvas id="prof"></canvas></div>
   <div id="ptEd" class="hide"><div class="peHint" data-i18n="peHint">점을 누르면 시간·수심을 입력할 수 있어요</div>
@@ -721,40 +722,49 @@ const X=t=>G.L+t/TMAX*G.W, Y=d=>G.T+d/DMAX*G.H;
 const toT=x=>(x-G.L)/G.W*TMAX, toD=y=>(y-G.T)/G.H*DMAX;
 const fmt=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
 
-// ===== 그래프 배경 버튼 상태: mode 'off' | 'ph'(사진 GB.i번째) | 'map' =====
-const GB={mode:'off',i:0,dv:null};
 // 채도 없앤 밝기 → 2~98% 대비 → S커브 → 순 파란색 계열(짙은 #0028a0 ~ 밝은 #5aaaff)
 function gbTone(c){try{const q=c.getContext('2d'),d=q.getImageData(0,0,c.width,c.height),px=d.data,A=[0,40,160],Bc=[90,170,255];
   let lo=0,hi=1;{const hs=new Uint32Array(256);for(let k=0;k<px.length;k+=4)hs[Math.round(0.299*px[k]+0.587*px[k+1]+0.114*px[k+2])]++;const n=px.length/4;let acc=0;for(let v=0;v<256;v++){acc+=hs[v];if(acc>=n*0.02){lo=v/255;break;}}acc=0;for(let v=255;v>=0;v--){acc+=hs[v];if(acc>=n*0.02){hi=v/255;break;}}}
   for(let k=0;k<px.length;k+=4){let l=(0.299*px[k]+0.587*px[k+1]+0.114*px[k+2])/255;l=Math.min(1,Math.max(0,(l-lo)/Math.max(.05,hi-lo)));l=l*l*(3-2*l);px[k]=A[0]+(Bc[0]-A[0])*l;px[k+1]=A[1]+(Bc[1]-A[1])*l;px[k+2]=A[2]+(Bc[2]-A[2])*l;}q.putImageData(d,0,0);}catch(e){}}
-// 지도 배경: 위치 중심으로 가로 약 3km, 1024×600 캔버스에 OSM 타일을 그림(CORS 허용 타일)
-function gbMap(lat,lon){return new Promise(res=>{const W=1024,H=600,R=Math.PI/180,zf=Math.log2(156543.03*Math.cos(lat*R)/(3000/W)),z=Math.max(2,Math.min(18,Math.round(zf))),N=Math.pow(2,z)*256,n=N/256;
-  const cx0=(lon+180)/360*N,cy0=(1-Math.log(Math.tan(lat*R)+1/Math.cos(lat*R))/Math.PI)/2*N,c=document.createElement('canvas');c.width=W;c.height=H;const q=c.getContext('2d');q.fillStyle='#fff';q.fillRect(0,0,W,H);
-  const L=[];for(let ty=Math.floor((cy0-H/2)/256);ty<=Math.floor((cy0+H/2)/256);ty++)for(let tx=Math.floor((cx0-W/2)/256);tx<=Math.floor((cx0+W/2)/256);tx++)if(ty>=0&&ty<n)L.push([tx,ty]);
-  let left=L.length,ok=0;const fin=()=>{if(--left>0)return;res(ok?c:null);};const to=setTimeout(()=>{left=1;fin();},8000);
-  L.forEach(([tx,ty])=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>{try{q.drawImage(im,tx*256-cx0+W/2,ty*256-cy0+H/2);ok++;}catch(e){}fin();};im.onerror=fin;im.src='https://tile.openstreetmap.org/'+z+'/'+(((tx%n)+n)%n)+'/'+ty+'.png';});
-  if(!L.length){clearTimeout(to);res(null);}});}
-// 버튼: 그래프 오른쪽 위 끝. 사진이 있으면 [사진], 위치(GPS·지명)가 있으면 [지도]
-function gbSync(dv){if(GB.dv!==dv){GB.dv=dv;GB.mode='off';GB.i=0;}
-  const host=cv.parentNode;let bx=document.getElementById('gBtns');
-  if(!bx){host.style.position='relative';bx=document.createElement('div');bx.id='gBtns';bx.innerHTML='<button type="button" class="gbP"></button><button type="button" class="gbM"></button>';host.appendChild(bx);
-    bx.querySelector('.gbP').onclick=e=>{e.stopPropagation();const n=((GB.dv&&GB.dv.ph)||[]).length;if(GB.mode!=='ph'){GB.mode='ph';GB.i=0;}else if(GB.i+1<Math.min(3,n))GB.i++;else GB.mode='off';drawProfile();};
-    bx.querySelector('.gbM').onclick=e=>{e.stopPropagation();GB.mode=GB.mode==='map'?'off':'map';drawProfile();};
-    ['pointerdown','mousedown','touchstart'].forEach(t=>bx.addEventListener(t,e=>e.stopPropagation()));}
-  const n=((dv&&dv.ph)||[]).length,loc=!!(window.__hasLoc&&window.__hasLoc((dv&&dv.memo)||''));if(GB.mode==='ph'&&GB.i>=n)GB.mode='off';if(GB.mode==='map'&&!loc)GB.mode='off';
-  const P=bx.querySelector('.gbP'),M=bx.querySelector('.gbM'),wP=LANG==='en'?'Photo':LANG==='ja'?'写真':'사진',wM=LANG==='en'?'Map':LANG==='ja'?'地図':'지도';
-  P.style.display=n?'':'none';M.style.display=loc?'':'none';P.textContent=GB.mode==='ph'?wP+(GB.i+1):wP;M.textContent=wM;P.classList.toggle('on',GB.mode==='ph');M.classList.toggle('on',GB.mode==='map');
-  bx.style.right=(G.R||30)+4+'px';bx.style.top=(G.T||10)+4+'px';bx.style.display=(n||loc)?'':'none';}
+// ===== 그래프 지도: [지도] 버튼(도구줄 오른쪽 끝). 40~70분 × 0~40m 영역에 원래 색 지도(CARTO Voyager, 지명 없음)를 불투명하게
+// 눈금 위·그래프 아래. 지도면 끌기 = 시점 이동, 왼쪽 끝 ◀▶ 끌기 = 왼쪽으로 넓히기/좁히기(세로 고정). +/− = 확대·축소. 위치는 정규화 좌표(0~1)
+const GM={on:false,key:null,loc:null,zf:15,ux:0,uy:0,tL:2400,tiles:new Map(),pend:false,box:null,drag:null};
+const gmTile=(z,x,y)=>{const k=z+'/'+x+'/'+y;let im=GM.tiles.get(k);if(im)return im;if(GM.tiles.size>400)GM.tiles.clear();
+  im=new Image();im.onload=()=>{im.ok=1;if(!GM.pend){GM.pend=true;requestAnimationFrame(()=>{GM.pend=false;drawProfile();});}};im.onerror=()=>{im.bad=1;};
+  im.src='https://'+'abcd'[(x+y)&3]+'.basemaps.cartocdn.com/rastertiles/voyager_nolabels/'+z+'/'+x+'/'+y+((window.devicePixelRatio||1)>1?'@2x':'')+'.png';GM.tiles.set(k,im);return im;};
+const gmU=(lat,lon)=>({x:(lon+180)/360,y:(1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2});
+function gmReg(){const x1=X(Math.min(4200,TMAX)),x0=X(Math.min(GM.tL,4200-300)),y0=Y(0),y1=Y(Math.min(40,DMAX));return {x0,x1,y0,y1,w:x1-x0,h:y1-y0};}
+// 다이빙(메모)이 바뀌면 위치를 다시 찾아 가운데로
+function gmSync(dv){const memo=(dv&&dv.memo)||'',has=!!(window.__hasLoc&&window.__hasLoc(memo));const b=document.getElementById('gmBtn');
+  if(b){b.style.display=has?'':'none';b.classList.toggle('on',GM.on&&has);document.getElementById('gmZ').style.display=GM.on&&has?'':'none';}
+  if(!GM.on||!has){GM.loc=null;GM.key=null;return false;}
+  if(GM.key!==memo){GM.key=memo;GM.loc=null;window.__locOf(memo).then(l=>{if(GM.key!==memo||!l)return;GM.loc=l;const R=gmReg(),c=gmU(l.lat,l.lon);
+    GM.zf=Math.max(3,Math.min(18,Math.log2(156543.03*Math.cos(l.lat*Math.PI/180)/(1200/Math.max(60,R.w)))));const P=256*Math.pow(2,GM.zf);GM.ux=c.x+R.w/2/P;GM.uy=c.y;drawProfile();}).catch(()=>{});}
+  return !!GM.loc;}
+function gmDraw(dv){GM.box=null;if(!gmSync(dv))return;const R=gmReg(),P=256*Math.pow(2,GM.zf),z=Math.max(0,Math.min(19,Math.round(GM.zf))),n=Math.pow(2,z),T=P/n,cy=(R.y0+R.y1)/2;
+  const sx=u=>R.x1-(GM.ux-u)*P,sy=v=>cy+(v-GM.uy)*P;
+  cx.save();cx.beginPath();cx.rect(R.x0,R.y0,R.w,R.h);cx.clip();cx.fillStyle='#e9eef2';cx.fillRect(R.x0,R.y0,R.w,R.h);
+  const tx0=Math.floor((GM.ux-R.w/P)*n),tx1=Math.floor(GM.ux*n),ty0=Math.floor((GM.uy-R.h/2/P)*n),ty1=Math.floor((GM.uy+R.h/2/P)*n);
+  for(let ty=ty0;ty<=ty1;ty++){if(ty<0||ty>=n)continue;for(let tx=tx0;tx<=tx1;tx++){const im=gmTile(z,((tx%n)+n)%n,ty);if(im.ok)cx.drawImage(im,sx(tx/n),sy(ty/n),T+.5,T+.5);}}
+  // 입수 빨강·출수 파랑 점(GPS 있을 때만)
+  const L=GM.loc;[['in','#E31B3F'],['out','#1F6FEB']].forEach(([k,c])=>{const q=L[k]||(k==='out'&&L.dot&&!L.in&&!L.out?L:null);if(!q)return;const u=gmU(q.lat,q.lon);
+    cx.beginPath();cx.arc(sx(u.x),sy(u.y),4.5,0,7);cx.fillStyle=c;cx.fill();cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.stroke();});
+  cx.restore();
+  // 왼쪽 끝 손잡이 ◀▶
+  const hx=R.x0,hy=cy;cx.save();cx.strokeStyle='rgba(31,35,40,.45)';cx.lineWidth=1;cx.beginPath();cx.moveTo(hx+.5,R.y0);cx.lineTo(hx+.5,R.y1);cx.stroke();
+  cx.fillStyle='#fff';cx.beginPath();cx.roundRect?cx.roundRect(hx-9,hy-11,18,22,3):cx.rect(hx-9,hy-11,18,22);cx.fill();cx.stroke();
+  cx.fillStyle='#1f2328';cx.beginPath();cx.moveTo(hx-6,hy);cx.lineTo(hx-1.5,hy-4.5);cx.lineTo(hx-1.5,hy+4.5);cx.closePath();cx.moveTo(hx+6,hy);cx.lineTo(hx+1.5,hy-4.5);cx.lineTo(hx+1.5,hy+4.5);cx.closePath();cx.fill();cx.restore();
+  GM.box=R;}
+function gmZoom(d){const R=gmReg(),P=256*Math.pow(2,GM.zf),uc=GM.ux-R.w/2/P;GM.zf=Math.max(3,Math.min(19,GM.zf+d));GM.ux=uc+R.w/2/(256*Math.pow(2,GM.zf));drawProfile();}
 function drawProfile(){
   const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);let labPos=null,timeTag=null,skullAt=null;LABBOX=null;
-  // 그래프 배경: 오른쪽 위 [사진]/[지도] 버튼으로 고름(기본 꺼짐). 0~40m × 0~70분 영역에 파란 톤으로 아주 옅게. 스냅샷에는 안 그림
-  if(!window.SNAP){gbSync(dv);const B=window.__gbg||(window.__gbg={key:null,img:null,busy:null});
+  // 그래프 배경: 1번 사진을 0~40m × 0~70분 영역에 파란 톤으로 아주 옅게. 스냅샷에는 안 그림
+  if(!window.SNAP){const B=window.__gbg||(window.__gbg={key:null,img:null,busy:null});
     const ids=(dv&&dv.ph)||[],memo=(dv&&dv.memo)||'';let key=null;
-    if(GB.mode==='ph'&&ids[GB.i])key='p:'+ids[GB.i];else if(GB.mode==='map'&&window.__hasLoc&&window.__hasLoc(memo))key='m:'+memo;
+    if(ids[0])key='p:'+ids[0];
     if(!key){B.key=null;B.img=null;}else if(B.key!==key&&B.busy!==key){B.busy=key;
       const done=c=>{if(B.busy!==key)return;B.busy=null;if(!c)return;gbTone(c);c.naturalWidth=c.width;c.naturalHeight=c.height;B.key=key;B.img=c;drawProfile();};
       if(key[0]==='p'&&window.__photo)window.__photo.get(key.slice(2)).then(o=>{if(!o||!o.full)return done(null);const u=URL.createObjectURL(o.full),im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;c.getContext('2d').drawImage(im,0,0);setTimeout(()=>URL.revokeObjectURL(u),1000);done(c);};im.onerror=()=>done(null);im.src=u;}).catch(()=>done(null));
-      else if(key[0]==='m')window.__locOf(memo).then(l=>l?gbMap(l.lat,l.lon):null).then(done).catch(()=>done(null));
       else B.busy=null;}
     if(B.img&&B.key===key){const x0=X(0),x1=X(Math.min(4200,TMAX)),y0=Y(0),y1=Y(Math.min(40,DMAX)),bw=Math.round(x1-x0),bh=Math.round(y1-y0);
       if(!B.box||B.box.w!==bw||B.box.h!==bh||B.box.key!==key){const im=B.img,sc=Math.max(bw/im.naturalWidth,bh/im.naturalHeight),sw=bw/sc,sh=bh/sc,dp=window.devicePixelRatio||1;
@@ -765,14 +775,15 @@ function drawProfile(){
       cx.save();cx.globalAlpha=0.3;cx.drawImage(B.box.c,x0,y0,bw,bh);cx.restore();}}
   cx.font='11px sans-serif';cx.fillStyle='#6b7280';
   const SN=!!window.SNAP;
+  const YLX=SN?G.L-6:Math.ceil(cx.measureText(isFt()?Math.round(DMAX*FT/20)*20+'ft':DMAX+'m').width)+1;
   if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===100||(f===60&&!SN);
     cx.strokeStyle=f===0?'#9ca3af':f===100?'#E31B3F':(f===60&&!SN)?'#6b7280':'#d1d5db';cx.setLineDash(f===0?[]:hi?[6,4]:[3,4]);cx.lineWidth=hi?1.4:1;
     cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
-    cx.textAlign='right';cx.textBaseline='middle';cx.fillText(f+'ft',G.L-6,Y(d));}}
+    cx.textAlign='right';cx.textBaseline='middle';cx.fillText(f+'ft',YLX,Y(d));}}
   else for(let d=0;d<=DMAX;d+=5){const a20=d===20&&!SN;
     cx.strokeStyle=d===0?'#9ca3af':d===30?'#E31B3F':a20?'#6b7280':'#d1d5db';cx.setLineDash(d===0?[]:a20||d===30?[6,4]:[3,4]);cx.lineWidth=a20||d===30?1.4:1;
     cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
-    cx.textAlign='right';cx.textBaseline='middle';cx.fillText(d+'m',G.L-6,Y(d));
+    cx.textAlign='right';cx.textBaseline='middle';cx.fillText(d+'m',YLX,Y(d));
   }
   cx.setLineDash([]);
   for(let m=0;m<=TMAX/60;m+=5){
@@ -780,6 +791,7 @@ function drawProfile(){
     cx.beginPath();cx.moveTo(x+.5,G.T);cx.lineTo(x+.5,G.T+G.H);cx.stroke();cx.setLineDash([]);cx.lineWidth=1;
     if(m%10===0){const last=m===TMAX/60&&I18N[LANG].axisLast;cx.textAlign=last?'right':'center';cx.textBaseline='top';cx.fillText(last?tr('axisLast',m):tr('axisMin',m),last?x+2:x,G.T+G.H+6);}
   }
+  if(!SN)gmDraw(dv);
   cx.save();cx.beginPath();cx.rect(G.L,G.T-2,G.W,G.H+4);cx.clip();
   if(r&&S.playMode&&P.t>0){
     const tc=Math.min(P.t,r.N);cx.beginPath();cx.moveTo(X(0),Y(0));
@@ -860,7 +872,7 @@ function drawProfile(){
     let bx=clamp(timeTag.x-tw/2,G.L,G.L+G.W-tw),ty=timeTag.y<G.T+40?G.T+G.H-22:G.T+2;cx.fillStyle='#1f2328';cx.beginPath();cx.roundRect?cx.roundRect(bx,ty,tw,18,9):cx.rect(bx,ty,tw,18);cx.fill();
     cx.fillStyle='#fff';cx.textAlign='left';cx.textBaseline='middle';cx.fillText(lab,bx+5,ty+9.5);}
   if(r&&dv.pts.length>1){ // 공기 게이지(오른쪽 끝)
-    const gx=G.L+G.W+8,gw=14,gy=G.T,gh=G.H,full=S.tankP,tt=S.playMode?Math.min(Math.round(P.t),r.N):r.N,cur=Math.max(0,r.gas[tt]);
+    const gw=14,gx=window.SNAP?G.L+G.W+8:G.w-gw-1,gy=G.T,gh=G.H,full=S.tankP,tt=S.playMode?Math.min(Math.round(P.t),r.N):r.N,cur=Math.max(0,r.gas[tt]);
     const yb=b=>gy+gh-clamp(b/full,0,1)*gh;
     cx.fillStyle='rgba(255,255,255,.7)';cx.fillRect(gx,gy,gw,gh);cx.strokeStyle='#9ca3af';cx.lineWidth=1;cx.strokeRect(gx+.5,gy+.5,gw-1,gh-1);
     cx.fillStyle=cur<=50?'#f97316':'#2f6fe4';cx.fillRect(gx+1,yb(cur),gw-2,gy+gh-yb(cur)-1);
@@ -871,7 +883,7 @@ function drawProfile(){
   }
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
-        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),SN0=!!window.SNAP,l3=SN0?diveClock(S.cur):diveClock(S.cur).replace(' → ','\u2009→\u2009'),F3=SN0?null:'600 11px sans-serif';/* 앱 화면: 입수→출수 줄은 화살표 간격 좁게·글자 11px */cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';
+        const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),SN0=!!window.SNAP,l3=SN0?diveClock(S.cur):'',F3=SN0?null:'600 11px sans-serif';/* 앱 화면: 입수→출수 줄은 화살표 간격 좁게·글자 11px */cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';
         const isDeco=r&&r.ceil5.some(v=>v>0),hh=isDeco?18:0;
         const w3=l3?(()=>{if(!F3)return cx.measureText(l3).width;const f0=cx.font;cx.font=F3;const w=cx.measureText(l3).width;cx.font=f0;return w;})():0;
         const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,w3,isDeco?48:0)+12,th=36+hh+(l3?16:0),LK=1.1,TW=tw*LK,TH=th*LK;// 팝업 1.1배(앱 화면만, 데이터 로그 이미지는 그대로 1.3)
@@ -965,6 +977,14 @@ function downAt(e){
     recompute();
   }
 }
+// 그래프 지도: 지도면 끌기(시점 이동)·왼쪽 손잡이 끌기(폭). 라벨·기존 점을 누른 경우는 원래 동작. 그래프 다른 핸들러보다 먼저 받음
+cv.addEventListener('pointerdown',e=>{const R=GM.box;if(!R||P.run)return;const p=pos(e);if(p.y<R.y0||p.y>R.y1||p.x<R.x0-12||p.x>R.x1)return;
+  const hd=Math.abs(p.x-R.x0)<=12;if(!hd&&(inLab(p)||(S.mode!=='none'&&hit(p)>0)))return;
+  GM.drag={hd,x:p.x,y:p.y,ux:GM.ux,uy:GM.uy};cv.setPointerCapture(e.pointerId);e.stopImmediatePropagation();e.preventDefault();},true);
+cv.addEventListener('pointermove',e=>{const R=GM.box,p=pos(e);
+  if(GM.drag){const d=GM.drag,Pp=256*Math.pow(2,GM.zf);if(d.hd)GM.tL=clamp(toT(p.x),0,4200-300);else{GM.ux=d.ux-(p.x-d.x)/Pp;GM.uy=d.uy-(p.y-d.y)/Pp;}drawProfile();e.stopImmediatePropagation();return;}
+  if(R)cv.style.cursor=(p.y>=R.y0&&p.y<=R.y1&&Math.abs(p.x-R.x0)<=12)?'ew-resize':(p.y>=R.y0&&p.y<=R.y1&&p.x>R.x0&&p.x<=R.x1)?'grab':'';else cv.style.cursor='';},true);
+['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(GM.drag){GM.drag=null;e.stopImmediatePropagation();}},true));
 // 라벨 꾹 눌러 옮기기: 0.4초 안 움직이면 잡힘, 먼저 움직이면 원래 동작(그리기 등)
 const inLab=p=>LABBOX&&p.x>=LABBOX.bx-4&&p.x<=LABBOX.bx+LABBOX.tw+4&&p.y>=LABBOX.by-4&&p.y<=LABBOX.by+LABBOX.th+4;
 cv.addEventListener('pointerdown',e=>{const p=pos(e);
@@ -1002,6 +1022,14 @@ cv.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault();},{passiv
 document.addEventListener('touchmove',e=>{if((drawing||drag>0||seeking)&&e.cancelable)e.preventDefault();},{passive:false});
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
 cv.addEventListener('pointerleave',()=>{hover=null;if(!drawing&&drag<0&&!P.run)drawProfile();});
+// 지도 버튼과 +/−
+$('gmBtn').onclick=()=>{GM.on=!GM.on;drawProfile();};$('gmIn').onclick=()=>gmZoom(1);$('gmOut').onclick=()=>gmZoom(-1);
+function gmLabel(){$('gmBtn').textContent=LANG==='en'?'Map':LANG==='ja'?'地図':'지도';}gmLabel();
+// 단축키: Ctrl/⌘+Z = 실행취소, Ctrl/⌘+S = 저장(ZIP), PrintScreen = 스냅샷. 글 입력 중엔 Ctrl+Z는 글자 되돌리기
+document.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.ctrlKey||e.metaKey,typing=/^(INPUT|TEXTAREA|SELECT)$/.test((e.target&&e.target.tagName)||'')||(e.target&&e.target.isContentEditable);
+  if(mod&&!e.shiftKey&&!e.altKey&&k==='z'&&!typing){const b=$('undo');if(b&&!b.disabled){e.preventDefault();b.click();}}
+  else if(mod&&!e.altKey&&k==='s'){const b=$('logBtn');if(b){e.preventDefault();b.click();}}});
+document.addEventListener('keyup',e=>{if(e.key==='PrintScreen'){const b=$('snapBtn');if(b)b.click();}});
 cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));if(h>0){pushUndo();dive().pts.splice(h,1);recompute();}});
 
 // ===== 요약 =====
@@ -1265,7 +1293,7 @@ window.addEventListener('resize',()=>{layout();drawProfile();updateStats(P.tick<
 document.addEventListener('transitionend',e=>{const id=e.target&&e.target.id;if(id==='logWrap'||id==='ruleWrap')window.dispatchEvent(new Event('resize'));});
 
 // 배경 영상을 수심 그래프 뒤(세로 가운데)에 배치
-function applyLang(){
+function applyLang(){if(typeof gmLabel==='function')gmLabel();
   document.documentElement.lang=LANG==='ja'?'ja':LANG;document.title=tr('title');
   document.querySelectorAll('[data-i18n]').forEach(el=>{el.innerHTML=tr(el.dataset.i18n);});if(window.fitDTMD)fitDTMD();try{window.dispatchEvent(new Event('scuba:lang'));}catch(e){}
   document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
@@ -1413,7 +1441,7 @@ const STEPS=[
 {p:'1부 · 무감압 다이빙',ti:'⑤ 잘못 찍은 점 지우기',tx:'실수로 엉뚱한 곳에 점을 찍었어요. <b>점지우기</b>를 고르고, 그 점을 누르면 지워져요. 실행취소로 되돌릴 수도 있어요.',
  set:()=>setState(A4,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapPoint(900,10,t);await sleep(500);await tapEl($('mDel'),t);await delPoint(900,10,t);await tapEl($('mDel'),t);}},
 {p:'1부 · 무감압 다이빙',ti:'⑥ 이상적인 무감압 다이빙',tx:'완성! <b>핑크색 천장이 없고</b>, 경고도 없어요. 라벨은 최대 수심과 총 시간, 그래프 오른쪽 끝 막대는 <b>남은 공기</b>예요. 출수 때 50바 이상 남기는 게 기본이에요.',
- set:()=>{setState(A4,'none');seek(0);},go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('playBtn'),t);await waitPlay(t);const r=cv.getBoundingClientRect();await moveTo(r.left+FS*X(1700),r.top+FS*Y(14),600,t);await sleep(800);await moveTo(r.left+FS*(G.L+G.W+15),r.top+FS*(G.T+G.H*0.75),700,t);await sleep(1200);}},
+ set:()=>{setState(A4,'none');seek(0);},go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('playBtn'),t);await waitPlay(t);const r=cv.getBoundingClientRect();await moveTo(r.left+FS*X(1700),r.top+FS*Y(14),600,t);await sleep(800);await moveTo(r.left+FS*(G.w-8),r.top+FS*(G.T+G.H*0.75),700,t);await sleep(1200);}},
 {p:'2부 · 천장 위반',ti:'⑦ 위험한 다이빙 그리기',tx:'이번엔 <b>30미터에서 28분</b> 머문 뒤 2분 만에 바로 올라와 볼게요. 그래프에 <b style="color:#f472b6">핑크색 천장</b>이 생기고, 경로가 그걸 뚫고 올라가요.',
  set:()=>setState(A0,'pt'),go:async t=>{await scrollTo(GRAPH(),t);for(const [a,b] of [[180,30],[1680,30],[1800,0]])await tapPoint(a,b,t);await sleep(500);}},
 {p:'2부 · 천장 위반',ti:'⑧ 왜 위험한가',tx:'깊은 수심에 오래 머물면 질소가 많이 쌓여 <b>천장</b>이 생겨요. 천장을 뚫고 올라오면 몸속 질소가 기포가 되어 <b>감압병</b> 위험이 커져요. 급상승에다가 공기도 50바 밑으로 떨어졌어요.',
@@ -1421,7 +1449,7 @@ const STEPS=[
 {p:'2부 · 천장 위반',ti:'⑨ 질소 막대로 보기',tx:'질소 막대를 수면 기준으로 볼게요. 28분에 여러 막대가 <b>100퍼센트를 넘었어요</b>. 100퍼센트를 넘으면 바로 출수할 수 없어요. 감압이 필요해요. 이 상태로 바로 올라오면 몸 안에 넘친 질소가 기포가 돼요.',
  set:()=>{setState(B1,'none');seek(0);},go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('playBtn'),t);await scrollTo(BARS(),t,'start');while(P.run&&P.t<1680){chk(t);await sleep(30);}chk(t);stopPlay();seek(1680);await point(BARS(),t,1800);await point(document.querySelector('[data-tip=gf]'),t,1300);}},
 {p:'2부 · 천장 위반',ti:'⑩ 감압하면 되지 않나? 싱글탱크 한계',tx:'추천 경로가 <b>감압 정지</b>를 넣어줘요. 하지만 오른쪽 공기 막대를 보면 <b>다이빙 도중 공기가 바닥나요</b>. 12리터 탱크 하나로는 30미터 28분에 감압까지 버틸 수 없어요. 레저용 싱글탱크 다이빙은 <b>무감압 한계 안</b>에서 끝내야 해요.',
- set:()=>setState(B1,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mDel'),t);await delPoint(1800,0,t);const r=cv.getBoundingClientRect();await moveTo(r.left+FS*X(2044),r.top+FS*Y(6),700,t);await sleep(900);await moveTo(r.left+FS*(G.L+G.W+15),r.top+FS*(G.T+G.H*0.85),700,t);await sleep(1300);}},
+ set:()=>setState(B1,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mDel'),t);await delPoint(1800,0,t);const r=cv.getBoundingClientRect();await moveTo(r.left+FS*X(2044),r.top+FS*Y(6),700,t);await sleep(900);await moveTo(r.left+FS*(G.w-8),r.top+FS*(G.T+G.H*0.85),700,t);await sleep(1300);}},
 {p:'2부 · 천장 위반',ti:'⑪ 플랜 고치기',tx:'첫째, 바닥 시간을 줄일 것. 둘째, 또는 더 얕게 다이빙. 셋째, 천천히 상승하고 5미터 안전정지. 바닥을 떠나는 점을 13분으로 당기고 상승 점을 찍으니 천장이 사라지고 공기도 넉넉해요.',
  set:()=>setState(B2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1680,30],[780,30],t);for(const [a,b] of [[960,12],[1620,12],[1740,5],[1920,5],[1980,0]])await tapPoint(a,b,t);await sleep(400);}},
 {p:'정리',ti:'⑫ 기억할 것',tx:'하나, 핑크색 천장이 안 나오게. 무감압. 둘, 나오면 절대 침범하지 않기. 셋, 상승은 분당 9에서 10미터 이하, 5미터 3분 안전정지. 넷, 출수 때 공기 50바 이상.',
@@ -1711,7 +1739,13 @@ function fitToDives(o){const E=FIT_EPOCH,ses=o.session.length?o.session:[{2:o.re
     const raw=[{t:0,d:0}];rs.forEach(r=>{const t=r[253]-st;if(t>0)raw.push({t,d:r[92]/1000});});
     const keep=rdpV(raw,0.3).map(q=>({t:Math.round(q.t),d:Math.round(Math.max(0,q.d)*10)/10}));
     const temps=rs.map(r=>r[13]).filter(v=>v!=null),gps=rs.filter(r=>r[0]!=null&&r[1]!=null);
-    const g=gps.length?gps[gps.length-1]:null,g0=gps.length>1?gps[0]:null;const sc=180/2147483648;
+    const sc=180/2147483648;
+    // GPS는 물 밖에서만 잡힘. 입수 = 첫 잠수(0.5m 넘음) 전 마지막 위치, 출수 = 마지막 잠수 후 첫 위치. 옆 위치와 초속 15m 넘게 튀는 값(첫 수신 오차)은 버림
+    const uw=rs.filter(r=>r[92]/1000>0.5),tA=uw.length?uw[0][253]:st,tB=uw.length?uw[uw.length-1][253]:en;
+    const dm=(a,b)=>Math.hypot((a[0]-b[0])*sc*111320,(a[1]-b[1])*sc*111320*Math.cos(a[0]*sc*Math.PI/180)),jump=(a,b)=>b&&dm(a,b)>15*Math.max(1,Math.abs(b[253]-a[253]));
+    const pre=gps.filter(r=>r[253]<tA),post=gps.filter(r=>r[253]>tB);
+    let g0=null;for(let i=pre.length-1;i>=0;i--){if(!jump(pre[i],pre[i-1])||!pre[i-1]){g0=pre[i];break;}}
+    let g=null;for(let i=0;i<post.length;i++){if(!jump(post[i],post[i+1])||!post[i+1]){g=post[i];break;}}
     return {startUTC:st+E,localOff:off,dur:en-st,maxD:Math.max(0,...rs.map(r=>r[92]/1000)),pts:keep,nRaw:rs.length,
       tMin:temps.length?Math.min(...temps):null,tMax:temps.length?Math.max(...temps):null,
       gps:g?{lat:g[0]*sc,lon:g[1]*sc}:null,gps0:g0?{lat:g0[0]*sc,lon:g0[1]*sc}:null,sport:s[5],sub:s[6]};});}
