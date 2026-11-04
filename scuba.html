@@ -160,7 +160,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .tabs .x:hover{opacity:1}
 .tabs .chip{border-radius:999px;padding:4px 7px;font-size:11px;color:var(--mute);background:#f3f4f6;border-color:#e5e7eb}
 .tabs .add{border-style:dashed;color:var(--mute)}
-.tabs .tab,.tabs .add{height:34px;box-sizing:border-box;padding-top:0;padding-bottom:0;display:inline-flex;align-items:center}#tabsCard{padding-top:6px;padding-bottom:6px}
+/* 다이빙 탭·추가 버튼 폭 = '현재 로그 저장' 버튼 폭(105px), 플래너 모드의 선택 탭은 회색 */.tabs .tab,.tabs .add{min-width:105px;justify-content:center}#tabsCard:not(.lbMode) .tabs .tab.on{background:#6b7280;border-color:#6b7280;color:#fff}.tabs .tab,.tabs .add{height:34px;box-sizing:border-box;padding-top:0;padding-bottom:0;display:inline-flex;align-items:center}#tabsCard{padding-top:6px;padding-bottom:6px}
 /* 작은 버튼 높이 26px 통일: 튜토리얼 · KR/EN/JP · 수면 기준/쉐어워터식 */.tutBtn{height:26px!important}.lang button,.bmode button{height:26px;box-sizing:border-box;padding-top:0;padding-bottom:0;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:contain}
 html,body{overflow-x:clip}.wrap{overflow-x:clip}
