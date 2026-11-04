@@ -1914,7 +1914,7 @@ function renderList(){const t=L(),a=dayLogs(),items=[];
     }
   // 같은 날 보관해 둔 다른 작업도 표시: 덧붙인/새 다이빙은 점선 줄, 고친 저장 다이빙은 '수정 중' 표시
   if(view==='ed'&&DR.date===ymd()){const ck=CUR||'new',pend=LANG==='en'?'not saved':LANG==='ja'?'未保存':'저장 전',edt=LANG==='en'?'edited · not saved':LANG==='ja'?'編集中・未保存':'수정 중 · 저장 전',dn=LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ';
-    const src=Object.keys(DR.m).filter(k=>k!==ck).map(k=>[k,DR.m[k].s,false]);if(CUR)src.push([CUR,snapS(),true]);
+    const ids0=new Set(load().map(v=>v.id));const src=Object.keys(DR.m).filter(k=>k!==ck&&(k==='new'||ids0.has(k))).map(k=>[k,DR.m[k].s,false]);if(CUR)src.push([CUR,snapS(),true]);
     src.forEach(([k,P,self])=>{const sv=k==='new'?null:load().find(v=>v.id===k),n0=sv?(sv.state.dives||[]).length:0;let st=P.start!=null?P.start:P.T;
       P.dives.forEach((d,i)=>{const dur=d.pts.length>1?d.pts[d.pts.length-1].t/60:0;if(i>0)st+=(+d.si||0);if(self&&i>=n0)return;
         if(i<n0){const sd=sv.state.dives[i];if(JSON.stringify(sd.pts)!==JSON.stringify(d.pts)||(diveMemo(sv,i)||'').trim()!==(d.memo||'').trim()||(sd.ph||[]).join()!==(d.ph||[]).join()){const it=items.find(v=>v.h.includes(`data-id="${k}" data-i="${i}"`));if(it&&!it.h.includes('edited'))it.h=it.h.replace('<div class="li','<div class="li edited').replace('</b>','</b><span class="edT"> · '+edt+'</span>');}}
@@ -2178,7 +2178,7 @@ async function placeName(lat,lon){try{const ac=new AbortController(),tm=setTimeo
   if(!r.ok)return null;const j=await r.json(),a=j.address||{};const loc=a.village||a.suburb||a.hamlet||a.town||a.city||a.municipality||a.county||a.island||j.name;
   const reg=a.state||a.province||a.region||a.archipelago,cty=a.country;const parts=[];[loc,reg,(cty&&!/^(대한민국|South Korea|韓国)$/.test(cty))?cty:null].forEach(v=>{if(v&&!parts.includes(v))parts.push(v);});
   return parts.length?parts.join(', '):null;}catch(e){return null;}}
-// FIT 불러오기: 같은 날 다이빙은 입수 시각 순으로 연속 다이빙(다이빙1·2…), 수면휴식 = 앞 출수~다음 입수, 10분 단위 내림
+// FIT 불러오기: 같은 날 다이빙은 입수 시각 순으로 연속 다이빙(다이빙1·2…), 수면휴식 = 앞 출수~다음 입수, 1분 단위 반올림(10분 내림은 다시 불러올 때마다 시각이 밀려서 바꿈)
 $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if(!f)return;const t=L();let dives;
   let dev='';try{const o=parseFIT(await f.arrayBuffer());dev=(o.file_id[0]&&o.file_id[0][8])||(o.device_info[0]&&o.device_info[0][27])||'';dives=fitToDives(o);}catch(e){msg(t.fitErr,true);return;}
   dives.forEach(d=>{d.pts=trimSurface(d.pts);});dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);if(!dives.length){msg(t.fitNo,true);return;}
@@ -2194,14 +2194,15 @@ $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if
   same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i)});});if(!base)base=x;});
   const keepOld=old.filter(o=>!imp.some(n=>o.s<n.s+n.dur&&n.s<o.s+o.dur));const replaced=old.length-keepOld.length;
   const seq=keepOld.concat(imp).sort((p,q)=>p.s-q.s);
-  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',si:i?Math.max(10,Math.floor((d.s-(seq[i-1].s+seq[i-1].dur))/10)*10):60}))};
+  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',si:i?Math.max(10,Math.round(d.s-(seq[i-1].s+seq[i-1].dur))):60}))};
   KEYS.forEach(k=>st[k]=(base&&base.state&&k in base.state)?base.state[k]:S[k]);
   const rest=all.filter(x=>x.date!==date);if(rest.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   rest.push({id,date,time:hhmm(Math.floor(seq[0].s)),memo:'',saved:Date.now(),state:st,sum:{maxD:0,N:0,N0:0,gas:'',nd:seq.length,span:0},src:'fit'});
   if(!store(rest)){msg(t.fail,true);return;}
   const [yy,mm,dd]=date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');
-  applyLog(id,true,seq.findIndex(d=>d.fit));const b2=load(),x=b2.find(v=>v.id===id);if(x){x.sum=summary();store(b2);}renderSum();renderWheels();renderList();
+  applyLog(id,true,seq.findIndex(d=>d.fit));if(DR.date===date){const ids=new Set(load().map(v=>v.id));Object.keys(DR.m).forEach(k=>{if(k!=='new'&&!ids.has(k))delete DR.m[k];});}
+  const b2=load(),x=b2.find(v=>v.id===id);if(x){x.sum=summary();store(b2);}renderSum();renderWheels();renderList();
   flash($('fitBtn2'));};
 window.addEventListener('scuba:lang',renderAll);
 window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
