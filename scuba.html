@@ -761,7 +761,7 @@ function gmDraw(dv){GM.box=null;if(!gmSync(dv))return;const R=gmReg(),P=256*Math
   // 입수 IN(빨강)·출수 OUT(파랑). 둘 다 있으면 점선으로 잇고, 점 위에 다이빙 시작·종료 시각
   const L=GM.loc,ck=(diveClock(S.cur)||'').split(' → '),P2={};[['in','#E31B3F','IN',ck[0]||''],['out','#1F6FEB','OUT',ck[1]||'']].forEach(([k,c,t,tm])=>{const q=L[k]||(k==='out'&&L.dot&&!L.in&&!L.out?L:null);if(q){const u=gmU(q.lat,q.lon);P2[k]={x:sx(u.x),y:sy(u.y),c,t,tm};}});
   if(P2.in&&P2.out){cx.save();cx.setLineDash([4,3]);cx.strokeStyle='#1f2328';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(P2.in.x,P2.in.y);cx.lineTo(P2.out.x,P2.out.y);cx.stroke();cx.restore();}
-  Object.values(P2).forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,4.5,0,7);cx.fillStyle=p.c;cx.fill();cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.stroke();});
+  Object.values(P2).forEach(p=>{if(p.x<R.x0-6||p.x>R.x1+6||p.y<R.y0-6||p.y>R.y1+6)return;/* 지도 밖 점은 아예 안 그림(사파리에서 테두리만 남는 문제 방지) */cx.beginPath();cx.arc(p.x,p.y,4.5,0,Math.PI*2);cx.fillStyle=p.c;cx.fill();cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.stroke();});
   cx.restore();
   // 시각·IN/OUT 상자: 점 위에 고정, 수심 그래프 영역 밖으로 나가는 부분은 잘림
   cx.save();cx.beginPath();cx.rect(G.L,G.T,G.W,G.H);cx.clip();
