@@ -751,15 +751,15 @@ function gmDraw(dv){GM.box=null;if(!gmSync(dv))return;const R=gmReg(),P=256*Math
   const L=GM.loc,ck=(diveClock(S.cur)||'').split(' → '),P2={};[['in','#E31B3F','IN',ck[0]||''],['out','#1F6FEB','OUT',ck[1]||'']].forEach(([k,c,t,tm])=>{const q=L[k]||(k==='out'&&L.dot&&!L.in&&!L.out?L:null);if(q){const u=gmU(q.lat,q.lon);P2[k]={x:sx(u.x),y:sy(u.y),c,t,tm};}});
   if(P2.in&&P2.out){cx.save();cx.setLineDash([4,3]);cx.strokeStyle='#1f2328';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(P2.in.x,P2.in.y);cx.lineTo(P2.out.x,P2.out.y);cx.stroke();cx.restore();}
   Object.values(P2).forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,4.5,0,7);cx.fillStyle=p.c;cx.fill();cx.strokeStyle='#fff';cx.lineWidth=1.5;cx.stroke();
-    cx.font='700 10px sans-serif';const w1=cx.measureText(p.t).width;cx.font='600 10px sans-serif';const w2=p.tm?cx.measureText(p.tm).width:0,bw=Math.max(w1,w2)+8,bh=p.tm?26:14,bx=p.x-bw/2,by=p.y-8-bh;
+    cx.font='700 11px sans-serif';const w1=cx.measureText(p.t).width;cx.font='600 13.2px sans-serif';const w2=p.tm?cx.measureText(p.tm).width:0,bw=Math.max(w1,w2)+10,bh=p.tm?32:15,bx=clamp(p.x-bw/2,R.x0+2,R.x1-bw-2);let by=p.y-8-bh;if(by<R.y0+2)by=p.y+8;/* 위가 모자라면 점 아래에 */
     cx.fillStyle='rgba(255,255,255,.9)';cx.strokeStyle=p.c;cx.lineWidth=1;cx.beginPath();cx.roundRect?cx.roundRect(bx,by,bw,bh,3):cx.rect(bx,by,bw,bh);cx.fill();cx.stroke();
-    cx.textAlign='center';cx.textBaseline='middle';if(p.tm){cx.fillStyle='#1f2328';cx.fillText(p.tm,p.x,by+7.5);}cx.font='700 10px sans-serif';cx.fillStyle=p.c;cx.fillText(p.t,p.x,by+bh-7);});
+    cx.textAlign='center';cx.textBaseline='middle';if(p.tm){cx.fillStyle='#1f2328';cx.fillText(p.tm,p.x,by+10);}cx.font='700 11px sans-serif';cx.fillStyle=p.c;cx.fillText(p.t,p.x,by+bh-8);});
   cx.restore();
-  // 왼쪽 끝 손잡이 ◀▶
-  const hx=R.x0,hy=cy;cx.save();cx.strokeStyle='rgba(31,35,40,.45)';cx.lineWidth=1;cx.beginPath();cx.moveTo(hx+.5,R.y0);cx.lineTo(hx+.5,R.y1);cx.stroke();
-  cx.fillStyle='#fff';cx.beginPath();cx.roundRect?cx.roundRect(hx-9,hy-11,18,22,3):cx.rect(hx-9,hy-11,18,22);cx.fill();cx.stroke();
-  cx.fillStyle='#1f2328';cx.beginPath();cx.moveTo(hx-6,hy);cx.lineTo(hx-1.5,hy-4.5);cx.lineTo(hx-1.5,hy+4.5);cx.closePath();cx.moveTo(hx+6,hy);cx.lineTo(hx+1.5,hy-4.5);cx.lineTo(hx+1.5,hy+4.5);cx.closePath();cx.fill();cx.restore();
   GM.box=R;}
+// 왼쪽 끝 손잡이 ◀▶: 그래프 선보다 위, 최대/총 팝업보다 아래에 그림
+function gmHandle(){const R=GM.box;if(!R)return;const hx=R.x0,hy=(R.y0+R.y1)/2;cx.save();cx.strokeStyle='rgba(31,35,40,.45)';cx.lineWidth=1;cx.beginPath();cx.moveTo(hx+.5,R.y0);cx.lineTo(hx+.5,R.y1);cx.stroke();
+  cx.fillStyle='#fff';cx.beginPath();cx.roundRect?cx.roundRect(hx-9,hy-11,18,22,3):cx.rect(hx-9,hy-11,18,22);cx.fill();cx.stroke();
+  cx.fillStyle='#1f2328';cx.beginPath();cx.moveTo(hx-6,hy);cx.lineTo(hx-1.5,hy-4.5);cx.lineTo(hx-1.5,hy+4.5);cx.closePath();cx.moveTo(hx+6,hy);cx.lineTo(hx+1.5,hy-4.5);cx.lineTo(hx+1.5,hy+4.5);cx.closePath();cx.fill();cx.restore();}
 function gmZoom(d){const R=gmReg(),P=256*Math.pow(2,GM.zf),uc=GM.ux-R.w/2/P;GM.zf=Math.max(3,Math.min(19,GM.zf+d));GM.ux=uc+R.w/2/(256*Math.pow(2,GM.zf));drawProfile();}
 function drawProfile(){
   const r=RES[S.cur],dv=dive();cx.clearRect(0,0,G.w,G.h);let labPos=null,timeTag=null,skullAt=null;LABBOX=null;
@@ -886,6 +886,7 @@ function drawProfile(){
     {const ty=yb(cur)-2;if(ty-11>=gy){cx.save();cx.translate(gx+gw/2,ty);cx.font='600 10px sans-serif';cx.fillStyle=cur<=50?'#ea580c':'#1f2328';cx.textBaseline='bottom';
       const txt=String(pu(cur));if(cx.measureText(txt).width>gw-1){cx.rotate(-Math.PI/2);cx.textAlign='left';cx.textBaseline='middle';cx.fillText(txt,2,0);}else{cx.textAlign='center';cx.fillText(txt,0,0);}cx.restore();}}
   }
+  if(!SN)gmHandle();
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
         const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),SN0=!!window.SNAP,l3=SN0?diveClock(S.cur):'',F3=SN0?null:'600 11px sans-serif';/* 앱 화면: 입수→출수 줄은 화살표 간격 좁게·글자 11px */cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';
@@ -983,13 +984,26 @@ function downAt(e){
   }
 }
 // 그래프 지도: 지도면 끌기(시점 이동)·왼쪽 손잡이 끌기(폭). 라벨·기존 점을 누른 경우는 원래 동작. 그래프 다른 핸들러보다 먼저 받음
-cv.addEventListener('pointerdown',e=>{const R=GM.box;if(!R||P.run)return;const p=pos(e);if(p.y<R.y0||p.y>R.y1||p.x<R.x0-12||p.x>R.x1)return;
+const GPT=new Map();
+// 두 손가락 벌리기·오므리기: 두 손가락 가운데 지점을 고정한 채 확대·축소
+function gmPinchStart(){const R=GM.box;if(!R)return;const [a,b]=[...GPT.values()],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,P0=256*Math.pow(2,GM.zf),cy=(R.y0+R.y1)/2;
+  GM.drag={pinch:true,d0:Math.max(10,Math.hypot(a.x-b.x,a.y-b.y)),zf0:GM.zf,ax:GM.ux-(R.x1-mx)/P0,ay:GM.uy+(my-cy)/P0};}
+function gmZoomAt(zf,ax,ay,mx,my){const R=GM.box;if(!R)return;GM.zf=Math.max(3,Math.min(19,zf));const P=256*Math.pow(2,GM.zf),cy=(R.y0+R.y1)/2;GM.ux=ax+(R.x1-mx)/P;GM.uy=ay-(my-cy)/P;drawProfile();}
+cv.addEventListener('pointerdown',e=>{const R=GM.box;if(!R||P.run)return;const p=pos(e);
+  if(GPT.size===1&&GM.drag&&!GM.drag.hd){GPT.set(e.pointerId,p);try{cv.setPointerCapture(e.pointerId);}catch(x){}gmPinchStart();e.stopImmediatePropagation();e.preventDefault();return;}
+  if(p.y<R.y0||p.y>R.y1||p.x<R.x0-12||p.x>R.x1)return;
   const hd=Math.abs(p.x-R.x0)<=12;if(!hd&&(inLab(p)||(S.mode!=='none'&&hit(p)>0)))return;
-  GM.drag={hd,x:p.x,y:p.y,ux:GM.ux,uy:GM.uy};cv.setPointerCapture(e.pointerId);e.stopImmediatePropagation();e.preventDefault();},true);
+  GPT.clear();GPT.set(e.pointerId,p);GM.drag={hd,x:p.x,y:p.y,ux:GM.ux,uy:GM.uy};try{cv.setPointerCapture(e.pointerId);}catch(x){}e.stopImmediatePropagation();e.preventDefault();},true);
 cv.addEventListener('pointermove',e=>{const R=GM.box,p=pos(e);
+  if(GM.drag&&GPT.has(e.pointerId))GPT.set(e.pointerId,p);
+  if(GM.drag&&GM.drag.pinch){if(GPT.size>=2){const [a,b]=[...GPT.values()],d=GM.drag;gmZoomAt(d.zf0+Math.log2(Math.max(10,Math.hypot(a.x-b.x,a.y-b.y))/d.d0),d.ax,d.ay,(a.x+b.x)/2,(a.y+b.y)/2);}e.stopImmediatePropagation();return;}
   if(GM.drag){const d=GM.drag,Pp=256*Math.pow(2,GM.zf);if(d.hd)GM.tL=clamp(toT(p.x),0,4200-300);else{GM.ux=d.ux-(p.x-d.x)/Pp;GM.uy=d.uy-(p.y-d.y)/Pp;}drawProfile();e.stopImmediatePropagation();return;}
   if(R)cv.style.cursor=(p.y>=R.y0&&p.y<=R.y1&&Math.abs(p.x-R.x0)<=12)?'ew-resize':(p.y>=R.y0&&p.y<=R.y1&&p.x>R.x0&&p.x<=R.x1)?'grab':'';else cv.style.cursor='';},true);
-['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(GM.drag){GM.drag=null;e.stopImmediatePropagation();}},true));
+['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(!GM.drag)return;GPT.delete(e.pointerId);
+  if(GM.drag.pinch&&GPT.size===1){const [q]=[...GPT.values()];GM.drag={hd:false,x:q.x,y:q.y,ux:GM.ux,uy:GM.uy};}/* 한 손가락 남으면 이어서 끌기 */else if(!GPT.size)GM.drag=null;e.stopImmediatePropagation();},true));
+// 노트북 트랙패드 핀치(Ctrl+휠)도 확대·축소
+cv.addEventListener('wheel',e=>{const R=GM.box;if(!R||!e.ctrlKey)return;const p=pos(e);if(p.y<R.y0||p.y>R.y1||p.x<R.x0||p.x>R.x1)return;e.preventDefault();
+  const P0=256*Math.pow(2,GM.zf),cy=(R.y0+R.y1)/2;gmZoomAt(GM.zf-e.deltaY*0.01,GM.ux-(R.x1-p.x)/P0,GM.uy+(p.y-cy)/P0,p.x,p.y);},{passive:false});
 // 라벨 꾹 눌러 옮기기: 0.4초 안 움직이면 잡힘, 먼저 움직이면 원래 동작(그리기 등)
 const inLab=p=>LABBOX&&p.x>=LABBOX.bx-4&&p.x<=LABBOX.bx+LABBOX.tw+4&&p.y>=LABBOX.by-4&&p.y<=LABBOX.by+LABBOX.th+4;
 cv.addEventListener('pointerdown',e=>{const p=pos(e);
@@ -1987,8 +2001,9 @@ function enterLog(){PLAN=snapS();$('tabsCard').classList.add('lbMode');
   // 로그북에서 작업하다 플래너로 갔다 온 경우: 그때 보던 로그·날짜·수정 중인 내용 그대로
   if(LOGST){const L0=LOGST;LOGST=null;putS(L0.s);CUR=L0.CUR&&load().some(v=>v.id===L0.CUR)?L0.CUR:null;Y=L0.Y;M=L0.M;D=L0.D;vy=L0.vy;vm=L0.vm;view=L0.view;
     $('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();return;}
-  const a=load();if(!a.length)return;const ld=a.map(v=>v.date).sort().pop(),x=a.filter(v=>v.date===ld).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
-  const [yy,mm,dd]=x.date.split('-').map(Number);WSPIN=[(M-1)*IH,(D-1)*IH,Math.floor(((T%1440)+1440)%1440/60)*IH,(((T%60)+60)%60)*IH];/* 첫 진입: 오늘(플래너) 위치에서 돌려 도착 */Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';applyLog(x.id,true,0);}
+  // 첫 진입: 달력이 아니라 오늘 날짜·지금 시각 휠에서 시작(오늘 로그가 있으면 그 첫 로그)
+  const n=new Date();Y=vy=n.getFullYear();M=vm=n.getMonth()+1;D=n.getDate();T=n.getHours()*60+n.getMinutes();view='ed';dayChanged();
+  if(!CUR){S.start=T;drawProfile();}renderWheels();}
 function leaveLog(){$('tabsCard').classList.remove('lbMode');if(!PLAN)return;LOGST={s:snapS(),CUR,Y,M,D,vy,vm,view};const P=PLAN;PLAN=null;putS(P);CUR=null;
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();}
 // 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
@@ -2185,12 +2200,17 @@ async function renderPh(){const row=$('phRow');if(!row)return;const d=S.dives[S.
   const urls=await Promise.all(ids.map(thumbURL));if(tok!==phTok)return;
   row.innerHTML='';ids.forEach((id,k)=>{if(!urls[k])return;const b=document.createElement('button');b.className='ph';b.style.backgroundImage=`url("${urls[k]}")`;b.title=t.add;b.onclick=()=>viewPh(id);row.appendChild(b);});
   if(ids.length<3){const a=document.createElement('button');a.className='phAdd';a.title=t.add;a.setAttribute('aria-label',t.add);a.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7l1.5-3h4l1.5 3"/><path d="M12 10.5v6M9 13.5h6"/></svg>';a.onclick=()=>$('phIn').click();row.appendChild(a);}}
-$('phIn').onchange=async()=>{const fs=[...$('phIn').files];$('phIn').value='';const d=S.dives[S.cur];if(!d||!fs.length)return;const t=PHT();d.ph=d.ph||[];
+$('phIn').onchange=()=>{const fs=[...$('phIn').files];$('phIn').value='';addPhotos(fs);};
+async function addPhotos(fs){const d=S.dives[S.cur];if(!d||!fs.length)return;const t=PHT();d.ph=d.ph||[];
   const room=3-d.ph.length;if(fs.length>room)toast(t.max);const add=$('phRow').querySelector('.phAdd');if(add)add.classList.add('busy');
   for(const f of fs.slice(0,Math.max(0,room))){try{const im=await loadImg(f);const [full,thumb]=await Promise.all([toBlob(im,1200,.72),toBlob(im,240,.7,true)]);
       const id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);await PDB.put({id,full,thumb,ts:Date.now(),name:f.name||''});d.ph.push(id);}
     catch(e){toast(e&&e.name==='QuotaExceededError'?t.full:t.bad);}}
-  renderPh();refreshSave();drawProfile();};
+  renderPh();refreshSave();drawProfile();}
+// 스크린샷 붙여넣기(Ctrl/⌘+V, 아이폰은 메모 칸 길게 눌러 '붙여넣기'): 클립보드에 이미지가 있으면 사진으로 추가, 글자는 그대로 메모에
+document.addEventListener('paste',e=>{if(!open||view!=='ed')return;const tg=e.target,typing=tg&&/^(INPUT|SELECT)$/.test(tg.tagName);if(typing)return;
+  const cd=e.clipboardData;if(!cd)return;const fs=[...(cd.files||[])].filter(f=>/^image\//.test(f.type));if(!fs.length)[...(cd.items||[])].forEach(it=>{if(it.kind==='file'&&/^image\//.test(it.type)){const f=it.getAsFile();if(f)fs.push(f);}});
+  if(!fs.length)return;e.preventDefault();addPhotos(fs);});
 async function viewPh(id){const t=PHT();let o;try{o=await PDB.get(id);}catch(e){}if(!o)return;const u=URL.createObjectURL(o.full);
   const v=document.createElement('div');v.id='phView';v.innerHTML='<img alt=""><div class="pvB"><button class="pvDel"></button><button class="pvX"></button><button class="pvSnap"></button></div>';v.querySelector('img').src=u;
   // 사진이 2장 이상이면 하단에 ‹ 1/3 › 넘김 화살표(이미지 좌우 밀기도 됨)
