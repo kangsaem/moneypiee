@@ -2038,7 +2038,8 @@ function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c
   let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan(),dv:RES.map((x,i)=>({N:x.N,maxD:R1(x.maxD),si:i?(+S.dives[i].si||0):0}))};}
 function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].si||0);});return m;}
 // 같은 내용이면 저장 비활성, 시작 시각이 같거나 시간이 겹치면 경고 후 교체
-function cmpKey(x){const st=x.state?Object.assign({},x.state,{dives:(x.state.dives||[]).map((d,i)=>Object.assign({},d,{memo:diveMemo(x,i).trim()}))}):x.state;return [x.date,x.time||'',JSON.stringify(st)].join('|');}
+// 저장 비교: 저장 형식마다 키 순서가 달라도(FIT 불러오기 등) 내용이 같으면 같게. 첫 다이빙 수면휴식은 무시
+function cmpKey(x){const st=x.state||{};const c={d:(st.dives||[]).map((d,i)=>({p:(d.pts||[]).map(q=>[q.t,q.d]),s:i?(+d.si||0):0,l:d.lab?[d.lab.fx,d.lab.fy]:null,m:diveMemo(x,i).trim(),f:(d.ph||[]).join(',')})),k:KEYS.map(k=>st[k]===undefined?null:st[k])};return [x.date,x.time||'',JSON.stringify(c)].join('|');}
 // 실제 시작 시각(분). FIT 등에서 온 08:53 같은 값은 그대로 유지, 휠을 돌렸을 때만 10분 단위
 const ST=()=>S.start!=null?Math.round(S.start):T;
 function curRec(){return {date:ymd(),time:hhmm(ST()),memo:'',state:snapState()};}
@@ -2191,10 +2192,15 @@ $('fitIn').onchange=async()=>{const f=$('fitIn').files[0];$('fitIn').value='';if
     memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps0?('GPS '+(LANG==='en'?'entry':LANG==='ja'?'エントリー':'입수')+' '+d.gps0.lat.toFixed(5)+', '+d.gps0.lon.toFixed(5)):'',d.gps?('GPS '+(LANG==='en'?'exit':LANG==='ja'?'エキジット':'출수')+' '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
   // 같은 날 기존 다이빙 펼치기
   const all=load(),same=all.filter(x=>x.date===date).sort((p,q)=>(p.time||'').localeCompare(q.time||''));const old=[];let base=null;
-  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i)});});if(!base)base=x;});
-  const keepOld=old.filter(o=>!imp.some(n=>o.s<n.s+n.dur&&n.s<o.s+o.dur));const replaced=old.length-keepOld.length;
+  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[]});});if(!base)base=x;});
+  const ov=(o,n)=>o.s<n.s+n.dur&&n.s<o.s+o.dur;
+  // 기존 다이빙과 겹치면 수심 기록만 FIT로 바꾸고 메모·사진·라벨 위치는 기존 것 유지. 기존 메모에 GPS 줄이 없을 때만 FIT의 GPS 줄을 덧붙임
+  imp.forEach(n=>{const o=old.find(o=>ov(o,n));if(!o)return;const om=(o.memo||'').trim();
+    if(om){const gl=window.__locPts?(n.memo||'').split('\n').filter(l=>/^\s*GPS\b/i.test(l)):[];const hasG=/^\s*GPS\b/im.test(om);n.memo=hasG||!gl.length?om:om+'\n'+gl.join('\n');}
+    n.ph=o.ph||[];n.lab=o.lab||null;});
+  const keepOld=old.filter(o=>!imp.some(n=>ov(o,n)));const replaced=old.length-keepOld.length;
   const seq=keepOld.concat(imp).sort((p,q)=>p.s-q.s);
-  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',si:i?Math.max(10,Math.round(d.s-(seq[i-1].s+seq[i-1].dur))):60}))};
+  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined,si:i?Math.max(10,Math.round(d.s-(seq[i-1].s+seq[i-1].dur))):60}))};
   KEYS.forEach(k=>st[k]=(base&&base.state&&k in base.state)?base.state[k]:S[k]);
   const rest=all.filter(x=>x.date!==date);if(rest.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
