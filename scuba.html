@@ -1514,7 +1514,10 @@ function armBlank(t){ARMED=true;const h=e=>{if(t!==TOK){document.removeEventList
     if(e.target.closest&&e.target.closest('#tutPrev,#tutVoice,#tutAuto,#splash'))return;
     document.removeEventListener('click',h,true);e.preventDefault();e.stopPropagation();end();setState(A0,'free');if(window.loadSac){loadSac();syncForm();recompute();}window.scrollTo({top:0,behavior:'smooth'});};
   setTimeout(()=>document.addEventListener('click',h,true),0);}
-function start(){if(ON)return;ON=true;if(S.pu!=='bar'){PU0=S.pu;S.pu='bar';syncForm();}try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';run(0);}
+function start(){if(ON)return;ON=true;if(S.pu!=='bar'){PU0=S.pu;S.pu='bar';syncForm();}try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';
+  // 시작 차임(0.9초): 누른 순간 같은 오디오로 재생해 아이폰 소리 재생 권한도 열어 둠 → 끝나면 1단계
+  let gone=false;const go=()=>{if(gone||!ON)return;gone=true;run(0);};
+  try{AU.pause();AU.onended=go;AU.onerror=go;AU.src='tut/chime.mp3';const pr=AU.play();if(pr&&pr.catch)pr.catch(go);}catch(e){go();}setTimeout(go,1500);}
 function end(){TOK++;ON=false;ARMED=false;if(PU0){S.pu=PU0;PU0=null;}if(window.loadSac)loadSac();syncForm();recompute();hush();hideOverlay();BOX.style.display='none';showHand(false);stopPlay();P.sp=1;document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x.dataset.sp==='1'));}
 document.getElementById('tutNext').onclick=()=>{if(IDX>=STEPS.length-1)end();else run(IDX+1);};
 document.getElementById('tutPrev').onclick=()=>{if(IDX>0)run(IDX-1);};
