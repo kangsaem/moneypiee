@@ -2016,9 +2016,11 @@ function enterLog(){PLAN=snapS();$('tabsCard').classList.add('lbMode');
   // 로그북에서 작업하다 플래너로 갔다 온 경우: 그때 보던 로그·날짜·수정 중인 내용 그대로
   if(LOGST){const L0=LOGST;LOGST=null;putS(L0.s);CUR=L0.CUR&&load().some(v=>v.id===L0.CUR)?L0.CUR:null;Y=L0.Y;M=L0.M;D=L0.D;vy=L0.vy;vm=L0.vm;view=L0.view;
     $('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();return;}
-  // 첫 진입: 달력이 아니라 오늘 날짜·지금 시각 휠에서 시작(오늘 로그가 있으면 그 첫 로그)
-  const n=new Date();Y=vy=n.getFullYear();M=vm=n.getMonth()+1;D=n.getDate();T=n.getHours()*60+n.getMinutes();view='ed';dayChanged();
-  if(!CUR){S.start=T;drawProfile();}renderWheels();}
+  // 첫 진입: 펼칠 때 오늘 날짜·지금 시각 휠을 먼저 보여주고(sync), 펼쳐진 뒤 가장 최근 날짜의 첫 로그로 휠을 돌려 도착
+  const a=load();view='ed';
+  if(!a.length){dayChanged();if(!CUR){S.start=T;drawProfile();}renderWheels();return;}
+  const ld=a.map(v=>v.date).sort().pop(),x=a.filter(v=>v.date===ld).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
+  const [yy,mm,dd]=x.date.split('-').map(Number);WSPIN=wTops();Y=yy;M=mm;D=dd;vy=yy;vm=mm;applyLog(x.id,true,0);}
 function leaveLog(){$('tabsCard').classList.remove('lbMode');if(!PLAN)return;LOGST={s:snapS(),CUR,Y,M,D,vy,vm,view};const P=PLAN;PLAN=null;putS(P);CUR=null;
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();}
 // 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
@@ -2026,6 +2028,7 @@ let SWT=0;
 function sync(){if(!open)window.__LOGEND=false;if(open!==LASTO){LASTO=open;const tk=++SWT,o=open,w=$('logWrap');let fired=false;
     const run=()=>{if(fired||tk!==SWT)return;fired=true;w.removeEventListener('transitionend',te);setTimeout(()=>{if(tk!==SWT)return;flipSwap(()=>{if(o){enterLog();if(open)show(view);}else leaveLog();});},200);};
     const te=e=>{if(e.target===w&&e.propertyName==='grid-template-rows')run();};w.addEventListener('transitionend',te);setTimeout(run,380);}
+  if(open&&!PLAN&&!LOGST){/* 첫 진입: 달력 말고 오늘·지금 휠부터 */const n=new Date();Y=vy=n.getFullYear();M=vm=n.getMonth()+1;D=n.getDate();T=n.getHours()*60+n.getMinutes();view='ed';}
   $('logWrap').classList.toggle('open',open);setTimeout(relayout,0);{const rw=document.getElementById('ruleWrap');if(rw)rw.classList.toggle('closed',open);}$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
   let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan(),dv:RES.map((x,i)=>({N:x.N,maxD:R1(x.maxD),si:i?(+S.dives[i].si||0):0}))};}
