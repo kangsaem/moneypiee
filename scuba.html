@@ -66,7 +66,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 @media (min-width:780px){.wrap{max-width:none}#mainGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"g g" "l r";column-gap:6px;align-items:start}.colL{grid-area:l;min-width:0}#graphCard{grid-area:g;min-width:0}.colR{grid-area:r;min-width:0}}
 @media (min-width:780px){.logList{height:236px;overflow:auto;overscroll-behavior:contain}
 .top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center}.top .ttl{grid-column:2}.top>span{grid-column:3;justify-self:end}
-#mainGrid.lbOpen{align-items:stretch}#mainGrid.lbOpen .colL,#mainGrid.lbOpen .colR{display:flex;flex-direction:column}#mainGrid.lbOpen .colL>#logCardW,#mainGrid.lbOpen .colR>#barsCard{flex:1}#mainGrid.lbOpen .colR>#barsCard.fold{flex:0 0 auto}/* 질소 막대 접으면 아래로 늘어나지 않음 */#mainGrid.lbOpen .colL>.ruleWrap:not(#logCardW){flex:0 0 auto}#mainGrid.lbOpen .colL>#logCardW.lbf2{flex:0 0 auto}#mainGrid.lbOpen #logCardW>div{display:flex;flex-direction:column}#mainGrid.lbOpen #logCardW #logCard{flex:1}}
+#mainGrid.lbOpen{align-items:stretch}#mainGrid.lbOpen .colL,#mainGrid.lbOpen .colR{display:flex;flex-direction:column}#mainGrid.lbOpen .colL>#logCardW,#mainGrid.lbOpen .colR>#barsCard{flex:1}#mainGrid.lbOpen .colR>#barsCard.fold{flex:0 0 auto}/* 질소 막대 접으면 아래로 늘어나지 않음 */#mainGrid{align-items:stretch}#mainGrid .colL,#mainGrid .colR{display:flex;flex-direction:column}#mainGrid .colL>#foot{margin-bottom:5px}#mainGrid:not(.lbOpen) .colL>#foot{flex:1}#mainGrid .colR>#barsCard:not(.fold){flex:1}/* 두 줄·세 줄 보기: 질소 막대가 펼쳐져 있으면 각 단의 아래끝을 맞춤(플래너 = 왼쪽 안내·오른쪽 질소 카드가 늘어남) */#mainGrid.lbOpen .colL>.ruleWrap:not(#logCardW){flex:0 0 auto}#mainGrid.lbOpen .colL>#logCardW.lbf2{flex:0 0 auto}#mainGrid.lbOpen #logCardW>div{display:flex;flex-direction:column}#mainGrid.lbOpen #logCardW #logCard{flex:1}}
 @media (min-width:1170px){#mainGrid{grid-template-columns:clamp(290px,24vw,400px) minmax(0,1fr) clamp(300px,25vw,420px);grid-template-areas:"l g r"}}
 .card.thin{padding-top:4px;padding-bottom:4px}
 .card.thin>.setHead{padding:0;min-height:18px}
@@ -1926,7 +1926,7 @@ const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m
  :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'장소: 문섬\n슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',svFile:'저장하기',svShare:'공유하기',cancel2:'취소',noShare:'이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장해 보내 주세요.',noPrev:'이전 로그가 없습니다',noNext:'이후 로그가 없습니다',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
 const now=new Date();let vy=now.getFullYear(),vm=now.getMonth()+1;   // 달력에 보이는 달
 let LBF=0;/* 로그북 카드 접기: 0 펼침 / 1 반접기 / 2 완전 접힘 */
-let EDIT=null,WROW=false,WKEY='',EY=0,EM=0,ED=0,WBUSY=false;/* 점선 줄 안 날짜 휠: EDIT = 수정 중인 저장 다이빙, WROW = 휠이 줄 안에 있음, EY/EM/ED = 휠의 날짜(저장 때 옮김) */
+let EDIT=null,WROW=false,WKEY='',EY=0,EM=0,ED=0,WBUSY=false,MVT=null;/* MVT = 다른 날짜로 옮길 때의 시각(분): 그때는 앞뒤 다이빙과 겹침 제한 없음 *//* 점선 줄 안 날짜 휠: EDIT = 수정 중인 저장 다이빙, WROW = 휠이 줄 안에 있음, EY/EM/ED = 휠의 날짜(저장 때 옮김) */
 let Y=vy,M=vm,D=now.getDate(),T=Math.floor((now.getHours()*60+now.getMinutes())/10)*10,open=false,view='cal',CUR=null;
 const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.split(':').map(Number);return h*60+m;};
 // --- 상단 제목 플립
@@ -1971,30 +1971,32 @@ function makeWheel(el,onPick){const IHw0=()=>el.__ih||IH;let IHw=IHw0();el.__ihS
       const step=ts=>{const u=Math.min(1,(ts-t0)/dur),e=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;el.scrollTop=from+(to-from)*e;
         if(u<1)raf=requestAnimationFrame(step);else{el.scrollTop=to;el.style.scrollSnapType='';mark(idx);requestAnimationFrame(()=>{spinning=false;quiet=false;clearTimeout(tm);});}};raf=requestAnimationFrame(step);}};}
 ['lwM','lwD','lwH','lwMi'].forEach(id=>{const e=document.getElementById(id);if(e)e.__ih=28;});/* 점선 줄 안 휠: 칸 높이 28px */
-const wM=makeWheel($('lwM'),i=>{if(WROW){if(i+1===EM)return;EM=i+1;const nd=new Date(EY,EM,0).getDate();if(ED>nd)ED=nd;renderWheels();updWRow();refreshSave();return;}if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;renderWheels();dayChanged();});
-const wD=makeWheel($('lwD'),i=>{if(WROW){if(i+1===ED)return;ED=i+1;updWRow();refreshSave();return;}if(i+1===D)return;D=i+1;renderWheels();dayChanged();});
+const wM=makeWheel($('lwM'),i=>{if(WROW){if(i+1===EM)return;EM=i+1;const nd=new Date(EY,EM,0).getDate();if(ED>nd)ED=nd;syncMVT();renderWheels();updWRow();refreshSave();return;}if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;renderWheels();dayChanged();});
+const wD=makeWheel($('lwD'),i=>{if(WROW){if(i+1===ED)return;ED=i+1;const had=MVT;syncMVT();if((had==null)!==(MVT==null))renderWheels();updWRow();refreshSave();return;}if(i+1===D)return;D=i+1;renderWheels();dayChanged();});
 // 시간 휠은 선택한 다이빙의 시작 시각(10분 단위 내림)을 보여 줌. 돌리면 그만큼 로그 시작 시각(T)을 옮김
 function dOff(){let o=0;for(let k=1;k<=S.cur&&k<S.dives.length;k++)o+=(RES[k-1]?RES[k-1].N/60:0)+(+S.dives[k].si||0);return o;}
 // 시각 = '시' 휠(24칸) + '분' 휠(1분 단위 60칸). 보이는 값 = 선택한 다이빙의 시작 시각
-const curMin=()=>((Math.floor((S.start!=null?S.start:T)+dOff())%1440)+1440)%1440;let HI=-1,MI=-1;
+const curMin=()=>(typeof MVT!=='undefined'&&MVT!=null&&WROW?MVT:((Math.floor((S.start!=null?S.start:T)+dOff())%1440)+1440)%1440);let HI=-1,MI=-1;
 function pickTime(tw){if(WROW){logModeTime(tw);return;}if(timePick(tw))return;T=((tw-dOff())%1440+1440)%1440;S.start=T;drawProfile();refreshSave();renderList();}
 const wH=makeWheel($('lwH'),i=>{if(i===HI)return;HI=i;pickTime(HI*60+MI);});
 const wMi=makeWheel($('lwMi'),i=>{if(i===MI)return;MI=i;pickTime(HI*60+MI);});
 // 로그북 모드(점선 줄 안 휠): 이 다이빙만 옮기고 앞뒤 수면휴식을 다시 계산. 앞 다이빙 출수 전·뒤 다이빙 입수 뒤로는 못 감(휠이 제자리로 돌아감)
-function logModeTime(tw){const i=S.cur,dv=S.dives,N=k=>RES[k]?RES[k].N/60:0,st=k=>{const m=diveStartMin(k);return m!=null?m:((S.start!=null?S.start:T)+dOffAt(k));};
+const wMoved=()=>WROW&&(EY!==Y||EM!==M||ED!==D);
+function syncMVT(){if(wMoved()){if(MVT==null){const m=diveStartMin(S.cur);MVT=Math.round(m!=null?m:(S.start!=null?S.start:T));}}else MVT=null;}
+function logModeTime(tw){if(wMoved()){/* 다른 날짜로 옮기는 중: 같은 날 제한 없이 그 시각 그대로 */MVT=tw;refreshSave();updWRow();return;}const i=S.cur,dv=S.dives,N=k=>RES[k]?RES[k].N/60:0,st=k=>{const m=diveStartMin(k);return m!=null?m:((S.start!=null?S.start:T)+dOffAt(k));};
   const c0=st(i),lo=i>0?Math.ceil(st(i-1)+N(i-1)):0,hi=dv[i+1]?Math.floor(st(i+1)-N(i)):1439,t2=clamp(tw,lo,Math.max(lo,hi)),dl=t2-Math.round(c0);
   if(dl){if(i===0){S.start=Math.round(c0)+dl;T=S.start;}else dv[i].si=Math.max(0,Math.round((+dv[i].si||0)+dl));if(dv[i+1])dv[i+1].si=Math.max(0,Math.round((+dv[i+1].si||0)-dl));}
   WBUSY=true;try{if(typeof renderTabs==='function')renderTabs();recompute();}finally{WBUSY=false;}
   if(t2!==tw){const f=wTops();renderWheels();spinFrom(f);}refreshSave();updWRow();}
 // 휠이 든 줄의 시각 글자만 바꿈(목록 전체를 다시 그리면 돌리던 휠이 끊기므로)
-function updWRow(){const r=$('logList').querySelector('.li.wh');if(!r)return;const m=diveStartMin(S.cur),b=r.querySelector('.tx b');if(!b||m==null)return;const n=RES[S.cur]&&dive().pts.length>1?RES[S.cur].N/60:0;
+function updWRow(){const r=$('logList').querySelector('.li.wh');if(!r)return;const m=MVT!=null&&wMoved()?MVT:diveStartMin(S.cur),b=r.querySelector('.tx b');if(!b||m==null)return;const n=RES[S.cur]&&dive().pts.length>1?RES[S.cur].N/60:0;
   b.textContent=hhmm(m)+(n?' → '+hhmm(m+n):'');}
 // 휠을 넣을 줄: 수정 중인 저장 다이빙 줄, 아니면 지금 다이빙의 점선(저장 전) 줄
 function wheelRow(){const ll=$('logList');if(view!=='ed'||!PLAN)return null;
   if(EDIT&&EDIT.id===CUR&&EDIT.i===S.cur){const r=ll.querySelector(`.li:not(.draft)[data-id="${CUR}"][data-i="${S.cur}"]`);if(r){r.classList.add('editing');return r;}}
   return ll.querySelector(`.li.draft:not(.other)[data-di="${S.cur}"]`);}
 function attachWheels(){const lw=document.querySelector('.lwheels');if(!lw)return;const r=wheelRow();WROW=!!r;if(!r){$('lwHold').appendChild(lw);WKEY='';return;}
-  const k=(CUR||'new')+':'+S.cur+':'+(EDIT?1:0)+':'+ymd();if(k!==WKEY){WKEY=k;EY=Y;EM=M;ED=D;}
+  const k=(CUR||'new')+':'+S.cur+':'+(EDIT?1:0)+':'+ymd();if(k!==WKEY){WKEY=k;EY=Y;EM=M;ED=D;MVT=null;}
   r.classList.add('wh');r.insertBefore(lw,r.firstChild);renderWheels();updWRow();}
 // 시간 휠로 같은 날 다른 시각을 고르면:
 //  · 저장된 다른 다이빙 시간 안 → 그 다이빙을 엶(지금 보는 다이빙 안이면 예전처럼 시작 시각 조정)
@@ -2310,8 +2312,8 @@ function partSlide(from){const ll=$('logList'),inn=ll.querySelector('.llIn');par
 $('edPrev').onclick=()=>goLogDate(-1);$('edNext').onclick=()=>goLogDate(1);
 
 // 휠에서 날짜를 바꾼 채 저장: 새 로그면 그 날짜로 저장, 저장된 기록의 다이빙이면 그 다이빙만 떼어 그 날짜 기록으로 옮김(그날과 합침)
-function moveSave(){const tgt=EY+'-'+pad(EM)+'-'+pad(ED);if(!CUR){Y=EY;M=EM;D=ED;WKEY='';return false;}
-  const t=L(),i=S.cur,d0=JSON.parse(JSON.stringify(snapState().dives[i])),st0=diveStartMin(i);if(!d0||d0.pts.length<2||st0==null)return false;
+function moveSave(){const tgt=EY+'-'+pad(EM)+'-'+pad(ED);if(!CUR){if(MVT!=null){S.start=MVT;T=MVT;}Y=EY;M=EM;D=ED;WKEY='';MVT=null;return false;}
+  const t=L(),i=S.cur,d0=JSON.parse(JSON.stringify(snapState().dives[i])),st0=MVT!=null?MVT:diveStartMin(i);MVT=null;if(!d0||d0.pts.length<2||st0==null)return false;
   if(S.dives.length>1)removeDiveAt(i);else{store(load().filter(v=>v.id!==CUR));}
   const keys=Object.fromEntries(KEYS.map(k=>[k,S[k]]));CUR=null;S.dives=[Object.assign(newDive(),d0,{si:60})];S.cur=0;S.start=Math.round(st0);T=S.start;recompute();
   const a=load();if(a.length>=MAX){msg(t.full,true);return true;}const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
