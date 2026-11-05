@@ -113,7 +113,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .lw .it{position:relative;z-index:0}.lw .it.on{color:#1f2328;font-weight:700}.lw .it.has::before{content:'';position:absolute;inset:3px 4px;background:rgba(255,255,255,.5);border-radius:5px;z-index:-1}
 .lw .it small{font-size:10px;font-weight:500;color:inherit;opacity:.85}.lw .it small.sun,.lw .it span.sun{color:#E31B3F}.lw .it small.sat,.lw .it span.sat{color:#2f6fe4}
 .lw .pad{height:80px;scroll-snap-align:none}
-#edTitle{display:none}.memoBox{position:relative;height:238px;margin-top:-38px}.memoBox #logMemo{padding-bottom:48px;height:238px}/* 메모 위 날짜 제목 없앤 높이(32+6px)만큼 메모 칸을 위로 늘림 */
+#edTitle{display:none}.memoBox{position:relative;height:238px;margin-top:-38px}.memoBox #logMemo{padding-bottom:48px;height:238px}.lwrap{grid-template-columns:1fr!important}#logEdV .lwrap .memoBox{margin-top:0;height:200px}#logEdV .lwrap .memoBox #logMemo{height:200px}/* 날짜 휠은 점선 로그 줄 안으로 → 메모가 전체 폭 */.logList .li.wh{gap:10px}.logList .li .lwheels{flex:0 0 172px;height:120px}.logList .li .lwheels::after{box-shadow:none}.logList .li .lw{height:120px}.logList .li .lw .pad{height:40px}.logList .li .lsel{top:43px}.logList .li.wh .dlog,.logList .li.wh .del,.logList .li.wh .mapb{display:none!important}.logList .li.wh .tx b{white-space:nowrap}.logList .li.wh .tx .mm{white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.logList .li.editing{border:1.5px dashed rgba(37,99,235,.7)!important}.logList .li .edb{padding:4px 9px;font-size:12px;font-weight:700;color:#1b4277;background:#fff;border-color:#1b4277;white-space:nowrap}.logList .li.editing .edb{color:#fff;background:#1b4277}/* 점선 줄 안 날짜 휠 120px(흰 테두리 없음), 수정 버튼 *//* 메모 위 날짜 제목 없앤 높이(32+6px)만큼 메모 칸을 위로 늘림 */
 .phRow{position:absolute;left:6px;bottom:6px;display:flex;gap:4px}
 .phRow .ph{width:36px;height:36px;padding:0;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);border-radius:5px;overflow:hidden;background:#eef2f6 center/cover no-repeat;flex-shrink:0}
 .phRow .phAdd{width:36px;height:36px;padding:0;border:1.5px dashed #9ca3af;border-radius:5px;background:rgba(255,255,255,.7);color:#6b7280;display:flex;align-items:center;justify-content:center}
@@ -158,7 +158,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .tabs .tab{display:inline-flex;align-items:center}
 .tabs .x{opacity:.7;font-size:14px;line-height:1;padding:0 2px}
 .tabs .x:hover{opacity:1}
-.tabs .chip{border-radius:999px;padding:4px 7px;font-size:11px;color:var(--mute);background:#f3f4f6;border-color:#e5e7eb}
+.tabs .chip{border-radius:999px;padding:4px 7px;font-size:11px;color:var(--mute);background:#f3f4f6;border-color:#e5e7eb}.tabs .chip.fixed{height:32px;box-sizing:border-box;border-radius:6px;padding:0 10px!important;font-size:12px;background:#fff;color:#4b5563;border:1px solid var(--line);cursor:default;display:inline-flex;align-items:center;pointer-events:none}/* 로그북 모드 수면휴식: 고칠 수 없는 자동 값 */
 .tabs .add{border-style:dashed;color:var(--mute)}
 /* 다이빙 탭·추가 버튼: 높이 = '현재 로그 저장' 버튼 높이(32px), 폭은 글자에 맞게(좌우 여백 14px). 플래너 모드의 선택 탭은 회색 */.tabs .tab,.tabs .add{justify-content:center;padding-left:14px!important;padding-right:14px!important}#tabsCard:not(.lbMode) .tabs .tab.on{background:#6b7280;border-color:#6b7280;color:#fff}.tabs .tab,.tabs .add{height:32px;box-sizing:border-box;padding-top:0;padding-bottom:0;display:inline-flex;align-items:center}#tabsCard{padding-top:6px;padding-bottom:6px}.tabs .add{width:32px;padding:0!important;font-size:12px!important;line-height:1}/* 다이빙 추가 = 정사각형 +, 글자 크기는 배속 버튼(1×)과 같게 */
 /* 작은 버튼 높이 26px 통일: 튜토리얼 · KR/EN/JP · 수면 기준/쉐어워터식 */.tutBtn{height:26px!important}.lang button,.bmode button{height:26px;box-sizing:border-box;padding-top:0;padding-bottom:0;display:inline-flex;align-items:center;justify-content:center;line-height:1}
@@ -325,7 +325,7 @@ html.spl body>*:not(#splash){visibility:hidden}
       <div class="edHd"><span class="calNav"><button id="logBack">◀ <span id="logBackT">달력</span></button><button id="edPrev" class="jump" aria-label="previous log date"><svg viewBox="0 0 12 12" width="12" height="12"><rect x="1" y="1" width="1.8" height="10" fill="currentColor"/><path d="M11 1L3.6 6L11 11z" fill="currentColor"/></svg></button><button id="edNext" class="jump" aria-label="next log date"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M1 1L8.4 6L1 11z" fill="currentColor"/><rect x="9.2" y="1" width="1.8" height="10" fill="currentColor"/></svg></button><button id="fitBtn2" class="fitJ">FIT</button><b id="edYM" class="edYM"></b></span><b id="edTitle"></b></div>
       <div class="lwrap"><div class="lwheels"><div class="lsel"></div><div class="lw" id="lwM" tabindex="0"></div><div class="lw" id="lwD" tabindex="0"></div><div class="lw" id="lwH" tabindex="0"></div><div class="lw" id="lwMi" tabindex="0"></div></div>
         <div class="memoBox"><textarea id="logMemo" maxlength="300"></textarea><div class="phRow" id="phRow"></div><input type="file" id="phIn" accept="image/*" multiple hidden></div></div>
-      <div class="logList" id="logList"></div>
+      <div class="logList" id="logList"></div><div id="lwHold" style="display:none"></div>
       <div class="logForm"><button id="logSave" class="pri" data-i18n="logSave">현재 로그 저장</button><span></span><span id="logMsg" class="logMsg"></span></div>
     </div>
   </div></div></div>
@@ -1331,12 +1331,15 @@ const fmtSI=m=>Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
 // 다이빙 하나 삭제(탭 ×·로그북 공통). 1번을 지우면 입수 시각은 2번 시작으로 옮김
 function removeDiveAt(i){if(S.dives.length<=1||i<0||i>=S.dives.length)return false;
   if(i===0&&S.start!=null&&RES[0]&&S.dives[1])S.start+=RES[0].N/60+(+S.dives[1].si||0);
+  /* 가운데 다이빙을 지우면 뒤 다이빙은 그 자리 그대로: 앞뒤 사이 수면휴식 = 앞 휴식 + 지운 다이빙 시간 + 뒤 휴식(플래너·직접 입력·FIT 모두) */
+  if(i>0&&S.dives[i+1])S.dives[i+1].si=Math.round((+S.dives[i].si||0)+(RES[i]?RES[i].N/60:0)+(+S.dives[i+1].si||0));
   S.dives.splice(i,1);S.cur=Math.max(0,Math.min(S.cur>i?S.cur-1:S.cur,S.dives.length-1));renderTabs();syncForm();recompute();
   try{window.dispatchEvent(new CustomEvent('scuba:diveRemoved',{detail:{i}}));}catch(e){}return true;}
 function renderTabs(){
   const el=$('tabs');el.innerHTML='';
   S.dives.forEach((dv,i)=>{
-    if(i>0){const c=document.createElement('button');c.className='chip';c.textContent=fmtSI(dv.si);c.dataset.tip='si';c.onclick=()=>openPicker(i);el.appendChild(c);}
+    if(i>0){const c=document.createElement('button');c.className='chip';c.textContent=fmtSI(dv.si);c.dataset.tip='si';
+      /* 로그북 모드: 수면휴식은 입수·출수 시각으로 자동 계산(입력 없음) → 다이빙 탭 모양의 흰 사각형 */if($('tabsCard').classList.contains('lbMode')){c.classList.add('fixed');c.tabIndex=-1;}else c.onclick=()=>openPicker(i);el.appendChild(c);}
     const b=document.createElement('button');b.className='tab'+(i===S.cur?' on':'');b.innerHTML=tr('dive',i+1);
     if(i===S.cur&&S.dives.length>1){const x=document.createElement('span');x.className='x';x.textContent='×';x.title=tr('delDive');
       x.onclick=e=>{e.stopPropagation();const go=()=>removeDiveAt(i);if(window.__askDel)window.__askDel('dive').then(ok=>{if(ok)go();});else go();};b.appendChild(x);}
@@ -1914,6 +1917,7 @@ const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m
  :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'장소: 문섬\n슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',svFile:'저장하기',svShare:'공유하기',cancel2:'취소',noShare:'이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장해 보내 주세요.',noPrev:'이전 로그가 없습니다',noNext:'이후 로그가 없습니다',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
 const now=new Date();let vy=now.getFullYear(),vm=now.getMonth()+1;   // 달력에 보이는 달
 let LBF=0;/* 로그북 카드 접기: 0 펼침 / 1 반접기 / 2 완전 접힘 */
+let EDIT=null,WROW=false,WKEY='',EY=0,EM=0,ED=0,WBUSY=false;/* 점선 줄 안 날짜 휠: EDIT = 수정 중인 저장 다이빙, WROW = 휠이 줄 안에 있음, EY/EM/ED = 휠의 날짜(저장 때 옮김) */
 let Y=vy,M=vm,D=now.getDate(),T=Math.floor((now.getHours()*60+now.getMinutes())/10)*10,open=false,view='cal',CUR=null;
 const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.split(':').map(Number);return h*60+m;};
 // --- 상단 제목 플립
@@ -1957,15 +1961,31 @@ function makeWheel(el,onPick){let n=0,idx=0,tm=0,quiet=false,raf=0;
       quiet=true;spinning=true;el.style.scrollSnapType='none';el.scrollTop=from;
       const step=ts=>{const u=Math.min(1,(ts-t0)/dur),e=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;el.scrollTop=from+(to-from)*e;
         if(u<1)raf=requestAnimationFrame(step);else{el.scrollTop=to;el.style.scrollSnapType='';mark(idx);requestAnimationFrame(()=>{spinning=false;quiet=false;clearTimeout(tm);});}};raf=requestAnimationFrame(step);}};}
-const wM=makeWheel($('lwM'),i=>{if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;renderWheels();dayChanged();});
-const wD=makeWheel($('lwD'),i=>{if(i+1===D)return;D=i+1;renderWheels();dayChanged();});
+const wM=makeWheel($('lwM'),i=>{if(WROW){if(i+1===EM)return;EM=i+1;const nd=new Date(EY,EM,0).getDate();if(ED>nd)ED=nd;renderWheels();updWRow();refreshSave();return;}if(i+1===M)return;M=i+1;const nd=new Date(Y,M,0).getDate();if(D>nd)D=nd;renderWheels();dayChanged();});
+const wD=makeWheel($('lwD'),i=>{if(WROW){if(i+1===ED)return;ED=i+1;updWRow();refreshSave();return;}if(i+1===D)return;D=i+1;renderWheels();dayChanged();});
 // 시간 휠은 선택한 다이빙의 시작 시각(10분 단위 내림)을 보여 줌. 돌리면 그만큼 로그 시작 시각(T)을 옮김
 function dOff(){let o=0;for(let k=1;k<=S.cur&&k<S.dives.length;k++)o+=(RES[k-1]?RES[k-1].N/60:0)+(+S.dives[k].si||0);return o;}
 // 시각 = '시' 휠(24칸) + '분' 휠(1분 단위 60칸). 보이는 값 = 선택한 다이빙의 시작 시각
 const curMin=()=>((Math.floor((S.start!=null?S.start:T)+dOff())%1440)+1440)%1440;let HI=-1,MI=-1;
-function pickTime(tw){if(timePick(tw))return;T=((tw-dOff())%1440+1440)%1440;S.start=T;drawProfile();refreshSave();renderList();}
+function pickTime(tw){if(WROW){logModeTime(tw);return;}if(timePick(tw))return;T=((tw-dOff())%1440+1440)%1440;S.start=T;drawProfile();refreshSave();renderList();}
 const wH=makeWheel($('lwH'),i=>{if(i===HI)return;HI=i;pickTime(HI*60+MI);});
 const wMi=makeWheel($('lwMi'),i=>{if(i===MI)return;MI=i;pickTime(HI*60+MI);});
+// 로그북 모드(점선 줄 안 휠): 이 다이빙만 옮기고 앞뒤 수면휴식을 다시 계산. 앞 다이빙 출수 전·뒤 다이빙 입수 뒤로는 못 감(휠이 제자리로 돌아감)
+function logModeTime(tw){const i=S.cur,dv=S.dives,N=k=>RES[k]?RES[k].N/60:0,st=k=>{const m=diveStartMin(k);return m!=null?m:((S.start!=null?S.start:T)+dOffAt(k));};
+  const c0=st(i),lo=i>0?Math.ceil(st(i-1)+N(i-1)):0,hi=dv[i+1]?Math.floor(st(i+1)-N(i)):1439,t2=clamp(tw,lo,Math.max(lo,hi)),dl=t2-Math.round(c0);
+  if(dl){if(i===0){S.start=Math.round(c0)+dl;T=S.start;}else dv[i].si=Math.max(0,Math.round((+dv[i].si||0)+dl));if(dv[i+1])dv[i+1].si=Math.max(0,Math.round((+dv[i+1].si||0)-dl));}
+  WBUSY=true;try{if(typeof renderTabs==='function')renderTabs();recompute();}finally{WBUSY=false;}
+  if(t2!==tw){const f=wTops();renderWheels();spinFrom(f);}refreshSave();updWRow();}
+// 휠이 든 줄의 시각 글자만 바꿈(목록 전체를 다시 그리면 돌리던 휠이 끊기므로)
+function updWRow(){const r=$('logList').querySelector('.li.wh');if(!r)return;const m=diveStartMin(S.cur),b=r.querySelector('.tx b');if(!b||m==null)return;const n=RES[S.cur]&&dive().pts.length>1?RES[S.cur].N/60:0;
+  const mv=WROW&&(EY!==Y||EM!==M||ED!==D)?' · '+EM+'/'+ED+(LANG==='en'?' (move)':LANG==='ja'?'へ移動':'로 옮김'):'';b.textContent=hhmm(m)+(n?' → '+hhmm(m+n):'')+mv;}
+// 휠을 넣을 줄: 수정 중인 저장 다이빙 줄, 아니면 지금 다이빙의 점선(저장 전) 줄
+function wheelRow(){const ll=$('logList');if(view!=='ed'||!PLAN)return null;
+  if(EDIT&&EDIT.id===CUR&&EDIT.i===S.cur){const r=ll.querySelector(`.li:not(.draft)[data-id="${CUR}"][data-i="${S.cur}"]`);if(r){r.classList.add('editing');return r;}}
+  return ll.querySelector(`.li.draft:not(.other)[data-di="${S.cur}"]`);}
+function attachWheels(){const lw=document.querySelector('.lwheels');if(!lw)return;const r=wheelRow();WROW=!!r;if(!r){$('lwHold').appendChild(lw);WKEY='';return;}
+  const k=(CUR||'new')+':'+S.cur+':'+(EDIT?1:0)+':'+ymd();if(k!==WKEY){WKEY=k;EY=Y;EM=M;ED=D;}
+  r.classList.add('wh');r.insertBefore(lw,r.firstChild);renderWheels();updWRow();}
 // 시간 휠로 같은 날 다른 시각을 고르면:
 //  · 저장된 다른 다이빙 시간 안 → 그 다이빙을 엶(지금 보는 다이빙 안이면 예전처럼 시작 시각 조정)
 //  · 어떤 로그의 마지막 다이빙이 끝난 뒤 → 그 로그에 빈 '다이빙 N'을 붙임(수면 휴식 = 앞 다이빙 끝 ~ 고른 시각). 저장하면 그 로그에 다이빙이 이어짐
@@ -2009,14 +2029,15 @@ function renderCal(){const a=load(),t=L();requestAnimationFrame(fitCalTitle);if(
     if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');applyLog(f.id,true);return;}
     /* 로그 없는 날: 보던 로그를 비우고 새 로그(빈 점선 줄)로 */view='ed';dayChanged();const n=new Date();T=n.getHours()*60+n.getMinutes();S.start=T;drawProfile();show('ed');});}
 // --- 편집(휠)
-function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));
+function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));const [Y,M,D]=WROW?[EY,EM,ED]:[Y0(),M0(),D0()];
   wM.set(Array.from({length:12},(_,i)=>({h:LANG==='en'?String(i+1):`${i+1}<small>${LANG==='ja'?'月':'월'}</small>`,has:a.some(x=>x.date.startsWith(Y+'-'+pad(i+1)+'-'))})),M-1);
   const nd=new Date(Y,M,0).getDate();wD.set(Array.from({length:nd},(_,i)=>{const d=i+1,wd=new Date(Y,M-1,d).getDay();return {h:`<span class="${wd===0?'sun':wd===6?'sat':''}">${d}</span><small class="${wd===0?'sun':wd===6?'sat':''}">${t.wd[wd]}</small>`,has:dates.has(Y+'-'+pad(M)+'-'+pad(d))};}),D-1);
   const starts=[];dayLogs().forEach(x=>rowsOf(x).forEach(r=>{if(r.st!=null)starts.push(Math.floor(r.st)%1440);}));
   const c=curMin();HI=Math.floor(c/60);MI=c%60;const hs=LANG==='ko'?'시':LANG==='ja'?'時':'h',ms=LANG==='ko'?'분':LANG==='ja'?'分':'m';
   wH.set(Array.from({length:24},(_,h)=>({h:`${pad(h)}<small>${hs}</small>`,has:starts.some(v=>Math.floor(v/60)===h)})),HI);
   wMi.set(Array.from({length:60},(_,m)=>({h:`${pad(m)}<small>${ms}</small>`,has:starts.some(v=>v===HI*60+m)})),MI);
-  const wd=new Date(Y,M-1,D).getDay();$('edTitle').textContent=t.ed(Y,M,D,t.wd[wd]);$('edYM').textContent=ymdW();renderLogSum();}
+  const wd=new Date(Y0(),M0()-1,D0()).getDay();$('edTitle').textContent=t.ed(Y0(),M0(),D0(),t.wd[wd]);$('edYM').textContent=ymdW();renderLogSum();}
+function Y0(){return Y;}function M0(){return M;}function D0(){return D;}
 function dayLogs(){return load().filter(x=>x.date===ymd()).sort((p,q)=>(p.time||'').localeCompare(q.time||''));}
 // 휠로 다른 날짜로 가면: 로그 없는 날 = 빈 다이빙 1(빈 점선 줄 하나)에서 시작, 저장하면 그 날짜·시각의 새 로그 / 로그 있는 날 = 그 날 첫 로그
 function dayChanged(){stash();dropDR(ymd());SDATE=ymd();CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;$('logMemo').value='';renderPh();
@@ -2025,12 +2046,12 @@ function dayChanged(){stash();dropDR(ymd());SDATE=ymd();CUR=null;S.dives=[newDiv
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();}
 function rowsOf(x){const st=tmin(x.time),dv=(x.sum&&x.sum.dv&&x.sum.dv.length)?x.sum.dv:[{N:x.sum.N0,maxD:x.sum.maxD,si:0}];let m=st;
   return dv.map((d,i)=>{if(i>0&&m!=null)m+=dv[i-1].N/60+d.si;return {i,st:m,N:d.N,maxD:d.maxD};});}
-function renderList(){const t=L(),a=dayLogs(),items=[];
+function renderList(){if(WBUSY){updWRow();return;}if(EDIT&&!(EDIT.id===CUR&&EDIT.i===S.cur))EDIT=null;const t=L(),a=dayLogs(),items=[];{const lw=document.querySelector('.lwheels');if(lw&&$('lwHold'))$('lwHold').appendChild(lw);}
   a.forEach(x=>{const rows=rowsOf(x),multi=rows.length>1||(view==='ed'&&x.id===CUR&&S.dives.length>1);
     rows.forEach(r=>{items.push({st:r.st,h:(()=>{const clock=r.st!=null?`${hhmm(r.st)} → ${hhmm(r.st+r.N/60)}`:'';
       const meta=[(multi?(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,x.sum.gas].filter(Boolean).join(' · ');
       const sel=PLAN?(x.id===CUR&&r.i===S.cur):!!(PRESEL&&x.id===PRESEL.id&&r.i===PRESEL.i);/* 로그북 들어오는 중(뒤집기 전)엔 들어갈 로그를 미리 선택 표시 */
-      return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${(m1=>m1?'<div class="mm">'+m1+'</div>':'')(diveMemo(x,r.i).split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,''))}</div><button class="dlog" data-id="${x.id}" data-i="${r.i}">${LANG==='en'?'Data log':LANG==='ja'?'データログ':'데이터 로그'}</button><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;})()});});});
+      return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${(m1=>m1?'<div class="mm">'+m1+'</div>':'')(diveMemo(x,r.i).split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,''))}</div><button class="edb" data-id="${x.id}" data-i="${r.i}">${EDIT&&EDIT.id===x.id&&EDIT.i===r.i?(LANG==='en'?'Done':LANG==='ja'?'完了':'완료'):(LANG==='en'?'Edit':LANG==='ja'?'編集':'수정')}</button><button class="dlog" data-id="${x.id}" data-i="${r.i}">${LANG==='en'?'Data log':LANG==='ja'?'データログ':'데이터 로그'}</button><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;})()});});});
   // 저장 전 다이빙도 점선 줄로 미리 보여 줌: 저장된 로그에 새로 붙인 다이빙, 또는 아직 저장 안 한 새 로그의 다이빙
   if(view==='ed'&&PLAN){/* 플래너 그림은 날짜가 없으니 로그 목록에 내지 않음 */const sv=CUR?load().find(v=>v.id===CUR):null,n0=sv?((sv.state&&sv.state.dives)||[]).length:0,multi=S.dives.length>1,gas=S.o2<=21?tr('sAir'):'EAN'+S.o2,dn=LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ',pend=LANG==='en'?'not saved':LANG==='ja'?'未保存':'저장 전';
     let blank=false;
@@ -2048,9 +2069,9 @@ function renderList(){const t=L(),a=dayLogs(),items=[];
         else if(d.pts.length>1){const mx=Math.max(...d.pts.map(q=>q.d));items.push({st,h:`<div class="li draft other" data-k="${k}" data-di="${i}"><div class="tx"><b>${hhmm(st)} → ${hhmm(st+dur)}</b><div class="mm">${[(P.dives.length>1?dn+(i+1):''),R1(mx)+'m',Math.round(dur)+t.min,pend].filter(Boolean).join(' · ')}</div></div></div>`});}
         st+=dur;});});}
   items.sort((p,q)=>(p.st==null?1e9:p.st)-(q.st==null?1e9:q.st));
-  $('logList').innerHTML='<div class="llIn">'+items.map(v=>v.h).join('')+'</div>';requestAnimationFrame(partFit);
+  $('logList').innerHTML='<div class="llIn">'+items.map(v=>v.h).join('')+'</div>';attachWheels();requestAnimationFrame(partFit);
   $('logList').querySelectorAll('.li.draft.other').forEach(el=>el.onclick=e=>{e.stopPropagation();const k=el.dataset.k,i=+el.dataset.di;if(k==='new')openNewDraft(i);else applyLog(k,true,i);});
-  $('logList').querySelectorAll('.li.draft:not(.ph):not(.other)').forEach(el=>el.onclick=()=>{S.cur=+el.dataset.di;if(typeof renderTabs==='function')renderTabs();syncForm();recompute();});
+  $('logList').querySelectorAll('.li.draft:not(.ph):not(.other)').forEach(el=>el.onclick=e=>{if(e.target.closest('.lwheels'))return;S.cur=+el.dataset.di;if(typeof renderTabs==='function')renderTabs();syncForm();recompute();});
   $('logList').querySelectorAll('.mapb').forEach(b=>b.onclick=async e=>{e.stopPropagation();const x=load().find(v=>v.id===b.dataset.id);if(!x||!window.__locOf)return;const memo=diveMemo(x,+b.dataset.i)||'';
     const loc=await window.__locOf(memo);if(!loc){toast(LANG==='en'?'Location not found':LANG==='ja'?'場所が見つかりません':'위치를 찾지 못했어요');return;}
     const pl=(memo.split('\n').map(l=>l.trim()).find(l=>/^(?:장소|포인트|위치|place|point|location|場所|位置|ポイント)\s*[:：]/i.test(l))||'').replace(/^[^:：]*[:：]\s*/,'');const id=x.id,di=+b.dataset.i;
@@ -2058,7 +2079,8 @@ function renderList(){const t=L(),a=dayLogs(),items=[];
       if(v.state&&v.state.dives&&v.state.dives[di])v.state.dives[di].memo=nm;else if(di===0)v.memo=nm;if(di===0&&v.memo!=null&&v.state)v.memo=nm;store(a);
       if(CUR===id&&S.dives[di]){S.dives[di].memo=nm;if(S.cur===di)$('logMemo').value=nm;}if(typeof refreshSave==='function')refreshSave();});});
   $('logList').querySelectorAll('.dlog').forEach(b=>b.onclick=async e=>{e.stopPropagation();applyLog(b.dataset.id,false,+b.dataset.i||0);await new Promise(r=>setTimeout(r,60));window.__dataSnap&&window.__dataSnap(null);});
-  $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>el.onclick=e=>{if(e.target.closest('.del,.dlog,.mapb'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
+  $('logList').querySelectorAll('.edb').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.id,i=+b.dataset.i||0;if(EDIT&&EDIT.id===id&&EDIT.i===i){EDIT=null;renderList();return;}if(CUR!==id||S.cur!==i)applyLog(id,true,i);EDIT={id,i};renderList();});
+  $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>el.onclick=e=>{if(e.target.closest('.del,.dlog,.mapb,.edb,.lwheels'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();askDel().then(ok=>{if(ok)delRow(b.dataset.id,+b.dataset.i||0);});});
   curMemoSync();if(view==='ed')syncTW();
   refreshSave();}
@@ -2175,7 +2197,7 @@ function cmpKey(x){const st=x.state||{};const c={d:(st.dives||[]).map((d,i)=>({p
 const ST=()=>S.start!=null?Math.round(S.start):T;
 function curRec(){return {date:ymd(),time:hhmm(ST()),memo:'',state:snapState()};}
 function conflicts(exceptId){const s1=ST(),e1=s1+Math.max(1,curSpan());return load().filter(x=>{if(x.id===exceptId||x.date!==ymd())return false;const s2=tmin(x.time);if(s2==null)return false;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return s1===s2||(s1<e2&&s2<e1);});}
-function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasPlan=S.dives.some(d=>d.pts.length>1);const same=load().some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||same;$('logSave').title=same?t.same:'';}
+function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasPlan=S.dives.some(d=>d.pts.length>1);const same=load().some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||(same&&!(WROW&&(EY!==Y||EM!==M||ED!==D)));/* 휠로 날짜만 바꿔도 저장 가능 */$('logSave').title=same?t.same:'';}
 const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (d&&d.memo!=null)?d.memo:(i===0?(x.memo||''):'');};
 // 처음 한 번: 기존 로그를 날짜별로 합침(합치기 전 전체를 scuba_logs_bak_merge에 백업, 백업 못 하면 합치지 않음)
 (function(){try{if(localStorage.getItem('scuba_merge_v1'))return;const raw=localStorage.getItem(KEY)||'[]';let a=JSON.parse(raw);if(!Array.isArray(a)||!a.length){localStorage.setItem('scuba_merge_v1','1');return;}
@@ -2196,7 +2218,7 @@ function dropDR(date){if(DR.date!==date)DR={date,m:{}};}
 function refreshAll(){$('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();}
 // 보관해 둔 '새 로그(아직 저장 안 함)' 열기
 function openNewDraft(i){stash();const d=DR.m.new;if(!d)return;CUR=null;putS(d.s);S.mode='none';S.cur=Math.min(i||0,S.dives.length-1);SDATE=DR.date;refreshAll();}
-function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;const st=x.state;stash();dropDR(x.date);SDATE=x.date;
+function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;if(EDIT&&!(EDIT.id===id&&EDIT.i===(di||0)))EDIT=null;const st=x.state;stash();dropDR(x.date);SDATE=x.date;
   if(DR.m[id]){CUR=id;putS(DR.m[id].s);S.mode='none';S.cur=Math.min(di||0,S.dives.length-1);refreshAll();return;}
   S.mode='none';
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
@@ -2256,7 +2278,16 @@ function partSlide(from){const ll=$('logList'),inn=ll.querySelector('.llIn');par
   ll.classList.add('sliding');const an=inn.animate([{transform:`translateY(${-from+10}px)`},{transform:`translateY(${-c.offsetTop+10}px)`}],{duration:480,easing:'cubic-bezier(.65,0,.35,1)'});an.onfinish=an.oncancel=()=>ll.classList.remove('sliding');}
 $('edPrev').onclick=()=>goLogDate(-1);$('edNext').onclick=()=>goLogDate(1);
 
+// 휠에서 날짜를 바꾼 채 저장: 새 로그면 그 날짜로 저장, 저장된 기록의 다이빙이면 그 다이빙만 떼어 그 날짜 기록으로 옮김(그날과 합침)
+function moveSave(){const tgt=EY+'-'+pad(EM)+'-'+pad(ED);if(!CUR){Y=EY;M=EM;D=ED;WKEY='';return false;}
+  const t=L(),i=S.cur,d0=JSON.parse(JSON.stringify(snapState().dives[i])),st0=diveStartMin(i);if(!d0||d0.pts.length<2||st0==null)return false;
+  if(S.dives.length>1)removeDiveAt(i);else{store(load().filter(v=>v.id!==CUR));}
+  const keys=Object.fromEntries(KEYS.map(k=>[k,S[k]]));CUR=null;S.dives=[Object.assign(newDive(),d0,{si:60})];S.cur=0;S.start=Math.round(st0);T=S.start;recompute();
+  const a=load();if(a.length>=MAX){msg(t.full,true);return true;}const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  a.push({id,date:tgt,time:hhmm(S.start),memo:'',saved:Date.now(),state:Object.assign({dives:snapState().dives},keys),sum:summary()});if(!store(a)){msg(t.fail,true);return true;}
+  const mg=mergeDayStore(tgt,id,0),[yy,mm,dd]=tgt.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;EDIT=null;WKEY='';DR={date:null,m:{}};SDATE=null;/* 옮긴 다이빙이 '저장 전' 유령 줄로 보관되지 않게 */applyLog(mg?mg.id:id,true,mg?mg.i:0);renderSum();flash($('logSave'));return true;}
 $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t.empty,true);return;}
+  if(WROW&&(EY!==Y||EM!==M||ED!==D)&&moveSave())return;EDIT=null;
   const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6),st=ST();S.start=st;
   a.push({id,date:ymd(),time:hhmm(st),memo:'',saved:Date.now(),state:snapState(),sum:summary()});
