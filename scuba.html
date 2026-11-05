@@ -1994,7 +1994,7 @@ function logModeTime(tw){if(wMoved()){/* 다른 날짜로 옮기는 중: 같은 
   if(t2!==tw){const f=wTops();renderWheels();spinFrom(f);}refreshSave();updWRow();}
 // 휠이 든 줄의 시각 글자만 바꿈(목록 전체를 다시 그리면 돌리던 휠이 끊기므로)
 function updWRow(){const r=$('logList').querySelector('.li.wh');if(!r)return;const m=MVT!=null&&wMoved()?MVT:diveStartMin(S.cur),b=r.querySelector('.tx b');if(!b||m==null)return;const n=RES[S.cur]&&dive().pts.length>1?RES[S.cur].N/60:0;
-  b.textContent=hhmm(m)+(n?' → '+hhmm(m+n):'');}
+  b.textContent=hhmm(m);/* 수정 중(휠 든 줄)은 입수 시각만: 휠로 정하는 값 */}
 // 휠을 넣을 줄: 수정 중인 저장 다이빙 줄, 아니면 지금 다이빙의 점선(저장 전) 줄
 function wheelRow(){const ll=$('logList');if(view!=='ed'||!PLAN)return null;
   if(EDIT&&EDIT.id===CUR&&EDIT.i===S.cur){const r=ll.querySelector(`.li:not(.draft)[data-id="${CUR}"][data-i="${S.cur}"]`);if(r){r.classList.add('editing');return r;}}
