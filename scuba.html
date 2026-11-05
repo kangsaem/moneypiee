@@ -865,13 +865,13 @@ function drawProfile(){
   cx.fillStyle='rgba(0,0,0,.12)';{const R=!window.SNAP&&GM.box,h3=Y(DMAX)-Y(30);if(R){if(R.x0>G.L)cx.fillRect(G.L,Y(30),R.x0-G.L,h3);if(R.x1<G.L+G.W)cx.fillRect(R.x1,Y(30),G.L+G.W-R.x1,h3);}else cx.fillRect(G.L,Y(30),G.W,h3);}
   cx.font='700 16px sans-serif';cx.fillStyle=DK?'rgba(255,255,255,.22)':'rgba(31,35,40,.16)';cx.textAlign='center';cx.textBaseline='middle';
   if(!window.SNAP){const R=GM.box,onMap=(x,y)=>R&&x>=R.x0-16&&x<=R.x1&&y>=R.y0&&y<=R.y1;/* 지도 위에 걸리면 안 씀 */if(!onMap(X(1200),Y(15)))cx.fillText('OW',X(1200),Y(15));if(!onMap(X(1800),Y(25)))cx.fillText('AD',X(1800),Y(25));}
-  // 흰 선 아래 그림자: 선 바로 아래 흰색 25% → 바닥(40m) 0%. 기기 픽셀 열마다 선 높이에서 시작(줄무늬 없게), 경로·크기가 같으면 캐시 재사용
+  // 흰 선 아래 그림자: 선 바로 아래 검정 35% → 바닥(40m) 0%. 기기 픽셀 열마다 선 높이에서 시작(줄무늬 없게), 경로·크기가 같으면 캐시 재사용
   if(DK&&dv.pts.length>1){const P0=dv.pts,dp=(window.devicePixelRatio||1)*FS,x0=G.L,y0=G.T,w=Math.round(G.W*dp),h=Math.round(G.H*dp),key=w+'x'+h+'|'+DMAX+'|'+TMAX+'|'+P0.map(q=>q.t+','+q.d).join(';');
     let C=window.__shd;if(!C||C.key!==key){const c=document.createElement('canvas');c.width=w;c.height=h;const q=c.getContext('2d'),im=q.createImageData(w,h),px=im.data;let j=0;
       for(let i=0;i<w;i++){const t=(i+.5)/dp/G.W*TMAX;if(t<P0[0].t||t>P0[P0.length-1].t)continue;while(j<P0.length-2&&P0[j+1].t<t)j++;const A=P0[j],B=P0[j+1],u=B.t>A.t?Math.max(0,Math.min(1,(t-A.t)/(B.t-A.t))):0,yl=(A.d+(B.d-A.d)*u)/DMAX*h,span=h-yl;if(span<1)continue;
-        for(let y=Math.max(0,Math.ceil(yl));y<h;y++){const k=(y*w+i)*4;px[k]=px[k+1]=px[k+2]=255;px[k+3]=Math.round(64*(1-(y-yl)/span));}}
+        for(let y=Math.max(0,Math.ceil(yl));y<h;y++){const k=(y*w+i)*4;px[k+3]=Math.round(89*(1-(y-yl)/span));/* 검정, 35% → 0 */}}
       q.putImageData(im,0,0);C=window.__shd={key,c};}
-    cx.drawImage(C.c,x0,y0,G.W,G.H);}
+    {const M=GM.box;cx.save();if(M){/* 지도 위에는 안 그림 */cx.beginPath();cx.rect(G.L,G.T,Math.max(0,M.x0-G.L),G.H);cx.rect(M.x1,G.T,Math.max(0,G.L+G.W-M.x1),G.H);cx.clip();}cx.drawImage(C.c,x0,y0,G.W,G.H);cx.restore();}}
   if(r){
     if(r.ceil5.some(v=>v>0)){
       cx.beginPath();cx.moveTo(X(0),Y(0));
