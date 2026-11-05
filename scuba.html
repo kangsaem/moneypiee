@@ -101,7 +101,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .cal .d{position:relative;padding:7px 0 9px;border-radius:5px;cursor:pointer;font-variant-numeric:tabular-nums}
 .cal .d:hover{background:#eef2f6}.cal .d.today{box-shadow:inset 0 0 0 1.5px #9ca3af}
 .cal .d.has{font-weight:800;background:rgba(255,255,255,.72)}
-.cal .e{visibility:hidden}.cal .d.oth{opacity:.55}#logEdV.part .lwrap{display:none}.edYM{display:none;align-self:center;font-size:15px;margin-left:6px;white-space:nowrap}#logEdV.part .edYM{display:inline}.logHint{margin-top:6px;font-size:12px;color:var(--mute);text-align:center}
+.cal .e{visibility:hidden}.cal .d.oth{opacity:.55}#logEdV.part .lwrap{display:none}.edYM{display:none;align-self:center;font-size:15px;margin-left:6px;white-space:nowrap}#logEdV.part .edYM{display:inline-block;overflow:hidden;height:1.3em;line-height:1.3em;vertical-align:middle}.edYM .ymIn{display:flex;flex-direction:column}.edYM .ymIn>span{height:1.3em;white-space:nowrap}.logHint{margin-top:6px;font-size:12px;color:var(--mute);text-align:center}
 .lwrap{display:grid;grid-template-columns:3fr 2fr;gap:8px;height:200px}
 .lwheels{position:relative;display:grid;grid-template-columns:1.1fr 1fr .9fr .9fr;gap:0;border-radius:8px;overflow:hidden}.lwheels::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:3;border-radius:8px;box-shadow:inset 0 0 0 1.5px #fff;background:linear-gradient(rgba(37,99,235,.42),rgba(37,99,235,0) 30%,rgba(37,99,235,0) 70%,rgba(37,99,235,.42))}/* 휠 전체 = 흰 테두리 둥근 사각형, 글자가 흐려지는 위·아래는 로그 줄 선택 그림자와 같은 파랑 그라데이션 */
 .lwheels .lw+.lw{box-shadow:inset 1px 0 0 rgba(15,42,61,.14),inset 7px 0 7px -7px rgba(15,42,61,.28)}
@@ -2300,9 +2300,13 @@ function goLogDate(dir){const t=L(),cur=ymd(),rows=dayRows(cur),k=rows.findIndex
   const ds=[...new Set(load().map(x=>x.date))].sort(),d=dir<0?ds.filter(x=>x<cur).pop():ds.find(x=>x>cur);
   if(!d){notePop(dir<0?t.noPrev:t.noNext,$('logList'));return;}/* 달력과 같은 빛 번짐 팝업 */
   const r2=dayRows(d),x=dir<0?r2[r2.length-1]:r2[0];
-  const [yy,mm,dd]=d.split('-').map(Number);const f0=[wM.top,wD.top,wH.top,wMi.top];Y=yy;M=mm;D=dd;vy=yy;vm=mm;applyLog(x.id,true,x.i);
+  const [yy,mm,dd]=d.split('-').map(Number);const f0=[wM.top,wD.top,wH.top,wMi.top],ym0=$('edYM').textContent;Y=yy;M=mm;D=dd;vy=yy;vm=mm;applyLog(x.id,true,x.i);slideYM(ym0,dir);
   // 월·일·시각 휠을 이전 위치에서 새 위치까지 가속하며 돌림
   requestAnimationFrame(()=>requestAnimationFrame(()=>{wM.spin(f0[0]);wD.spin(f0[1]);wH.spin(f0[2]);wMi.spin(f0[3]);}));}
+// 반접기 머리의 날짜: 다른 날짜로 가면 로그 줄처럼 가속·감속하며 위아래로 밀려 바뀜(이전 = 위에서 내려옴, 다음 = 아래에서 올라옴). 멀리 있는 날짜도 한 칸 밀기
+function slideYM(old,dir){const el=$('edYM'),nw=el.textContent;if(!old||old===nw||!el.animate||!(LBF===1&&view==='ed'))return;const esc=t=>t.replace(/[<>&]/g,'');
+  el.innerHTML=`<span class="ymIn">${dir>0?`<span>${esc(old)}</span><span>${esc(nw)}</span>`:`<span>${esc(nw)}</span><span>${esc(old)}</span>`}</span>`;const inn=el.firstChild;
+  const an=inn.animate(dir>0?[{transform:'translateY(0)'},{transform:'translateY(-50%)'}]:[{transform:'translateY(-50%)'},{transform:'translateY(0)'}],{duration:480,easing:'cubic-bezier(.65,0,.35,1)'});an.onfinish=an.oncancel=()=>{el.textContent=nw;};}
 // 반접기: 선택한 줄 하나만 보이게(목록 안쪽 .llIn을 위아래로 옮김)
 function partTop(){const c=$('logList').querySelector('.li.cur');return c?c.offsetTop:null;}
 function partFit(){const ll=$('logList'),inn=ll.querySelector('.llIn'),part=LBF===1&&view==='ed';if(!inn)return;if(!part){ll.style.height='';inn.style.transform='';return;}
