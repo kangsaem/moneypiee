@@ -59,7 +59,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .notePop{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;background:#1b4277;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;white-space:nowrap;pointer-events:none;animation:noteK 1.8s ease-out forwards}
 #saveMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#saveMenu button{text-align:center;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#saveMenu button:first-child{background:#1b4277;color:#fff;font-weight:700}#saveMenu button:nth-child(2){background:#0ea5e9;color:#fff;font-weight:700}
 #snapMenu{position:absolute;z-index:150;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);min-width:130px}#snapMenu>button{text-align:center;padding:8px 10px;border:0;background:#f3f6fa;font-size:14px}#snapMenu>button:first-child{background:#1b4277;color:#fff;font-weight:700}#snapMenu>button.smPhoto{background:#0ea5e9;color:#fff;font-weight:700}#snapMenu>button.smPhoto:disabled{opacity:1;background:#e5e7eb;color:#9ca3af}#snapMenu>button:disabled{opacity:.4;cursor:default}#snapMenu .smList{display:flex;flex-direction:column;gap:6px;max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.55,0,1,.45)}#snapMenu .smList.open{padding-top:2px}#snapMenu .smPh{width:118px;height:118px;padding:0;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.28);border-radius:6px;background:#eef2f6 center/cover no-repeat;align-self:center;flex-shrink:0}
-#ldWarn{position:fixed;inset:0;z-index:180;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:18px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}#ldWarn .lwD{background:#E31B3F;color:#fff;border-color:#E31B3F;font-weight:700}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}
+#ldWarn{position:fixed;inset:0;z-index:180;background:rgba(10,25,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}#ldWarn .lwBox{background:#fff;border-radius:8px;padding:18px 16px 12px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}#ldWarn b{display:block;font-size:15px;margin-bottom:6px}#ldWarn p{margin:0 0 14px;font-size:13px;line-height:1.55;color:#374151}#ldWarn .lwBtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}#ldWarn .lwD{background:#E31B3F;color:#fff;border-color:#E31B3F;font-weight:700}#ldWarn .lwS{background:#1b4277;color:#fff;border-color:#1b4277;font-weight:700}#ldWarn .lwS:disabled{opacity:.55}#ldWarn .plBox{max-width:300px}#ldWarn .plSel,#ldWarn .plIn{width:100%;height:36px;box-sizing:border-box;font-size:15px;border:1px solid #d0d7de;border-radius:6px;background:#fff;color:#1f2328;padding:0 8px}#ldWarn .plBtns{justify-content:center;margin-top:16px}#ldWarn .plBtns button{min-width:84px}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:rgba(15,42,61,.95);color:#fff;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 #logCard,#tabsCard.lbMode{background:rgba(186,230,253,.92);border-color:#7dd3fc}
 /* 넓은 화면: 2배(780px~) = 위 그래프, 아래 왼쪽 나머지·오른쪽 질소막대/경고 / 3배(1170px~) = 왼쪽·가운데 그래프·오른쪽 3단 */
@@ -1798,6 +1798,28 @@ function plFromAddr(j){const a=(j&&j.address)||{};const loc=a.village||a.suburb|
   const parts=[];[loc,reg,cc].forEach(v=>{if(v&&!parts.includes(v))parts.push(v);});return parts.join(', ');}
 async function plFetch(url,key){try{const c=localStorage.getItem(key);if(c)return c;}catch(e){}
   try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),5000);const r=await fetch(url,{signal:ac.signal});clearTimeout(tm);if(!r.ok)return '';let j=await r.json();if(Array.isArray(j))j=j[0];const out=j?plFromAddr(j):'';if(out){try{localStorage.setItem(key,out);}catch(e){}}return out;}catch(e){return '';}}
+// OSM 다이빙 포인트(sport=scuba_diving, 이름 있음): GPS 1.5km 안에서 가장 가까운 것. 다이브 센터·가게는 뺌. 결과는 기기에 캐시
+async function osmSpot(g){const key='scuba_osmds_'+g.lat.toFixed(3)+','+g.lon.toFixed(3);try{const c=localStorage.getItem(key);if(c!=null)return c?JSON.parse(c):null;}catch(e){}
+  try{const q='[out:json][timeout:8];nwr(around:1500,'+g.lat.toFixed(5)+','+g.lon.toFixed(5)+')["sport"="scuba_diving"]["name"];out center 30;';
+    const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),8000);const r=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q),{signal:ac.signal});clearTimeout(tm);if(!r.ok)return null;
+    const j=await r.json(),R0=Math.PI/180,dist=(a,b,c,d)=>{const x=(d-b)*R0*Math.cos((a+c)/2*R0),y=(c-a)*R0;return Math.sqrt(x*x+y*y)*6371000;};
+    const el=(j.elements||[]).map(e=>{const t=e.tags||{},la=e.lat!=null?e.lat:(e.center&&e.center.lat),lo=e.lon!=null?e.lon:(e.center&&e.center.lon);return {t,la,lo};}).filter(e=>e.la!=null&&!e.t.amenity&&!e.t.shop&&!e.t.club&&!e.t.office)
+      .map(e=>({name:e.t['name:en']||e.t.name,spot:e.t['scuba_diving:divespot']?1:0,d:dist(g.lat,g.lon,e.la,e.lo)})).filter(e=>e.name).sort((p,q)=>(q.spot-p.spot)||(p.d-q.d));
+    const best=el[0]?{name:el[0].name,d:Math.round(el[0].d)}:null;try{localStorage.setItem(key,best?JSON.stringify(best):'');}catch(e){}return best;}catch(e){return null;}}
+// 포토 로그 지명 후보: 기억한 값 → 근처 다이빙 포인트(+주·나라) → GPS 주소 → 영어 검색/변환 → 메모 원문. 같은 건 하나만
+async function placeCands(m,d){const out=[],add=v=>{v=(v||'').trim();if(v&&!out.includes(v))out.push(v);};if(d&&d.pln)add(d.pln);
+  let g=memoGPS(m);if(!g)for(const x of S.dives){const g2=memoGPS((x&&x.memo)||'');if(g2){g=g2;break;}}
+  const [en,sp]=await Promise.all([placeEN(m),g?osmSpot(g):Promise.resolve(null)]);
+  if(sp&&sp.name){const tail=(en||'').split(',').map(x=>x.trim()).filter(Boolean).slice(-2);add([sp.name,...tail.filter(x=>x!==sp.name)].join(', '));}
+  add(en);const pp=pickPlace(m);if(pp.t)add(pp.t);return out;}
+// 포토 로그 만들기 전 지명 확인 팝업(앱 팝업 모양): 대표 하나가 보이는 선택창, 맨 아래 '직접 입력' → 그 자리에 입력 칸. [취소]/[저장] 가운데
+function askPlace(cands){return new Promise(ok=>{const T=LANG==='en'?{c:'Cancel',s:'Save',in:'Enter manually'}:LANG==='ja'?{c:'キャンセル',s:'保存',in:'直接入力'}:{c:'취소',s:'저장',in:'직접 입력'};
+  const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox plBox"><select class="plSel"></select><div class="lwBtns plBtns"><button class="lwC"></button><button class="lwD lwS"></button></div></div>';
+  const sel=ov.querySelector('.plSel'),esc=t=>t.replace(/[<>&"]/g,'');sel.innerHTML=cands.map((c,i)=>`<option value="${i}">${esc(c)}</option>`).join('')+`<option value="c">${T.in}</option>`;
+  let inp=null;const toInput=()=>{inp=document.createElement('input');inp.type='text';inp.className='plIn';inp.value=cands[0]||'';sel.replaceWith(inp);setTimeout(()=>{inp.focus();inp.select();},0);inp.onkeydown=e=>{if(e.key==='Enter')fin(true);};};
+  if(!cands.length)toInput();sel.onchange=()=>{if(sel.value==='c')toInput();};
+  const fin=v=>{if(v){const t=inp?inp.value.trim():cands[+sel.value];if(!t)return;ov.remove();ok(t);}else{ov.remove();ok(null);}};
+  ov.querySelector('.lwC').textContent=T.c;ov.querySelector('.lwS').textContent=T.s;ov.querySelector('.lwC').onclick=()=>fin(false);ov.querySelector('.lwS').onclick=()=>fin(true);ov.onclick=e=>{if(e.target===ov)fin(false);};document.body.appendChild(ov);});}
 async function placeEN(m){let g=memoGPS(m);const pp=pickPlace(m);
   if(!g)for(const d of S.dives){const g2=memoGPS((d&&d.memo)||'');if(g2){g=g2;break;}}
   if(g){const out=await plFetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=en&lat='+g.lat.toFixed(5)+'&lon='+g.lon.toFixed(5),'scuba_plEN_'+g.lat.toFixed(3)+','+g.lon.toFixed(3));if(out)return out;}
@@ -1839,7 +1861,7 @@ function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getCo
 // 스냅샷 버튼: 사진 없는 로그 → 바로 데이터 로그 / 사진 있으면 선택창(데이터 로그 + 사진 썸네일)
 // 스냅샷 버튼 → [데이터 로그] [포토 로그] 두 버튼. 포토 로그를 누르면 아래로 사진이 펼쳐짐(사진 없으면 비활성)
 btn.addEventListener('click',async()=>{let m=document.getElementById('snapMenu');if(m){m.remove();return;}
-  const d=S.dives[S.cur],ids=(window.__photo&&d&&d.ph)||[],memo=(d&&d.memo)||'';const plP=placeEN(memo);const imgs={};
+  const d=S.dives[S.cur],ids=(window.__photo&&d&&d.ph)||[],memo=(d&&d.memo)||'';const plP=placeCands(memo,d);const imgs={};
   ids.forEach(id=>{imgs[id]=window.__photo.get(id).then(o=>o?loadBlobImg(o.full):null).catch(()=>null);});
   const T=LANG==='en'?['Data log','Photo log']:LANG==='ja'?['データログ','フォトログ']:['데이터 로그','포토 로그'];
   m=document.createElement('div');m.id='snapMenu';
@@ -1848,7 +1870,7 @@ btn.addEventListener('click',async()=>{let m=document.getElementById('snapMenu')
   const list=document.createElement('div');list.className='smList';m.appendChild(list);
   b1.onclick=async e=>{e.stopPropagation();if(list.classList.contains('open')){list.style.maxHeight='0px';list.classList.remove('open');return;}
     if(!list.childElementCount){const th=await Promise.all(ids.map(id=>window.__photo.thumb(id)));ids.forEach((id,i)=>{if(!th[i])return;const p=document.createElement('button');p.className='smPh';p.style.backgroundImage=`url("${th[i]}")`;
-      p.onclick=async ev=>{ev.stopPropagation();m.remove();try{const [im,pl]=await Promise.all([imgs[id],plP]);if(!im)return;const el=photoSnap(im,pl);if(el)await shareCanvas(el,'photo');}catch(x){console.error(x);}};list.appendChild(p);});}
+      p.onclick=async ev=>{ev.stopPropagation();m.remove();try{const [im,cs]=await Promise.all([imgs[id],plP]);if(!im)return;const pl=await askPlace(cs);if(pl==null)return;/* 고른 지명은 이 다이빙에 기억(메모는 그대로) */const di=S.cur;if(window.__savePln)window.__savePln(di,pl);else d.pln=pl;const el=photoSnap(im,pl);if(el)await shareCanvas(el,'photo');}catch(x){console.error(x);}};list.appendChild(p);});}
     list.classList.add('open');list.style.maxHeight=list.scrollHeight+'px';};
   document.body.appendChild(m);const rc=btn.getBoundingClientRect(),mw=m.offsetWidth;m.style.left=Math.max(6,Math.min(innerWidth-mw-6,rc.left+rc.width/2-mw/2))+'px';m.style.top=(rc.bottom+window.scrollY+6)+'px';
   setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)){m.remove();document.removeEventListener('click',h);}}),0);});
@@ -2112,6 +2134,7 @@ function renderList(){if(WBUSY){updWRow();return;}if(EDIT&&!(EDIT.id===CUR&&EDIT
   refreshSave();}
 // 로그 줄 오른쪽 버튼: 저장된 줄 = [시간수정](누르면 휠, 버튼은 [완료]) → 메모·사진·시간을 바꾸면 [취소]/[저장](위·아래) / 저장 전 점선 줄 = 그래프가 있으면 [저장]
 // '현재 로그 저장' 버튼은 숨기고(#logSave), 줄의 [저장]이 '저장하시겠습니까?' 확인 뒤 같은 저장을 부름
+window.__savePln=(i,v)=>{const d=S.dives[i];if(d)d.pln=v||undefined;if(!CUR)return;const a=load(),x=a.find(r=>r.id===CUR);if(x&&x.state&&x.state.dives&&x.state.dives[i]){x.state.dives[i].pln=v||undefined;store(a);}};/* 포토 로그 지명: 메모와 따로, 바로 저장(수정 표시 안 남김) */
 function updRowBtns(){const ll=$('logList');if(!ll||view!=='ed')return;const T4=LANG==='en'?['Edit','Done','Save']:LANG==='ja'?['編集','完了','保存']:['수정','완료','저장'];
   const moved=WROW&&(EY!==Y||EM!==M||ED!==D);let dirty=null;const isD=()=>dirty==null?(dirty=!!(PLAN&&(isDirty()||moved))):dirty;
   ll.querySelectorAll('.rb').forEach(rb=>{const row=rb.closest('.li');if(!row)return;const saved=!row.classList.contains('draft'),id=row.dataset.id,i=+row.dataset.i||0,cur=saved?(id===CUR&&i===S.cur):(+row.dataset.di===S.cur);let h='';
@@ -2206,7 +2229,7 @@ let FTHOME=null;setTimeout(()=>{try{relayout();}catch(e){}},0);
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());window.matchMedia('(min-width:1170px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
 let LASTO=false,PLAN=null,LOGST=null,FIRSTIN=false,WSPUN=false,PRESEL=null;
-const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[],fit:d.fit||undefined,cfg:d.cfg||undefined}))),cur:S.cur,start:S.start,T,mode:S.mode});
+const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[],fit:d.fit||undefined,cfg:d.cfg||undefined,pln:d.pln||undefined}))),cur:S.cur,start:S.start,T,mode:S.mode});
 const putS=P=>{KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;if(P.mode)S.mode=P.mode;};
 function flipSwap(fn){const el=document.getElementById('tabsCard');if(!el){fn();return;}el.classList.remove('flipIn','flipOut');void el.offsetWidth;el.classList.add('flipOut');
   setTimeout(()=>{fn();el.classList.remove('flipOut');void el.offsetWidth;el.classList.add('flipIn');setTimeout(()=>el.classList.remove('flipIn'),380);},300);}
@@ -2253,7 +2276,7 @@ const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (
   a.forEach(x=>{if(x.src==='fit'&&x.state&&x.state.dives)x.state.dives.forEach((d,i)=>{if(!d.fit&&isFitMemo(diveMemo(x,i)))d.fit=true;});});
   [...new Set(a.map(x=>x.date))].forEach(dt=>{a=mergeDayArr(a,dt).a;});if(store(a)){localStorage.setItem('scuba_merge_v1','1');localStorage.setItem('scuba_merge_v2','1');}}catch(e){}})();
 function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';renderPh();}
-function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,10):undefined,fit:d.fit||undefined,cfg:d.cfg?Object.assign({},d.cfg):undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
+function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,10):undefined,fit:d.fit||undefined,cfg:d.cfg?Object.assign({},d.cfg):undefined,pln:d.pln||undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
 // ===== 같은 날짜 안의 저장 안 한 작업 보관 =====
 // 다른 로그를 열기 전에 지금 작업(그래프·메모·사진·덧붙인 다이빙)을 날짜별로 보관, 같은 날 다시 열면 그대로 복원. 날짜가 바뀌면 버림
 let DR={date:null,m:{}},SDATE=null;
@@ -2270,7 +2293,7 @@ function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;if
   if(DR.m[id]){CUR=id;putS(DR.m[id].s);S.mode='none';S.cur=Math.min(di||0,S.dives.length-1);refreshAll();return;}
   S.mode='none';
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
-  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,10):[],fit:d.fit||undefined,cfg:d.cfg?Object.assign({},d.cfg):Object.fromEntries(KEYS.filter(k=>k in st).map(k=>[k,st[k]]))}));S.cur=Math.min(di||0,S.dives.length-1);
+  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,10):[],fit:d.fit||undefined,cfg:d.cfg?Object.assign({},d.cfg):Object.fromEntries(KEYS.filter(k=>k in st).map(k=>[k,st[k]])),pln:d.pln||undefined}));S.cur=Math.min(di||0,S.dives.length-1);
   const tm=tmin(x.time);if(tm!=null){T=Math.floor(tm/10)*10%1440;S.start=tm;}else S.start=null;
   CUR=id;$('logMemo').value=S.dives[S.cur].memo||'';renderPh();
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
