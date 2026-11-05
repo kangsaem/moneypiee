@@ -7807,7 +7807,7 @@ async function anFetchNaver(code, years){
   return anFromMap(map);
 }
 
-// 가장 최근 장 마감 시각(ms). KR = 평일 20:05 KST, US = 화~토 07:00 KST (미장 마감 후)
+// 가장 최근 시세 다시 받는 시점(ms). KR = 평일 20:05 KST, US = 뉴욕 평일 16:15·17:00 (서머타임 반영, 2026-11-05)
 // 국장 '오늘 종가'가 확정된 날짜(평일 20:00 이후면 오늘, 아니면 null — 2026-10-14)
 function anKrToday(){
   const k = new Date(Date.now() + 9 * 3600e3), hm = k.getUTCHours() * 100 + k.getUTCMinutes(), dow = k.getUTCDay();
@@ -7826,8 +7826,34 @@ function anCrash(snap, msig){
   return { on: why.length > 0, why };
 }
 
+// 뉴욕 현지 날짜·시각 → UTC ms (서머타임 자동: 브라우저 시간대 자료로 두 번 보정)
+function anNyWallMs(y, mo, d, h, mi){
+  const want = Date.UTC(y, mo - 1, d, h, mi);
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  let t = want + 5 * 3600e3;
+  for(let i = 0; i < 2; i++){
+    const o = {}; fmt.formatToParts(new Date(t)).forEach(p => o[p.type] = p.value);
+    t += want - Date.UTC(+o.year, +o.month - 1, +o.day, +o.hour, +o.minute);
+  }
+  return t;
+}
+// 미장 시세 다시 받는 시점 = 뉴욕 평일 16:15(마감 뒤 1차) · 17:00(야후 갱신 지연 대비 2차) — 2026-11-05 (옛 기준 KST 07:00 고정은 겨울 06:00~07:00에 전날 봉을 씀)
+const AN_US_REFETCH = [[16, 15], [17, 0]];
+function anUsLastRefetch(now){
+  for(let back = 0; back < 10; back++){
+    const ny = new Date(now - 5 * 3600e3 - back * 864e5);   // 뉴욕 날짜 근사(아래에서 정확한 시각으로 비교)
+    const y = ny.getUTCFullYear(), mo = ny.getUTCMonth() + 1, d = ny.getUTCDate(), dow = new Date(Date.UTC(y, mo - 1, d)).getUTCDay();
+    if(dow < 1 || dow > 5) continue;
+    for(let i = AN_US_REFETCH.length - 1; i >= 0; i--){
+      const t = anNyWallMs(y, mo, d, AN_US_REFETCH[i][0], AN_US_REFETCH[i][1]);
+      if(t <= now) return t;
+    }
+  }
+  return 0;
+}
 function anLastClose(market){
   const now = Date.now(), KST = 9 * 3600e3;
+  if(market === 'US') return anUsLastRefetch(now);
   for(let back = 0; back < 10; back++){
     const k = new Date(now + KST - back * 864e5), dow = k.getUTCDay();
     const ok = market === 'KR' ? (dow >= 1 && dow <= 5) : (dow >= 2 && dow <= 6);
