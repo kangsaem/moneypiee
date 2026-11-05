@@ -136,7 +136,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .logList .li .tx{flex:1;min-width:0}.logList .li .tx b{font-variant-numeric:tabular-nums}.logList .li .mm{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .logList .li.cur{border-color:rgba(37,99,235,.75);box-shadow:0 0 0 1px rgba(37,99,235,.55),0 0 12px 3px rgba(37,99,235,.5)}/* 달력 날짜 강조와 비슷하게 보이도록(넓은 줄은 같은 값이면 옅어 보여서 조금 진하게) */#logWrap>div{padding:0 12px;margin:0 -12px}/* 그림자가 카드 좌우 여백까지 보이게(잘리지 않게) *//* 선택 = 그림자처럼 부드러운 외곽 */.logList .li.draft{border:1.5px dashed #94a3b8;background:rgba(255,255,255,.5);color:#6b7280;padding:7.5px 9.5px}.logList .li.draft.cur{border-color:rgba(37,99,235,.65);box-shadow:0 0 10px 2px rgba(37,99,235,.45)}.logList .li.draft.empty{min-height:48px;box-sizing:border-box}.logList .li.edited{border-style:dashed}.logList .li .edT{font-weight:400;font-size:12px;color:#b45309}#logMemo:focus{outline:none}/* 메모는 선택 테두리 없음 */
 .logList .li .del{padding:4px 9px;font-size:12px;font-weight:700;color:#fff;background:#E31B3F;border-color:#E31B3F}.logList .li .dlog{padding:4px 9px;font-size:12px;font-weight:700;color:#fff;background:#1b4277;border-color:#1b4277;margin-right:-4px;white-space:nowrap}.logList .none{color:var(--mute);font-size:13px}
-.logForm{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:10px;font-size:13px}
+.logForm{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:10px;font-size:13px}#logEdV .logForm:has(.logMsg:empty){display:none}#logEdV .logForm{margin-top:4px}/* 저장 버튼이 없어져 빈 줄 → 알림 글이 있을 때만 */
 .logForm input[type=text]{flex:1;min-width:140px;padding:5px 8px}.logForm .pri{background:#1b4277;color:#fff;border-color:#1b4277}
 .logForm .pri{justify-self:start}.logForm button{white-space:nowrap}.logForm .logMsg{grid-column:1/-1}
 .logMsg{font-size:12px;color:#0f9d7a}
@@ -2135,7 +2135,7 @@ function renderList(){if(WBUSY){updWRow();return;}if(EDIT&&!(EDIT.id===CUR&&EDIT
   $('logList').querySelectorAll('.dlog').forEach(b=>b.onclick=async e=>{e.stopPropagation();applyLog(b.dataset.id,false,+b.dataset.i||0);await new Promise(r=>setTimeout(r,60));window.__dataSnap&&window.__dataSnap(null);});
   updRowBtns();
   $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>{el.onclick=e=>{if(e.target.closest('.del,.dlog,.mapb,.rb,.lwheels'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);};
-    el.ondblclick=e=>{if(e.target.closest('.del,.dlog,.mapb,.rb,.lwheels'))return;/* 두 번 빠르게 = 수정 */const id=el.dataset.id,i=+el.dataset.i||0;if(CUR!==id||S.cur!==i)applyLog(id,true,i);EDIT={id,i};renderList();};});
+    el.ondblclick=e=>{if(e.target.closest('.del,.dlog,.mapb,.rb,.lwheels'))return;/* 두 번 빠르게 = 그 로그 줄 하나 보기(반접기) */const id=el.dataset.id,i=+el.dataset.i||0;if(CUR!==id||S.cur!==i)applyLog(id,true,i);if(LBF!==1){LBF=1;applyLBF(true);renderLogSum();}};});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();askDel().then(ok=>{if(ok)delRow(b.dataset.id,+b.dataset.i||0);});});
   curMemoSync();if(view==='ed')syncTW();
   refreshSave();}
