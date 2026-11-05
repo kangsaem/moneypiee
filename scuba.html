@@ -125,8 +125,8 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 #phView img{max-width:100%;max-height:calc(100% - 120px);border-radius:6px;object-fit:contain}
 #phView .pvNav{display:flex;align-items:center;gap:18px;color:rgba(255,255,255,.8);font-size:14px;font-variant-numeric:tabular-nums}#phView .pvNav button{width:30px;height:26px;min-width:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px}#phView .pvNav svg{width:12px;height:12px;display:block}#phView .pvNav button:disabled{opacity:.25}
 #phView .pvB{display:flex;gap:10px}#phView .pvB button{min-width:84px}#phView .pvDel{background:#E31B3F;color:#fff;border-color:#E31B3F}#phView .pvSnap{background:#0ea5e9;color:#fff;border-color:#0ea5e9;font-weight:700}
-#logBack{color:#2f6fe4}/* 달력 버튼 = 다음 로그 버튼 색 */#logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
-.calNav{display:inline-flex;gap:4px}.calHd .jump,.edHd .jump{color:#2f6fe4;height:32px;width:35px;padding:0;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}.calHd .jump svg,.edHd .jump svg{display:block;width:15px;height:15px}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
+#logBack{color:#1b4277}/* 달력·이전/다음 로그 버튼 = 남색 */#logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
+.calNav{display:inline-flex;gap:4px}.calHd .jump,.edHd .jump{color:#1b4277;height:32px;width:35px;padding:0;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}.calHd .jump svg,.edHd .jump svg{display:block;width:15px;height:15px}.cal .d.jump{box-shadow:inset 0 0 0 2px #1b4277}
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
 #logCalV{position:relative}.yearPick{position:absolute;left:50%;transform:translateX(-50%);top:40px;z-index:400;display:flex;gap:8px;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
 .yearPick.hide{display:none}.yearPick .yp{position:relative;width:96px}.yearPick .lsel{left:2px;right:2px;background:#e3ebf3}
@@ -938,7 +938,7 @@ function drawProfile(){
     const gw=14,gx=window.SNAP?G.L+G.W+8:G.w-gw-1,gy=G.T,gh=G.H,full=S.tankP,tt=S.playMode?Math.min(Math.round(P.t),r.N):r.N,cur=Math.max(0,r.gas[tt]);
     const yb=b=>gy+gh-clamp(b/full,0,1)*gh;
     cx.fillStyle='rgba(255,255,255,.7)';cx.fillRect(gx,gy,gw,gh);cx.strokeStyle='#9ca3af';cx.lineWidth=1;cx.strokeRect(gx+.5,gy+.5,gw-1,gh-1);
-    cx.fillStyle=cur<=50?'#f97316':'#2f6fe4';cx.fillRect(gx+1,yb(cur),gw-2,gy+gh-yb(cur)-1);
+    cx.fillStyle=cur<=50?'#f97316':'#2f6fe4';cx.globalAlpha=.85;/* 질소 막대 '배출 중' 파랑과 같은 농도 */cx.fillRect(gx+1,yb(cur),gw-2,gy+gh-yb(cur)-1);cx.globalAlpha=1;
     cx.strokeStyle='#ea580c';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(gx-2,yb(50));cx.lineTo(gx+gw+2,yb(50));cx.stroke();
     cx.font='9px sans-serif';cx.fillStyle='#6b7280';cx.textAlign='center';cx.textBaseline='bottom';cx.fillText(puN(),gx+gw/2,gy-2);
     {const ty=yb(cur)-2;if(ty-11>=gy){cx.save();cx.translate(gx+gw/2,ty);cx.font='600 10px sans-serif';cx.fillStyle=cur<=50?'#ea580c':'#1f2328';cx.textBaseline='bottom';
