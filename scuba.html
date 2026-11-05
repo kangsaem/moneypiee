@@ -1362,7 +1362,7 @@ function renderTabs(){
     b.addEventListener('pointerup',cancel);b.addEventListener('pointerleave',cancel);b.addEventListener('pointercancel',cancel);
     b.addEventListener('contextmenu',e=>e.preventDefault());
     b.ondblclick=e=>{e.preventDefault();if(window.__goRow)window.__goRow();};
-    b.onclick=e=>{if(fired){e.preventDefault();fired=false;return;}if(i===S.cur&&window.__goRow&&$('tabsCard').classList.contains('lbMode')){window.__goRow();return;}/* 로그북: 고른 다이빙을 한 번 더 = 그 날짜의 그 로그 줄로 */S.cur=i;syncForm();recompute();if(dive().pts.length>1){S.mode='none';modeChanged();seek(playEnd(RES[S.cur]));}};el.appendChild(b);
+    b.onclick=e=>{if(fired){e.preventDefault();fired=false;return;}if(i===S.cur&&window.__goRow&&$('tabsCard').classList.contains('lbMode')){window.__goRow();return;}/* 로그북: 고른 다이빙을 한 번 더 = 그 날짜의 그 로그 줄로 */const ft=window.__partTop?window.__partTop():null;S.cur=i;syncForm();recompute();if(window.__partSlide)window.__partSlide(ft);if(dive().pts.length>1){S.mode='none';modeChanged();seek(playEnd(RES[S.cur]));}};el.appendChild(b);
   });
   const a=document.createElement('button');a.className='add';a.textContent='+';a.title=a.ariaLabel=tr('addDive').replace(/^\+\s*/,'');
   a.onclick=()=>{S.dives.push(newDive());S.cur=S.dives.length-1;syncForm();recompute();};
@@ -2369,6 +2369,7 @@ window.__goRow=()=>{if(!open||!CUR)return;const run=()=>{if(view!=='ed'){const e
 // 반접기에서 [수정](또는 두 번 누르기)하면 메모 칸도 보이게(카드 높이 가감속). 수정이 끝나면 다시 줄 하나만
 function syncEdm(){const ev=$('logEdV'),on=!!(EDIT&&LBF===1&&view==='ed');if(ev.classList.contains('edm')===on)return;animH($('logBody'),()=>ev.classList.toggle('edm',on));}
 // 반접기: 선택한 줄 하나만 보이게(목록 안쪽 .llIn을 위아래로 옮김)
+window.__partTop=()=>partTop();window.__partSlide=f=>partSlide(f);/* 다이빙 탭으로 바꿀 때도 한 줄 보기 슬라이드 */
 function partTop(){const c=$('logList').querySelector('.li.cur');return c?c.offsetTop:null;}
 function partFit(){const ll=$('logList'),inn=ll.querySelector('.llIn'),part=LBF===1&&view==='ed';if(!inn)return;if(!part){ll.style.height='';inn.style.transform='';return;}
   const c=inn.querySelector('.li.cur')||inn.querySelector('.li');if(!c){ll.style.height='';inn.style.transform='';return;}ll.style.height=(c.offsetHeight+20)+'px';inn.style.transform=`translateY(${-c.offsetTop+10}px)`;}
