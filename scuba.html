@@ -1708,8 +1708,8 @@ function romanKo(t){const I=['g','kk','n','d','tt','r','m','b','pp','s','ss','',
   cs.forEach((ch,k)=>{const x=sy[k];if(!x){out+=ch;return;}const p=sy[k-1];let ini=I[x.i];if(p&&p.f===8&&x.i===5)ini='l';out+=ini+V[x.v];
     if(x.f){const n=sy[k+1];out+=(n&&n.i===11)?LI[x.f]:(n&&n.i===5&&x.f===8)?'l':F[x.f];}});
   return out.replace(/(^|[\s,.\-\/(])([a-z])/g,(a,b,c)=>b+c.toUpperCase());}
-function placeToEN(t){let s=t;CTRY.forEach(x=>{s=s.replace(x.kj,x.c);});if(/[가-힣]/.test(s))s=romanKo(s);return s.replace(/\s{2,}/g,' ').trim();}
-const nonLatin=t=>/[぀-ヿ㐀-鿿가-힣]/.test(t);
+function placeToEN(t){let s=t;CTRY.forEach(x=>{s=s.replace(x.kj,x.c);});s=s.replace(/([가-힣]{2,})주(?=\s*(,|$))/g,'$1');/* '보홀주' → '보홀'(주 = state/province) */if(/[가-힣]/.test(s))s=romanKo(s);return s.replace(/\s{2,}/g,' ').trim();}
+const nonLatin=t=>/[぀-ヿ㐀-鿿가-힣]/.test(t);window.__placeToEN=placeToEN;
 // ===== 위치: GPS(점 있음) 또는 지명 검색(점 없음) =====
 // 메모의 GPS 줄: 'GPS 입수 lat, lon' / 'GPS 출수 lat, lon'. 종류 없는 'GPS lat, lon'(예전 FIT = 마지막 위치)은 출수로 봄
 const GPSLN=/^\s*GPS\s*(입수|출수|entry|exit|エントリー|エキジット)?\s*[:：]?\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/i;
@@ -1791,14 +1791,18 @@ async function dataSnap(plP){try{const pl=plP?await plP:'';await shareCanvas(awa
 // ===== 포토 로그: 사진 위에 핵심 정보 + 흰 선 수심 그래프 + DTMD 블록 =====
 // 장소: 메모의 GPS로 영어 약식(Danao, Bohol, PH) 조회(기기에 캐시), 실패하면 메모의 '장소:' 줄
 function memoGPS(m){const o=locPts(m);return o.in||o.out||null;}
-async function placeEN(m){const g=memoGPS(m),pp=pickPlace(m);
-  // GPS가 있으면 GPS 영어 지명(마을, 주, 국가코드)이 우선. GPS가 없거나 조회 실패 때만 메모 지명을 영어로(나라 이름 → 코드, 한글 → 로마자)
-  const fb=pp.t?placeToEN(pp.t):'';if(!g)return fb;
-  const key='scuba_plEN_'+g.lat.toFixed(3)+','+g.lon.toFixed(3);try{const c=localStorage.getItem(key);if(c)return c;}catch(e){}
-  try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),5000);const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=en&lat='+g.lat.toFixed(5)+'&lon='+g.lon.toFixed(5),{signal:ac.signal});clearTimeout(tm);
-    if(!r.ok)return fb;const j=await r.json(),a=j.address||{};const loc=a.village||a.suburb||a.hamlet||a.town||a.city||a.municipality||a.county||a.island||j.name;
-    const reg=(a.state||a.province||a.region||a.archipelago||'').replace(/\s+(Province|Prefecture|State|Region)$/i,'');const cc=(a.country_code||'').toUpperCase();
-    const parts=[];[loc,reg,cc].forEach(v=>{if(v&&!parts.includes(v))parts.push(v);});const out=parts.join(', ');if(out){try{localStorage.setItem(key,out);}catch(e){}}return out||fb;}catch(e){return fb;}}
+// 포토 로그 지명(영어 약식 '마을, 주, 국가코드'): ① 이 다이빙 GPS → ② 같은 날 다른 다이빙의 GPS → ③ 메모 지명을 영어로 검색(한글 '보홀주' 등)
+// → ④ 마지막에만 글자 변환(나라 이름 → 코드, '…주' 떼고 로마자). 결과는 기기에 캐시
+function plFromAddr(j){const a=(j&&j.address)||{};const loc=a.village||a.suburb||a.hamlet||a.town||a.city||a.municipality||a.county||a.island||(j&&j.name);
+  const reg=(a.state||a.province||a.region||a.archipelago||'').replace(/\s+(Province|Prefecture|State|Region)$/i,'');const cc=(a.country_code||'').toUpperCase();
+  const parts=[];[loc,reg,cc].forEach(v=>{if(v&&!parts.includes(v))parts.push(v);});return parts.join(', ');}
+async function plFetch(url,key){try{const c=localStorage.getItem(key);if(c)return c;}catch(e){}
+  try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),5000);const r=await fetch(url,{signal:ac.signal});clearTimeout(tm);if(!r.ok)return '';let j=await r.json();if(Array.isArray(j))j=j[0];const out=j?plFromAddr(j):'';if(out){try{localStorage.setItem(key,out);}catch(e){}}return out;}catch(e){return '';}}
+async function placeEN(m){let g=memoGPS(m);const pp=pickPlace(m);
+  if(!g)for(const d of S.dives){const g2=memoGPS((d&&d.memo)||'');if(g2){g=g2;break;}}
+  if(g){const out=await plFetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=en&lat='+g.lat.toFixed(5)+'&lon='+g.lon.toFixed(5),'scuba_plEN_'+g.lat.toFixed(3)+','+g.lon.toFixed(3));if(out)return out;}
+  if(pp.t&&nonLatin(pp.t)){const out=await plFetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&accept-language=en&q='+encodeURIComponent(pp.t),'scuba_plENq_'+pp.t);if(out)return out;}
+  return pp.t?placeToEN(pp.t):'';}
 function loadBlobImg(b){return new Promise((ok,no)=>{const u=URL.createObjectURL(b),im=new Image();im.onload=()=>{ok(im);setTimeout(()=>URL.revokeObjectURL(u),1000);};im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'));};im.src=u;});}
 function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getComputedStyle(document.body).fontFamily;
   // 원본 비율 유지, 너무 길면 세로 4:5 ~ 가로 1.91:1 범위로 가운데 자름
