@@ -1784,7 +1784,8 @@ async function placeEN(m){const g=memoGPS(m),pp=pickPlace(m);
     const parts=[];[loc,reg,cc].forEach(v=>{if(v&&!parts.includes(v))parts.push(v);});const out=parts.join(', ');if(out){try{localStorage.setItem(key,out);}catch(e){}}return out||fb;}catch(e){return fb;}}
 function loadBlobImg(b){return new Promise((ok,no)=>{const u=URL.createObjectURL(b),im=new Image();im.onload=()=>{ok(im);setTimeout(()=>URL.revokeObjectURL(u),1000);};im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'));};im.src=u;});}
 function photoSnap(im,place){const r=RES[S.cur];if(!r)return null;const ff=getComputedStyle(document.body).fontFamily;
-  let sw=im.naturalWidth,sh=im.naturalHeight,sx=0,sy=0;/* 포토 로그는 항상 정사각형: 긴 쪽을 가운데 기준으로 잘라냄(세로 사진은 위·아래) */{const m=Math.min(sw,sh);sx=(sw-m)/2;sy=(sh-m)/2;sw=sh=m;}
+  // 원본 비율 유지, 너무 길면 세로 4:5 ~ 가로 1.91:1 범위로 가운데 자름
+  let sw=im.naturalWidth,sh=im.naturalHeight,sx=0,sy=0;const ar=sw/sh;if(ar<0.8){const h2=sw/0.8;sy=(sh-h2)/2;sh=h2;}else if(ar>1.91){const w2=sh*1.91;sx=(sw-w2)/2;sw=w2;}
   // 글자·그래프 크기는 짧은 변 기준(가로 사진에서 너무 커지지 않게)
   const W=Math.round(Math.min(1200,sw)),H=Math.round(W*sh/sw),k=Math.min(W,H)/1080;const el=document.createElement('canvas');el.width=W;el.height=H;const g=el.getContext('2d');
   g.drawImage(im,sx,sy,sw,sh,0,0,W,H);
