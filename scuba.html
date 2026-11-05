@@ -2312,7 +2312,13 @@ function afterSave(id){vy=Y;vm=M;CUR=id||null;renderSum();renderWheels();renderL
 const EZ='cubic-bezier(.2,.8,.2,1)';
 // 높이만 부드럽게: 바꾸기 전 높이 → 바꾼 뒤 높이로(넘치는 부분은 가림)
 function animH(el,change){if(!el||!el.animate){change();return;}const h0=el.offsetHeight;change();const h1=el.offsetHeight;if(Math.abs(h1-h0)<2)return;el.style.overflow='hidden';const a=el.animate([{height:h0+'px'},{height:h1+'px'}],{duration:300,easing:EZ});a.onfinish=a.oncancel=()=>{el.style.overflow='';};}
-function applyLBF(anim){const go=()=>{CALW=LBF===1;$('logEdV').classList.toggle('part',LBF===1);partFit();if(view==='cal'){if(CALW)WK0=null;renderCal();}};if(anim&&open)animH($('logBody'),go);else go();}
+function applyLBF(anim){const go=()=>{CALW=LBF===1;$('logEdV').classList.toggle('part',LBF===1);partFit();if(view==='cal'){if(CALW)WK0=null;renderCal();}};
+  if(!(anim&&open)){go();return;}
+  // 날짜 화면에서 펴기↔한 줄 보기: 로그 줄들도 카드 높이와 같이 위아래로 미끄러짐(순간이동 안 하게)
+  const ll=$('logList'),inn=ll&&ll.querySelector('.llIn'),cur=inn&&(inn.querySelector('.li.cur')||inn.querySelector('.li')),y0=view==='ed'&&cur?cur.getBoundingClientRect().top:null;
+  animH($('logBody'),go);
+  if(y0!=null&&inn.animate){const y1=cur.getBoundingClientRect().top,dy=y0-y1;if(Math.abs(dy)>1){const t=inn.style.transform||'translateY(0px)';ll.classList.add('sliding');
+    const an=inn.animate([{transform:`${t} translateY(${dy}px)`},{transform:t}],{duration:300,easing:EZ});an.onfinish=an.oncancel=()=>ll.classList.remove('sliding');}}}
 $('logHead').onclick=()=>{if(!open)return;if(LBF===2){LBF=0;applyLBF();syncLogFold();return;}if(LBF===0){LBF=1;applyLBF(true);renderLogSum();return;}LBF=2;syncLogFold();};
 // 플래너 ↔ 로그북 전환은 맨 위 버튼과 제목 '플래너/로그북' 글자로만. instant = 애니메이션 없이 바로(튜토리얼 시작용)
 window.toggleLogbook=()=>{open=!open;sync();};
