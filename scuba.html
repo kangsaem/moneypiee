@@ -711,15 +711,24 @@ const P={t:0,run:false,sp:1,last:0,tick:-1};
 const $=id=>document.getElementById(id);
 const dive=()=>S.dives[S.cur];
 
+// ===== 다이빙마다 설정(기체·GF·탱크·호흡·상승·고도·수질). 화면의 설정(S)은 '선택한 다이빙'의 설정, 바꾸면 그 다이빙에만.
+// 새 다이빙·설정 없는 예전 다이빙은 그때 화면 설정을 이어받음. 계산은 다이빙마다 자기 설정으로(앞 다이빙의 남은 질소는 이어받음)
+const DKEYS=['water','altSel','alt','gasSel','o2','cons','gfLo','gfHi','asc','tankV','tankP','sac','sacSel'];
+const cfgSnap=()=>Object.fromEntries(DKEYS.map(k=>[k,S[k]])),cfgPut=o=>{if(o)DKEYS.forEach(k=>{if(k in o)S[k]=o[k];});};
+let CFGOF=null;
+function setEnvS(){ENV.psurf=1.01325*Math.pow(1-2.25577e-5*S.alt,5.25588);ENV.bpm=S.water==='salt'?0.10052:0.0980665;}
 function recompute(){
-  ENV.psurf=1.01325*Math.pow(1-2.25577e-5*S.alt,5.25588);
-  ENV.bpm=S.water==='salt'?0.10052:0.0980665;
-  const c=cfg();RES=[];let T=satTissues();
+  if(CFGOF&&S.dives.includes(CFGOF))CFGOF.cfg=cfgSnap();
+  S.dives.forEach(d=>{if(!d.cfg)d.cfg=cfgSnap();});
+  let swapped=false;{const d=dive();if(d!==CFGOF){cfgPut(d.cfg);CFGOF=d;swapped=true;}}
+  const own=cfgSnap();RES=[];let T=satTissues();
   for(let i=0;i<S.dives.length;i++){
+    cfgPut(S.dives[i].cfg);setEnvS();const c=cfg();
     if(i>0){T=Array.from(RES[i-1].endT);step(T,0,FN2_AIR,clamp(+S.dives[i].si||0,10,1440)*60);}
     RES[i]=simulate(S.dives[i],T,c);
     {const prev=i>0?RES[i-1].cns[RES[i-1].N]*Math.pow(0.5,clamp(+S.dives[i].si||0,10,1440)/90):0;RES[i].cns=calcCNS(RES[i],prev);}
   }
+  cfgPut(own);setEnvS();if(swapped&&typeof syncForm==='function'){syncForm();}
   stopPlay();P.t=0;P.tick=-1;
   // 로그북에서 로그를 볼 때는 타임라인을 출수 끝까지 채운 상태가 기본
   if(window.__LOGEND&&S.playMode&&RES[S.cur]){P.t=playEnd(RES[S.cur]);P.tick=Math.floor(P.t/5)*5;}
@@ -1895,15 +1904,15 @@ const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
 // ===== 하루 = 기록 하나: 같은 날짜의 기록들을 입수 시각 순으로 한 기록(다이빙1·2·3…)에 합침. 수면휴식 = 앞 출수 ~ 다음 입수(1분 단위)
-// 설정(기체·GF 등)이 다른 기록끼리는 합치지 않음(한 기록은 설정이 하나라서). FIT에서 온 다이빙은 다이빙마다 fit 표시
+// 설정(기체·GF·탱크 등)은 다이빙마다(dive.cfg) 가지므로 같은 날은 모두 합침. FIT에서 온 다이빙은 다이빙마다 fit 표시
 const isFitMemo=m=>/\(FIT\)\s*$/m.test(m||'');
 function mergeDayArr(a,date){const same=a.filter(x=>x.date===date&&x.state&&x.sum);if(same.length<2)return {a,map:null};
-  const kk=x=>JSON.stringify(KEYS.map(k=>x.state[k]===undefined?null:x.state[k]));const groups=[];same.forEach(x=>{const g=groups.find(g=>kk(g[0])===kk(x));g?g.push(x):groups.push([x]);});
+  const groups=[same];/* 설정은 다이빙마다 있으므로 같은 날은 모두 합침 */
   let out=a.slice(),map={};groups.forEach(g=>{if(g.length<2)return;
     const rows=[];g.forEach(x=>{const rr=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rr[i]||{st:tmin(x.time),N:0,maxD:0};rows.push({x,i,d,st:r.st!=null?r.st:0,N:r.N||0,maxD:r.maxD||0});});});
     rows.sort((p,q)=>p.st-q.st);const base=g.slice().sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
-    const dives=rows.map((r,k)=>Object.assign({},r.d,{memo:diveMemo(r.x,r.i),fit:(r.d.fit||(r.x.src==='fit'&&isFitMemo(diveMemo(r.x,r.i))))?true:undefined,si:k?Math.max(0,Math.round(r.st-(rows[k-1].st+rows[k-1].N/60))):(r.d.si==null?60:r.d.si)}));
-    const dv=rows.map((r,k)=>({N:r.N,maxD:r.maxD,si:k?dives[k].si:0}));
+    const dives=rows.map((r,k)=>Object.assign({},r.d,{cfg:r.d.cfg||Object.fromEntries(KEYS.filter(q=>q in r.x.state).map(q=>[q,r.x.state[q]])),memo:diveMemo(r.x,r.i),fit:(r.d.fit||(r.x.src==='fit'&&isFitMemo(diveMemo(r.x,r.i))))?true:undefined,si:k?Math.max(0,Math.round(r.st-(rows[k-1].st+rows[k-1].N/60))):(r.d.si==null?60:r.d.si)}));
+    const dv=rows.map((r,k)=>({N:r.N,maxD:r.maxD,si:k?dives[k].si:0,gas:(r.x.sum.dv&&r.x.sum.dv[r.i]&&r.x.sum.dv[r.i].gas)||r.x.sum.gas}));
     const st=Object.assign({},base.state,{dives});const sum=Object.assign({},base.sum,{maxD:Math.max(...rows.map(r=>r.maxD)),N:rows.reduce((s,r)=>s+r.N,0),N0:rows[0].N,nd:rows.length,dv,span:rows.reduce((s,r)=>s+r.N/60,0)+dives.slice(1).reduce((s,d)=>s+(+d.si||0),0)});
     const rec=Object.assign({},base,{time:hhmm(Math.round(rows[0].st)),memo:'',state:st,sum,saved:Math.max(...g.map(x=>x.saved||0))});delete rec.src;
     const ids=new Set(g.map(x=>x.id));out=out.filter(x=>!ids.has(x.id));out.push(rec);rows.forEach((r,k)=>{map[r.x.id+':'+r.i]={id:rec.id,i:k};});});
@@ -2049,7 +2058,7 @@ function rowsOf(x){const st=tmin(x.time),dv=(x.sum&&x.sum.dv&&x.sum.dv.length)?x
 function renderList(){if(WBUSY){updWRow();return;}if(EDIT&&!(EDIT.id===CUR&&EDIT.i===S.cur))EDIT=null;const t=L(),a=dayLogs(),items=[];{const lw=document.querySelector('.lwheels');if(lw&&$('lwHold'))$('lwHold').appendChild(lw);}
   a.forEach(x=>{const rows=rowsOf(x),multi=rows.length>1||(view==='ed'&&x.id===CUR&&S.dives.length>1);
     rows.forEach(r=>{items.push({st:r.st,h:(()=>{const clock=r.st!=null?`${hhmm(r.st)} → ${hhmm(r.st+r.N/60)}`:'';
-      const meta=[(multi?(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,x.sum.gas].filter(Boolean).join(' · ');
+      const meta=[(multi?(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,((x.sum.dv&&x.sum.dv[r.i]&&x.sum.dv[r.i].gas)||x.sum.gas)].filter(Boolean).join(' · ');
       const sel=PLAN?(x.id===CUR&&r.i===S.cur):!!(PRESEL&&x.id===PRESEL.id&&r.i===PRESEL.i);/* 로그북 들어오는 중(뒤집기 전)엔 들어갈 로그를 미리 선택 표시 */
       return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${(m1=>m1?'<div class="mm">'+m1+'</div>':'')(diveMemo(x,r.i).split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,''))}</div><button class="edb" data-id="${x.id}" data-i="${r.i}">${EDIT&&EDIT.id===x.id&&EDIT.i===r.i?(LANG==='en'?'Done':LANG==='ja'?'完了':'완료'):(LANG==='en'?'Edit':LANG==='ja'?'編集':'수정')}</button><button class="dlog" data-id="${x.id}" data-i="${r.i}">${LANG==='en'?'Data log':LANG==='ja'?'データログ':'데이터 로그'}</button><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;})()});});});
   // 저장 전 다이빙도 점선 줄로 미리 보여 줌: 저장된 로그에 새로 붙인 다이빙, 또는 아직 저장 안 한 새 로그의 다이빙
@@ -2161,7 +2170,7 @@ function relayout(){const cl=document.querySelector('.colL'),cr=document.querySe
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
 let LASTO=false,PLAN=null,LOGST=null,FIRSTIN=false,WSPUN=false,PRESEL=null;
-const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[],fit:d.fit||undefined}))),cur:S.cur,start:S.start,T,mode:S.mode});
+const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[],fit:d.fit||undefined,cfg:d.cfg||undefined}))),cur:S.cur,start:S.start,T,mode:S.mode});
 const putS=P=>{KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;if(P.mode)S.mode=P.mode;};
 function flipSwap(fn){const el=document.getElementById('tabsCard');if(!el){fn();return;}el.classList.remove('flipIn','flipOut');void el.offsetWidth;el.classList.add('flipOut');
   setTimeout(()=>{fn();el.classList.remove('flipOut');void el.offsetWidth;el.classList.add('flipIn');setTimeout(()=>el.classList.remove('flipIn'),380);},300);}
@@ -2188,11 +2197,13 @@ function sync(){window.__LOGEND=open;if(open!==LASTO){LASTO=open;const tk=++SWT,
 // 로그북 카드 펼침/접힘(모드와 따로): LBF 0 = 펼침, 1 = 반접기, 2 = 완전 접힘(로그북 모드 그대로)
 function syncLogFold(){const on=open&&LBF<2;$('logCardW').classList.toggle('lbf2',LBF===2);$('logWrap').classList.toggle('open',on);$('logHead').classList.toggle('open',on);if(typeof renderLogSum==='function')renderLogSum();}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
-  let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan(),dv:RES.map((x,i)=>({N:x.N,maxD:R1(x.maxD),si:i?(+S.dives[i].si||0):0}))};}
+  let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan(),dv:RES.map((x,i)=>({N:x.N,maxD:R1(x.maxD),si:i?(+S.dives[i].si||0):0,gas:x.c&&x.c.fO2>0.215?'EAN'+Math.round(x.c.fO2*100):gasAir()}))};}
+const gasAir=()=>LANG==='ko'?'공기':LANG==='ja'?'空気':'Air';
 function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].si||0);});return m;}
 // 같은 내용이면 저장 비활성, 시작 시각이 같거나 시간이 겹치면 경고 후 교체
 // 저장 비교: 저장 형식마다 키 순서가 달라도(FIT 불러오기 등) 내용이 같으면 같게. 첫 다이빙 수면휴식은 무시
-function cmpKey(x){const st=x.state||{};const c={d:(st.dives||[]).map((d,i)=>({p:(d.pts||[]).map(q=>[q.t,q.d]),s:i?(+d.si||0):0,l:d.lab?[d.lab.fx,d.lab.fy]:null,m:diveMemo(x,i).trim(),f:(d.ph||[]).join(',')})),k:KEYS.map(k=>st[k]===undefined?null:st[k])};return [x.date,x.time||'',JSON.stringify(c)].join('|');}
+const dcfgK=(st,d)=>KEYS.map(k=>{const o=d&&d.cfg&&k in d.cfg?d.cfg[k]:st[k];return o===undefined?null:o;});/* 다이빙 설정(없으면 기록 설정) */
+function cmpKey(x){const st=x.state||{};const c={d:(st.dives||[]).map((d,i)=>({p:(d.pts||[]).map(q=>[q.t,q.d]),s:i?(+d.si||0):0,l:d.lab?[d.lab.fx,d.lab.fy]:null,m:diveMemo(x,i).trim(),f:(d.ph||[]).join(','),k:dcfgK(st,d)}))};return [x.date,x.time||'',JSON.stringify(c)].join('|');}
 // 실제 시작 시각(분). FIT 등에서 온 08:53 같은 값은 그대로 유지, 휠을 돌렸을 때만 10분 단위
 const ST=()=>S.start!=null?Math.round(S.start):T;
 function curRec(){return {date:ymd(),time:hhmm(ST()),memo:'',state:snapState()};}
@@ -2200,16 +2211,17 @@ function conflicts(exceptId){const s1=ST(),e1=s1+Math.max(1,curSpan());return lo
 function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasPlan=S.dives.some(d=>d.pts.length>1);const same=load().some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||(same&&!(WROW&&(EY!==Y||EM!==M||ED!==D)));/* 휠로 날짜만 바꿔도 저장 가능 */$('logSave').title=same?t.same:'';}
 const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (d&&d.memo!=null)?d.memo:(i===0?(x.memo||''):'');};
 // 처음 한 번: 기존 로그를 날짜별로 합침(합치기 전 전체를 scuba_logs_bak_merge에 백업, 백업 못 하면 합치지 않음)
-(function(){try{if(localStorage.getItem('scuba_merge_v1'))return;const raw=localStorage.getItem(KEY)||'[]';let a=JSON.parse(raw);if(!Array.isArray(a)||!a.length){localStorage.setItem('scuba_merge_v1','1');return;}
+(function(){try{if(localStorage.getItem('scuba_merge_v2'))return;const raw=localStorage.getItem(KEY)||'[]';let a=JSON.parse(raw);if(!Array.isArray(a)||!a.length){localStorage.setItem('scuba_merge_v1','1');localStorage.setItem('scuba_merge_v2','1');return;}
   if(!localStorage.getItem('scuba_logs_bak_merge'))localStorage.setItem('scuba_logs_bak_merge',raw);
+  a.forEach(x=>{if(x.state&&x.state.dives)x.state.dives.forEach(d=>{if(!d.cfg)d.cfg=Object.fromEntries(KEYS.filter(k=>k in x.state).map(k=>[k,x.state[k]]));});});
   a.forEach(x=>{if(x.src==='fit'&&x.state&&x.state.dives)x.state.dives.forEach((d,i)=>{if(!d.fit&&isFitMemo(diveMemo(x,i)))d.fit=true;});});
-  [...new Set(a.map(x=>x.date))].forEach(dt=>{a=mergeDayArr(a,dt).a;});if(store(a))localStorage.setItem('scuba_merge_v1','1');}catch(e){}})();
+  [...new Set(a.map(x=>x.date))].forEach(dt=>{a=mergeDayArr(a,dt).a;});if(store(a)){localStorage.setItem('scuba_merge_v1','1');localStorage.setItem('scuba_merge_v2','1');}}catch(e){}})();
 function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';renderPh();}
-function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined,fit:d.fit||undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
+function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined,fit:d.fit||undefined,cfg:d.cfg?Object.assign({},d.cfg):undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
 // ===== 같은 날짜 안의 저장 안 한 작업 보관 =====
 // 다른 로그를 열기 전에 지금 작업(그래프·메모·사진·덧붙인 다이빙)을 날짜별로 보관, 같은 날 다시 열면 그대로 복원. 날짜가 바뀌면 버림
 let DR={date:null,m:{}},SDATE=null;
-const stKey=st=>JSON.stringify({d:(st.dives||[]).map(d=>({p:d.pts,s:+d.si||0,m:(d.memo||'').trim(),f:(d.ph||[]).join(',')})),k:KEYS.map(k=>st[k])});
+const stKey=st=>JSON.stringify({d:(st.dives||[]).map(d=>({p:d.pts,s:+d.si||0,m:(d.memo||'').trim(),f:(d.ph||[]).join(','),k:dcfgK(st,d)}))});
 function isDirty(){const sv=CUR?load().find(v=>v.id===CUR):null;
   if(sv){const s0=Object.assign({},sv.state,{dives:(sv.state.dives||[]).map((d,i)=>Object.assign({},d,{memo:diveMemo(sv,i)}))});return stKey(s0)!==stKey(snapState())||Math.round(ST())!==tmin(sv.time);}
   return S.dives.some(d=>d.pts.length>1||(d.memo||'').trim()||(d.ph||[]).length);}
@@ -2222,7 +2234,7 @@ function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;if
   if(DR.m[id]){CUR=id;putS(DR.m[id].s);S.mode='none';S.cur=Math.min(di||0,S.dives.length-1);refreshAll();return;}
   S.mode='none';
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
-  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[],fit:d.fit||undefined}));S.cur=Math.min(di||0,S.dives.length-1);
+  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[],fit:d.fit||undefined,cfg:d.cfg?Object.assign({},d.cfg):Object.fromEntries(KEYS.filter(k=>k in st).map(k=>[k,st[k]]))}));S.cur=Math.min(di||0,S.dives.length-1);
   const tm=tmin(x.time);if(tm!=null){T=Math.floor(tm/10)*10%1440;S.start=tm;}else S.start=null;
   CUR=id;$('logMemo').value=S.dives[S.cur].memo||'';renderPh();
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
@@ -2388,7 +2400,7 @@ async function fitOne(f,quiet){const t=L();let dives;
     memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps0?('GPS '+(LANG==='en'?'entry':LANG==='ja'?'エントリー':'입수')+' '+d.gps0.lat.toFixed(5)+', '+d.gps0.lon.toFixed(5)):'',d.gps?('GPS '+(LANG==='en'?'exit':LANG==='ja'?'エキジット':'출수')+' '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
   // 같은 날 기존 다이빙 펼치기
   const all=load(),same=all.filter(x=>x.date===date).sort((p,q)=>(p.time||'').localeCompare(q.time||''));const old=[];let base=null;
-  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[],fit:d.fit||isFitMemo(diveMemo(x,i))});});if(!base)base=x;});
+  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[],fit:d.fit||isFitMemo(diveMemo(x,i)),cfg:d.cfg||Object.fromEntries(KEYS.filter(k=>k in x.state).map(k=>[k,x.state[k]]))});});if(!base)base=x;});
   const ov=(o,n)=>o.s<n.s+n.dur&&n.s<o.s+o.dur;
   // 기존 다이빙과 겹치면 수심 기록만 FIT로 바꾸고 메모·사진·라벨 위치는 기존 것 유지. 기존 메모에 GPS 줄이 없을 때만 FIT의 GPS 줄을 덧붙임
   imp.forEach(n=>{const o=old.find(o=>ov(o,n));if(!o)return;const om=(o.memo||'').trim();
@@ -2396,7 +2408,7 @@ async function fitOne(f,quiet){const t=L();let dives;
     n.ph=o.ph||[];n.lab=o.lab||null;});
   const keepOld=old.filter(o=>!imp.some(n=>ov(o,n)));const replaced=old.length-keepOld.length;
   const seq=keepOld.concat(imp).sort((p,q)=>p.s-q.s);
-  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined,fit:d.fit?true:undefined,si:i?Math.max(1,Math.round(d.s-(seq[i-1].s+seq[i-1].dur))):60}))};
+  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined,fit:d.fit?true:undefined,cfg:d.cfg||undefined,si:i?Math.max(1,Math.round(d.s-(seq[i-1].s+seq[i-1].dur))):60}))};
   KEYS.forEach(k=>st[k]=(base&&base.state&&k in base.state)?base.state[k]:S[k]);
   const rest=all.filter(x=>x.date!==date);if(rest.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
