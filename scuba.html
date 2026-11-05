@@ -1130,7 +1130,7 @@ cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));i
 // ===== 맨 아래 안내 접기: 앱을 열 때마다 펼침(기본화면) =====
 {let F=false;const ft=$('foot');ft.classList.toggle('fold',F);window.footOpen=()=>{F=false;ft.classList.remove('fold');};
   
-  $('footHd').onclick=()=>{F=!F;ft.classList.toggle('fold',F);};}
+  $('footHd').onclick=()=>{const go=()=>{F=!F;ft.classList.toggle('fold',F);};window.animBox?window.animBox(ft,go):go();};}
 // ===== 빨간 1·2 문구: 플래너 모드에선 항상 펼침, 로그북 모드에선 접힘(sync에서 ruleWrap.closed)
 // ===== 경고: 재생 중이면 그 시각까지 생긴 것만(라이브), 아니면 다이빙 전체. 순서 = MOD > CNS > 천장 위반 > DECO > 급상승 > 시간 초과 > 공기 고갈/부족
 function warnList(r,t){const live=t!=null;if(!live)t=r.N;t=Math.max(0,Math.min(r.N,Math.round(t)));const k5=Math.floor(t/5),out=[];
@@ -1191,7 +1191,11 @@ function updateStats(s){
 }
 let BFOLD=false;/* 앱을 열 때마다 펼침(기본화면) */
 function syncFold(){$('barsCard').classList.toggle('fold',BFOLD);$('barsFold').textContent='▾';}
-$('barsFold').onclick=()=>{BFOLD=!BFOLD;syncFold();if(typeof relayout==='function')relayout();requestAnimationFrame(()=>{try{updateStats(P.tick<0?0:P.tick);}catch(e){}window.dispatchEvent(new Event('resize'));});};syncFold();
+// 카드 접고 펴기: 높이를 가속·감속으로(0.3초). 내용이 다시 그려진 뒤(2프레임) 끝 높이를 재서 움직임
+function animBox(el,change){if(!el||!el.animate){change();return;}const h0=el.offsetHeight;el.style.height=h0+'px';el.style.overflow='hidden';change();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.height='';const h1=el.offsetHeight;if(Math.abs(h1-h0)<2){el.style.overflow='';return;}const a=el.animate([{height:h0+'px'},{height:h1+'px'}],{duration:300,easing:'cubic-bezier(.2,.8,.2,1)'});a.onfinish=a.oncancel=()=>{el.style.overflow='';};}));}
+window.animBox=animBox;
+$('barsFold').onclick=()=>animBox($('barsCard'),()=>{BFOLD=!BFOLD;syncFold();if(typeof relayout==='function')relayout();requestAnimationFrame(()=>{try{updateStats(P.tick<0?0:P.tick);}catch(e){}window.dispatchEvent(new Event('resize'));});});syncFold();
 // ===== 기본화면: 빨간 1·2 펼침(플래너 모드) · 설정 접힘 · 로그북 접힘(플래너 모드라 숨김) · 질소 막대 펼침 · 맨 아래 안내 펼침. 튜토리얼은 항상 여기서 시작
 window.toDefaultScreen=()=>{window.toPlanner&&window.toPlanner(true);S.setOpen=false;BFOLD=false;syncFold();window.footOpen&&window.footOpen();syncForm();if(typeof relayout==='function')relayout();};
 // 접힌 상태: 수면 기준(GF High) 비율이 가장 큰 칸 하나. 0~130% 눈금, 100% 점선, 100% 넘는 부분 주황
@@ -2187,12 +2191,13 @@ function renderSum(){const t=L();renderLogSum();$('logMemo').placeholder=t.ph;$(
 function renderAll(){renderSum();setTitle(false);if(open)show(view);}
 function relayout(){const cl=document.querySelector('.colL'),cr=document.querySelector('.colR'),st=$('setCard'),tb=$('tabsCard'),br=$('barsCard');if(!cl||!cr||!st||!tb||!br)return;
   const wide=open&&window.matchMedia('(min-width:780px)').matches;document.getElementById('mainGrid').classList.toggle('lbOpen',wide);
-  if(wide){if(tb.parentElement!==cr){cr.insertBefore(tb,br);cr.insertBefore(st,br);}}else if(st.parentElement!==cl){cl.insertBefore(st,$('logCardW'));cl.appendChild(tb);}
+  const w3=wide&&window.matchMedia('(min-width:1170px)').matches;/* 세 줄 보기 로그북 모드: 다이빙 탭은 왼쪽 로그북 카드 아래 */
+  if(wide){if(st.parentElement!==cr)cr.insertBefore(st,br);if(w3){if(tb.previousElementSibling!==$('logCardW'))cl.insertBefore(tb,$('logCardW').nextSibling);}else if(tb.parentElement!==cr)cr.insertBefore(tb,st);}else if(st.parentElement!==cl){cl.insertBefore(st,$('logCardW'));cl.appendChild(tb);}
   // 두 줄·세 줄 보기(780px~): 맨 아래 안내(학습용 시뮬레이터)는 왼쪽 단 맨 아래(플래너 = 다이빙 탭 아래). 좁은 화면은 원래 자리(맨 아래 전체 폭)
   {const ft=$('foot');if(ft){if(!FTHOME)FTHOME={p:ft.parentElement,n:ft.nextSibling};if(window.matchMedia('(min-width:780px)').matches){if(ft.parentElement!==cl||cl.lastElementChild!==ft)cl.appendChild(ft);}else if(ft.parentElement!==FTHOME.p)FTHOME.p.insertBefore(ft,FTHOME.n);}}
   window.dispatchEvent(new Event('resize'));}
 let FTHOME=null;setTimeout(()=>{try{relayout();}catch(e){}},0);
-try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());}catch(e){}
+try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());window.matchMedia('(min-width:1170px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
 let LASTO=false,PLAN=null,LOGST=null,FIRSTIN=false,WSPUN=false,PRESEL=null;
 const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[],fit:d.fit||undefined,cfg:d.cfg||undefined}))),cur:S.cur,start:S.start,T,mode:S.mode});
