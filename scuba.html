@@ -1891,6 +1891,23 @@ const KEY='scuba_logs',MAX=200,KEYS=['water','altSel','alt','gasSel','o2','cons'
 const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}};
+// ===== 하루 = 기록 하나: 같은 날짜의 기록들을 입수 시각 순으로 한 기록(다이빙1·2·3…)에 합침. 수면휴식 = 앞 출수 ~ 다음 입수(1분 단위)
+// 설정(기체·GF 등)이 다른 기록끼리는 합치지 않음(한 기록은 설정이 하나라서). FIT에서 온 다이빙은 다이빙마다 fit 표시
+const isFitMemo=m=>/\(FIT\)\s*$/m.test(m||'');
+function mergeDayArr(a,date){const same=a.filter(x=>x.date===date&&x.state&&x.sum);if(same.length<2)return {a,map:null};
+  const kk=x=>JSON.stringify(KEYS.map(k=>x.state[k]===undefined?null:x.state[k]));const groups=[];same.forEach(x=>{const g=groups.find(g=>kk(g[0])===kk(x));g?g.push(x):groups.push([x]);});
+  let out=a.slice(),map={};groups.forEach(g=>{if(g.length<2)return;
+    const rows=[];g.forEach(x=>{const rr=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rr[i]||{st:tmin(x.time),N:0,maxD:0};rows.push({x,i,d,st:r.st!=null?r.st:0,N:r.N||0,maxD:r.maxD||0});});});
+    rows.sort((p,q)=>p.st-q.st);const base=g.slice().sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
+    const dives=rows.map((r,k)=>Object.assign({},r.d,{memo:diveMemo(r.x,r.i),fit:(r.d.fit||(r.x.src==='fit'&&isFitMemo(diveMemo(r.x,r.i))))?true:undefined,si:k?Math.max(0,Math.round(r.st-(rows[k-1].st+rows[k-1].N/60))):(r.d.si==null?60:r.d.si)}));
+    const dv=rows.map((r,k)=>({N:r.N,maxD:r.maxD,si:k?dives[k].si:0}));
+    const st=Object.assign({},base.state,{dives});const sum=Object.assign({},base.sum,{maxD:Math.max(...rows.map(r=>r.maxD)),N:rows.reduce((s,r)=>s+r.N,0),N0:rows[0].N,nd:rows.length,dv,span:rows.reduce((s,r)=>s+r.N/60,0)+dives.slice(1).reduce((s,d)=>s+(+d.si||0),0)});
+    const rec=Object.assign({},base,{time:hhmm(Math.round(rows[0].st)),memo:'',state:st,sum,saved:Math.max(...g.map(x=>x.saved||0))});delete rec.src;
+    const ids=new Set(g.map(x=>x.id));out=out.filter(x=>!ids.has(x.id));out.push(rec);rows.forEach((r,k)=>{map[r.x.id+':'+r.i]={id:rec.id,i:k};});});
+  return {a:out,map:Object.keys(map).length?map:null};}
+// 저장 뒤 그 날짜 합치기. 반환 = 합쳐졌으면 {id,i}(지금 보던 다이빙의 새 위치)
+function mergeDayStore(date,id,i){const r=mergeDayArr(load(),date);if(!r.map)return null;if(!store(r.a))return null;return r.map[id+':'+i]||null;}
+
 const pad=n=>String(n).padStart(2,'0');
 const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Place: Blue Corner\nSuit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',svFile:'Save',svShare:'Share',cancel2:'Cancel',noShare:'This browser cannot share files. Save as a file instead.',noPrev:'No earlier logs',noNext:'No later logs',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
  :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップしてログを書く',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'場所: 青の洞窟\nスーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',svFile:'保存',svShare:'共有',cancel2:'キャンセル',noShare:'このブラウザはファイル共有に対応していません。ファイルに保存してください。',noPrev:'前のログはありません',noNext:'後のログはありません',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`${n}本 読込 · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
@@ -2122,7 +2139,7 @@ function relayout(){const cl=document.querySelector('.colL'),cr=document.querySe
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
 let LASTO=false,PLAN=null,LOGST=null,FIRSTIN=false,WSPUN=false,PRESEL=null;
-const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[]}))),cur:S.cur,start:S.start,T,mode:S.mode});
+const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[],fit:d.fit||undefined}))),cur:S.cur,start:S.start,T,mode:S.mode});
 const putS=P=>{KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;if(P.mode)S.mode=P.mode;};
 function flipSwap(fn){const el=document.getElementById('tabsCard');if(!el){fn();return;}el.classList.remove('flipIn','flipOut');void el.offsetWidth;el.classList.add('flipOut');
   setTimeout(()=>{fn();el.classList.remove('flipOut');void el.offsetWidth;el.classList.add('flipIn');setTimeout(()=>el.classList.remove('flipIn'),380);},300);}
@@ -2160,8 +2177,13 @@ function curRec(){return {date:ymd(),time:hhmm(ST()),memo:'',state:snapState()};
 function conflicts(exceptId){const s1=ST(),e1=s1+Math.max(1,curSpan());return load().filter(x=>{if(x.id===exceptId||x.date!==ymd())return false;const s2=tmin(x.time);if(s2==null)return false;const e2=s2+Math.max(1,(x.sum&&x.sum.span)||(x.sum?x.sum.N0/60:0));return s1===s2||(s1<e2&&s2<e1);});}
 function refreshSave(){if(view!=='ed')return;const t=L(),k=cmpKey(curRec()),hasPlan=S.dives.some(d=>d.pts.length>1);const same=load().some(x=>cmpKey(x)===k);$('logSave').disabled=!hasPlan||same;$('logSave').title=same?t.same:'';}
 const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (d&&d.memo!=null)?d.memo:(i===0?(x.memo||''):'');};
+// 처음 한 번: 기존 로그를 날짜별로 합침(합치기 전 전체를 scuba_logs_bak_merge에 백업, 백업 못 하면 합치지 않음)
+(function(){try{if(localStorage.getItem('scuba_merge_v1'))return;const raw=localStorage.getItem(KEY)||'[]';let a=JSON.parse(raw);if(!Array.isArray(a)||!a.length){localStorage.setItem('scuba_merge_v1','1');return;}
+  if(!localStorage.getItem('scuba_logs_bak_merge'))localStorage.setItem('scuba_logs_bak_merge',raw);
+  a.forEach(x=>{if(x.src==='fit'&&x.state&&x.state.dives)x.state.dives.forEach((d,i)=>{if(!d.fit&&isFitMemo(diveMemo(x,i)))d.fit=true;});});
+  [...new Set(a.map(x=>x.date))].forEach(dt=>{a=mergeDayArr(a,dt).a;});if(store(a))localStorage.setItem('scuba_merge_v1','1');}catch(e){}})();
 function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';renderPh();}
-function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
+function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined,fit:d.fit||undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
 // ===== 같은 날짜 안의 저장 안 한 작업 보관 =====
 // 다른 로그를 열기 전에 지금 작업(그래프·메모·사진·덧붙인 다이빙)을 날짜별로 보관, 같은 날 다시 열면 그대로 복원. 날짜가 바뀌면 버림
 let DR={date:null,m:{}},SDATE=null;
@@ -2178,7 +2200,7 @@ function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;co
   if(DR.m[id]){CUR=id;putS(DR.m[id].s);S.mode='none';S.cur=Math.min(di||0,S.dives.length-1);refreshAll();return;}
   S.mode='none';
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
-  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[]}));S.cur=Math.min(di||0,S.dives.length-1);
+  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[],fit:d.fit||undefined}));S.cur=Math.min(di||0,S.dives.length-1);
   const tm=tmin(x.time);if(tm!=null){T=Math.floor(tm/10)*10%1440;S.start=tm;}else S.start=null;
   CUR=id;$('logMemo').value=S.dives[S.cur].memo||'';renderPh();
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
@@ -2226,7 +2248,9 @@ $('logSave').onclick=()=>{const t=L();if(!S.dives.some(d=>d.pts.length>1)){msg(t
   const CUR0=CUR,cf=conflicts(null),cfIds=new Set(cf.map(x=>x.id));const a=load().filter(x=>!cfIds.has(x.id));if(a.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6),st=ST();S.start=st;
   a.push({id,date:ymd(),time:hhmm(st),memo:'',saved:Date.now(),state:snapState(),sum:summary()});
-  if(!store(a)){msg(t.fail,true);return;}if(DR.date===ymd()){delete DR.m[CUR0||'new'];}SDATE=ymd();afterSave(id);const others=cf.filter(x=>x.id!==CUR0);flash($('logSave'));};
+  if(!store(a)){msg(t.fail,true);return;}if(DR.date===ymd()){delete DR.m[CUR0||'new'];}SDATE=ymd();
+  {/* 같은 날 다른 기록이 있으면 한 기록으로 합치고 합친 기록을 엶 */const mg=mergeDayStore(ymd(),id,S.cur);if(mg){DR.m={};afterSave(mg.id);applyLog(mg.id,true,mg.i);flash($('logSave'));return;}}
+  afterSave(id);const others=cf.filter(x=>x.id!==CUR0);flash($('logSave'));};
 // 저장 아이콘: 화면 전환 없이 로그북 전체(사진 포함 ZIP) 내려받기 / 폴더 아이콘: 다른 기기에서 받은 ZIP·JSON 불러오기
 function flash(el,bad){if(!el)return;el.classList.remove('glow','glowBad');void el.offsetWidth;el.classList.add(bad?'glowBad':'glow');setTimeout(()=>el.classList.remove('glow','glowBad'),900);}
 function toast(m){let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';document.body.appendChild(el);}el.textContent=m;el.classList.add('on');clearTimeout(el.__t);el.__t=setTimeout(()=>el.classList.remove('on'),2600);}
@@ -2321,7 +2345,7 @@ async function fitOne(f,quiet){const t=L();let dives;
     memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps0?('GPS '+(LANG==='en'?'entry':LANG==='ja'?'エントリー':'입수')+' '+d.gps0.lat.toFixed(5)+', '+d.gps0.lon.toFixed(5)):'',d.gps?('GPS '+(LANG==='en'?'exit':LANG==='ja'?'エキジット':'출수')+' '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
   // 같은 날 기존 다이빙 펼치기
   const all=load(),same=all.filter(x=>x.date===date).sort((p,q)=>(p.time||'').localeCompare(q.time||''));const old=[];let base=null;
-  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[]});});if(!base)base=x;});
+  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,3):[],fit:d.fit||isFitMemo(diveMemo(x,i))});});if(!base)base=x;});
   const ov=(o,n)=>o.s<n.s+n.dur&&n.s<o.s+o.dur;
   // 기존 다이빙과 겹치면 수심 기록만 FIT로 바꾸고 메모·사진·라벨 위치는 기존 것 유지. 기존 메모에 GPS 줄이 없을 때만 FIT의 GPS 줄을 덧붙임
   imp.forEach(n=>{const o=old.find(o=>ov(o,n));if(!o)return;const om=(o.memo||'').trim();
@@ -2329,7 +2353,7 @@ async function fitOne(f,quiet){const t=L();let dives;
     n.ph=o.ph||[];n.lab=o.lab||null;});
   const keepOld=old.filter(o=>!imp.some(n=>ov(o,n)));const replaced=old.length-keepOld.length;
   const seq=keepOld.concat(imp).sort((p,q)=>p.s-q.s);
-  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined,si:i?Math.max(10,Math.round(d.s-(seq[i-1].s+seq[i-1].dur))):60}))};
+  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',ph:(d.ph&&d.ph.length)?d.ph.slice(0,3):undefined,fit:d.fit?true:undefined,si:i?Math.max(1,Math.round(d.s-(seq[i-1].s+seq[i-1].dur))):60}))};
   KEYS.forEach(k=>st[k]=(base&&base.state&&k in base.state)?base.state[k]:S[k]);
   const rest=all.filter(x=>x.date!==date);if(rest.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
