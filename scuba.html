@@ -2037,9 +2037,12 @@ function renderCal(){const a=load(),t=L();requestAnimationFrame(fitCalTitle);if(
   if(CALW){h='';for(let i=0;i<7;i++){const x=new Date(WK0);x.setDate(x.getDate()+i);const k=ymdOf(x),oth=x.getMonth()+1!==vm;h+=`<div class="d${i===0?' sun':i===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}${oth?' oth':''}" data-k="${k}">${x.getDate()}</div>`;}}
   else for(let d=1;d<=days;d++){const k=vy+'-'+pad(vm)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}" data-k="${k}">${d}</div>`;}
   $('cal').innerHTML=h;$('logHint').textContent='';
-  $('cal').querySelectorAll('.d').forEach(el=>el.onclick=()=>{const [ky,km,kd]=el.dataset.k.split('-').map(Number);Y=ky;M=km;D=kd;const f=dayLogs()[0];/* CUR는 여기서 지우지 않음: 지우면 applyLog의 stash가 보던 로그를 '새 로그' 임시본으로 잘못 저장(유령 점선 로그) */
-    if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');applyLog(f.id,true);return;}
-    /* 로그 없는 날: 보던 로그를 비우고 새 로그(빈 점선 줄)로 */view='ed';dayChanged();const n=new Date();T=n.getHours()*60+n.getMinutes();S.start=T;drawProfile();show('ed');});}
+    // 날짜 누르기: 처음 = 그 날을 고름(달력 그대로, 그날 다이빙을 아래 탭·그래프에) / 고른 날을 한 번 더 또는 두 번 빠르게 = 그날 로그 화면으로(날짜에서 확대되며)
+  $('cal').querySelectorAll('.d').forEach(el=>{el.onclick=()=>{const k=el.dataset.k;if(CJ!==k){CJ=k;const [ky,km,kd]=k.split('-').map(Number);const r0=dayRows(k)[0];if(r0){Y=ky;M=km;D=kd;applyLog(r0.id,true,r0.i);}renderCal();return;}enterDay(el);};el.ondblclick=()=>enterDay(el);});}
+function enterDay(el){if(view!=='cal')return;const k=el.dataset.k,[ky,km,kd]=k.split('-').map(Number),cr=el.getBoundingClientRect();CJ=k;Y=ky;M=km;D=kd;const f=dayLogs()[0];/* CUR는 여기서 지우지 않음: 지우면 applyLog의 stash가 보던 로그를 '새 로그' 임시본으로 잘못 저장(유령 점선 로그) */
+  const zoom=()=>{const ev=$('logEdV');if(!ev.animate)return;const er=ev.getBoundingClientRect();ev.style.transformOrigin=`${cr.left+cr.width/2-er.left}px ${cr.top+cr.height/2-er.top}px`;ev.animate([{transform:'scale(.15)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.8,.2,1)'});};
+  animH($('logBody'),()=>{if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');applyLog(f.id,true);}
+    else{/* 로그 없는 날: 보던 로그를 비우고 새 로그(빈 점선 줄)로 */view='ed';dayChanged();const n=new Date();T=n.getHours()*60+n.getMinutes();S.start=T;drawProfile();show('ed');}});zoom();}
 // --- 편집(휠)
 function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));const [Y,M,D]=WROW?[EY,EM,ED]:[Y0(),M0(),D0()];
   wM.set(Array.from({length:12},(_,i)=>({h:LANG==='en'?String(i+1):`${i+1}<small>${LANG==='ja'?'月':'월'}</small>`,has:a.some(x=>x.date.startsWith(Y+'-'+pad(i+1)+'-'))})),M-1);
@@ -2092,7 +2095,8 @@ function renderList(){if(WBUSY){updWRow();return;}if(EDIT&&!(EDIT.id===CUR&&EDIT
       if(CUR===id&&S.dives[di]){S.dives[di].memo=nm;if(S.cur===di)$('logMemo').value=nm;}if(typeof refreshSave==='function')refreshSave();});});
   $('logList').querySelectorAll('.dlog').forEach(b=>b.onclick=async e=>{e.stopPropagation();applyLog(b.dataset.id,false,+b.dataset.i||0);await new Promise(r=>setTimeout(r,60));window.__dataSnap&&window.__dataSnap(null);});
   updRowBtns();
-  $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>el.onclick=e=>{if(e.target.closest('.del,.dlog,.mapb,.rb,.lwheels'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);});
+  $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>{el.onclick=e=>{if(e.target.closest('.del,.dlog,.mapb,.rb,.lwheels'))return;applyLog(el.dataset.id,false,+el.dataset.i||0);};
+    el.ondblclick=e=>{if(e.target.closest('.del,.dlog,.mapb,.rb,.lwheels'))return;/* 두 번 빠르게 = 수정 */const id=el.dataset.id,i=+el.dataset.i||0;if(CUR!==id||S.cur!==i)applyLog(id,true,i);EDIT={id,i};renderList();};});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();askDel().then(ok=>{if(ok)delRow(b.dataset.id,+b.dataset.i||0);});});
   curMemoSync();if(view==='ed')syncTW();
   refreshSave();}
@@ -2289,7 +2293,9 @@ $('logPrev').onclick=()=>jumpLog(-1);$('logNext').onclick=()=>jumpLog(1);
 $('calPrev').onclick=()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()-7);wkSetMonth();renderCal();return;}vm--;if(vm<1){vm=12;vy--;}renderCal();};
 $('calNext').onclick=()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()+7);wkSetMonth();renderCal();return;}vm++;if(vm>12){vm=1;vy++;}renderCal();};
 
-$('logBack').onclick=()=>{vy=Y;vm=M;WK0=wkOf(Y,M,D);if(CUR){CJ=ymd();EDIT=null;WKEY='';applyLog(CUR,true,S.cur);}/* 달력으로 가면 저장 안 한 변경은 되돌림 */show('cal');};
+$('logBack').onclick=()=>{vy=Y;vm=M;WK0=wkOf(Y,M,D);if(CUR){CJ=ymd();EDIT=null;WKEY='';applyLog(CUR,true,S.cur);}/* 달력으로 가면 저장 안 한 변경은 되돌림 */
+  /* 로그 줄·메모는 오른쪽으로 빠지고(가속) 달력이 왼쪽에서 들어옴(감속) */const ev=$('logEdV');if(!ev.animate){show('cal');return;}const a1=ev.animate([{transform:'translateX(0)',opacity:1},{transform:'translateX(100%)',opacity:0}],{duration:220,easing:'cubic-bezier(.55,0,1,.45)'});
+  a1.onfinish=()=>{animH($('logBody'),()=>show('cal'));const cv=$('logCalV');if(cv.animate)cv.animate([{transform:'translateX(-100%)',opacity:0},{transform:'translateX(0)',opacity:1}],{duration:280,easing:'cubic-bezier(.2,.8,.2,1)'});};};
 // 이전/다음 로그 날짜의 첫 로그(가장 이른 시각, 다이빙 1)로
 // 날짜 화면 이전/다음: 그날 안의 이전/다음 다이빙 → 끝이면 이전 날짜의 마지막 / 다음 날짜의 첫 다이빙 → 더 없으면 팝업
 // 반접기(선택한 줄 하나만 보임)에서 같은 날 안에서 움직이면 줄이 가속·감속하며 위아래로 밀림(partSlide)
