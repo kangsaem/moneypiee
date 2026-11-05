@@ -1999,7 +1999,7 @@ function renderList(){const t=L(),a=dayLogs(),items=[];
   a.forEach(x=>{const rows=rowsOf(x),multi=rows.length>1||(view==='ed'&&x.id===CUR&&S.dives.length>1);
     rows.forEach(r=>{items.push({st:r.st,h:(()=>{const clock=r.st!=null?`${hhmm(r.st)} → ${hhmm(r.st+r.N/60)}`:'';
       const meta=[(multi?(LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ')+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,x.sum.gas].filter(Boolean).join(' · ');
-      const sel=x.id===CUR&&r.i===S.cur;
+      const sel=PLAN?(x.id===CUR&&r.i===S.cur):!!(PRESEL&&x.id===PRESEL.id&&r.i===PRESEL.i);/* 로그북 들어오는 중(뒤집기 전)엔 들어갈 로그를 미리 선택 표시 */
       return `<div class="li${sel?' cur':''}" data-id="${x.id}" data-i="${r.i}"><div class="tx"><b>${clock||meta}</b>${clock?'<div class="mm">'+meta+'</div>':''}${(m1=>m1?'<div class="mm">'+m1+'</div>':'')(diveMemo(x,r.i).split('\n').filter(Boolean).join(' · ').replace(/[<>&]/g,''))}</div><button class="dlog" data-id="${x.id}" data-i="${r.i}">${LANG==='en'?'Data log':LANG==='ja'?'データログ':'데이터 로그'}</button><button class="del" data-id="${x.id}" data-i="${r.i}">${t.del}</button></div>`;})()});});});
   // 저장 전 다이빙도 점선 줄로 미리 보여 줌: 저장된 로그에 새로 붙인 다이빙, 또는 아직 저장 안 한 새 로그의 다이빙
   if(view==='ed'&&PLAN){/* 플래너 그림은 날짜가 없으니 로그 목록에 내지 않음 */const sv=CUR?load().find(v=>v.id===CUR):null,n0=sv?((sv.state&&sv.state.dives)||[]).length:0,multi=S.dives.length>1,gas=S.o2<=21?tr('sAir'):'EAN'+S.o2,dn=LANG==='ko'?'다이빙 ':LANG==='ja'?'ダイブ ':'Dive ',pend=LANG==='en'?'not saved':LANG==='ja'?'未保存':'저장 전';
@@ -2105,12 +2105,12 @@ function relayout(){const cl=document.querySelector('.colL'),cr=document.querySe
   window.dispatchEvent(new Event('resize'));}
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
-let LASTO=false,PLAN=null,LOGST=null,FIRSTIN=false,WSPUN=false;
+let LASTO=false,PLAN=null,LOGST=null,FIRSTIN=false,WSPUN=false,PRESEL=null;
 const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[]}))),cur:S.cur,start:S.start,T,mode:S.mode});
 const putS=P=>{KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;if(P.mode)S.mode=P.mode;};
 function flipSwap(fn){const el=document.getElementById('tabsCard');if(!el){fn();return;}el.classList.remove('flipIn','flipOut');void el.offsetWidth;el.classList.add('flipOut');
   setTimeout(()=>{fn();el.classList.remove('flipOut');void el.offsetWidth;el.classList.add('flipIn');setTimeout(()=>el.classList.remove('flipIn'),380);},300);}
-function enterLog(){PLAN=snapS();$('tabsCard').classList.add('lbMode');
+function enterLog(){PRESEL=null;PLAN=snapS();$('tabsCard').classList.add('lbMode');
   // 로그북에서 작업하다 플래너로 갔다 온 경우: 그때 보던 로그·날짜·수정 중인 내용 그대로
   if(LOGST){const L0=LOGST;LOGST=null;putS(L0.s);CUR=L0.CUR&&load().some(v=>v.id===L0.CUR)?L0.CUR:null;Y=L0.Y;M=L0.M;D=L0.D;vy=L0.vy;vm=L0.vm;view=L0.view;
     $('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();return;}
@@ -2130,7 +2130,8 @@ function sync(){if(!open)window.__LOGEND=false;if(open!==LASTO){LASTO=open;const
   $('logWrap').classList.toggle('open',open);setTimeout(relayout,0);{const rw=document.getElementById('ruleWrap');if(rw)rw.classList.toggle('closed',open);}$('logHead').classList.toggle('open',open);setTitle(true);if(open)show(view);
   // 첫 진입: 오늘을 보여주지 않고 펼치는 동안 휠만 가장 최근 로그 날짜·시각으로 돌려 둠(로그는 펼쳐진 뒤 enterLog에서 엶)
   if(FIRSTIN&&open){const a=load();if(a.length){const ld=a.map(v=>v.date).sort().pop(),x=a.filter(v=>v.date===ld).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0],[yy,mm,dd]=x.date.split('-').map(Number);
-    const f=wTops(),s0=S.start;Y=yy;M=mm;D=dd;vy=yy;vm=mm;T=tmin(x.time)!=null?tmin(x.time):T;S.start=null;renderWheels();S.start=s0;spinFrom(f);WSPUN=true;}}}
+    const f=wTops(),s0=S.start;Y=yy;M=mm;D=dd;vy=yy;vm=mm;T=tmin(x.time)!=null?tmin(x.time):T;S.start=null;renderWheels();S.start=s0;spinFrom(f);WSPUN=true;PRESEL={id:x.id,i:0};renderList();}}
+  else if(open&&!PLAN&&LOGST&&LOGST.CUR){/* 플래너에 갔다 돌아올 때도 보던 로그를 바로 선택 표시 */const L0=LOGST;Y=L0.Y;M=L0.M;D=L0.D;PRESEL={id:L0.CUR,i:(L0.s&&L0.s.cur)||0};if(view==='ed')renderList();}}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
   let maxD=0;RES.forEach(x=>maxD=Math.max(maxD,x.maxD));return {maxD:R1(maxD),N:RES.reduce((a,x)=>a+x.N,0),N0:r.N,gas,nd:S.dives.length,span:curSpan(),dv:RES.map((x,i)=>({N:x.N,maxD:R1(x.maxD),si:i?(+S.dives[i].si||0):0}))};}
 function curSpan(){let m=0;RES.forEach((x,i)=>{m+=x.N/60;if(i>0)m+=(+S.dives[i].si||0);});return m;}
