@@ -806,7 +806,7 @@ function gmDraw(dv){GM.box=null;if(!gmSync(dv))return;const R=gmReg(),P=256*Math
 
   GM.box=R;}
 // 왼쪽 끝 손잡이 ◀▶: 그래프 선보다 위, 최대/총 팝업보다 아래에 그림
-function gmHandle(){const R=GM.box,z=document.getElementById('gmZ');if(z){if(!R||R.w<40)z.style.visibility='hidden';else{z.style.visibility='';z.style.left=Math.round(cv.offsetLeft+R.x1*FS-26-5)+'px';z.style.top=Math.round(cv.offsetTop+R.y1*FS-56-5)+'px';}}if(!R)return;const hx=R.x0,hy=(R.y0+R.y1)/2;cx.save();cx.strokeStyle='rgba(31,35,40,.45)';cx.lineWidth=1;cx.beginPath();cx.moveTo(hx+.5,R.y0);cx.lineTo(hx+.5,R.y1);cx.stroke();
+function gmHandle(){const R=GM.box,z=document.getElementById('gmZ');if(z){if(!R||R.w<40)z.style.visibility='hidden';else{z.style.visibility='';z.style.left=Math.round(cv.offsetLeft+R.x1*FS-26-5)+'px';z.style.top=Math.round(cv.offsetTop+R.y1*FS-56-5)+'px';}}if(!R)return;const hx=R.x0,hy=(R.y0+R.y1)/2;cx.save();cx.strokeStyle='rgba(31,35,40,.45)';cx.lineWidth=1;/* 세로 선 없음, 손잡이만 */
   cx.fillStyle='#fff';cx.beginPath();cx.roundRect?cx.roundRect(hx-9,hy-11,18,22,3):cx.rect(hx-9,hy-11,18,22);cx.fill();cx.stroke();
   cx.fillStyle='#1f2328';cx.beginPath();cx.moveTo(hx-6,hy);cx.lineTo(hx-1.5,hy-4.5);cx.lineTo(hx-1.5,hy+4.5);cx.closePath();cx.moveTo(hx+6,hy);cx.lineTo(hx+1.5,hy-4.5);cx.lineTo(hx+1.5,hy+4.5);cx.closePath();cx.fill();cx.restore();}
 function gmZoom(d){const R=gmReg(),P=256*Math.pow(2,GM.zf),uc=GM.ux-R.w/2/P;GM.zf=Math.max(3,Math.min(19,GM.zf+d));GM.ux=uc+R.w/2/(256*Math.pow(2,GM.zf));drawProfile();}
@@ -863,7 +863,7 @@ function drawProfile(){
   }
   // 30m 아래 음영: 지도가 열린 구간은 빼고
   cx.fillStyle='rgba(0,0,0,.12)';{const R=!window.SNAP&&GM.box,h3=Y(DMAX)-Y(30);if(R){if(R.x0>G.L)cx.fillRect(G.L,Y(30),R.x0-G.L,h3);if(R.x1<G.L+G.W)cx.fillRect(R.x1,Y(30),G.L+G.W-R.x1,h3);}else cx.fillRect(G.L,Y(30),G.W,h3);}
-  cx.font='700 16px sans-serif';cx.fillStyle=DK?'rgba(255,255,255,.22)':'rgba(31,35,40,.16)';cx.textAlign='center';cx.textBaseline='middle';
+  cx.font='700 16px sans-serif';cx.fillStyle=DK?'rgba(255,255,255,.32)':'rgba(31,35,40,.16)';cx.textAlign='center';cx.textBaseline='middle';
   if(!window.SNAP){const R=GM.box,onMap=(x,y)=>R&&x>=R.x0-16&&x<=R.x1&&y>=R.y0&&y<=R.y1;/* 지도 위에 걸리면 안 씀 */if(!onMap(X(1200),Y(15)))cx.fillText('OW',X(1200),Y(15));if(!onMap(X(1800),Y(25)))cx.fillText('AD',X(1800),Y(25));}
   // 흰 선 아래 그림자: 선 바로 아래 검정 35% → 선에서 10m 아래 0%. 끝 지점 뒤로는 길이·진하기를 같이 줄여 비스듬히 사라짐.
   // 실측 로그의 촘촘한 흔들림이 줄무늬·뾰족함이 되지 않게 전체를 흐리게(약 10px) 번진 뒤 선 아래쪽만 남김. 지도 위에도 그림. 경로·크기가 같으면 캐시 재사용
@@ -2108,7 +2108,7 @@ function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.
 window.addEventListener('scuba:diveRemoved',()=>{if(!CUR)return;const a=load(),x=a.find(v=>v.id===CUR);if(!x)return;
   if(S.start!=null){x.time=hhmm(Math.round(S.start));T=Math.round(S.start/10)*10%1440;}
   x.state=snapState();x.sum=summary();store(a);renderSum();if(open&&view==='ed'){renderWheels();renderList();}});
-function show(v){view=v;window.__LOGEND=open&&v==='ed';if(window.__LOGEND&&S.playMode&&RES[S.cur])setTimeout(()=>{if(window.__LOGEND&&S.playMode&&RES[S.cur])seek(playEnd(RES[S.cur]));},0);$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();if(WSPIN){const f=WSPIN;WSPIN=null;spinFrom(f);}}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
+function show(v){view=v;window.__LOGEND=open;/* 로그북 모드에서는 달력·날짜 화면 모두 로그를 출수 지점(끝)까지 채운 상태로 */if(window.__LOGEND&&S.playMode&&RES[S.cur])setTimeout(()=>{if(window.__LOGEND&&S.playMode&&RES[S.cur])seek(playEnd(RES[S.cur]));},0);$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();if(WSPIN){const f=WSPIN;WSPIN=null;spinFrom(f);}}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
 // 날짜 한 줄: 2026/11/05 (목) — 반접기(날짜 화면 머리)·완전 접힘(로그북 머리)에 씀
 const ymdW=()=>{const t=L();return Y+'/'+pad(M)+'/'+pad(D)+' ('+t.wd[new Date(Y,M-1,D).getDay()]+')';};
 function renderLogSum(){const el=$('logSum');if(!el)return;if(open&&LBF===2){el.textContent=ymdW();el.classList.add('dt');return;}el.classList.remove('dt');const n=load().reduce((a,x)=>a+((x.state&&x.state.dives&&x.state.dives.length)||1),0);el.textContent=n?L().n(n):'';}
@@ -2138,7 +2138,7 @@ function leaveLog(){$('tabsCard').classList.remove('lbMode');if(!PLAN)return;LOG
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();}
 // 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
 let SWT=0;
-function sync(){if(!open)window.__LOGEND=false;if(open!==LASTO){LASTO=open;const tk=++SWT,o=open,w=$('logWrap');let fired=false;
+function sync(){window.__LOGEND=open;if(open!==LASTO){LASTO=open;const tk=++SWT,o=open,w=$('logWrap');let fired=false;
     const run=()=>{if(fired||tk!==SWT)return;fired=true;w.removeEventListener('transitionend',te);setTimeout(()=>{if(tk!==SWT)return;flipSwap(()=>{/* 뒤집는 사이에 다시 열고/닫으면 지금 상태 기준으로만: 빈 점선 로그가 생기던 원인 */if(o){if(!open)return;if(!PLAN)enterLog();show(view);}else{if(open)return;leaveLog();}});},200);};
     const te=e=>{if(e.target===w&&e.propertyName==='grid-template-rows')run();};w.addEventListener('transitionend',te);setTimeout(run,380);}
   if(open&&!PLAN){/* 들어갈 때 = 달력 한 달 전체. 처음이면 가장 최근 로그의 달, 다녀온 거면 보던 로그의 달 */view='cal';LBF=0;CALW=false;
