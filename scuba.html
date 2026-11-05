@@ -1361,7 +1361,8 @@ function renderTabs(){
     b.addEventListener('pointerdown',()=>{fired=false;cancel();lp=setTimeout(()=>{fired=true;showPop(b,i);},500);});
     b.addEventListener('pointerup',cancel);b.addEventListener('pointerleave',cancel);b.addEventListener('pointercancel',cancel);
     b.addEventListener('contextmenu',e=>e.preventDefault());
-    b.onclick=e=>{if(fired){e.preventDefault();fired=false;return;}S.cur=i;syncForm();recompute();if(dive().pts.length>1){S.mode='none';modeChanged();seek(playEnd(RES[S.cur]));}};el.appendChild(b);
+    b.ondblclick=e=>{e.preventDefault();if(window.__goRow)window.__goRow();};
+    b.onclick=e=>{if(fired){e.preventDefault();fired=false;return;}if(i===S.cur&&window.__goRow&&$('tabsCard').classList.contains('lbMode')){window.__goRow();return;}/* 로그북: 고른 다이빙을 한 번 더 = 그 날짜의 그 로그 줄로 */S.cur=i;syncForm();recompute();if(dive().pts.length>1){S.mode='none';modeChanged();seek(playEnd(RES[S.cur]));}};el.appendChild(b);
   });
   const a=document.createElement('button');a.className='add';a.textContent='+';a.title=a.ariaLabel=tr('addDive').replace(/^\+\s*/,'');
   a.onclick=()=>{S.dives.push(newDive());S.cur=S.dives.length-1;syncForm();recompute();};
@@ -2042,10 +2043,11 @@ function renderCal(){const a=load(),t=L();requestAnimationFrame(fitCalTitle);if(
   else for(let d=1;d<=days;d++){const k=vy+'-'+pad(vm)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}" data-k="${k}">${d}</div>`;}
   $('cal').innerHTML=h;$('logHint').textContent='';
     // 날짜 누르기: 처음 = 그 날을 고름(달력 그대로, 그날 다이빙을 아래 탭·그래프에) / 고른 날을 한 번 더 또는 두 번 빠르게 = 그날 로그 화면으로(날짜에서 확대되며)
-  $('cal').querySelectorAll('.d').forEach(el=>{el.onclick=()=>{const k=el.dataset.k;if(CJ!==k){CJ=k;const [ky,km,kd]=k.split('-').map(Number);const r0=dayRows(k)[0];if(r0){Y=ky;M=km;D=kd;applyLog(r0.id,true,r0.i);}renderCal();return;}enterDay(el);};el.ondblclick=()=>enterDay(el);});}
+  $('cal').querySelectorAll('.d').forEach(el=>{el.onclick=()=>{const k=el.dataset.k;if(CJ!==k){CJ=k;const [ky,km,kd]=k.split('-').map(Number);const r0=dayRows(k)[0];if(r0&&!(CUR&&ymd()===k)){Y=ky;M=km;D=kd;applyLog(r0.id,true,r0.i);}/* 이미 연 날이면 보던 다이빙(다이빙2 등) 유지 */renderCal();return;}enterDay(el);};el.ondblclick=()=>enterDay(el);});}
 function enterDay(el){if(view!=='cal')return;const k=el.dataset.k,[ky,km,kd]=k.split('-').map(Number),cr=el.getBoundingClientRect();CJ=k;Y=ky;M=km;D=kd;const f=dayLogs()[0];/* CUR는 여기서 지우지 않음: 지우면 applyLog의 stash가 보던 로그를 '새 로그' 임시본으로 잘못 저장(유령 점선 로그) */
   const zoom=()=>{const ev=$('logEdV');if(!ev.animate)return;const er=ev.getBoundingClientRect();ev.style.transformOrigin=`${cr.left+cr.width/2-er.left}px ${cr.top+cr.height/2-er.top}px`;ev.animate([{transform:'scale(.15)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.8,.2,1)'});};
-  animH($('logBody'),()=>{if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');applyLog(f.id,true);}
+  const keep=CUR&&dayLogs().some(x=>x.id===CUR)?{id:CUR,i:S.cur}:null;/* 그 날 보던 다이빙이 있으면 그대로 */
+  animH($('logBody'),()=>{if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');if(keep)applyLog(keep.id,true,keep.i);else applyLog(f.id,true);}
     else{/* 로그 없는 날: 보던 로그를 비우고 새 로그(빈 점선 줄)로 */view='ed';dayChanged();const n=new Date();T=n.getHours()*60+n.getMinutes();S.start=T;drawProfile();show('ed');}});zoom();}
 // --- 편집(휠)
 function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));const [Y,M,D]=WROW?[EY,EM,ED]:[Y0(),M0(),D0()];
@@ -2318,6 +2320,10 @@ function goLogDate(dir){const t=L(),cur=ymd(),rows=dayRows(cur),k=rows.findIndex
 function slideYM(old,dir){const el=$('edYM'),nw=el.textContent;if(!old||old===nw||!el.animate||!(LBF===1&&view==='ed'))return;const esc=t=>t.replace(/[<>&]/g,'');
   el.innerHTML=`<span class="ymIn">${dir>0?`<span>${esc(old)}</span><span>${esc(nw)}</span>`:`<span>${esc(nw)}</span><span>${esc(old)}</span>`}</span>`;const inn=el.firstChild;
   const an=inn.animate(dir>0?[{transform:'translateY(0)'},{transform:'translateY(-50%)'}]:[{transform:'translateY(-50%)'},{transform:'translateY(0)'}],{duration:480,easing:'cubic-bezier(.65,0,.35,1)'});an.onfinish=an.oncancel=()=>{el.textContent=nw;};}
+// 다이빙 탭을 한 번 더 누르거나 두 번 누르면: 로그북 카드를 펴고(완전 접힘이면) 그 날짜 화면의 그 다이빙 줄로
+window.__goRow=()=>{if(!open||!CUR)return;const run=()=>{if(view!=='ed'){const el=$('cal').querySelector(`.d[data-k="${ymd()}"]`);if(el&&view==='cal'){enterDay(el);}else{view='ed';show('ed');}}else renderList();
+    requestAnimationFrame(()=>{const r=$('logList').querySelector('.li.cur');if(r&&r.scrollIntoView)r.scrollIntoView({block:'nearest',behavior:'smooth'});});};
+  if(LBF===2){LBF=0;applyLBF();syncLogFold();setTimeout(run,320);}else run();};
 // 반접기에서 [수정](또는 두 번 누르기)하면 메모 칸도 보이게(카드 높이 가감속). 수정이 끝나면 다시 줄 하나만
 function syncEdm(){const ev=$('logEdV'),on=!!(EDIT&&LBF===1&&view==='ed');if(ev.classList.contains('edm')===on)return;animH($('logBody'),()=>ev.classList.toggle('edm',on));}
 // 반접기: 선택한 줄 하나만 보이게(목록 안쪽 .llIn을 위아래로 옮김)
