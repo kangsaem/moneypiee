@@ -52,7 +52,7 @@ h1{font-size:19px;margin:4px 2px 12px;font-weight:700}
 .bmode{margin-bottom:8px}
 .bmode button{font-size:12px;padding:4px 10px;--pv:4px}
 .lang button{font-size:11px;padding:4px 8px;background:rgba(255,255,255,.85);--pv:4px}
-.lang button.on{background:#38bdf8;color:#fff;font-weight:700}
+.lang button.on{background:#38bdf8;color:#fff;font-weight:700}#modeBtn.toLog{background:#38bdf8}/* '로그북' 버튼 = 언어 선택 하늘색, '플래너' 버튼은 빨강 그대로 */
 @keyframes glowOnce{0%{box-shadow:0 0 0 0 rgba(14,165,233,.75)}100%{box-shadow:0 0 0 16px rgba(14,165,233,0)}}@keyframes glowBadK{0%{box-shadow:0 0 0 0 rgba(227,27,63,.7)}100%{box-shadow:0 0 0 14px rgba(227,27,63,0)}}
 .glow{animation:glowOnce .8s ease-out 1}.glowBad{animation:glowBadK .8s ease-out 1}
 @keyframes noteK{0%{opacity:0;transform:translate(-50%,-50%) scale(.92);box-shadow:0 0 0 0 rgba(125,211,252,.85)}15%{opacity:1;transform:translate(-50%,-50%) scale(1)}55%{box-shadow:0 0 0 22px rgba(125,211,252,0);opacity:1}100%{opacity:0;box-shadow:0 0 0 22px rgba(125,211,252,0);transform:translate(-50%,-50%) scale(1)}}
@@ -1903,7 +1903,7 @@ const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.s
 const TT=document.querySelector('.ttl [data-i18n="h1"]');let flipT=0;
 // '플래너' 낱말만 뒤집힘, 앞부분(DTMD 다이빙)은 고정
 const TW=()=>LANG==='en'?['DTMD Dive ','Planner','Logbook']:LANG==='ja'?['DTMD ダイブ','プランナー','ログブック']:['DTMD 다이빙 ','플래너','로그북'];
-function setTitle(anim){{const mb=document.getElementById('modeBtn');if(mb)mb.textContent=open?TW()[1]:TW()[2];}if(!TT)return;const [pre,a,b]=TW(),word=open?b:a;let fw=TT.querySelector('.fw');
+function setTitle(anim){{const mb=document.getElementById('modeBtn');if(mb){mb.textContent=open?TW()[1]:TW()[2];mb.classList.toggle('toLog',!open);}}if(!TT)return;const [pre,a,b]=TW(),word=open?b:a;let fw=TT.querySelector('.fw');
   if(!fw||!TT.textContent.startsWith(pre)){TT.innerHTML='';TT.appendChild(document.createTextNode(pre));fw=document.createElement('span');fw.className='fw';fw.textContent=word;TT.appendChild(fw);window.fitDTMD&&fitDTMD();return;}
   if(fw.textContent===word)return;if(!anim){fw.textContent=word;window.fitDTMD&&fitDTMD();return;}
   clearTimeout(flipT);fw.classList.add('flipOut');flipT=setTimeout(()=>{fw.textContent=open?TW()[2]:TW()[1];window.fitDTMD&&fitDTMD();fw.classList.remove('flipOut');fw.classList.add('flipIn');requestAnimationFrame(()=>requestAnimationFrame(()=>fw.classList.remove('flipIn')));},180);}
