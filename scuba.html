@@ -261,8 +261,9 @@ html.spl body>*:not(#splash){visibility:hidden}
 </style>
 </head>
 <body>
-<div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
+<div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div><div id="spDbg" style="color:rgba(255,255,255,.55);font-size:10px;text-align:center;max-width:92vw;word-break:break-all;margin-top:4px"></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
+<script>/* 진단(임시): 시작 화면 터치·오류 기록 */window.__dbg={t:[],e:[]};addEventListener('error',e=>{__dbg.e.push((e.message||'err').slice(0,60));});addEventListener('unhandledrejection',e=>{__dbg.e.push(String(e.reason).slice(0,60));});document.getElementById('splash').addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('button');__dbg.t.push((b&&b.id||'bg')+'@'+(performance.now()/1000).toFixed(1));},true);
+/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" id="modeBtn">로그북</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
 <div id="mainGrid"><div class="colL">
@@ -1645,27 +1646,28 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
   const bgReset=()=>{document.documentElement.style.background='';const m=document.querySelector('meta[name=theme-color]');if(m)m.content='#284656';};
   const vid=sp.querySelector('.spVid'),vPlay=()=>{if(!vid||sp.style.display==='none')return;try{vid.muted=true;const r=vid.play();if(r&&r.catch)r.catch(()=>{});}catch(e){}};
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)vPlay();});window.addEventListener('pageshow',vPlay);
-  const close=()=>{if(vid)try{vid.pause();}catch(e){}sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);};
-  window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
+  const close=why=>{window.__spClosed=why||'?';try{const D=window.__dbg||{t:[],e:[]};localStorage.setItem('scuba_spdbg',JSON.stringify({r:why||'?',at:(performance.now()/1000).toFixed(1),rd:window.__spRdT||'-',nav:((performance.getEntriesByType('navigation')[0]||{}).type||'')+(/[?&]v=/.test(location.search)?'+새로고침':''),t:D.t.slice(-4),e:D.e.slice(-2)}));}catch(x){}if(vid)try{vid.pause();}catch(e){}sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);};
+  const dbgShow=()=>{const el=document.getElementById('spDbg');if(!el)return;let o=null;try{o=JSON.parse(localStorage.getItem('scuba_spdbg')||'null');}catch(x){}const D=window.__dbg||{e:[]};el.textContent='준비 '+(window.__spRdT||'…')+'s'+((performance.getEntriesByType('navigation')[0]||{}).type?' '+(performance.getEntriesByType('navigation')[0].type)+(/[?&]v=/.test(location.search)?'+새로고침':''):'')+(window.__spClosed?'':' · 이번엔 닫힘없음')+(o?' · 지난번 '+o.r+'@'+o.at+'s('+o.nav+') 탭:'+(o.t.join(',')||'없음')+(o.e.length?' 오류:'+o.e.join('|'):''):'')+(D.e.length?' · 지금오류:'+D.e.join('|'):'');};
+  window.showSplash=()=>{dbgShow();window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
   const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
     if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});}
-  if(lang!=='ko')close();
+  if(lang!=='ko')close('lang');
   {const G=lang==='en'?['Logbook','Planner']:lang==='ja'?['ログブック','プランナー']:['로그북','플래너'];document.getElementById('spLog').textContent=G[0];document.getElementById('spPlan').textContent=G[1];}
   /* 아래 두 버튼: 고른 모드로 바로 들어감(뒤집기 없이, 시작 화면 뒤에서 바꾼 뒤 닫음) */
-  const goLog=()=>{try{if(window.toLogInstant)window.toLogInstant();}catch(e){console.error(e);}setTimeout(close,60);};
-  const goPlan=()=>{const de=document.documentElement;try{if(window.__log&&window.__log.open&&window.toPlanner){de.classList.add('noAnim');window.toPlanner(true);}}catch(e){console.error(e);}requestAnimationFrame(()=>requestAnimationFrame(()=>de.classList.remove('noAnim')));setTimeout(close,60);};
+  const goLog=why=>{try{if(window.toLogInstant)window.toLogInstant();else(window.__dbg.e.push('toLogInstant 없음'));}catch(e){console.error(e);window.__dbg.e.push('log:'+String(e&&e.message||e).slice(0,60));}setTimeout(()=>close(why||'로그북'),60);};
+  const goPlan=why=>{const de=document.documentElement;try{if(window.__log&&window.__log.open&&window.toPlanner){de.classList.add('noAnim');window.toPlanner(true);}}catch(e){console.error(e);}requestAnimationFrame(()=>requestAnimationFrame(()=>de.classList.remove('noAnim')));setTimeout(()=>close(why||'플래너'),60);};
   document.getElementById('spLog').onclick=()=>{if(window.__spReady)goLog();};document.getElementById('spPlan').onclick=()=>{if(window.__spReady)goPlan();};
   /* 모든 스크립트(로그북 포함)가 준비된 뒤에 동작. 그 전에 눌렀으면 지금 실행 */
-  const ready=()=>{if(window.__spReady)return;window.__spReady=true;const k=window.__spPick;window.__spPick=null;document.querySelectorAll('#spGo button').forEach(b=>b.classList.remove('pk'));if(k==='log')goLog();else if(k==='plan')goPlan();};
+  const ready=()=>{if(window.__spReady)return;window.__spReady=true;window.__spRdT=(performance.now()/1000).toFixed(1);dbgShow();const k=window.__spPick;window.__spPick=null;document.querySelectorAll('#spGo button').forEach(b=>b.classList.remove('pk'));if(k==='log')goLog('미리로그북');else if(k==='plan')goPlan('미리플래너');};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else setTimeout(ready,0);
   document.getElementById('spReload').onclick=e=>{const btn=e.currentTarget;if(btn.classList.contains('spinL'))return;btn.classList.remove('spin');void btn.offsetWidth;btn.classList.add('spinL');
     // 새 버전을 먼저 받아 캐시에 넣어 둔 뒤 이동: 기다리는 동안은 지금 화면이 그대로 보이고, 이동은 캐시에서 바로 열림
     const u=location.pathname+'?v='+Date.now();try{if('caches' in window)caches.keys().then(k=>k.forEach(n=>caches.delete(n)));}catch(x){}
     const t0=Date.now();let gone=false;const go=()=>{if(gone)return;gone=true;setTimeout(()=>location.replace(u+(location.hash||'')),Math.max(0,600-(Date.now()-t0)));};
     try{fetch(u,{cache:'reload'}).then(r=>r.text()).then(go,go);}catch(x){go();}setTimeout(go,5000);};
-  try{const d=new Date(document.lastModified);if(!isNaN(d)){const p=n=>String(n).padStart(2,'0');document.getElementById('spVer').textContent=d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}}catch(e){}const nm=document.getElementById('spName');if(nm)nm.onclick=close;
-  document.getElementById('spTut').onclick=()=>{close();window.startTutorial&&window.startTutorial();};})();
+  try{const d=new Date(document.lastModified);if(!isNaN(d)){const p=n=>String(n).padStart(2,'0');document.getElementById('spVer').textContent=d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}}catch(e){}const nm=document.getElementById('spName');if(nm)nm.onclick=()=>close('제목글자');
+  document.getElementById('spTut').onclick=()=>{close('튜토리얼');window.startTutorial&&window.startTutorial();};})();
 </script>
 <script>
 (function(){function fit(){const b=document.querySelector('.ttl .dtmd');if(!b)return;b.style.letterSpacing='0px';b.style.fontSize='20px';
@@ -2327,6 +2329,19 @@ const EZ='cubic-bezier(.2,.8,.2,1)';
 function animH(el,change){if(!el||!el.animate){change();return;}const h0=el.offsetHeight;change();const h1=el.offsetHeight;if(Math.abs(h1-h0)<2)return;el.style.overflow='hidden';const a=el.animate([{height:h0+'px'},{height:h1+'px'}],{duration:300,easing:EZ});a.onfinish=a.oncancel=()=>{el.style.overflow='';};}
 function applyLBF(anim){saveLBF();const go=()=>{CALW=LBF===1;$('logEdV').classList.toggle('part',LBF===1);partFit();if(view==='cal'){if(CALW)WK0=null;renderCal();}};
   if(!(anim&&open)){go();return;}
+  // 달력에서 한 달 ↔ 한 주: 달력 전체가 위로 밀려 올라가고(접기) 내려옴(펴기). 카드 높이와 같이 가속·감속
+  if(view==='cal'){const cal=$('cal');if(!cal||!cal.animate){animH($('logBody'),go);return;}
+    const rowTop=(root,k)=>{const c=k&&root.querySelector(`.d[data-k="${k}"]`);return c?c.offsetTop-root.querySelector('.d,.wd').offsetTop:null;};
+    const firstIn=root=>{const c=[...root.querySelectorAll('.d')].find(x=>!x.classList.contains('oth'))||root.querySelector('.d');return c&&c.dataset.k;};
+    const fr=[{transform:'translateY(0)',clipPath:'inset(0 0 0 0)'}];const opt={duration:300,easing:EZ};
+    if(LBF===1){/* 접기: 지금 한 달 그림을 복사해 위로 밀고, 그 사이 진짜 달력은 한 주로 */const ghost=cal.cloneNode(true);ghost.removeAttribute('id');
+      animH($('logBody'),go);
+      const host=cal.parentNode;ghost.style.cssText=`position:absolute;left:${cal.offsetLeft}px;top:${cal.offsetTop}px;width:${cal.offsetWidth}px;pointer-events:none;margin:0`;
+      host.appendChild(ghost);const o=rowTop(ghost,firstIn(cal));if(o==null||o<2){ghost.remove();return;}
+      cal.style.visibility='hidden';const an=ghost.animate([fr[0],{transform:`translateY(${-o}px)`,clipPath:`inset(${o}px 0 0 0)`}],opt);
+      an.onfinish=an.oncancel=()=>{ghost.remove();cal.style.visibility='';};return;}
+    /* 펴기: 한 달을 그린 뒤, 보던 주가 맨 위인 자리에서 내려옴 */const k=firstIn(cal);animH($('logBody'),go);const o=rowTop(cal,k);
+    if(o!=null&&o>=2)cal.animate([{transform:`translateY(${-o}px)`,clipPath:`inset(${o}px 0 0 0)`},fr[0]],opt);return;}
   // 날짜 화면에서 펴기↔한 줄 보기: 로그 줄들도 카드 높이와 같이 위아래로 미끄러짐(순간이동 안 하게)
   const ll=$('logList'),inn=ll&&ll.querySelector('.llIn'),cur=inn&&(inn.querySelector('.li.cur')||inn.querySelector('.li')),y0=view==='ed'&&cur?cur.getBoundingClientRect().top:null;
   animH($('logBody'),go);
