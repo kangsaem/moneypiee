@@ -256,7 +256,7 @@ html.spl body>*:not(#splash){visibility:hidden}
 @media (prefers-reduced-motion:reduce){#spTut{animation:none}}
 /* 탭 접기/펼치기 삼각형 = 모두 22px(줄 높이는 그대로) */.setHead .arr,#logHead .arr{font-size:22px!important;line-height:16px;height:16px;display:inline-flex;align-items:center;overflow:visible}#barsFold.foldB{font-size:22px!important;line-height:18px}.footHd .arr{font-size:22px!important;line-height:17px;height:17px}
 /* 시작 화면 배경: 물고기 떼 영상(삼각대 고정 보정본) + 짙은 덧칠. 영상이 못 뜨면 원래 바탕색 */
-#splash .spVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;pointer-events:none;animation:none}
+#splash .spVid{position:absolute;top:0;left:0;right:0;width:100%;height:100%;min-height:100lvh;object-fit:cover;z-index:-2;pointer-events:none;animation:none}
 #splash{isolation:isolate}#splash::before{content:'';position:absolute;inset:0;z-index:-1;background:rgba(15,42,61,.45);pointer-events:none}
 @media (max-height:540px){#splash{padding-top:10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}#splash .spMid{gap:6px}#spTut{aspect-ratio:auto;width:min(80vw,520px);height:calc(100vh - 150px);height:calc(100dvh - 150px);gap:6px}#spTut .spPlay{width:44px;height:44px}#spTut .sp1{font-size:40px}#splash .sp3{font-size:14px;padding:2px 8px}}
 </style>
@@ -1649,7 +1649,7 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)vPlay();});window.addEventListener('pageshow',vPlay);
   const close=why=>{if(vid)try{vid.pause();}catch(e){}sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);};
     /* 아이폰 홈 화면 앱: 처음 그릴 때 화면 높이를 홈바만큼 작게 잡는 일이 있음 → 열린 직후·높이가 바뀔 때 다시 맞춤 */
-  const spFit=()=>{if(sp.style.display==='none')return;const h=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,(window.visualViewport&&visualViewport.height)||0,(screen&&screen.height&&matchMedia('(display-mode:standalone)').matches&&innerHeight>innerWidth)?Math.max(screen.height,screen.width):0);sp.style.minHeight=h+'px';if(window.scrollY)window.scrollTo(0,0);};
+  const spFit=()=>{if(sp.style.display==='none')return;const h=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,(window.visualViewport&&visualViewport.height)||0,(screen&&screen.height&&matchMedia('(display-mode:standalone)').matches&&innerHeight>innerWidth)?Math.max(screen.height,screen.width):0);sp.style.minHeight=h+'px';/* 배경 영상도 같은 높이로(아이폰은 영상 층 크기를 처음 크기로 두는 일이 있음) + 다시 그리게 살짝 흔듦 */if(vid){vid.style.height=h+'px';vid.style.transform=vid.style.transform?'':'translateZ(0)';}if(window.scrollY)window.scrollTo(0,0);};
   spFit();requestAnimationFrame(spFit);[150,500,1200].forEach(t=>setTimeout(spFit,t));addEventListener('resize',spFit);addEventListener('pageshow',spFit);addEventListener('orientationchange',()=>setTimeout(spFit,300));if(window.visualViewport)visualViewport.addEventListener('resize',spFit);
   window.showSplash=()=>{setTimeout(spFit,0);window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
   const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
