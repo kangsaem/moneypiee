@@ -2338,11 +2338,17 @@ function notePop(txt,hostEl){const host=hostEl||$('logCalV');host.querySelectorA
 let CJ=null;
 function jumpLog(dir){const t=L(),ds=[...new Set(load().map(x=>x.date))].sort(),mp=vy+'-'+pad(vm)+'-',inView=CJ&&CJ.startsWith(mp);
   const n0=new Date(),td=n0.getFullYear()+'-'+pad(n0.getMonth()+1)+'-'+pad(n0.getDate());const ref=inView?CJ:td.startsWith(mp)?td:(dir<0?mp+'01':mp+pad(new Date(vy,vm,0).getDate()));const d=dir<0?ds.filter(x=>x<ref).pop():ds.find(x=>x>ref);
-  if(!d){notePop(dir<0?t.noPrev:t.noNext);return;}CJ=d;const [yy,mm,dd]=d.split('-').map(Number);vy=yy;vm=mm;if(CALW)WK0=wkOf(yy,mm,dd);
-  /* 달력 그대로 두고 그 날의 다이빙을 아래 탭·그래프에 엶(다이빙1·2를 누르면 그 다이빙 그래프) */const r0=dayRows(d)[0];if(r0){Y=yy;M=mm;D=dd;applyLog(r0.id,true,r0.i);}renderCal();}
+  if(!d){notePop(dir<0?t.noPrev:t.noNext);return;}const k0=calKey();CJ=d;const [yy,mm,dd]=d.split('-').map(Number);vy=yy;vm=mm;if(CALW)WK0=wkOf(yy,mm,dd);
+  /* 달력 그대로 두고 그 날의 다이빙을 아래 탭·그래프에 엶(다이빙1·2를 누르면 그 다이빙 그래프) */const r0=dayRows(d)[0];if(r0){Y=yy;M=mm;D=dd;applyLog(r0.id,true,r0.i);}const k1=calKey();slideCal(k1===k0?0:(k1>k0?1:-1),renderCal);/* 달·주가 바뀌면 옆으로 넘김 */}
 $('logPrev').onclick=()=>jumpLog(-1);$('logNext').onclick=()=>jumpLog(1);
-$('calPrev').onclick=()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()-7);wkSetMonth();renderCal();return;}vm--;if(vm<1){vm=12;vy--;}renderCal();};
-$('calNext').onclick=()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()+7);wkSetMonth();renderCal();return;}vm++;if(vm>12){vm=1;vy++;}renderCal();};
+// 달력 넘기기: 지난 달력은 옆으로 빠지고 새 달력이 반대편에서 들어옴(가속·감속 0.34초). dir = +1 다음 / -1 이전
+function slideCal(dir,fn){const c=$('cal');if(!dir||!c.animate){fn();return;}const before=c.innerHTML,old=c.cloneNode(true);old.removeAttribute('id');fn();if(c.innerHTML===before)return;
+  const host=c.parentElement;if(getComputedStyle(host).position==='static')host.style.position='relative';old.style.cssText+=`;position:absolute;left:${c.offsetLeft}px;top:${c.offsetTop}px;width:${c.offsetWidth}px;pointer-events:none;margin:0`;host.appendChild(old);
+  const ez='cubic-bezier(.65,0,.35,1)',du=340;old.animate([{transform:'translateX(0)',opacity:1},{transform:`translateX(${-dir*100}%)`,opacity:0}],{duration:du,easing:ez}).onfinish=()=>old.remove();
+  c.animate([{transform:`translateX(${dir*100}%)`,opacity:0},{transform:'translateX(0)',opacity:1}],{duration:du,easing:ez});}
+const calKey=()=>CALW&&WK0?+new Date(WK0):vy*12+vm;
+$('calPrev').onclick=()=>slideCal(-1,()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()-7);wkSetMonth();renderCal();return;}vm--;if(vm<1){vm=12;vy--;}renderCal();});
+$('calNext').onclick=()=>slideCal(1,()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()+7);wkSetMonth();renderCal();return;}vm++;if(vm>12){vm=1;vy++;}renderCal();});
 
 $('logBack').onclick=()=>{vy=Y;vm=M;WK0=wkOf(Y,M,D);if(CUR){CJ=ymd();EDIT=null;WKEY='';applyLog(CUR,true,S.cur);}/* 달력으로 가면 저장 안 한 변경은 되돌림 */
   /* 로그 줄·메모는 오른쪽으로 빠지고(가속) 달력이 왼쪽에서 들어옴(감속) */const ev=$('logEdV');if(!ev.animate){show('cal');return;}const a1=ev.animate([{transform:'translateX(0)',opacity:1},{transform:'translateX(100%)',opacity:0}],{duration:220,easing:'cubic-bezier(.55,0,1,.45)'});
