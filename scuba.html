@@ -184,7 +184,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .wbox{background:#E31B3F;color:#fff;border-radius:5px;padding:7px 10px;font-size:12px;font-weight:600;line-height:1.55}
 .summary .pl{margin-top:4px;padding-top:4px;border-top:1px solid var(--line)}
 .warn{color:var(--up)}
-.play{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:14px 0 2px}.play>.seg{justify-self:start}.play>.icos{justify-self:end}.play .pmid{display:inline-flex;gap:6px;align-items:center}/* 재생 버튼 = 가운데 고정, 이전/다음 로그는 로그북 모드에서만 */.play .pnav{visibility:hidden;color:#1b4277;background:#fff;border:1px solid var(--line,#d0d7de);border-radius:4px;width:30px;padding:0;cursor:pointer}.play.lg .pnav{visibility:visible}.play .pnav svg{display:block;width:13px;height:13px}@media (max-width:374px){.play{gap:4px}.play .pmid{gap:4px}.play .seg button{padding-left:6px!important;padding-right:6px!important}}
+.play{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:4px 0 2px}.play>.seg{justify-self:start}.play>.icos{justify-self:end}.play .pmid{display:inline-flex;gap:6px;align-items:center}/* 재생 버튼 = 가운데 고정, 이전/다음 로그는 로그북 모드에서만 */.play .pnav{visibility:hidden;color:#1b4277;background:#fff;border:1px solid var(--line,#d0d7de);border-radius:4px;width:30px;padding:0;cursor:pointer}.play.lg .pnav{visibility:visible}.play .pnav svg{display:block;width:13px;height:13px}@media (max-width:374px){.play{gap:4px}.play .pmid{gap:4px}.play .seg button{padding-left:6px!important;padding-right:6px!important}}
 .play .icos{display:inline-flex;gap:6px}.ico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#1f2937;background:#2f6fe4;border-color:#2f6fe4}.ico svg{width:22px;height:22px}
 .big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:34px;padding:0;flex-shrink:0;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
 /* 질소 + 통계 */
@@ -346,7 +346,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
     <button id="clear" data-i18n="clear">지우기</button>
     <span class="gmW"><button id="phBgBtn" class="on off"></button><button id="gmBtn" class="off"></button></span>
   </div>
-  <div style="margin-top:10px;position:relative"><canvas id="prof"></canvas><span id="gmZ" style="display:none"><button id="gmIn" aria-label="zoom in"><svg viewBox="0 0 10 10" width="10" height="10"><path d="M5 .5v9M.5 5h9" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button><button id="gmOut" aria-label="zoom out"><svg viewBox="0 0 10 10" width="10" height="10"><path d="M.5 5h9" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button></span></div>
+  <div style="margin-top:4px;position:relative"><canvas id="prof"></canvas><span id="gmZ" style="display:none"><button id="gmIn" aria-label="zoom in"><svg viewBox="0 0 10 10" width="10" height="10"><path d="M5 .5v9M.5 5h9" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button><button id="gmOut" aria-label="zoom out"><svg viewBox="0 0 10 10" width="10" height="10"><path d="M.5 5h9" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button></span></div>
   <div id="ptEd" class="hide"><div class="peHint" data-i18n="peHint">점을 누르면 시간·수심을 입력할 수 있어요</div>
     <div class="peRow"><button id="pePrev" aria-label="prev">◀</button><b id="peN"></b><button id="peNext" aria-label="next">▶</button>
       <label><span data-i18n="peT">시간</span> <input type="number" id="peMin" min="0" max="70" inputmode="numeric">:<input type="number" id="peSec" min="0" max="59" step="10" inputmode="numeric"></label>
@@ -956,7 +956,7 @@ function drawProfile(){
     cx.fillStyle='rgba(255,255,255,.7)';cx.fillRect(gx,gy,gw,gh);cx.strokeStyle='#9ca3af';cx.lineWidth=1;cx.strokeRect(gx+.5,gy+.5,gw-1,gh-1);
     cx.fillStyle=cur<=50?'#f97316':'#2f6fe4';cx.globalAlpha=.85;/* 질소 막대 '배출 중' 파랑과 같은 농도 */cx.fillRect(gx+1,yb(cur),gw-2,gy+gh-yb(cur)-1);cx.globalAlpha=1;
     cx.strokeStyle='#ea580c';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(gx-2,yb(50));cx.lineTo(gx+gw+2,yb(50));cx.stroke();
-    cx.font='9px sans-serif';cx.fillStyle='#6b7280';cx.textAlign='center';cx.textBaseline='bottom';cx.fillText(puN(),gx+gw/2,gy-2);
+    /* 공기막대 위 bar/psi 글자 삭제 */
     {const ty=yb(cur)-2;if(ty-11>=gy){cx.save();cx.translate(gx+gw/2,ty);cx.font='600 10px sans-serif';cx.fillStyle=cur<=50?'#ea580c':'#1f2328';cx.textBaseline='bottom';
       const txt=String(pu(cur));if(cx.measureText(txt).width>gw-1){cx.rotate(-Math.PI/2);cx.textAlign='left';cx.textBaseline='middle';cx.fillText(txt,2,0);}else{cx.textAlign='center';cx.fillText(txt,0,0);}cx.restore();}}
   }
