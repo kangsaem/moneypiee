@@ -24,6 +24,7 @@
   2. 사용자 캡처: ↻ 새로고침 직후 시작 화면 아래에 약 32pt 검은 띠(화면 전체가 위로 32pt) → 들어갔다 돌아오면 정상. 이때 탭은 정확(spLog (20)/(21)). 아이폰 PWA가 처음 열 때 화면 높이를 작게 잡았다가 바뀌는 것으로 추정 = 예전 약 50pt 터치 어긋남과 같은 원인일 가능성.
   3. 제안 a(사용자 '내일하자'로 보류, 아직 ㄱㄱ 전): 진단에 '열 때 innerHeight → 지금 innerHeight, 바뀐 시각' 추가 + 시작 화면이 항상 기기 화면 전체를 덮게(높이 보정) + 높이 바뀌면 시작 화면 배치 즉시 다시 계산.
   4. 원인 확정 후 진단 글씨(#spDbg, __dbg, scuba_spdbg) 삭제.
+  ★ 11/07 03:07 처리(사용자 결정: 진단 없이 처리): 진단 글씨·기록 코드 전부 삭제(#spDbg, __dbg, scuba_spdbg, dbgShow). #splash = top/left/right 0 + height:100lvh(+min-height), spFit()이 열린 직후(즉시·rAF·150/500/1200ms)·resize·visualViewport resize·pageshow·회전·showSplash 때 min-height를 max(innerHeight, clientHeight, visualViewport.height, 세로 홈화면앱이면 screen.height)로 맞춤. [플래너][로그북] 인식 범위 = 위 50px + 아래 20px, ↻ = 위 50px. 아이폰에서 띠가 없어졌는지 확인 필요. 구버전 문제(1번 후보)는 아직.
   5. 사용자 관찰(11/07 03:00, 홈 화면 앱): 앱 실행 → 구버전(02:46) → ↻ → 신버전(02:59)인데 하단 검은 띠(밀림) → 버튼 됨 → 들어갔다 DTMD 막대로 돌아오면 띠 없음 → 앱 종료·재실행 → 다시 구버전. 구버전 실행에서도 띠가 생길 때 있음. 탭 기록 bg@1.3(37) = 로그북 윗변 37px 아래(버튼 36px) → 띠 상태에서 위치 어긋남.
      - 구버전 원인 추정: 홈 화면 앱은 start_url '/scuba'를 열고, 이 주소가 캐시(GitHub Pages max-age 600 + moneypie.kr 앞단 캐시 가능)에 남아 옛 파일이 나옴. ↻는 '/scuba?v=시각'이라 새 파일. → 대책 후보: 열 때 최신 버전 확인 후 자동 교체, 또는 서비스 워커(HTML은 네트워크 우선).
      - 띠 원인 추정: 처음 그릴 때 아이폰이 화면 높이를 홈바(약 32~34pt)만큼 작게 잡음 → #splash(position:fixed;inset:0)가 덜 덮음. → 대책 후보: 시작 화면 높이를 100vh/100lvh로, resize·visualViewport 변화 때 다시 계산, 진단에 innerHeight·visualViewport.height·screen.height 기록.
