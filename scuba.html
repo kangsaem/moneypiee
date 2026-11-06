@@ -2385,11 +2385,11 @@ $('logBack').onclick=()=>{vy=Y;vm=M;WK0=wkOf(Y,M,D);if(CUR){CJ=ymd();EDIT=null;W
 // 날짜 화면 이전/다음: 그날 안의 이전/다음 다이빙 → 끝이면 이전 날짜의 마지막 / 다음 날짜의 첫 다이빙 → 더 없으면 팝업
 // 반접기(선택한 줄 하나만 보임)에서 같은 날 안에서 움직이면 줄이 가속·감속하며 위아래로 밀림(partSlide)
 function dayRows(date){const rows=[];load().filter(x=>x.date===date).sort((p,q)=>(p.time||'').localeCompare(q.time||'')).forEach(x=>rowsOf(x).forEach(r=>rows.push({id:x.id,i:r.i,st:r.st})));rows.sort((p,q)=>(p.st==null?1e9:p.st)-(q.st==null?1e9:q.st));return rows;}
-function goLogDate(dir){const t=L(),cur=ymd(),rows=dayRows(cur),k=rows.findIndex(r=>r.id===CUR&&r.i===S.cur);
+function goLogDate(dir,popHost){const t=L(),cur=ymd(),rows=dayRows(cur),k=rows.findIndex(r=>r.id===CUR&&r.i===S.cur);
   const nb=k>=0?rows[k+dir]:(dir>0?rows[0]:rows[rows.length-1]);
   if(nb&&k>=0||(nb&&k<0&&rows.length&&!CUR)){const f0=[wH.top,wMi.top],ft=partTop();applyLog(nb.id,true,nb.i);partSlide(ft);requestAnimationFrame(()=>requestAnimationFrame(()=>{wH.spin(f0[0]);wMi.spin(f0[1]);}));return;}
   const ds=[...new Set(load().map(x=>x.date))].sort(),d=dir<0?ds.filter(x=>x<cur).pop():ds.find(x=>x>cur);
-  if(!d){notePop(dir<0?t.noPrev:t.noNext,$('logList'));return;}/* 달력과 같은 빛 번짐 팝업 */
+  if(!d){notePop(dir<0?t.noPrev:t.noNext,popHost||$('logList'));return;}/* 달력과 같은 빛 번짐 팝업 */
   const r2=dayRows(d),x=dir<0?r2[r2.length-1]:r2[0];
   const [yy,mm,dd]=d.split('-').map(Number);const f0=[wM.top,wD.top,wH.top,wMi.top],ym0=$('edYM').textContent;Y=yy;M=mm;D=dd;vy=yy;vm=mm;applyLog(x.id,true,x.i);slideYM(ym0,dir);
   // 월·일·시각 휠을 이전 위치에서 새 위치까지 가속하며 돌림
@@ -2413,7 +2413,7 @@ function partSlide(from){const ll=$('logList'),inn=ll.querySelector('.llIn');par
   ll.classList.add('sliding');const an=inn.animate([{transform:`translateY(${-from+10}px)`},{transform:`translateY(${-c.offsetTop+10}px)`}],{duration:480,easing:'cubic-bezier(.65,0,.35,1)'});an.onfinish=an.oncancel=()=>ll.classList.remove('sliding');}
 $('edPrev').onclick=()=>goLogDate(-1);$('edNext').onclick=()=>goLogDate(1);
 /* 수심그래프 아래 이전/다음 로그: 위 버튼과 같은 이동. 재생 중이었으면 새 로그를 처음부터 이어서 재생 */
-const plGo=dir=>{if(!open)return;const run=typeof P!=='undefined'&&P.run;goLogDate(dir);if(view==='cal')renderCal();if(run)setTimeout(()=>{seek(0);startPlay();},60);};$('plPrev').onclick=()=>plGo(-1);$('plNext').onclick=()=>plGo(1);
+const plGo=dir=>{if(!open)return;const run=typeof P!=='undefined'&&P.run;goLogDate(dir,$('prof').parentNode);/* 없으면 수심그래프 가운데에 팝업 */if(view==='cal')renderCal();if(run)setTimeout(()=>{seek(0);startPlay();},60);};$('plPrev').onclick=()=>plGo(-1);$('plNext').onclick=()=>plGo(1);
 
 // 휠에서 날짜를 바꾼 채 저장: 새 로그면 그 날짜로 저장, 저장된 기록의 다이빙이면 그 다이빙만 떼어 그 날짜 기록으로 옮김(그날과 합침)
 function moveSave(){const tgt=EY+'-'+pad(EM)+'-'+pad(ED);if(!CUR){if(MVT!=null){S.start=MVT;T=MVT;}Y=EY;M=EM;D=ED;WKEY='';MVT=null;return false;}
