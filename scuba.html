@@ -2359,7 +2359,7 @@ window.toLogInstant=()=>{if(open)return;let sv=null;try{sv=JSON.parse(localStora
      처음(기억 없음)·모바일 = 반접기 일별보기 + 학습용 시뮬레이터 접힘(질소막대는 펼침). 로그가 없으면 이번 달 달력 펼침 */
   const mob=innerWidth<760;if(!sv&&mob){sv={f:1,v:'ed'};if(window.__fold2&&window.__fold2.f===undefined&&window.footSet)window.footSet(true);}
   if(!load().length)sv=null;
-  if(sv&&(sv.f===1||sv.f===2)){LBF=sv.f;if(sv.v==='ed'&&CUR)view='ed';applyLBF();syncLogFold();}
+  if(sv){if(sv.f===1||sv.f===2){LBF=sv.f;applyLBF();syncLogFold();}if(sv.v==='ed'&&CUR)view='ed';}/* 펼침(0)이어도 일별보기였으면 일별보기로 */
   show(view);requestAnimationFrame(()=>requestAnimationFrame(()=>de.classList.remove('noAnim')));};
 window.toPlanner=instant=>{if(!open&&!PLAN)return;if(!instant){open=false;sync();return;}open=false;sync();SWT++;LASTO=false;if(PLAN)leaveLog();};
 $('modeBtn').onclick=()=>window.toggleLogbook();
