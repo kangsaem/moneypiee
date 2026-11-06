@@ -219,7 +219,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .sheet .btns{display:flex;gap:8px}.sheet .btns button{flex:1}
 @media (max-width:560px){.st .v{font-size:14px}.st{padding:3px 6px}.st .v small{display:inline}.summary{font-size:11px;padding:6px 7px}.split{gap:8px}.legend{font-size:11px;gap:3px 9px}}
 
-@supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spSkip):not(.ico):not(.setHead){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
+@supports (text-box:trim-both cap alphabetic){button:not(#spTut){text-box:trim-both cap alphabetic}button:not(#spTut):not(#spLog):not(#spPlan):not(.ico):not(.setHead){padding-top:calc(var(--pv,6px) + .32em);padding-bottom:calc(var(--pv,6px) + .32em)}}
 /* ===== 버튼 크기 두 가지로 통일(11/04) =====
    작은 버튼 26px: 튜토리얼·KR/EN/JP, 설정 안 선택칸, 달력·날짜 머리 버튼(이전/다음 로그·◀▶·FIT·달력), 로그 줄 데이터 로그·삭제, 사진 보기 삭제·닫기·포토 로그,
    그리기~지도·−/+, 플레이·0.5/1/2×·스냅샷/저장/열기, 수면 기준/쉐어워터식
@@ -251,7 +251,7 @@ html.spl body>*:not(#splash){visibility:hidden}
 #spVer{min-width:8.6em;text-align:left;font-variant-numeric:tabular-nums}
 @keyframes spIn{from{opacity:0}to{opacity:1}}#splash>*{animation:spIn .35s ease-out}#splash.out>*{opacity:0;transition:opacity .2s}
 #splash .spFoot{display:flex;align-items:center;gap:10px;margin-top:2px;color:rgba(255,255,255,.45);font-size:11px}#spReload{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0}#spReload span{display:inline-block;line-height:1}@keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}#spReload.spin{animation:reloadSpin .6s linear}#spReload.spinL{animation:reloadSpin .6s linear infinite}
-#spSkip{height:38px;padding:0 26px;border:1.5px solid rgba(125,211,252,.7);border-radius:19px;background:transparent;color:#7dd3fc;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+#spGo{display:flex;justify-content:center;gap:12px;margin-bottom:14px}#spGo button{height:40px;min-width:104px;padding:0 24px;border:0;border-radius:20px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center}#spLog{background:#38bdf8}#spPlan{background:#E31B3F}/* 시작 화면 아래: [로그북](하늘색) [플래너](빨강) 나란히 가운데 */
 @keyframes spPulse{0%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,.95)}70%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 22px rgba(255,196,210,0)}100%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,0)}}
 @media (prefers-reduced-motion:reduce){#spTut{animation:none}}
 /* 시작 화면 배경: 물고기 떼 영상(삼각대 고정 보정본) + 짙은 덧칠. 영상이 못 뜨면 원래 바탕색 */
@@ -261,7 +261,7 @@ html.spl body>*:not(#splash){visibility:hidden}
 </style>
 </head>
 <body>
-<div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><button id="spSkip">Skip</button></div>
+<div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spLog">로그북</button><button id="spPlan">플래너</button></div></div>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" id="modeBtn">로그북</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
 <div id="mainGrid"><div class="colL">
@@ -1650,7 +1650,10 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
     if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});}
   if(lang!=='ko')close();
-  document.getElementById('spSkip').onclick=()=>{/* Skip으로 들어가면 처음부터 로그북 모드(뒤집기 없이, 시작 화면 뒤에서 바꾼 뒤 닫음) */if(window.toLogInstant)window.toLogInstant();setTimeout(close,60);};
+  {const G=lang==='en'?['Logbook','Planner']:lang==='ja'?['ログブック','プランナー']:['로그북','플래너'];document.getElementById('spLog').textContent=G[0];document.getElementById('spPlan').textContent=G[1];}
+  /* 아래 두 버튼: 고른 모드로 바로 들어감(뒤집기 없이, 시작 화면 뒤에서 바꾼 뒤 닫음) */
+  document.getElementById('spLog').onclick=()=>{if(window.toLogInstant)window.toLogInstant();setTimeout(close,60);};
+  document.getElementById('spPlan').onclick=()=>{if(window.__log&&window.__log.open&&window.toPlanner){const de=document.documentElement;de.classList.add('noAnim');window.toPlanner(true);requestAnimationFrame(()=>requestAnimationFrame(()=>de.classList.remove('noAnim')));}setTimeout(close,60);};
   document.getElementById('spReload').onclick=e=>{const btn=e.currentTarget;if(btn.classList.contains('spinL'))return;btn.classList.remove('spin');void btn.offsetWidth;btn.classList.add('spinL');
     // 새 버전을 먼저 받아 캐시에 넣어 둔 뒤 이동: 기다리는 동안은 지금 화면이 그대로 보이고, 이동은 캐시에서 바로 열림
     const u=location.pathname+'?v='+Date.now();try{if('caches' in window)caches.keys().then(k=>k.forEach(n=>caches.delete(n)));}catch(x){}
