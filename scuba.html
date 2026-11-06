@@ -1130,9 +1130,11 @@ document.addEventListener('keyup',e=>{if(e.key==='PrintScreen'){const b=$('snapB
 cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));if(h>0){pushUndo();dive().pts.splice(h,1);recompute();}});
 
 // ===== 맨 아래 안내 접기: 앱을 열 때마다 펼침(기본화면) =====
-{let F=false;const ft=$('foot');ft.classList.toggle('fold',F);window.footOpen=()=>{F=false;ft.classList.remove('fold');};
+/* 질소막대·학습용 시뮬레이터 탭 접힘: 사용자가 바꾼 것을 기억(scuba_fold2), 다시 열면 그대로. 튜토리얼 시작 때 펼침은 저장 안 함 */
+window.__fold2=(()=>{try{return JSON.parse(localStorage.getItem('scuba_fold2')||'{}')||{};}catch(e){return {};}})();window.__fold2Save=(k,v)=>{window.__fold2[k]=v;try{localStorage.setItem('scuba_fold2',JSON.stringify(window.__fold2));}catch(e){}};
+{let F=!!window.__fold2.f;const ft=$('foot');ft.classList.toggle('fold',F);window.footOpen=()=>{F=false;ft.classList.remove('fold');};
   
-  $('footHd').onclick=()=>{const go=()=>{F=!F;ft.classList.toggle('fold',F);};window.animBox?window.animBox(ft,go):go();};}
+  $('footHd').onclick=()=>{const go=()=>{F=!F;ft.classList.toggle('fold',F);window.__fold2Save('f',F);};window.animBox?window.animBox(ft,go):go();};}
 // ===== 빨간 1·2 문구: 플래너 모드에선 항상 펼침, 로그북 모드에선 접힘(sync에서 ruleWrap.closed)
 // ===== 경고: 재생 중이면 그 시각까지 생긴 것만(라이브), 아니면 다이빙 전체. 순서 = MOD > CNS > 천장 위반 > DECO > 급상승 > 시간 초과 > 공기 고갈/부족
 function warnList(r,t){const live=t!=null;if(!live)t=r.N;t=Math.max(0,Math.min(r.N,Math.round(t)));const k5=Math.floor(t/5),out=[];
@@ -1191,13 +1193,13 @@ function updateStats(s){
   drawBars(T,d,c,anc);
   renderWarn(s);
 }
-let BFOLD=false;/* 앱을 열 때마다 펼침(기본화면) */
+let BFOLD=!!(window.__fold2&&window.__fold2.b);/* 마지막에 쓰던 접힘 그대로(처음은 펼침) */
 function syncFold(){$('barsCard').classList.toggle('fold',BFOLD);$('barsFold').textContent='▾';}
 // 카드 접고 펴기: 높이를 가속·감속으로(0.3초). 내용이 다시 그려진 뒤(2프레임) 끝 높이를 재서 움직임
 function animBox(el,change){if(!el||!el.animate){change();return;}const h0=el.offsetHeight;el.style.height=h0+'px';el.style.overflow='hidden';change();
   requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.height='';const h1=el.offsetHeight;if(Math.abs(h1-h0)<2){el.style.overflow='';return;}const a=el.animate([{height:h0+'px'},{height:h1+'px'}],{duration:300,easing:'cubic-bezier(.2,.8,.2,1)'});a.onfinish=a.oncancel=()=>{el.style.overflow='';};}));}
 window.animBox=animBox;
-$('barsFold').onclick=()=>animBox($('barsCard'),()=>{BFOLD=!BFOLD;syncFold();if(typeof relayout==='function')relayout();requestAnimationFrame(()=>{try{updateStats(P.tick<0?0:P.tick);}catch(e){}window.dispatchEvent(new Event('resize'));});});syncFold();
+$('barsFold').onclick=()=>animBox($('barsCard'),()=>{BFOLD=!BFOLD;window.__fold2Save('b',BFOLD);syncFold();if(typeof relayout==='function')relayout();requestAnimationFrame(()=>{try{updateStats(P.tick<0?0:P.tick);}catch(e){}window.dispatchEvent(new Event('resize'));});});syncFold();
 // ===== 기본화면: 빨간 1·2 펼침(플래너 모드) · 설정 접힘 · 로그북 접힘(플래너 모드라 숨김) · 질소 막대 펼침 · 맨 아래 안내 펼침. 튜토리얼은 항상 여기서 시작
 window.toDefaultScreen=()=>{window.toPlanner&&window.toPlanner(true);S.setOpen=false;BFOLD=false;syncFold();window.footOpen&&window.footOpen();syncForm();if(typeof relayout==='function')relayout();};
 // 접힌 상태: 수면 기준(GF High) 비율이 가장 큰 칸 하나. 0~130% 눈금, 100% 점선, 100% 넘는 부분 주황
