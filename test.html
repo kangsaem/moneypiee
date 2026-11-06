@@ -7667,7 +7667,7 @@ async function anMarketSnapshot(isUS){
       if(live) b = anPatchLive(b, live.price, mk);
       snap.idx[key] = anIndexInfo(nm, b);
       try{ snap.idx[key].cash = anIndexCash(key, b); }catch(e){}
-      if(AN_200PAGE[key]) try{ snap.idx[key].w200 = anIdx200Warn(b, nm); if(key === 'kospi') snap.idx[key].chart.k200 = true; }catch(e){}   // 2026-11-06: S&P500·나스닥도 ⚠(차트 k200 표시는 코스피만 그대로)
+      if(AN_200PAGE[key] || key === 'kosdaq') try{ snap.idx[key].w200 = anIdx200Warn(b, nm); if(key === 'kospi') snap.idx[key].chart.k200 = true; }catch(e){}   // 2026-11-06: S&P500·나스닥도 ⚠(차트 k200 표시는 코스피만 그대로) · 코스닥도 ⚠(2026-11-06, 사례 페이지 없음 → 누르면 kospi200.html)
       if(live) snap.idx[key].live = live;
       if(b.live) snap.idx[key].chart.lastLabel = '현재가';
       if(key === 'kospi') snap.ks = anKs(b);
