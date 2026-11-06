@@ -8066,6 +8066,8 @@ async function anHistLoad(){
 const AN_LIVE_URL = 'https://kangsaem.github.io/moneypier/';
 let anLiveJ = null, anLiveAt = 0;
 async function anLiveLine(){
+  let tk = ''; try{ tk = localStorage.getItem(AN_GH.KEY) || ''; }catch(e){}
+  if(!tk) return '';                                     // 2026-11-06: 운영자(GitHub 연동 토큰이 있는 기기)만 — 숫자가 운영자 종목 기록이라 다른 사용자에겐 숨김
   if(!anLiveJ || Date.now() - anLiveAt > 30 * 60e3){
     try{
       const r = await fetchWithTimeout(AN_LIVE_URL + 'live.json?t=' + Date.now(), { cache: 'no-store' }, 6000);
