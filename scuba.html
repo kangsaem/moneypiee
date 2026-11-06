@@ -240,7 +240,7 @@ button:not(.fitJ):not(#spTut):not(.setHead){font-weight:400!important}.lang butt
 </style>
 <style>
 html.spl body>*:not(#splash){visibility:hidden}
-#splash{position:fixed;top:0;left:0;right:0;height:100vh;height:100lvh;min-height:100%;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
+#splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 #splash .spMid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;width:100%}
 #spTut{width:min(82vw,420px);aspect-ratio:1/1.05;border:0;border-radius:28px;background:#E31B3F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,.95);animation:spPulse 1.8s ease-out infinite;-webkit-tap-highlight-color:transparent}
 #spTut:active{transform:scale(.97)}
@@ -251,18 +251,18 @@ html.spl body>*:not(#splash){visibility:hidden}
 #spVer{min-width:8.6em;text-align:left;font-variant-numeric:tabular-nums}
 @keyframes spIn{from{opacity:0}to{opacity:1}}#splash>*{animation:spIn .35s ease-out}#splash.out>*{opacity:0;transition:opacity .2s}
 #splash .spFoot{display:flex;align-items:center;gap:10px;margin-top:2px;color:rgba(255,255,255,.45);font-size:11px}#spReload{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0}#spReload span{display:inline-block;line-height:1}@keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}#spReload.spin{animation:reloadSpin .6s linear}#spReload.spinL{animation:reloadSpin .6s linear infinite}
-#spGo{display:flex;justify-content:center;gap:6px;margin-bottom:50px}/* 버튼 높이(36px)만큼 더 위로 */#spGo button{height:36px;min-width:96px;padding:0 18px;border:0;border-radius:4px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center}#spLog{background:#38bdf8}#spPlan{background:#E31B3F}/* 아이폰에서 다시 열면 터치가 약 50pt 위로 어긋나 들어옴 → 누르는 범위를 위로 50px 넓힘 */#spGo button,#spReload{position:relative}#spGo button::before,#spReload::before{content:'';position:absolute;left:0;right:0;bottom:0;top:-50px}#spGo button::before{bottom:-20px}/* 튜토리얼: 누르는 범위를 사각형 안쪽으로 10% 줄임(그린 모양은 그대로) */#spTut{position:relative;pointer-events:none}#spTut::after{content:'';position:absolute;inset:10%;pointer-events:auto}#spGo button.pk{animation:spWait .8s ease-in-out infinite alternate}@keyframes spWait{to{opacity:.55}}/* 시작 화면 아래: [로그북](하늘색) [플래너](빨강) 나란히 가운데 */
+#spGo{display:flex;justify-content:center;gap:6px;margin-bottom:50px}/* 버튼 높이(36px)만큼 더 위로 */#spGo button{height:36px;min-width:96px;padding:0 18px;border:0;border-radius:4px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center}#spLog{background:#38bdf8}#spPlan{background:#E31B3F}#spGo button.pk{animation:spWait .8s ease-in-out infinite alternate}@keyframes spWait{to{opacity:.55}}/* 시작 화면 아래: [로그북](하늘색) [플래너](빨강) 나란히 가운데 */
 @keyframes spPulse{0%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,.95)}70%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 22px rgba(255,196,210,0)}100%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,0)}}
 @media (prefers-reduced-motion:reduce){#spTut{animation:none}}
 /* 탭 접기/펼치기 삼각형 = 모두 22px(줄 높이는 그대로) */.setHead .arr,#logHead .arr{font-size:22px!important;line-height:16px;height:16px;display:inline-flex;align-items:center;overflow:visible}#barsFold.foldB{font-size:22px!important;line-height:18px}.footHd .arr{font-size:22px!important;line-height:17px;height:17px}
 /* 시작 화면 배경: 물고기 떼 영상(삼각대 고정 보정본) + 짙은 덧칠. 영상이 못 뜨면 원래 바탕색 */
-#splash .spVid{position:absolute;top:-60px;left:0;right:0;width:100%;height:calc(100% + 120px);min-height:calc(100lvh + 120px);/* 처음부터 위아래 60px씩 더 크게: 아이폰이 첫 높이를 작게 잡아도 아래까지 덮음 */object-fit:cover;z-index:-2;pointer-events:none;animation:none}
+#splash .spVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;pointer-events:none;animation:none}
 #splash{isolation:isolate}#splash::before{content:'';position:absolute;inset:0;z-index:-1;background:rgba(15,42,61,.45);pointer-events:none}
 @media (max-height:540px){#splash{padding-top:10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}#splash .spMid{gap:6px}#spTut{aspect-ratio:auto;width:min(80vw,520px);height:calc(100vh - 150px);height:calc(100dvh - 150px);gap:6px}#spTut .spPlay{width:44px;height:44px}#spTut .sp1{font-size:40px}#splash .sp3{font-size:14px;padding:2px 8px}}
 </style>
 </head>
 <body>
-<div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><div class="sp3" id="spName">DTMD 다이빙 플래너 / 로그북</div><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
+<div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span><span class="dtmd">Don’t Touch Maximum Depth</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" id="modeBtn">로그북</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
@@ -1648,10 +1648,7 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
   const vid=sp.querySelector('.spVid'),vPlay=()=>{if(!vid||sp.style.display==='none')return;try{vid.muted=true;const r=vid.play();if(r&&r.catch)r.catch(()=>{});}catch(e){}};
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)vPlay();});window.addEventListener('pageshow',vPlay);
   const close=why=>{if(vid)try{vid.pause();}catch(e){}sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);};
-    /* 아이폰 홈 화면 앱: 처음 그릴 때 화면 높이를 홈바만큼 작게 잡는 일이 있음 → 열린 직후·높이가 바뀔 때 다시 맞춤 */
-  const spFit=()=>{if(sp.style.display==='none')return;const h=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,(window.visualViewport&&visualViewport.height)||0,(screen&&screen.height&&matchMedia('(display-mode:standalone)').matches&&innerHeight>innerWidth)?Math.max(screen.height,screen.width):0);sp.style.minHeight=h+'px';/* 배경 영상도 같은 높이로(아이폰은 영상 층 크기를 처음 크기로 두는 일이 있음) + 다시 그리게 살짝 흔듦 */if(vid){vid.style.height=(h+120)+'px';vid.style.transform=vid.style.transform?'':'translateZ(0)';}if(window.scrollY)window.scrollTo(0,0);};
-  spFit();requestAnimationFrame(spFit);[150,500,1200].forEach(t=>setTimeout(spFit,t));addEventListener('resize',spFit);addEventListener('pageshow',spFit);addEventListener('orientationchange',()=>setTimeout(spFit,300));if(window.visualViewport)visualViewport.addEventListener('resize',spFit);
-  window.showSplash=()=>{setTimeout(spFit,0);window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
+    window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
   const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
     if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});}
@@ -1670,6 +1667,20 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
     const t0=Date.now();let gone=false;const go=()=>{if(gone)return;gone=true;setTimeout(()=>location.replace(u+(location.hash||'')),Math.max(0,600-(Date.now()-t0)));};
     try{fetch(u,{cache:'reload'}).then(r=>r.text()).then(go,go);}catch(x){go();}setTimeout(go,5000);};
   try{const d=new Date(document.lastModified);if(!isNaN(d)){const p=n=>String(n).padStart(2,'0');document.getElementById('spVer').textContent=d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}}catch(e){}const nm=document.getElementById('spName');/* 제목 글자: 누르기 없음(어긋난 터치로 닫히던 것) */
+  /* 누르는 범위(화면 구조는 그대로, 좌표로만): [플래너][로그북] 위 50px·아래 20px, ↻ 위 50px, 튜토리얼은 가장자리 10% 무시 */
+  {const zone=(id,up,dn)=>{const b=document.getElementById(id),r=b.getBoundingClientRect();return {b,l:r.left,r:r.right,t:r.top-up,bt:r.bottom+dn};};
+   const inZ=(z,x,y)=>x>=z.l&&x<=z.r&&y>=z.t&&y<=z.bt;
+   const pick=(x,y)=>{for(const z of [zone('spLog',50,20),zone('spPlan',50,20),zone('spReload',50,0)])if(inZ(z,x,y))return z.b;return null;};
+   const tutEdge=(x,y)=>{const r=document.getElementById('spTut').getBoundingClientRect(),dx=r.width*.1,dy=r.height*.1;return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom&&!(x>=r.left+dx&&x<=r.right-dx&&y>=r.top+dy&&y<=r.bottom-dy);};
+   const inBtn=e=>e.target.closest&&e.target.closest('#spLog,#spPlan,#spReload');
+   sp.addEventListener('click',e=>{if(!e.isTrusted||inBtn(e))return;const x=e.clientX,y=e.clientY;
+     if(sp.__skip&&Date.now()-sp.__skip<500){sp.__skip=0;e.preventDefault();e.stopPropagation();return;}/* pointerup에서 이미 처리 */
+     const b=pick(x,y);if(b){e.preventDefault();e.stopPropagation();b.click();return;}
+     if(tutEdge(x,y)||(e.target.closest&&e.target.closest('#spName'))){e.preventDefault();e.stopPropagation();}},true);
+   /* 아이폰은 빈 곳 탭에 click을 안 줄 때가 있어 pointerup도 봄 */
+   let pd=null;sp.addEventListener('pointerdown',e=>{pd={x:e.clientX,y:e.clientY,t:Date.now()};},true);
+   sp.addEventListener('pointerup',e=>{if(!pd||!e.isTrusted)return;const moved=Math.hypot(e.clientX-pd.x,e.clientY-pd.y)>12||Date.now()-pd.t>700;pd=null;if(moved||inBtn(e))return;
+     if(e.target.closest&&e.target.closest('#spTut')&&!tutEdge(e.clientX,e.clientY))return;const b=pick(e.clientX,e.clientY);if(b){sp.__skip=Date.now();b.click();}},true);}
   document.getElementById('spTut').onclick=()=>{close('튜토리얼');window.startTutorial&&window.startTutorial();};})();
 </script>
 <script>
