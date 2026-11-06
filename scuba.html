@@ -239,7 +239,7 @@ button:not(.fitJ):not(#spTut):not(.setHead){font-weight:400!important}.lang butt
 .play .ico{background:#1b4277!important;border-color:#1b4277!important}
 </style>
 <style>
-html.spl body>*:not(#splash){visibility:hidden}
+html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100vh + 2px);min-height:calc(100lvh + 2px)}/* 아이폰: 뒤 본문이 화면보다 짧으면(탭 접힘 등) 시작 화면 아래가 안 그려짐 → 시작 화면 동안 본문을 항상 화면보다 조금 길게 */
 #splash{position:fixed;inset:0;z-index:100;background:#0f2a3d;display:flex;flex-direction:column;align-items:center;padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 #splash .spMid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;width:100%}
 #spTut{width:min(82vw,420px);aspect-ratio:1/1.05;border:0;border-radius:28px;background:#E31B3F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,.95);animation:spPulse 1.8s ease-out infinite;-webkit-tap-highlight-color:transparent}
