@@ -912,8 +912,10 @@ function drawProfile(){
       cx.font='600 11px sans-serif';cx.fillStyle='#ea580c';cx.textAlign='left';cx.textBaseline='bottom';cx.fillText(pu(50)+puN(),X(r.t50)+3,G.T+G.H-3);}
     const PL=r.plan?{t0:r.uEnd,plan:r.plan}:r.alt;
     if(PL&&!drawing){
+      /* 초록 추천 경로는 50bar 전·공기 고갈 전까지만(그 뒤는 주황 점선 / 회색 점선만) */const lim=Math.min(r.t50>=0?r.t50:1e9,r.t0>=0?r.t0:1e9);
+      cx.save();if(lim<1e9){cx.beginPath();cx.rect(0,0,X(lim),cv.height);cx.clip();}
       cx.strokeStyle='#0f9d7a';cx.lineWidth=2.2;cx.setLineDash([6,4]);cx.beginPath();
-      PL.plan.pts.forEach((p,i)=>{const x=X(PL.t0+p.t),y=Y(p.d);i?cx.lineTo(x,y):cx.moveTo(x,y);});cx.stroke();cx.setLineDash([]);
+      PL.plan.pts.forEach((p,i)=>{const x=X(PL.t0+p.t),y=Y(p.d);i?cx.lineTo(x,y):cx.moveTo(x,y);});cx.stroke();cx.setLineDash([]);cx.restore();
     }
     if(!drawing){
       cx.strokeStyle='#E31B3F';cx.lineWidth=5;cx.lineCap='round';
@@ -928,9 +930,9 @@ function drawProfile(){
     const seg=(a,b,col,w,dash)=>{if(a<0||b<=a)return;cx.strokeStyle=col;cx.lineWidth=w;cx.setLineDash(dash);cx.beginPath();for(let k=a;k<=b;k+=2)k===a?cx.moveTo(X(k),Y(r.depth[k])):cx.lineTo(X(k),Y(r.depth[k]));cx.lineTo(X(b),Y(r.depth[b]));cx.stroke();cx.setLineDash([]);};
     const e50=r.t0>=0?r.t0:r.N;
     if(r.t50>=0){seg(r.t50,Math.min(e50,r.uEnd),'#f97316',2,[]);if(r.plan)seg(Math.max(r.t50,r.uEnd),e50,'#f97316',1.9,[6,4]);}
-    if(r.t0>=0){cx.save();cx.globalCompositeOperation='source-over';seg(r.t0,r.N,'#d8dbe0',4,[]);seg(r.t0,r.N,'#b6bac2',1.6,[]);
-      // 공기가 떨어진 뒤에도 추천 경로(감압 정지)는 보이게: 회색 위에 초록 점선
-      if(r.plan&&r.N>r.uEnd){cx.globalAlpha=.85;seg(Math.max(r.t0,r.uEnd),r.N,'#0f9d7a',2,[6,4]);cx.globalAlpha=1;}cx.restore();
+    if(r.t0>=0){cx.save();cx.globalCompositeOperation='source-over';const ue=r.plan?Math.min(r.N,r.uEnd):r.N;seg(r.t0,ue,'#d8dbe0',4,[]);seg(r.t0,ue,'#b6bac2',1.6,[]);
+      // 공기가 떨어진 뒤의 추천 경로(감압 정지)는 회색 점선만
+      if(r.plan&&r.N>r.uEnd)seg(Math.max(r.t0,r.uEnd),r.N,'#9ca3af',2,[6,4]);cx.restore();
       skullAt=[X(r.t0),Y(r.depth[r.t0])-14];}
   }
   if(!S.playMode&&(S.mode==='pt'||S.mode==='del'||S.mode==='sel')&&pts.length<300){
