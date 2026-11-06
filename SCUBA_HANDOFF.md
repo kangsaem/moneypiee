@@ -25,6 +25,7 @@
   3. 제안 a(사용자 '내일하자'로 보류, 아직 ㄱㄱ 전): 진단에 '열 때 innerHeight → 지금 innerHeight, 바뀐 시각' 추가 + 시작 화면이 항상 기기 화면 전체를 덮게(높이 보정) + 높이 바뀌면 시작 화면 배치 즉시 다시 계산.
   4. 원인 확정 후 진단 글씨(#spDbg, __dbg, scuba_spdbg) 삭제.
   ★ 11/07 03:07 처리(사용자 결정: 진단 없이 처리): 진단 글씨·기록 코드 전부 삭제(#spDbg, __dbg, scuba_spdbg, dbgShow). #splash = top/left/right 0 + height:100lvh(+min-height), spFit()이 열린 직후(즉시·rAF·150/500/1200ms)·resize·visualViewport resize·pageshow·회전·showSplash 때 min-height를 max(innerHeight, clientHeight, visualViewport.height, 세로 홈화면앱이면 screen.height)로 맞춤. [플래너][로그북] 인식 범위 = 위 50px + 아래 20px, ↻ = 위 50px. 아이폰에서 띠가 없어졌는지 확인 필요. 구버전 문제(1번 후보)는 아직.
+  ★ 11/07 08:55: 두 줄 보기에서 [지우기]를 오른쪽 [사진] 왼쪽으로(relayout에서 이동, 좁아지면 [실행취소] 뒤 원래 자리 CLHOME로 복귀). [지우기]↔[사진] 10px(평소 버튼 간격 6px보다 조금 넓게).
   ★ 11/07 08:50: 범례는 다시 수심그래프 아래(원래 마크업, MOD는 MOD선 있을 때만) — 질소탭 줄 범례(#gLeg, fitLeg) 삭제. 두 줄 보기(780~1169px)에서는 ⏮▶⏭(.pmid)를 그리기 버튼 줄(.tools) 가운데(absolute 50%)로 옮김(relayout에서 이동, .pmid.inTools·.lg). 재생 줄은 배속·아이콘만(.play.noMid). 그 밖 폭은 재생 줄 가운데 그대로.
   ★ 11/07 08:45: 수심그래프 범례(내 경로·추천·천장·급상승·MOD)를 질소탭 머리줄 [수면 기준][쉐어워터식] 옆 한 줄(#gLeg)로 옮김. 질소탭 펼침일 때만, MOD는 그래프에 MOD선이 있을 때만. fitLeg()가 폭에 맞춰 글자 11→8px로 줄임. 한계: 폭 393에서 MOD까지 있으면 8px, 360~375 폭에서 MOD까지 있으면 끝이 잘림(사용자에게 질문).
   ★ 11/07 08:40: 그리기 줄↔수심그래프 간격 10→4px, 수심그래프↔재생 줄 14→4px, 공기막대 위 bar/psi 글자 삭제.
