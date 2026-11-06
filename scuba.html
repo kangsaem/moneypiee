@@ -2106,7 +2106,7 @@ function renderCal(){const a=load(),t=L();requestAnimationFrame(fitCalTitle);if(
 function enterDay(el){if(view!=='cal')return;const k=el.dataset.k,[ky,km,kd]=k.split('-').map(Number),cr=el.getBoundingClientRect();CJ=k;Y=ky;M=km;D=kd;const f=dayLogs()[0];/* CUR는 여기서 지우지 않음: 지우면 applyLog의 stash가 보던 로그를 '새 로그' 임시본으로 잘못 저장(유령 점선 로그) */
   const zoom=()=>{const ev=$('logEdV');if(!ev.animate)return;const er=ev.getBoundingClientRect();ev.style.transformOrigin=`${cr.left+cr.width/2-er.left}px ${cr.top+cr.height/2-er.top}px`;ev.animate([{transform:'scale(.15)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.8,.2,1)'});};
   const keep=CUR&&dayLogs().some(x=>x.id===CUR)?{id:CUR,i:S.cur}:null;/* 그 날 보던 다이빙이 있으면 그대로 */
-  animH($('logBody'),()=>{if(f){view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');if(keep)applyLog(keep.id,true,keep.i);else applyLog(f.id,true);}
+  animH($('logBody'),()=>{if(f){view='ed';saveLBF();/* 일별보기도 기억 */$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');if(keep)applyLog(keep.id,true,keep.i);else applyLog(f.id,true);}
     else{/* 로그 없는 날: 보던 로그를 비우고 새 로그(빈 점선 줄)로 */view='ed';dayChanged();const n=new Date();T=n.getHours()*60+n.getMinutes();S.start=T;drawProfile();show('ed');}});zoom();}
 // --- 편집(휠)
 function renderWheels(){const a=load(),t=L(),dates=new Set(a.map(x=>x.date));const [Y,M,D]=WROW?[EY,EM,ED]:[Y0(),M0(),D0()];
@@ -2558,7 +2558,7 @@ async function fitOne(f,quiet){const t=L();let dives;
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   rest.push({id,date,time:hhmm(Math.floor(seq[0].s)),memo:'',saved:Date.now(),state:st,sum:{maxD:0,N:0,N0:0,gas:'',nd:seq.length,span:0},src:'fit'});
   if(!store(rest)){msg(t.fail,true);return;}
-  const [yy,mm,dd]=date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');
+  const [yy,mm,dd]=date.split('-').map(Number);Y=yy;M=mm;D=dd;vy=yy;vm=mm;view='ed';saveLBF();$('logCalV').classList.add('hide');$('logEdV').classList.remove('hide');
   applyLog(id,true,seq.findIndex(d=>d.fit));if(DR.date===date){const ids=new Set(load().map(v=>v.id));Object.keys(DR.m).forEach(k=>{if(k!=='new'&&!ids.has(k))delete DR.m[k];});}
   const b2=load(),x=b2.find(v=>v.id===id);if(x){x.sum=summary();store(b2);}renderSum();renderWheels();renderList();
   flash($('fitBtn2'));if(FITQ){FITQ.n+=imp.length;FITQ.rep+=Math.min(imp.length,replaced);}return true;}

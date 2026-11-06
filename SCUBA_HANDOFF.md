@@ -25,6 +25,7 @@
   3. 제안 a(사용자 '내일하자'로 보류, 아직 ㄱㄱ 전): 진단에 '열 때 innerHeight → 지금 innerHeight, 바뀐 시각' 추가 + 시작 화면이 항상 기기 화면 전체를 덮게(높이 보정) + 높이 바뀌면 시작 화면 배치 즉시 다시 계산.
   4. 원인 확정 후 진단 글씨(#spDbg, __dbg, scuba_spdbg) 삭제.
   ★ 11/07 03:07 처리(사용자 결정: 진단 없이 처리): 진단 글씨·기록 코드 전부 삭제(#spDbg, __dbg, scuba_spdbg, dbgShow). #splash = top/left/right 0 + height:100lvh(+min-height), spFit()이 열린 직후(즉시·rAF·150/500/1200ms)·resize·visualViewport resize·pageshow·회전·showSplash 때 min-height를 max(innerHeight, clientHeight, visualViewport.height, 세로 홈화면앱이면 screen.height)로 맞춤. [플래너][로그북] 인식 범위 = 위 50px + 아래 20px, ↻ = 위 50px. 아이폰에서 띠가 없어졌는지 확인 필요. 구버전 문제(1번 후보)는 아직.
+  ★ 11/07 03:58: 일별보기 기억 버그 = 달력 날짜로 들어갈 때(enterDay)·사진으로 날짜 이동 때 view를 직접 바꿔 saveLBF가 안 불렸음 → 두 곳에 saveLBF 추가. 달력→날짜 들어가기→다시 열기 = 일별보기 확인.
   ★ 11/07 03:52: 로그 줄 [저장]이 보일 때(수정 중·바꾼 내용 있음) 왼쪽에 [취소](.edb.rbC, 수정 버튼과 같은 모양) / 로그 줄 버튼 간격 모두 4px(수정↔데이터로그↔삭제, 취소↔저장) = 저장 안 한 변경 되돌리고 수정 끝냄(EDIT=null, applyLog 다시).
   ■ 11/07 03:48 원인 찾음(사용자 확인): 뒤 본문(플래너)이 화면보다 짧을 때(질소·시뮬 탭 접힘 기억 f7ab2cd 이후) 새로고침하면 띠. 띠 있을 때 드래그 = 화면 전체가 당겨짐, 없을 때 = 스크롤바만. 수정: html.spl body{min-height:calc(100lvh + 2px)}. 아이폰 확인 필요.
   ■ 알려진 버그(보류, 11/07 03:38 사용자 결정: 그대로 두기) — 아이폰 홈 화면 앱 시작 화면 하단 띠
