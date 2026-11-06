@@ -254,7 +254,7 @@ html.spl body>*:not(#splash){visibility:hidden}
 #spGo{display:flex;justify-content:center;gap:6px;margin-bottom:50px}/* 버튼 높이(36px)만큼 더 위로 */#spGo button{height:36px;min-width:96px;padding:0 18px;border:0;border-radius:4px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center}#spLog{background:#38bdf8}#spPlan{background:#E31B3F}/* 아이폰에서 다시 열면 터치가 약 50pt 위로 어긋나 들어옴 → 누르는 범위를 위로 50px 넓힘 */#spGo button,#spReload{position:relative}#spGo button::before,#spReload::before{content:'';position:absolute;left:0;right:0;bottom:0;top:-50px}#spGo button::before{bottom:-20px}/* 튜토리얼: 누르는 범위를 사각형 안쪽으로 10% 줄임(그린 모양은 그대로) */#spTut{position:relative;pointer-events:none}#spTut::after{content:'';position:absolute;inset:10%;pointer-events:auto}#spGo button.pk{animation:spWait .8s ease-in-out infinite alternate}@keyframes spWait{to{opacity:.55}}/* 시작 화면 아래: [로그북](하늘색) [플래너](빨강) 나란히 가운데 */
 @keyframes spPulse{0%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,.95)}70%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 22px rgba(255,196,210,0)}100%{box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,0)}}
 @media (prefers-reduced-motion:reduce){#spTut{animation:none}}
-/* 탭 접기/펼치기 삼각형 = 2배(줄 높이는 그대로) */.setHead .arr,#logHead .arr{font-size:26px!important;line-height:16px;height:16px;display:inline-flex;align-items:center;overflow:visible}#barsFold.foldB{font-size:26px!important;line-height:18px}.footHd .arr{font-size:21px!important;line-height:17px;height:17px}
+/* 탭 접기/펼치기 삼각형 = 모두 22px(줄 높이는 그대로) */.setHead .arr,#logHead .arr{font-size:22px!important;line-height:16px;height:16px;display:inline-flex;align-items:center;overflow:visible}#barsFold.foldB{font-size:22px!important;line-height:18px}.footHd .arr{font-size:22px!important;line-height:17px;height:17px}
 /* 시작 화면 배경: 물고기 떼 영상(삼각대 고정 보정본) + 짙은 덧칠. 영상이 못 뜨면 원래 바탕색 */
 #splash .spVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;pointer-events:none;animation:none}
 #splash{isolation:isolate}#splash::before{content:'';position:absolute;inset:0;z-index:-1;background:rgba(15,42,61,.45);pointer-events:none}
@@ -1127,7 +1127,7 @@ document.addEventListener('keydown',e=>{const k=(e.key||'').toLowerCase(),mod=e.
   if(mod&&!e.shiftKey&&!e.altKey&&k==='z'&&!typing){const b=$('undo');if(b&&!b.disabled){e.preventDefault();b.click();}}
   else if(mod&&!e.altKey&&k==='s'){const b=$('logBtn');if(b){e.preventDefault();b.click();}}});
 document.addEventListener('keyup',e=>{if(e.key==='PrintScreen'){const b=$('snapBtn');if(b)b.click();}});
-cv.addEventListener('dblclick',e=>{if(S.mode!=='pt')return;const h=hit(pos(e));if(h>0){pushUndo();dive().pts.splice(h,1);recompute();}});
+
 
 // ===== 맨 아래 안내 접기: 앱을 열 때마다 펼침(기본화면) =====
 /* 질소막대·학습용 시뮬레이터 탭 접힘: 사용자가 바꾼 것을 기억(scuba_fold2), 다시 열면 그대로. 튜토리얼 시작 때 펼침은 저장 안 함 */
@@ -1365,7 +1365,6 @@ function renderTabs(){
     b.addEventListener('pointerdown',()=>{fired=false;cancel();lp=setTimeout(()=>{fired=true;showPop(b,i);},500);});
     b.addEventListener('pointerup',cancel);b.addEventListener('pointerleave',cancel);b.addEventListener('pointercancel',cancel);
     b.addEventListener('contextmenu',e=>e.preventDefault());
-    b.ondblclick=e=>{e.preventDefault();if(window.__goRow)window.__goRow();};
     b.onclick=e=>{if(fired){e.preventDefault();fired=false;return;}if(i===S.cur&&window.__goRow&&$('tabsCard').classList.contains('lbMode')){window.__goRow();return;}/* 로그북: 고른 다이빙을 한 번 더 = 그 날짜의 그 로그 줄로 */const ft=window.__partTop?window.__partTop():null;S.cur=i;syncForm();recompute();if(window.__partSlide)window.__partSlide(ft);if(dive().pts.length>1){S.mode='none';modeChanged();seek(playEnd(RES[S.cur]));}};el.appendChild(b);
   });
   const a=document.createElement('button');a.className='add';a.textContent='+';a.title=a.ariaLabel=tr('addDive').replace(/^\+\s*/,'');
@@ -2092,7 +2091,7 @@ function renderCal(){const a=load(),t=L();requestAnimationFrame(fitCalTitle);if(
   else for(let d=1;d<=days;d++){const k=vy+'-'+pad(vm)+'-'+pad(d),wd=(first+d-1)%7;h+=`<div class="d${wd===0?' sun':wd===6?' sat':''}${k===today?' today':''}${has.has(k)?' has':''}${k===CJ?' jump':''}" data-k="${k}">${d}</div>`;}
   $('cal').innerHTML=h;$('logHint').textContent='';
     // 날짜 누르기: 처음 = 그 날을 고름(달력 그대로, 그날 다이빙을 아래 탭·그래프에) / 고른 날을 한 번 더 또는 두 번 빠르게 = 그날 로그 화면으로(날짜에서 확대되며)
-  $('cal').querySelectorAll('.d').forEach(el=>{el.onclick=()=>{const k=el.dataset.k;if(CJ!==k){CJ=k;const [ky,km,kd]=k.split('-').map(Number);const r0=dayRows(k)[0];if(r0&&!(CUR&&ymd()===k)){Y=ky;M=km;D=kd;applyLog(r0.id,true,r0.i);}/* 이미 연 날이면 보던 다이빙(다이빙2 등) 유지 */renderCal();return;}enterDay(el);};el.ondblclick=()=>enterDay(el);});}
+  $('cal').querySelectorAll('.d').forEach(el=>{el.onclick=()=>{const k=el.dataset.k;if(CJ!==k){CJ=k;const [ky,km,kd]=k.split('-').map(Number);const r0=dayRows(k)[0];if(r0&&!(CUR&&ymd()===k)){Y=ky;M=km;D=kd;applyLog(r0.id,true,r0.i);}/* 이미 연 날이면 보던 다이빙(다이빙2 등) 유지 */renderCal();return;}enterDay(el);};});}
 function enterDay(el){if(view!=='cal')return;const k=el.dataset.k,[ky,km,kd]=k.split('-').map(Number),cr=el.getBoundingClientRect();CJ=k;Y=ky;M=km;D=kd;const f=dayLogs()[0];/* CUR는 여기서 지우지 않음: 지우면 applyLog의 stash가 보던 로그를 '새 로그' 임시본으로 잘못 저장(유령 점선 로그) */
   const zoom=()=>{const ev=$('logEdV');if(!ev.animate)return;const er=ev.getBoundingClientRect();ev.style.transformOrigin=`${cr.left+cr.width/2-er.left}px ${cr.top+cr.height/2-er.top}px`;ev.animate([{transform:'scale(.15)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:380,easing:'cubic-bezier(.2,.8,.2,1)'});};
   const keep=CUR&&dayLogs().some(x=>x.id===CUR)?{id:CUR,i:S.cur}:null;/* 그 날 보던 다이빙이 있으면 그대로 */
