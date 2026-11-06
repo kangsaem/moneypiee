@@ -95,13 +95,13 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .setBody{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 #logCard .setBody{margin-top:4px;border-top:1px solid var(--line)}/* 설정 카드 줄과 같은 굵기·색 */
 .setHead .arr{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
-.calHd,.edHd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.calHd b,.edHd b{font-size:15px}.calHd button{padding:4px 10px}.edHd button{padding:4px 10px}
+.calHd,.edHd{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:6px}.edHd>.calNav:last-of-type{justify-self:end}#edTitle{grid-column:1/-1}.calHd b,.edHd b{font-size:15px}.calHd button{padding:4px 10px}.edHd button{padding:4px 10px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:13px}
 .cal .wd{color:var(--mute);font-size:11px;padding:2px 0}.cal .wd.sun,.cal .d.sun{color:#E31B3F}.cal .wd.sat,.cal .d.sat{color:#2f6fe4}
 .cal .d{position:relative;padding:7px 0 9px;border-radius:5px;cursor:pointer;font-variant-numeric:tabular-nums}
 .cal .d:hover{background:#eef2f6}.cal .d.today{box-shadow:inset 0 0 0 1.5px #9ca3af}
 .cal .d.has{font-weight:800;background:rgba(255,255,255,.72)}
-.cal .e{visibility:hidden}.cal .d.oth{opacity:.55}#logEdV.part:not(.edm) .lwrap{display:none}.edYM{display:none;align-self:center;font-size:15px;margin-left:6px;white-space:nowrap}#logEdV.part .edYM{display:inline-block;overflow:hidden;height:1.3em;line-height:1.3em;vertical-align:middle}.edYM .ymIn{display:flex;flex-direction:column}.edYM .ymIn>span{height:1.3em;white-space:nowrap}.logHint{margin-top:6px;font-size:12px;color:var(--mute);text-align:center}
+.cal .e{visibility:hidden}.cal .d.oth{opacity:.55}#logEdV.part:not(.edm) .lwrap{display:none}.edYM{display:none;align-self:center;font-size:15px;white-space:nowrap}#logEdV .edYM{display:inline-block;overflow:hidden;height:1.3em;line-height:1.3em;vertical-align:middle}.edYM .ymIn{display:flex;flex-direction:column}.edYM .ymIn>span{height:1.3em;white-space:nowrap}.logHint{margin-top:6px;font-size:12px;color:var(--mute);text-align:center}
 .lwrap{display:grid;grid-template-columns:3fr 2fr;gap:8px;height:200px}
 .lwheels{position:relative;display:grid;grid-template-columns:1.1fr 1fr .9fr .9fr;gap:0;border-radius:8px;overflow:hidden}.lwheels::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:3;border-radius:8px;box-shadow:inset 0 0 0 1.5px #fff;background:linear-gradient(rgba(37,99,235,.42),rgba(37,99,235,0) 30%,rgba(37,99,235,0) 70%,rgba(37,99,235,.42))}/* 휠 전체 = 흰 테두리 둥근 사각형, 글자가 흐려지는 위·아래는 로그 줄 선택 그림자와 같은 파랑 그라데이션 */
 .lwheels .lw+.lw{box-shadow:inset 1px 0 0 rgba(15,42,61,.14),inset 7px 0 7px -7px rgba(15,42,61,.28)}
@@ -184,7 +184,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .wbox{background:#E31B3F;color:#fff;border-radius:5px;padding:7px 10px;font-size:12px;font-weight:600;line-height:1.55}
 .summary .pl{margin-top:4px;padding-top:4px;border-top:1px solid var(--line)}
 .warn{color:var(--up)}
-.play{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:14px 0 2px}
+.play{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:14px 0 2px}.play>.seg{justify-self:start}.play>.icos{justify-self:end}.play .pmid{display:inline-flex;gap:6px;align-items:center}/* 재생 버튼 = 가운데 고정, 이전/다음 로그는 로그북 모드에서만 */.play .pnav{visibility:hidden;color:#1b4277;background:#fff;border:1px solid var(--line,#d0d7de);border-radius:4px;width:30px;padding:0;cursor:pointer}.play.lg .pnav{visibility:visible}.play .pnav svg{display:block;width:13px;height:13px}@media (max-width:374px){.play{gap:4px}.play .pmid{gap:4px}.play .seg button{padding-left:6px!important;padding-right:6px!important}}
 .play .icos{display:inline-flex;gap:6px}.ico{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#1f2937;background:#2f6fe4;border-color:#2f6fe4}.ico svg{width:22px;height:22px}
 .big{display:inline-flex;align-items:center;justify-content:center;width:56px;height:34px;padding:0;flex-shrink:0;font-weight:600;background:var(--acc);color:#fff;border-color:var(--acc)}
 /* 질소 + 통계 */
@@ -224,7 +224,7 @@ html,body{overflow-x:clip}.wrap{overflow-x:clip}
    작은 버튼 26px: 튜토리얼·KR/EN/JP, 설정 안 선택칸, 달력·날짜 머리 버튼(이전/다음 로그·◀▶·FIT·달력), 로그 줄 데이터 로그·삭제, 사진 보기 삭제·닫기·포토 로그,
    그리기~지도·−/+, 플레이·0.5/1/2×·스냅샷/저장/열기, 수면 기준/쉐어워터식
    큰 버튼 32px: 현재 로그 저장, 다이빙 탭·+ 다이빙 추가 */
-.tutBtn,.lang button,#setBody select,#setBody input,.calHd button,.edHd button,.logList .li .dlog,.logList .li .del,#phView .pvB button,.tools button,.play #playBtn,.play .seg button,.play .ico,.bmode button{height:26px!important;min-height:0!important;box-sizing:border-box!important;padding-top:0!important;padding-bottom:0!important;display:inline-flex!important;align-items:center;justify-content:center;font-size:12px;line-height:1}
+.tutBtn,.lang button,#setBody select,#setBody input,.calHd button,.edHd button,.logList .li .dlog,.logList .li .del,#phView .pvB button,.tools button,.play #playBtn,.play .pnav,.play .seg button,.play .ico,.bmode button{height:26px!important;min-height:0!important;box-sizing:border-box!important;padding-top:0!important;padding-bottom:0!important;display:inline-flex!important;align-items:center;justify-content:center;font-size:12px;line-height:1}
 #setBody select,#setBody input{display:inline-block!important}#altSel,#gas,#tankV,#tankP,#pu,#asc{width:82px!important;padding-left:6px!important;padding-right:2px!important;text-overflow:ellipsis}#setBody .hide{display:none!important}/* 고도·기체·탱크 선택창 = 상승 속도 칸과 같은 폭 */
 .calHd .jump,.edHd .jump{width:30px!important}.calHd .jump svg,.edHd .jump svg{width:13px!important;height:13px!important}
 .play .ico{width:30px!important}.play .ico svg{width:17px!important;height:17px!important}.play #playBtn{width:48px!important}.play #playBtn svg{max-height:14px}
@@ -323,7 +323,7 @@ html.spl body>*:not(#splash){visibility:hidden}
       <input type="file" id="fitIn" accept=".fit" multiple hidden>
     </div>
     <div id="logEdV" class="hide">
-      <div class="edHd"><span class="calNav"><button id="logBack">◀ <span id="logBackT">달력</span></button><button id="edPrev" class="jump" aria-label="previous log date"><svg viewBox="0 0 12 12" width="12" height="12"><rect x="1" y="1" width="1.8" height="10" fill="currentColor"/><path d="M11 1L3.6 6L11 11z" fill="currentColor"/></svg></button><button id="edNext" class="jump" aria-label="next log date"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M1 1L8.4 6L1 11z" fill="currentColor"/><rect x="9.2" y="1" width="1.8" height="10" fill="currentColor"/></svg></button><button id="fitBtn2" class="fitJ">FIT</button><b id="edYM" class="edYM"></b></span><b id="edTitle"></b></div>
+      <div class="edHd"><span class="calNav"><button id="logBack">◀ <span id="logBackT">달력</span></button><button id="edPrev" class="jump" aria-label="previous log date"><svg viewBox="0 0 12 12" width="12" height="12"><rect x="1" y="1" width="1.8" height="10" fill="currentColor"/><path d="M11 1L3.6 6L11 11z" fill="currentColor"/></svg></button></span><b id="edYM" class="edYM"></b><span class="calNav"><button id="fitBtn2" class="fitJ">FIT</button><button id="edNext" class="jump" aria-label="next log date"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M1 1L8.4 6L1 11z" fill="currentColor"/><rect x="9.2" y="1" width="1.8" height="10" fill="currentColor"/></svg></button></span><b id="edTitle"></b></div>
       <div class="lwrap"><div class="lwheels"><div class="lsel"></div><div class="lw" id="lwM" tabindex="0"></div><div class="lw" id="lwD" tabindex="0"></div><div class="lw" id="lwH" tabindex="0"></div><div class="lw" id="lwMi" tabindex="0"></div></div>
         <div class="memoBox"><textarea id="logMemo" maxlength="300"></textarea><div class="phRow" id="phRow"></div><input type="file" id="phIn" accept="image/*" multiple hidden></div></div>
       <div class="logList" id="logList"></div><div id="lwHold" style="display:none"></div>
@@ -360,8 +360,8 @@ html.spl body>*:not(#splash){visibility:hidden}
     <span id="lgMod" class="tip" data-tip="mod"><i style="border-color:var(--mod);border-top-style:dashed"></i>MOD</span>
   </div>
   <div class="play">
-    <button class="big" id="playBtn" title="플레이"></button>
     <span class="seg"><button data-sp="0.5">0.5×</button><button data-sp="1" class="on">1×</button><button data-sp="2">2×</button></span>
+    <span class="pmid"><button class="pnav" id="plPrev" aria-label="previous log"><svg viewBox="0 0 12 12" width="12" height="12"><rect x="1" y="1" width="1.8" height="10" fill="currentColor"/><path d="M11 1L3.6 6L11 11z" fill="currentColor"/></svg></button><button class="big" id="playBtn" title="플레이"></button><button class="pnav" id="plNext" aria-label="next log"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M1 1L8.4 6L1 11z" fill="currentColor"/><rect x="9.2" y="1" width="1.8" height="10" fill="currentColor"/></svg></button></span>
     <span class="icos"><button class="ico" id="snapBtn" title="스냅샷" aria-label="snapshot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8.5 7l1.5-3h4l1.5 3" fill="#fff"/><rect x="3" y="7" width="18" height="13" rx="2" fill="#fff"/><circle cx="12" cy="13.5" r="3.5" fill="#fff"/></svg></button><button class="ico" id="logBtn" title="저장(사진 포함 ZIP)" aria-label="save"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z" fill="#fff"/><path d="M8 4v5h7V4"/><rect x="7" y="13" width="10" height="7"/></svg></button><button class="ico" id="loadBtn" title="불러오기(ZIP·JSON)" aria-label="load"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1V19H3z" fill="#fff"/><path d="M3 19l3-8h15l-3 8z" fill="#fff"/></svg></button><input type="file" id="jsonIn" accept=".zip,.json,.txt,application/zip,application/json,text/plain" hidden></span>
   </div>
 </div>
@@ -2272,7 +2272,7 @@ function sync0(){window.__LOGEND=open;if(open!==LASTO){LASTO=open;const tk=++SWT
   if(open&&!PLAN){/* 들어갈 때 = 달력 한 달 전체. 처음이면 가장 최근 로그의 달, 다녀온 거면 보던 로그의 달 */view='cal';LBF=0;CALW=false;
     if(LOGST){vy=LOGST.Y;vm=LOGST.M;}else{const a=load();if(a.length){const ld=a.map(v=>v.date).sort().pop().split('-').map(Number);vy=ld[0];vm=ld[1];}else{const n=new Date();vy=n.getFullYear();vm=n.getMonth()+1;}}
     $('logEdV').classList.remove('part');}
-  syncLogFold();$('logCardW').classList.toggle('closed',!open);setTimeout(relayout,0);{const rw=document.getElementById('ruleWrap');if(rw)rw.classList.toggle('closed',open);}setTitle(true);if(open)show(view);}
+  syncLogFold();$('logCardW').classList.toggle('closed',!open);{const pl=document.querySelector('.play');if(pl)pl.classList.toggle('lg',open);}setTimeout(relayout,0);{const rw=document.getElementById('ruleWrap');if(rw)rw.classList.toggle('closed',open);}setTitle(true);if(open)show(view);}
 // 로그북 카드 펼침/접힘(모드와 따로): LBF 0 = 펼침, 1 = 반접기, 2 = 완전 접힘(로그북 모드 그대로)
 function syncLogFold(){saveLBF();const on=open&&LBF<2;$('logCardW').classList.toggle('lbf2',LBF===2);$('logWrap').classList.toggle('open',on);$('logHead').classList.toggle('open',on);if(typeof renderLogSum==='function')renderLogSum();}
 function summary(){const r=RES[0],c=r.c;const gas=c.fO2>0.215?'EAN'+Math.round(c.fO2*100):(LANG==='ko'?'공기':LANG==='ja'?'空気':'Air');
@@ -2380,7 +2380,7 @@ function goLogDate(dir){const t=L(),cur=ymd(),rows=dayRows(cur),k=rows.findIndex
   // 월·일·시각 휠을 이전 위치에서 새 위치까지 가속하며 돌림
   requestAnimationFrame(()=>requestAnimationFrame(()=>{wM.spin(f0[0]);wD.spin(f0[1]);wH.spin(f0[2]);wMi.spin(f0[3]);}));}
 // 반접기 머리의 날짜: 다른 날짜로 가면 로그 줄처럼 가속·감속하며 위아래로 밀려 바뀜(이전 = 위에서 내려옴, 다음 = 아래에서 올라옴). 멀리 있는 날짜도 한 칸 밀기
-function slideYM(old,dir){const el=$('edYM'),nw=el.textContent;if(!old||old===nw||!el.animate||!(LBF===1&&view==='ed'))return;const esc=t=>t.replace(/[<>&]/g,'');
+function slideYM(old,dir){const el=$('edYM'),nw=el.textContent;if(!old||old===nw||!el.animate||view!=='ed')return;const esc=t=>t.replace(/[<>&]/g,'');
   el.innerHTML=`<span class="ymIn">${dir>0?`<span>${esc(old)}</span><span>${esc(nw)}</span>`:`<span>${esc(nw)}</span><span>${esc(old)}</span>`}</span>`;const inn=el.firstChild;
   const an=inn.animate(dir>0?[{transform:'translateY(0)'},{transform:'translateY(-50%)'}]:[{transform:'translateY(-50%)'},{transform:'translateY(0)'}],{duration:480,easing:'cubic-bezier(.65,0,.35,1)'});an.onfinish=an.oncancel=()=>{el.textContent=nw;};}
 // 다이빙 탭을 한 번 더 누르거나 두 번 누르면: 로그북 카드를 펴고(완전 접힘이면) 그 날짜 화면의 그 다이빙 줄로
@@ -2397,6 +2397,8 @@ function partFit(){const ll=$('logList'),inn=ll.querySelector('.llIn'),part=LBF=
 function partSlide(from){const ll=$('logList'),inn=ll.querySelector('.llIn');partFit();if(!(LBF===1&&view==='ed')||from==null||!inn||!inn.animate)return;const c=inn.querySelector('.li.cur');if(!c||c.offsetTop===from)return;
   ll.classList.add('sliding');const an=inn.animate([{transform:`translateY(${-from+10}px)`},{transform:`translateY(${-c.offsetTop+10}px)`}],{duration:480,easing:'cubic-bezier(.65,0,.35,1)'});an.onfinish=an.oncancel=()=>ll.classList.remove('sliding');}
 $('edPrev').onclick=()=>goLogDate(-1);$('edNext').onclick=()=>goLogDate(1);
+/* 수심그래프 아래 이전/다음 로그: 위 버튼과 같은 이동. 재생 중이었으면 새 로그를 처음부터 이어서 재생 */
+const plGo=dir=>{if(!open)return;const run=typeof P!=='undefined'&&P.run;goLogDate(dir);if(view==='cal')renderCal();if(run)setTimeout(()=>{seek(0);startPlay();},60);};$('plPrev').onclick=()=>plGo(-1);$('plNext').onclick=()=>plGo(1);
 
 // 휠에서 날짜를 바꾼 채 저장: 새 로그면 그 날짜로 저장, 저장된 기록의 다이빙이면 그 다이빙만 떼어 그 날짜 기록으로 옮김(그날과 합침)
 function moveSave(){const tgt=EY+'-'+pad(EM)+'-'+pad(ED);if(!CUR){if(MVT!=null){S.start=MVT;T=MVT;}Y=EY;M=EM;D=ED;WKEY='';MVT=null;return false;}
