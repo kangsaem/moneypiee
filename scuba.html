@@ -760,7 +760,8 @@ function layout(){
   if(PH2){const gc=$('graphCard');if(gc){const over=gc.offsetHeight-cv.offsetHeight,top=topBarH();h0=Math.round(Math.max(150,window.innerHeight-top-over-6));}}
   const w=w0/FS,h=h0/FS;
   cv.width=w0*dpr;cv.height=h0*dpr;cv.style.height=h0+'px';cx.setTransform(dpr*FS,0,0,dpr*FS,0,0);
-  G={w,h,L:40,R:30,T:10,B:26};G.W=w-G.L-G.R;G.H=h-G.T-G.B;
+  /* 왼쪽 여백 = 가장 긴 수심 글자 폭 + 6px (글자를 그래프에 붙이고 그래프를 넓게) */cx.font='11px sans-serif';const LW=Math.ceil(cx.measureText(isFt()?Math.round(DMAX*FT/20)*20+'ft':DMAX+'m').width);
+  G={w,h,L:LW+6,R:30,T:10,B:26};G.W=w-G.L-G.R;G.H=h-G.T-G.B;
   const bc=$('bars'),bw=bc.parentElement.clientWidth,bh=16*(bw<300?17:20)+24;
   bc.width=bw*dpr;bc.height=bh*dpr;bc.style.height=bh+'px';bc.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
 }
@@ -844,7 +845,7 @@ function drawProfile(){
       cx.drawImage(B.box.c,x0,y0,bw,bh);}}/* 사진 원본 그대로(투명도 없음), 그래프는 그 위에 */
   cx.font='11px sans-serif';cx.fillStyle='#6b7280';
   const SN=!!window.SNAP;
-  const YLX=SN?G.L-6:Math.ceil(cx.measureText(isFt()?Math.round(DMAX*FT/20)*20+'ft':DMAX+'m').width)+1;
+  const YLX=G.L-4;
   if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===100||(f===60&&!SN);
     cx.strokeStyle=f===0?(DK?'rgba(255,255,255,.5)':'#9ca3af'):f===100?'#E31B3F':(f===60&&!SN)?(DK?'rgba(255,255,255,.55)':'#6b7280'):(DK?'rgba(255,255,255,.14)':'#d1d5db');cx.setLineDash(f===0?[]:hi?[6,4]:[3,4]);cx.lineWidth=hi?1.4:1;
     cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
@@ -1417,7 +1418,7 @@ $('gfHi').onchange=e=>{S.gfHi=clamp(+e.target.value||85,10,100);upd();};
 $('asc').onchange=e=>{const v=+e.target.value;S.asc=v?clamp(isFt()?Math.round(v/FT*10)/10:v,3,18):9;upd();};
 $('tankV').onchange=e=>{S.tankV=+e.target.value;upd();};
 $('tankP').onchange=e=>{S.tankP=+e.target.value;upd();};
-$('pu').onchange=e=>{S.pu=e.target.value;try{localStorage.setItem('scuba_pu',S.pu);}catch(x){}upd();};
+$('pu').onchange=e=>{S.pu=e.target.value;try{localStorage.setItem('scuba_pu',S.pu);}catch(x){}layout();upd();};/* 단위가 바뀌면 왼쪽 글자 폭도 다시 */
 try{const u=localStorage.getItem('scuba_pu');if(u==='psi')S.pu='psi';}catch(x){}
 const saveSac=()=>{try{localStorage.setItem('scuba_sac',JSON.stringify({sac:S.sac,sel:S.sacSel}));}catch(x){}};
 const loadSac=()=>{try{const j=JSON.parse(localStorage.getItem('scuba_sac')||'null');if(j&&+j.sac>=8&&+j.sac<=40){S.sac=+j.sac;S.sacSel=j.sel||String(j.sac);}}catch(x){}};window.loadSac=loadSac;
