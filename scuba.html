@@ -848,17 +848,17 @@ function drawProfile(){
   if(isFt()){for(let f=0;f<=DMAX*FT;f+=20){const d=f/FT,hi=f===100||(f===60&&!SN);
     cx.strokeStyle=f===0?(DK?'rgba(255,255,255,.5)':'#9ca3af'):f===100?'#E31B3F':(f===60&&!SN)?(DK?'rgba(255,255,255,.55)':'#6b7280'):(DK?'rgba(255,255,255,.14)':'#d1d5db');cx.setLineDash(f===0?[]:hi?[6,4]:[3,4]);cx.lineWidth=hi?1.4:1;
     cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
-    cx.textAlign='right';cx.textBaseline='middle';cx.fillText(f+'ft',YLX,Y(d));}}
+    cx.textAlign='right';cx.textBaseline='middle';if(f>0)cx.fillText(f+'ft',YLX,Y(d));}}
   else for(let d=0;d<=DMAX;d+=5){const a20=d===20&&!SN;
     cx.strokeStyle=d===0?(DK?'rgba(255,255,255,.5)':'#9ca3af'):d===30?'#E31B3F':a20?(DK?'rgba(255,255,255,.55)':'#6b7280'):(DK?'rgba(255,255,255,.14)':'#d1d5db');cx.setLineDash(d===0?[]:a20||d===30?[6,4]:[3,4]);cx.lineWidth=a20||d===30?1.4:1;
     cx.beginPath();cx.moveTo(G.L,Y(d)+.5);cx.lineTo(G.L+G.W,Y(d)+.5);cx.stroke();
-    cx.textAlign='right';cx.textBaseline='middle';cx.fillText(d+'m',YLX,Y(d));
+    cx.textAlign='right';cx.textBaseline='middle';if(d>0)cx.fillText(d+'m',YLX,Y(d));/* 0m 글자 없음 */
   }
   cx.setLineDash([]);
   for(let m=0;m<=TMAX/60;m+=5){
     const x=X(m*60);cx.strokeStyle=DK?(m===60?'rgba(255,255,255,.55)':m%10?'rgba(255,255,255,.08)':'rgba(255,255,255,.16)'):(m===60?'#6b7280':m%10?'#f1f2f4':'#e5e7eb');cx.lineWidth=m===60?1.4:1;cx.setLineDash(m===60?[6,4]:[]);
     cx.beginPath();cx.moveTo(x+.5,G.T);cx.lineTo(x+.5,G.T+G.H);cx.stroke();cx.setLineDash([]);cx.lineWidth=1;
-    if(m%10===0){const last=m===TMAX/60&&I18N[LANG].axisLast;cx.textAlign=last?'right':'center';cx.textBaseline='top';cx.fillText(last?tr('axisLast',m):tr('axisMin',m),last?x+2:x,G.T+G.H+6);}
+    if(m%10===0&&m>0){/* 0분 글자 없음 */const last=m===TMAX/60&&I18N[LANG].axisLast;cx.textAlign=last?'right':'center';cx.textBaseline='top';cx.fillText(last?tr('axisLast',m):tr('axisMin',m),last?x+2:x,G.T+G.H+6);}
   }
   if(!SN)gmDraw(dv);
   cx.save();cx.beginPath();cx.rect(G.L,G.T-2,G.W,G.H+4);cx.clip();
