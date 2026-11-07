@@ -25,6 +25,7 @@
   3. 제안 a(사용자 '내일하자'로 보류, 아직 ㄱㄱ 전): 진단에 '열 때 innerHeight → 지금 innerHeight, 바뀐 시각' 추가 + 시작 화면이 항상 기기 화면 전체를 덮게(높이 보정) + 높이 바뀌면 시작 화면 배치 즉시 다시 계산.
   4. 원인 확정 후 진단 글씨(#spDbg, __dbg, scuba_spdbg) 삭제.
   ★ 11/07 03:07 처리(사용자 결정: 진단 없이 처리): 진단 글씨·기록 코드 전부 삭제(#spDbg, __dbg, scuba_spdbg, dbgShow). #splash = top/left/right 0 + height:100lvh(+min-height), spFit()이 열린 직후(즉시·rAF·150/500/1200ms)·resize·visualViewport resize·pageshow·회전·showSplash 때 min-height를 max(innerHeight, clientHeight, visualViewport.height, 세로 홈화면앱이면 screen.height)로 맞춤. [플래너][로그북] 인식 범위 = 위 50px + 아래 20px, ↻ = 위 50px. 아이폰에서 띠가 없어졌는지 확인 필요. 구버전 문제(1번 후보)는 아직.
+  ★ 11/07 09:52: 수심그래프 최대·총 팝업 크기 = 두 줄 보기 1.4배(그 밖 1.1배 그대로).
   ★ 11/07 09:47: 수심그래프↔공기 막대 간격 15→7px(G.R 30→22).
   ★ 11/07 09:45: 수심그래프 왼쪽 여백 G.L 40px 고정 → (가장 긴 수심 글자 폭+6), 수심 글자는 그래프 왼쪽 4px에 붙임(YLX=G.L-4). m=28px, ft=31px → 모든 보기에서 그래프 폭 약 12px 넓어짐. 단위 바꿀 때 layout() 다시.
   ★ 11/07 09:38: 수심그래프 눈금 글자 '0m'(0ft)·'0분' 삭제(선은 그대로).

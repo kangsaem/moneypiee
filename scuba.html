@@ -977,7 +977,7 @@ function drawProfile(){
         const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),SN0=!!window.SNAP,l3=SN0?diveClock(S.cur):'',F3=SN0?null:'600 11px sans-serif';/* 앱 화면: 입수→출수 줄은 화살표 간격 좁게·글자 11px */cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';
         const isDeco=r&&r.ceil5.some(v=>v>0),hh=isDeco?18:0;
         const w3=l3?(()=>{if(!F3)return cx.measureText(l3).width;const f0=cx.font;cx.font=F3;const w=cx.measureText(l3).width;cx.font=f0;return w;})():0;
-        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,w3,isDeco?48:0)+12,th=36+hh+(l3?16:0),LK=1.1,TW=tw*LK,TH=th*LK;// 팝업 1.1배(앱 화면만, 데이터 로그 이미지는 그대로 1.3)
+        const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,w3,isDeco?48:0)+12,th=36+hh+(l3?16:0),LK=window.matchMedia('(min-width:780px) and (max-width:1169px)').matches?1.4:1.1,/* 두 줄 보기는 1.4배 */TW=tw*LK,TH=th*LK;// 팝업 1.1배(앱 화면만, 데이터 로그 이미지는 그대로 1.3)
         const hits=(bx,by)=>{if(!r)return false;for(let x=bx-2;x<=bx+TW+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+TH+3)return true;}return false;};
         const cand=[[L0.xn-TW-4,L0.yd-TH-4],[L0.xn+6,L0.yd-TH-4],[L0.xn+6,L0.yd+4],[L0.xn-TW-4,L0.yd+4],[L0.xn+6,G.T+28],[L0.xn-TW-4,G.T+28]]
           .map(([x,y])=>[clamp(x,G.L+2,G.L+G.W-TW-2),clamp(y,G.T+2,G.T+G.H-TH-2)]);
