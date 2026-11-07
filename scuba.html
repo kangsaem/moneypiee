@@ -972,10 +972,10 @@ function drawProfile(){
       const txt=String(pu(cur));if(cx.measureText(txt).width>gw-1){cx.rotate(-Math.PI/2);cx.textAlign='left';cx.textBaseline='middle';cx.fillText(txt,2,0);}else{cx.textAlign='center';cx.fillText(txt,0,0);}cx.restore();}}
   }
   if(!SN)gmHandle();
-  /* 위반 지점 화살표(앱·데이터 로그 이미지, 포토로그 제외): 급상승·천장 위반·MOD 초과·감압 천장이 생기는 구간의 시작점마다, 경로선 아래(깊은 쪽)에서 그 점 기울기에 직각으로 선을 향함. 재생 중이면 지나온 것만 */
+  /* 위반 지점 화살표(앱·데이터 로그 이미지, 포토로그 제외): 급상승·천장 위반·MOD 초과 구간의 시작점마다, 경로선 아래(깊은 쪽)에서 그 점 기울기에 직각으로 선을 향함. 재생 중이면 지나온 것만 */
   const ARW=[];
   if(r&&!drawing&&dv.pts.length>1){const lim=S.playMode?Math.min(Math.round(P.t),r.N):r.N,st=[];
-    const scan=a=>{if(!a)return;for(let k=0;k<a.length;k++)if(a[k]&&!(k&&a[k-1])&&k*5<=lim)st.push(k*5);};scan(r.fast);scan(r.viol);scan(r.ceil5&&r.ceil5.map(v=>v>0));
+    const scan=a=>{if(!a)return;for(let k=0;k<a.length;k++)if(a[k]&&!(k&&a[k-1])&&k*5<=lim)st.push(k*5);};scan(r.fast);scan(r.viol);
     {const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;let pv=false;for(let t=0;t<=lim;t+=5){const o=r.depth[t]>mod+0.1;if(o&&!pv)st.push(t);pv=o;}}
     st.sort((a,b)=>a-b);const used=[];
     st.forEach(t=>{if(t>r.N)return;const x=X(t),y=Y(r.depth[t]);if(used.some(([ux,uy])=>Math.hypot(ux-x,uy-y)<10))return;used.push([x,y]);
@@ -1008,6 +1008,9 @@ function drawProfile(){
   }
   if(timeTag){cx.beginPath();cx.arc(timeTag.x,timeTag.y,10,0,7);cx.fillStyle=DK?'rgba(255,255,255,.28)':'rgba(31,35,40,.18)';cx.fill();
     cx.beginPath();cx.arc(timeTag.x,timeTag.y,6.5,0,7);cx.fillStyle='#1f2328';cx.fill();cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke();}
+  /* 감압 천장이 생기는 시점: 그 점에서 수면까지 분홍 세로 점선 */
+  if(r&&!drawing&&dv.pts.length>1&&r.ceil5){const lim=S.playMode?Math.min(Math.round(P.t),r.N):r.N;cx.save();cx.strokeStyle='#db2777';cx.lineWidth=1.6;cx.setLineDash([4,3]);
+    for(let k=0;k<r.ceil5.length;k++)if(r.ceil5[k]>0&&!(k&&r.ceil5[k-1]>0)){const t=k*5;if(t>lim||t>r.N)break;const x=X(t)+.5;cx.beginPath();cx.moveTo(x,Y(r.depth[t]));cx.lineTo(x,G.T);cx.stroke();}cx.restore();}
   /* 위반 지점 화살표 그리기(계산은 ARW, 최대·총 팝업 배치 전에) */
   ARW.forEach(({tx,ty,hx,hy,nx,ny})=>{const px=-ny,py=nx,hw=5.5,hl=9;
       const path=()=>{cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(hx+nx*hl,hy+ny*hl);};const head=()=>{cx.beginPath();cx.moveTo(hx,hy);cx.lineTo(hx+nx*hl+px*hw,hy+ny*hl+py*hw);cx.lineTo(hx+nx*hl-px*hw,hy+ny*hl-py*hw);cx.closePath();};
