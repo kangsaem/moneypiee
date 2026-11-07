@@ -245,7 +245,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 #spTut{width:min(82vw,420px);aspect-ratio:1/1.05;border:0;border-radius:28px;background:#E31B3F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;box-shadow:0 10px 40px rgba(0,0,0,.35),0 0 0 0 rgba(255,196,210,.95);animation:spPulse 1.8s ease-out infinite;-webkit-tap-highlight-color:transparent}
 #spTut:active{transform:scale(.97)}
 #spTut .spPlay{width:clamp(56px,18vw,96px);height:clamp(56px,18vw,96px)}
-#spTut .sp1{font-size:clamp(38px,11vw,64px);font-weight:800;letter-spacing:-1px;line-height:1.1}
+#spTut .sp1{font-size:clamp(38px,11vw,64px);font-weight:800;letter-spacing:-1px;line-height:1.1}#splash.spJa .sp1{font-size:clamp(30px,8.6vw,52px)}/* 일본어 'チュートリアル'은 길어서 조금 작게 */
 #spTut .sp2{font-size:clamp(22px,6.2vw,32px);opacity:.9;font-weight:700;text-align:center;width:100%;line-height:1.1}
 #splash .sp3{color:rgba(255,255,255,.75);font-size:16px;font-weight:700;background:none;border:0;cursor:default;padding:6px 10px;font-family:inherit}
 #spVer{min-width:4em;text-align:left;font-variant-numeric:tabular-nums}
@@ -263,7 +263,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.0.3';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.1.0';</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" id="modeBtn">로그북</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
@@ -322,7 +322,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
       <div class="yearPick hide" id="yearPick"><div class="yp"><div class="lsel"></div><div class="lw" id="lwY" tabindex="0"></div></div><button id="yearOk">OK</button></div>
       <div class="cal" id="cal"></div>
       <div class="logHint" id="logHint"></div>
-      <input type="file" id="fitIn" accept=".fit" multiple hidden>
+      <input type="file" id="fitIn" accept=".fit,.zip,application/zip" multiple hidden><input type="file" id="fitDir" webkitdirectory multiple hidden>
     </div>
     <div id="logEdV" class="hide">
       <div class="edHd"><span class="calNav"><button id="logBack">◀ <span id="logBackT">달력</span></button><button id="edPrev" class="jump" aria-label="previous log date"><svg viewBox="0 0 12 12" width="12" height="12"><rect x="1" y="1" width="1.8" height="10" fill="currentColor"/><path d="M11 1L3.6 6L11 11z" fill="currentColor"/></svg></button></span><b id="edYM" class="edYM"></b><span class="calNav"><button id="fitBtn2" class="fitJ">FIT</button><button id="edNext" class="jump" aria-label="next log date"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M1 1L8.4 6L1 11z" fill="currentColor"/><rect x="9.2" y="1" width="1.8" height="10" fill="currentColor"/></svg></button></span><b id="edTitle"></b></div>
@@ -591,8 +591,7 @@ ja:{
  }
 }};
 let BM='surf';try{localStorage.removeItem('scuba_bm');}catch(e){}
-let LANG='ko';try{const l=localStorage.getItem('scuba_lang');if(l&&I18N[l])LANG=l;}catch(e){}
-{const h=(location.hash||'').slice(1);if(I18N[h]){LANG=h;try{localStorage.setItem('scuba_lang',h);}catch(e){}}}
+/* 처음엔 항상 한국어. 주소 끝 #en·#ja(·-log)일 때만 그 언어 (/plan = 영어 로그북, /dive = 일본어 로그북) */let LANG='ko';{const h=(location.hash||'').slice(1).replace(/-log$/,'');if(I18N[h])LANG=h;}
 const FT=3.28084,isFt=()=>typeof S!=='undefined'&&S.pu==='psi',DU=v=>isFt()?Math.round(+v*FT)+'ft':v+'m',DS=v=>isFt()?Math.round(v*FT/5)*5+'ft':v+'m';
 function tr(k,...a){const v=(k in I18N[LANG])?I18N[LANG][k]:I18N.ko[k];return typeof v==='function'?v(...a):v;}
 // ===== ZHL-16C (N2) =====
@@ -1670,24 +1669,25 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
 
 <script>
 (function(){const sp=document.getElementById('splash');if(!sp)return;
-  let lang='ko';try{lang=localStorage.getItem('scuba_lang')||'ko';}catch(e){}const h=(location.hash||'').slice(1);if(h==='en'||h==='ja'||h==='ko')lang=h;
+  const h=(location.hash||'').slice(1),toLog=/-log$/.test(h);/* #en-log·#ja-log = 시작 화면 없이 바로 로그북 */
+  const spLang=()=>{const L=typeof LANG!=='undefined'?LANG:'ko';const T=L==='en'?{t:'Tutorial',m:'Korean · 3 min',n:'DTMD Dive Planner / Logbook',g:['Logbook','Planner']}:L==='ja'?{t:'チュートリアル',m:'韓国語 · 3分',n:'DTMD ダイブプランナー / ログブック',g:['ログブック','プランナー']}:{t:'튜토리얼',m:'3분',n:'DTMD 다이빙 플래너 / 로그북',g:['로그북','플래너']};
+    sp.querySelector('.sp1').textContent=T.t;sp.querySelector('.sp2').textContent=T.m;document.getElementById('spName').textContent=T.n;document.getElementById('spLog').textContent=T.g[0];document.getElementById('spPlan').textContent=T.g[1];sp.classList.toggle('spJa',L==='ja');};
   try{history.scrollRestoration='manual';}catch(e){}
   const bgReset=()=>{document.documentElement.style.background='';const m=document.querySelector('meta[name=theme-color]');if(m)m.content='#284656';};
   const vid=sp.querySelector('.spVid'),vPlay=()=>{if(!vid||sp.style.display==='none')return;try{vid.muted=true;const r=vid.play();if(r&&r.catch)r.catch(()=>{});}catch(e){}};
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)vPlay();});window.addEventListener('pageshow',vPlay);
   const close=why=>{if(vid)try{vid.pause();}catch(e){}sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);if(window.toGraphTop)requestAnimationFrame(()=>toGraphTop());};
-    window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
+    window.showSplash=()=>{window.endTutorial&&window.endTutorial();spLang();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
   const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
     if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});}
-  if(lang!=='ko')close('lang');
-  {const G=lang==='en'?['Logbook','Planner']:lang==='ja'?['ログブック','プランナー']:['로그북','플래너'];document.getElementById('spLog').textContent=G[0];document.getElementById('spPlan').textContent=G[1];}
+  spLang();if(toLog)close('route');
   /* 아래 두 버튼: 고른 모드로 바로 들어감(뒤집기 없이, 시작 화면 뒤에서 바꾼 뒤 닫음) */
   const goLog=why=>{try{if(window.toLogInstant)window.toLogInstant();}catch(e){console.error(e);}setTimeout(()=>close(why||'로그북'),60);};
   const goPlan=why=>{const de=document.documentElement;try{if(window.__log&&window.__log.open&&window.toPlanner){de.classList.add('noAnim');window.toPlanner(true);}}catch(e){console.error(e);}requestAnimationFrame(()=>requestAnimationFrame(()=>de.classList.remove('noAnim')));setTimeout(()=>close(why||'플래너'),60);};
   document.getElementById('spLog').onclick=()=>{if(window.__spReady)goLog();};document.getElementById('spPlan').onclick=()=>{if(window.__spReady)goPlan();};
   /* 모든 스크립트(로그북 포함)가 준비된 뒤에 동작. 그 전에 눌렀으면 지금 실행 */
-  const ready=()=>{if(window.__spReady)return;window.__spReady=true;const k=window.__spPick;window.__spPick=null;document.querySelectorAll('#spGo button').forEach(b=>b.classList.remove('pk'));if(k==='log')goLog('미리로그북');else if(k==='plan')goPlan('미리플래너');};
+  const ready=()=>{if(window.__spReady)return;window.__spReady=true;if(toLog){try{window.toLogInstant&&window.toLogInstant();}catch(e){console.error(e);}}const k=window.__spPick;window.__spPick=null;document.querySelectorAll('#spGo button').forEach(b=>b.classList.remove('pk'));if(k==='log')goLog('미리로그북');else if(k==='plan')goPlan('미리플래너');};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else setTimeout(ready,0);
   document.getElementById('spReload').onclick=e=>{const btn=e.currentTarget;if(btn.classList.contains('spinL'))return;btn.classList.remove('spin');void btn.offsetWidth;btn.classList.add('spinL');
     // 새 버전을 먼저 받아 캐시에 넣어 둔 뒤 이동: 기다리는 동안은 지금 화면이 그대로 보이고, 이동은 캐시에서 바로 열림
@@ -2506,11 +2506,11 @@ function zipMake(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0;
     cen.push(new Uint8Array(ch.buffer),nm);off+=30+nm.length+sz;});
   const cs=cen.reduce((x,y)=>x+y.length,0),e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
   return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:'application/zip'});}
-async function zipRead(buf){const u=new Uint8Array(buf),dv=new DataView(buf);let e=-1;for(let i=u.length-22;i>=Math.max(0,u.length-65557);i--)if(dv.getUint32(i,true)===0x06054b50){e=i;break;}if(e<0)throw new Error('zip');
+async function zipRead(buf,want){const u=new Uint8Array(buf),dv=new DataView(buf);let e=-1;for(let i=u.length-22;i>=Math.max(0,u.length-65557);i--)if(dv.getUint32(i,true)===0x06054b50){e=i;break;}if(e<0)throw new Error('zip');
   const n=dv.getUint16(e+10,true),dec=new TextDecoder(),out={};let p=dv.getUint32(e+16,true);
   for(let k=0;k<n;k++){if(dv.getUint32(p,true)!==0x02014b50)throw new Error('zip');const m=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
     const name=dec.decode(u.subarray(p+46,p+46+nl));p+=46+nl+xl+cl;if(name.endsWith('/')||/(^|\/)__MACOSX\//.test(name))continue;
-    const st=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true),raw=u.subarray(st,st+cs);
+    if(want&&!want(name))continue;const st=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true),raw=u.subarray(st,st+cs);
     out[name.split('/').pop()]=m===0?raw.slice():m===8?new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer()):null;}
   return out;}
 const stampNow=()=>{const d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());};
@@ -2561,7 +2561,43 @@ $('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value=''
   for(const id of new Set(add.flatMap(x=>x.state.dives.flatMap(d=>d.ph||[])))){const full=ph[id+'.jpg'];if(!full||!window.__photo)continue;
     try{if(await window.__photo.get(id))continue;const thumb=ph[id+'_t.jpg']||full,m=meta.get(id)||{};await window.__photo.put({id,full:new Blob([full],{type:'image/jpeg'}),thumb:new Blob([thumb],{type:'image/jpeg'}),ts:m.ts||Date.now(),name:m.name||''});}catch(e){}}
   if(!store(a)){toast(t.fail);return;}renderAll();window.__photo&&window.__photo.refresh&&window.__photo.refresh();flash($('loadBtn'));};
-$('fitBtn').onclick=()=>$('fitIn').click();$('fitBtn2').onclick=()=>$('fitIn').click();
+/* FIT 불러오기: [파일(FIT·ZIP)] / [폴더](폴더 고르기 되는 브라우저: PC 크롬·엣지, 아이폰 iOS 18.4+) → 다이빙만 골라 요약 → 한 번에 */
+const FW=()=>LANG==='en'?{ttl:'Import FIT',files:'Files (FIT·ZIP)',dir:'Folder',cancel:'Cancel',go:'Import',read:(i,n)=>`Reading ${i}/${n}…`,imp:(i,n)=>`Importing ${i}/${n}…`,
+    sum:(f,d,nw,old,ov)=>`FIT files: ${f} · dive files: ${d}<br>New dives: <strong>${nw}</strong>`+(old?`<br>Already in logbook (skipped): ${old}`:'')+(ov?`<br>Overlap with logs you wrote: ${ov} (depth replaced by FIT, memo kept)`:''),none:'No dive FIT files found.',noNew:'All dives are already in the logbook.'}
+  :LANG==='ja'?{ttl:'FIT読込',files:'ファイル(FIT・ZIP)',dir:'フォルダ',cancel:'キャンセル',go:'読み込む',read:(i,n)=>`読み取り中 ${i}/${n}…`,imp:(i,n)=>`読み込み中 ${i}/${n}…`,
+    sum:(f,d,nw,old,ov)=>`FITファイル ${f}件 · ダイブ ${d}件<br>新しいダイブ: <strong>${nw}</strong>`+(old?`<br>登録済み(スキップ): ${old}`:'')+(ov?`<br>手入力ログと重なる: ${ov}(水深をFITに置換・メモは維持)`:''),none:'ダイブのFITファイルが見つかりません。',noNew:'すべてのダイブは登録済みです。'}
+  :{ttl:'FIT 불러오기',files:'파일 (FIT·ZIP)',dir:'폴더',cancel:'취소',go:'불러오기',read:(i,n)=>`읽는 중 ${i}/${n}…`,imp:(i,n)=>`불러오는 중 ${i}/${n}…`,
+    sum:(f,d,nw,old,ov)=>`FIT 파일 ${f}개 중 다이빙 ${d}개<br>새 다이빙: <strong>${nw}</strong>`+(old?`<br>이미 있는 로그(건너뜀): ${old}`:'')+(ov?`<br>직접 쓴 로그와 겹침: ${ov} (수심만 FIT로 바꾸고 메모는 유지)`:''),none:'다이빙 FIT 파일을 찾지 못했어요.',noNew:'모든 다이빙이 이미 로그북에 있어요.'};
+const fitPop=()=>{const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><b></b><p></p><div class="lwBtns"></div></div>';document.body.appendChild(ov);
+  const P={ov,set(t,h,btns){ov.querySelector('b').textContent=t;ov.querySelector('p').innerHTML=h||'';const bb=ov.querySelector('.lwBtns');bb.innerHTML='';(btns||[]).forEach(([lab,cls,fn])=>{const b=document.createElement('button');b.textContent=lab;b.className=cls||'';b.onclick=fn;bb.appendChild(b);});},close(){ov.remove();}};return P;};
+const DIRSUP=(()=>{try{return 'webkitdirectory' in document.createElement('input');}catch(e){return false;}})();
+const fitPick=()=>{if(!DIRSUP){$('fitIn').click();return;}const w=FW(),P=fitPop();P.ov.onclick=e=>{if(e.target===P.ov)P.close();};
+  P.set(w.ttl,'',[[w.cancel,'lwC',()=>P.close()],[w.dir,'lwS',()=>{P.close();$('fitDir').click();}],[w.files,'lwS',()=>{P.close();$('fitIn').click();}]]);};
+$('fitBtn').onclick=fitPick;$('fitBtn2').onclick=fitPick;
+$('fitDir').onchange=()=>{const fs=[...$('fitDir').files].filter(f=>/\.(fit|zip)$/i.test(f.name));$('fitDir').value='';fitBulk(fs);};
+// 여러 파일·폴더·ZIP: 다이빙 FIT만 골라 요약 → 확인하면 시간 순으로 한 번에
+async function fitBulk(files){const w=FW(),P=fitPop();let srcs=[],nF=0;const t0=L();
+  try{P.set(w.ttl,w.read(0,files.length));
+    // ZIP 풀기(안에 ZIP이 또 있으면 한 단계 더)
+    for(const f of files){if(/\.zip$/i.test(f.name)){try{const z=await zipRead(await f.arrayBuffer(),n=>/\.(fit|zip)$/i.test(n));for(const [n,b] of Object.entries(z)){if(!b)continue;if(/\.zip$/i.test(n)){try{const z2=await zipRead(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),m=>/\.fit$/i.test(m));for(const [m,c] of Object.entries(z2))if(c)srcs.push({name:m,buf:c.buffer.slice(c.byteOffset,c.byteOffset+c.byteLength)});}catch(e){}}else srcs.push({name:n,buf:b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)});}}catch(e){}}
+      else srcs.push({name:f.name,file:f});}
+    nF=srcs.length;const dv=[],all=load();let old=0,ovm=0,nDF=0;
+    for(let i=0;i<srcs.length;i++){if(i%5===0){P.set(w.ttl,w.read(i,srcs.length));await new Promise(r=>setTimeout(r,0));}const s0=srcs[i];
+      try{const buf=s0.buf||await s0.file.arrayBuffer();const o=parseFIT(buf);let ds=fitToDives(o);ds.forEach(d=>{d.pts=trimSurface(d.pts);});ds=ds.filter(d=>d.pts.length>1&&d.maxD>0.5);if(!ds.length)continue;nDF++;
+        const off=ds[0].localOff!=null?ds[0].localOff:-new Date(ds[0].startUTC*1000).getTimezoneOffset()*60,loc=u=>new Date((u+off)*1000),l0=loc(ds[0].startUTC),date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
+        let fresh=0;for(const d of ds){const l=loc(d.startUTC),sm=l.getUTCHours()*60+l.getUTCMinutes()+l.getUTCSeconds()/60,dur=d.pts[d.pts.length-1].t/60;
+          let hit=null;for(const x of all.filter(x=>x.date===date)){const rows=rowsOf(x);(x.state.dives||[]).forEach((q,k)=>{const r=rows[k];if(!r||r.st==null)return;if(r.st<sm+dur&&sm<r.st+r.N/60)hit=hit||{fit:q.fit||isFitMemo(diveMemo(x,k))};});}
+          if(hit&&hit.fit)old++;else{fresh++;if(hit)ovm++;}}
+        if(fresh)dv.push({name:s0.name,buf,t:ds[0].startUTC,n:fresh});}catch(e){}}
+    const nNew=dv.reduce((a,b)=>a+b.n,0);
+    if(!nF||!nDF){P.set(w.ttl,w.none,[['OK','lwS',()=>P.close()]]);return;}
+    if(!nNew){P.set(w.ttl,w.sum(nF,nDF,0,old,0)+'<br>'+w.noNew,[['OK','lwS',()=>P.close()]]);return;}
+    const go=await new Promise(ok=>P.set(w.ttl,w.sum(nF,nDF,nNew,old,ovm),[[w.cancel,'lwC',()=>ok(false)],[w.go,'lwS',()=>ok(true)]]));
+    if(!go){P.close();return;}
+    dv.sort((a,b)=>a.t-b.t);FITQ={n:0,rep:0};let ok=0,bad=0;
+    for(let i=0;i<dv.length;i++){P.set(w.ttl,w.imp(i+1,dv.length));const d=dv[i];const r=await fitOne({name:d.name,arrayBuffer:async()=>d.buf},true);if(r)ok++;else bad++;}
+    const q=FITQ;FITQ=null;P.close();msg(LANG==='en'?`${q.n} dives imported${bad?` · ${bad} failed`:''}`:LANG==='ja'?`ダイブ${q.n}本を読み込みました${bad?` · 失敗${bad}`:''}`:`다이빙 ${q.n}개를 불러왔어요${bad?` · 실패 ${bad}`:''}`,!!bad);}
+  catch(e){console.error(e);P.close();msg(t0.fitErr,true);}}
 // GPS → 지역 이름(OpenStreetMap Nominatim). 실패하면 null
 async function placeName(lat,lon){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),6000);
   const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&lat='+lat.toFixed(5)+'&lon='+lon.toFixed(5)+'&accept-language='+(LANG==='en'?'en':LANG==='ja'?'ja':'ko'),{signal:ac.signal});clearTimeout(tm);
@@ -2571,7 +2607,7 @@ async function placeName(lat,lon){try{const ac=new AbortController(),tm=setTimeo
 // FIT 불러오기: 같은 날 다이빙은 입수 시각 순으로 연속 다이빙(다이빙1·2…), 수면휴식 = 앞 출수~다음 입수, 1분 단위 반올림(10분 내림은 다시 불러올 때마다 시각이 밀려서 바꿈)
 // 여러 파일: 이름(=기록 시각) 순으로 하나씩 처리, 끝나면 결과 요약
 $('fitIn').onchange=async()=>{const fs=[...$('fitIn').files].sort((a,b)=>a.name.localeCompare(b.name));$('fitIn').value='';if(!fs.length)return;
-  if(fs.length===1){await fitOne(fs[0]);return;}let ok=0,bad=0;FITQ={n:0,rep:0};for(const f of fs){const r=await fitOne(f,true);if(r)ok++;else bad++;}
+  if(fs.length===1&&!/\.zip$/i.test(fs[0].name)){await fitOne(fs[0]);return;}fitBulk(fs);return;let ok=0,bad=0;FITQ={n:0,rep:0};for(const f of fs){const r=await fitOne(f,true);if(r)ok++;else bad++;}
   const q=FITQ;FITQ=null;msg(LANG==='en'?`${ok} FIT files imported (${q.n} dives, ${q.rep} updated)${bad?` · ${bad} failed`:''}`:LANG==='ja'?`FIT ${ok}件 読み込み(ダイブ${q.n}・更新${q.rep})${bad?` · 失敗${bad}`:''}`:`FIT ${ok}개 불러옴(다이빙 ${q.n} · 갱신 ${q.rep})${bad?` · 실패 ${bad}`:''}`,!!bad);};
 let FITQ=null;
 async function fitOne(f,quiet){const t=L();let dives;

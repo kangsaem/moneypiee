@@ -29,6 +29,9 @@
   3. 제안 a(사용자 '내일하자'로 보류, 아직 ㄱㄱ 전): 진단에 '열 때 innerHeight → 지금 innerHeight, 바뀐 시각' 추가 + 시작 화면이 항상 기기 화면 전체를 덮게(높이 보정) + 높이 바뀌면 시작 화면 배치 즉시 다시 계산.
   4. 원인 확정 후 진단 글씨(#spDbg, __dbg, scuba_spdbg) 삭제.
   ★ 11/07 03:07 처리(사용자 결정: 진단 없이 처리): 진단 글씨·기록 코드 전부 삭제(#spDbg, __dbg, scuba_spdbg, dbgShow). #splash = top/left/right 0 + height:100lvh(+min-height), spFit()이 열린 직후(즉시·rAF·150/500/1200ms)·resize·visualViewport resize·pageshow·회전·showSplash 때 min-height를 max(innerHeight, clientHeight, visualViewport.height, 세로 홈화면앱이면 screen.height)로 맞춤. [플래너][로그북] 인식 범위 = 위 50px + 아래 20px, ↻ = 위 50px. 아이폰에서 띠가 없어졌는지 확인 필요. 구버전 문제(1번 후보)는 아직.
+  ★ 11/07 12:10 (v2.1.0):
+    - 언어·주소: 처음엔 항상 한국어(저장된 scuba_lang 안 읽음). 주소 해시 #en/#ja(+'-log')만 예외. /plan = plan.html → scuba.html#en-log(영어, 시작 화면 없이 로그북), /dive = dive.html → #ja-log(일본어 로그북), /dtmd = dtmd.html → scuba.html(한국어 시작 화면), /scuba = 한국어 시작 화면. 본 페이지에서 EN/JP 고른 뒤 제목 눌러 시작 화면으로 가면 그 언어(spLang: 튜토리얼 'Tutorial / Korean · 3 min', 'チュートリアル / 韓国語 · 3分'(일본어는 글자 조금 작게), 제목, 버튼).
+    - FIT 일괄 불러오기: [FIT] → (폴더 고르기 되는 브라우저면) [폴더]/[파일 (FIT·ZIP)] 선택창. 폴더(#fitDir webkitdirectory, PC 크롬·엣지·아이폰 iOS 18.4+)는 하위 폴더까지 .fit/.zip, 파일은 여러 개·ZIP(안의 ZIP 한 단계까지). 읽어서 수심 기록 있는 다이빙만 → 요약('FIT N개 중 다이빙 M개 · 새 다이빙 · 이미 있는 로그(FIT로 넣은 것과 시간 겹침) 건너뜀 · 직접 쓴 로그와 겹침(수심만 FIT로)') → [불러오기] 시 시간 순으로 fitOne 반복, 진행 표시. FIT 1개만 고르면 예전처럼 바로. zipRead(buf,want)로 이름 거르기 추가. 합성 FIT(다이빙 4·달리기/걷기 2·ZIP 안 ZIP)로 확인: 비다이빙 제외, 중복 건너뜀.
   ★ 11/07 11:55 (v2.0.3): 영어·일본어 검수 반영 = 아이콘 마우스 설명(스냅샷·저장·열기·↻) 언어별, 로그 줄 기체 이름은 저장 때 언어와 상관없이 지금 언어(공기/Air/空気→tr('sAir')), EN: Erase points · Custom · Entry time, JA: 描画·点打ち·点消去 · 日付をタップするとログを書けます · N件保存 · ダイブN本を読み込みました. (로그북 사전의 in/out은 화면에 안 쓰여 그대로)
   ★ 11/07 11:32 (v2.0.2): 로그북에서 저장 안 한 변경(그래프·메모 등) 상태로 플래너로 가면 버림 = leaveLog에서 dirty 기록, 다시 로그북 올 때 저장된 로그는 applyLog로 저장본, 새 로그(초안)는 빈 그래프. (전엔 LOGST로 그리던 상태가 그대로 돌아왔음)
   ★ 11/07 11:15: 감압 천장이 생기는 시점은 화살표 대신 그 점에서 수면까지 분홍(#db2777) 세로 점선.
