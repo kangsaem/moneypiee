@@ -746,6 +746,7 @@ function recompute(){
 const cv=$('prof'),cx=cv.getContext('2d');
 let G={},FS=1,hover=null,drawing=false,drag=-1;let SEL=-1,DG=null;let LP=null,LABBOX=null;
 let LSOFF=578;// 로그북 '현재 로그 저장' 버튼 바닥의 위치(메인 그리드 기준). 안 보일 때는 마지막 측정값
+function topBarH(){/* 화면 위 흐림 띠(상태바 자리) 높이 */try{return parseFloat(getComputedStyle(document.body,'::before').height)||0;}catch(e){return 0;}}
 function layout(){
   const dpr=window.devicePixelRatio||1;
   FS=window.matchMedia('(orientation: landscape) and (max-height: 540px) and (pointer: coarse)').matches?1.25:1;
@@ -755,6 +756,8 @@ function layout(){
     const mg=document.getElementById('mainGrid').getBoundingClientRect().top;if(ls&&ls.offsetParent)LSOFF=ls.getBoundingClientRect().bottom-mg;
     if(pl){const cr=cv.getBoundingClientRect(),off=pl.getBoundingClientRect().bottom-cr.bottom,tb=mg+LSOFF;
       h0=Math.round(clamp(tb-cr.top-off,h0,Math.max(h0,window.innerHeight*1.2)));}}
+  /* 모바일 가로(두 줄 보기): 수심그래프 카드 전체가 한 화면에 들어오게 그래프 높이를 맞춤 */
+  if(FS>1&&window.matchMedia('(min-width:780px) and (max-width:1169px)').matches){const gc=$('graphCard');if(gc){const over=gc.offsetHeight-cv.offsetHeight,top=topBarH();h0=Math.round(Math.max(150,window.innerHeight-top-over-6));}}
   const w=w0/FS,h=h0/FS;
   cv.width=w0*dpr;cv.height=h0*dpr;cv.style.height=h0+'px';cx.setTransform(dpr*FS,0,0,dpr*FS,0,0);
   G={w,h,L:40,R:30,T:10,B:26};G.W=w-G.L-G.R;G.H=h-G.T-G.B;
@@ -2274,7 +2277,7 @@ function posPmid(){const pm=document.querySelector('.pmid.inTools'),tl=document.
 addEventListener('resize',()=>posPmid());
 /* 두 줄 보기: 수심그래프 카드 위끝이 화면 위끝에 오게 자동 스크롤(들어갈 때·플래너↔로그북·폭이 두 줄 보기로 바뀔 때) */
 window.toGraphTop=()=>{const w2=window.matchMedia('(min-width:780px) and (max-width:1169px)').matches;if(!w2)return;if(document.documentElement.classList.contains('spl'))return;const g=$('graphCard');if(!g)return;
-  const y=Math.max(0,Math.round(g.getBoundingClientRect().top+window.scrollY));window.scrollTo(0,y);};
+  const y=Math.max(0,Math.round(g.getBoundingClientRect().top+window.scrollY-topBarH()-3));/* 위 흐림 띠에 가리지 않게 */window.scrollTo(0,y);};
 try{window.matchMedia('(min-width:780px) and (max-width:1169px)').addEventListener('change',()=>[50,350,900].forEach(t=>setTimeout(()=>toGraphTop(),t)));/* 아이폰을 가로로 돌리면 배치가 늦게 바뀌어 몇 번 다시 */}catch(e){}
 let FTHOME=null;setTimeout(()=>{try{relayout();}catch(e){}},0);
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());window.matchMedia('(min-width:1170px)').addEventListener('change',()=>relayout());}catch(e){}
