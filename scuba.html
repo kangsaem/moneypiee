@@ -263,7 +263,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.1.1';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.1.2';</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" id="modeBtn">로그북</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
@@ -2566,18 +2566,19 @@ $('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value=''
   if(!store(a)){toast(t.fail);return;}renderAll();window.__photo&&window.__photo.refresh&&window.__photo.refresh();flash($('loadBtn'));};
 /* FIT 불러오기: [파일(FIT·ZIP)] / [폴더](폴더 고르기 되는 브라우저: PC 크롬·엣지, 아이폰 iOS 18.4+) → 다이빙만 골라 요약 → 한 번에 */
 const FW=()=>LANG==='en'?{ttl:'Import FIT',files:'Files (FIT·ZIP)',dir:'Folder',cancel:'Cancel',go:'Import',read:(i,n)=>`Reading ${i}/${n}…`,imp:(i,n)=>`Importing ${i}/${n}…`,
-    sum:(f,d,nw,old,ov)=>`FIT files: ${f} · dive files: ${d}<br>New dives: <strong>${nw}</strong>`+(old?`<br>Already in logbook (skipped): ${old}`:'')+(ov?`<br>Overlap with logs you wrote: ${ov} (depth replaced by FIT, memo kept)`:''),none:'No dive FIT files found.',free:n=>`Freediving excluded (surfaced within 3 min): ${n}`,noNew:'All dives are already in the logbook.'}
+    sum:(f,d,nw,old,ov)=>`FIT files: ${f} · dive files: ${d}<br>New dives: <strong>${nw}</strong>`+(old?`<br>Already in logbook (skipped): ${old}`:'')+(ov?`<br>Overlap with logs you wrote: ${ov} (depth replaced by FIT, memo kept)`:''),none:'No dive FIT files found.',free:n=>`Freediving excluded (surfaced within 3 min): ${n}`,unzip:'No FIT files in this folder, only ZIP files. Please unzip them first (in the Files app, tap the ZIP).',noNew:'All dives are already in the logbook.'}
   :LANG==='ja'?{ttl:'FIT読込',files:'ファイル(FIT・ZIP)',dir:'フォルダ',cancel:'キャンセル',go:'読み込む',read:(i,n)=>`読み取り中 ${i}/${n}…`,imp:(i,n)=>`読み込み中 ${i}/${n}…`,
-    sum:(f,d,nw,old,ov)=>`FITファイル ${f}件 · ダイブ ${d}件<br>新しいダイブ: <strong>${nw}</strong>`+(old?`<br>登録済み(スキップ): ${old}`:'')+(ov?`<br>手入力ログと重なる: ${ov}(水深をFITに置換・メモは維持)`:''),none:'ダイブのFITファイルが見つかりません。',free:n=>`フリーダイビング除外(3分以内に浮上): ${n}`,noNew:'すべてのダイブは登録済みです。'}
+    sum:(f,d,nw,old,ov)=>`FITファイル ${f}件 · ダイブ ${d}件<br>新しいダイブ: <strong>${nw}</strong>`+(old?`<br>登録済み(スキップ): ${old}`:'')+(ov?`<br>手入力ログと重なる: ${ov}(水深をFITに置換・メモは維持)`:''),none:'ダイブのFITファイルが見つかりません。',free:n=>`フリーダイビング除外(3分以内に浮上): ${n}`,unzip:'このフォルダにはFITがなくZIPだけです。先にZIPを解凍してください(ファイルAppでZIPをタップ)。',noNew:'すべてのダイブは登録済みです。'}
   :{ttl:'FIT 불러오기',files:'파일 (FIT·ZIP)',dir:'폴더',cancel:'취소',go:'불러오기',read:(i,n)=>`읽는 중 ${i}/${n}…`,imp:(i,n)=>`불러오는 중 ${i}/${n}…`,
-    sum:(f,d,nw,old,ov)=>`FIT 파일 ${f}개 중 다이빙 ${d}개<br>새 다이빙: <strong>${nw}</strong>`+(old?`<br>이미 있는 로그(건너뜀): ${old}`:'')+(ov?`<br>직접 쓴 로그와 겹침: ${ov} (수심만 FIT로 바꾸고 메모는 유지)`:''),none:'다이빙 FIT 파일을 찾지 못했어요.',free:n=>`프리다이빙 제외(3분 안에 수면 상승): ${n}개`,noNew:'모든 다이빙이 이미 로그북에 있어요.'};
+    sum:(f,d,nw,old,ov)=>`FIT 파일 ${f}개 중 다이빙 ${d}개<br>새 다이빙: <strong>${nw}</strong>`+(old?`<br>이미 있는 로그(건너뜀): ${old}`:'')+(ov?`<br>직접 쓴 로그와 겹침: ${ov} (수심만 FIT로 바꾸고 메모는 유지)`:''),none:'다이빙 FIT 파일을 찾지 못했어요.',free:n=>`프리다이빙 제외(3분 안에 수면 상승): ${n}개`,unzip:'이 폴더에는 FIT 없이 ZIP만 있어요. 먼저 압축을 풀어 주세요(파일 앱에서 ZIP을 누르면 풀립니다).',noNew:'모든 다이빙이 이미 로그북에 있어요.'};
 const fitPop=()=>{const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><b></b><p></p><div class="lwBtns"></div></div>';document.body.appendChild(ov);
   const P={ov,set(t,h,btns){ov.querySelector('b').textContent=t;ov.querySelector('p').innerHTML=h||'';const bb=ov.querySelector('.lwBtns');bb.innerHTML='';(btns||[]).forEach(([lab,cls,fn])=>{const b=document.createElement('button');b.textContent=lab;b.className=cls||'';b.onclick=fn;bb.appendChild(b);});},close(){ov.remove();}};return P;};
 const DIRSUP=(()=>{try{return 'webkitdirectory' in document.createElement('input');}catch(e){return false;}})();
-const fitPick=()=>{if(!DIRSUP){$('fitIn').click();return;}const w=FW(),P=fitPop();P.ov.onclick=e=>{if(e.target===P.ov)P.close();};
-  P.set(w.ttl,'',[[w.cancel,'lwC',()=>P.close()],[w.dir,'lwS',()=>{P.close();$('fitDir').click();}],[w.files,'lwS',()=>{P.close();$('fitIn').click();}]]);};
+/* [FIT] = 바로 폴더 고르기(폴더 고르기가 안 되는 기기는 파일 고르기: FIT·ZIP) */const fitPick=()=>{$(DIRSUP?'fitDir':'fitIn').click();};
 $('fitBtn').onclick=fitPick;$('fitBtn2').onclick=fitPick;
-$('fitDir').onchange=()=>{const fs=[...$('fitDir').files].filter(f=>/\.(fit|zip)$/i.test(f.name));$('fitDir').value='';fitBulk(fs);};
+/* 폴더: .fit만 읽음(ZIP은 관계없는 큰 파일일 수 있어 무시). .fit이 없고 ZIP만 있으면 압축 풀기 안내 */
+$('fitDir').onchange=()=>{const all=[...$('fitDir').files];$('fitDir').value='';const fs=all.filter(f=>/\.fit$/i.test(f.name));
+  if(!fs.length&&all.some(f=>/\.zip$/i.test(f.name))){const w=FW(),P=fitPop();P.set(w.ttl,w.unzip,[['OK','lwS',()=>P.close()]]);return;}fitBulk(fs);};
 // 여러 파일·폴더·ZIP: 다이빙 FIT만 골라 요약 → 확인하면 시간 순으로 한 번에
 async function fitBulk(files){const w=FW(),P=fitPop();let srcs=[],nF=0;const t0=L();
   try{P.set(w.ttl,w.read(0,files.length));

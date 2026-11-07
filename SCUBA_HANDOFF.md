@@ -29,6 +29,7 @@
   3. 제안 a(사용자 '내일하자'로 보류, 아직 ㄱㄱ 전): 진단에 '열 때 innerHeight → 지금 innerHeight, 바뀐 시각' 추가 + 시작 화면이 항상 기기 화면 전체를 덮게(높이 보정) + 높이 바뀌면 시작 화면 배치 즉시 다시 계산.
   4. 원인 확정 후 진단 글씨(#spDbg, __dbg, scuba_spdbg) 삭제.
   ★ 11/07 03:07 처리(사용자 결정: 진단 없이 처리): 진단 글씨·기록 코드 전부 삭제(#spDbg, __dbg, scuba_spdbg, dbgShow). #splash = top/left/right 0 + height:100lvh(+min-height), spFit()이 열린 직후(즉시·rAF·150/500/1200ms)·resize·visualViewport resize·pageshow·회전·showSplash 때 min-height를 max(innerHeight, clientHeight, visualViewport.height, 세로 홈화면앱이면 screen.height)로 맞춤. [플래너][로그북] 인식 범위 = 위 50px + 아래 20px, ↻ = 위 50px. 아이폰에서 띠가 없어졌는지 확인 필요. 구버전 문제(1번 후보)는 아직.
+  ★ 11/07 13:12 (v2.1.2): [FIT] = 선택창 없이 바로 폴더 고르기(DIRSUP 아니면 파일 고르기 FIT·ZIP). 폴더는 .fit만 읽고 ZIP 무시(관계없는 큰 파일 대비), .fit 없이 ZIP만 있으면 '압축을 풀어 주세요' 안내. 파일 고르기로 직접 고른 ZIP은 지금처럼 읽음.
   ★ 11/07 12:38 (v2.1.1): FIT 프리다이빙 제외 = isFreeDive(d): 세션 세부 종류 56(apnea_diving)·57(apnea_hunting, 번호는 순서상 추정) 또는 3분 안에 수면 상승(fitToDives의 uwMax = 0.5m보다 깊게 연속으로 있던 가장 긴 시간 < 180초). 일괄 요약에 '프리다이빙 제외 N개', FIT 하나일 때는 '프리다이빙 기록이라 불러오지 않았어요'.
   ★ 11/07 12:10 (v2.1.0):
     - 언어·주소: 처음엔 항상 한국어(저장된 scuba_lang 안 읽음). 주소 해시 #en/#ja(+'-log')만 예외. /plan = plan.html → scuba.html#en-log(영어, 시작 화면 없이 로그북), /dive = dive.html → #ja-log(일본어 로그북), /dtmd = dtmd.html → scuba.html(한국어 시작 화면), /scuba = 한국어 시작 화면. 본 페이지에서 EN/JP 고른 뒤 제목 눌러 시작 화면으로 가면 그 언어(spLang: 튜토리얼 'Tutorial / Korean · 3 min', 'チュートリアル / 韓国語 · 3分'(일본어는 글자 조금 작게), 제목, 버튼).
