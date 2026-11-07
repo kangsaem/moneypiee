@@ -263,7 +263,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.1.2';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.1.3';</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" id="modeBtn">로그북</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
@@ -2279,7 +2279,7 @@ window.addEventListener('scuba:diveRemoved',()=>{if(!CUR)return;const a=load(),x
   x.state=snapState();x.sum=summary();store(a);renderSum();if(open&&view==='ed'){renderWheels();renderList();}});
 let FAUTO=false;/* 앱이 자동으로 펼치는 동안(들어갈 때 기본 달력 펼침)은 저장 안 함: 사용자가 바꾼 접힘만 기억 */
 function saveLBF(){if(open&&!FAUTO)try{localStorage.setItem('scuba_lbf',JSON.stringify({f:LBF,v:view}));}catch(e){}}
-function show(v){view=v;window.__LOGEND=open;saveLBF();/* 로그북 모드에서는 달력·날짜 화면 모두 로그를 출수 지점(끝)까지 채운 상태로 */if(window.__LOGEND&&S.playMode&&RES[S.cur])setTimeout(()=>{if(window.__LOGEND&&S.playMode&&RES[S.cur])seek(playEnd(RES[S.cur]));},0);$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();if(WSPIN){const f=WSPIN;WSPIN=null;spinFrom(f);}}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
+function show(v){view=v;window.__LOGEND=open;saveLBF();/* 로그북 모드에서는 달력·날짜 화면 모두 로그를 출수 지점(끝)까지 채운 상태로 */if(window.__LOGEND&&S.playMode&&RES[S.cur])setTimeout(()=>{if(window.__LOGEND&&S.playMode&&RES[S.cur]&&!window.__SWEEP)seek(playEnd(RES[S.cur]));},0);$('logCalV').classList.toggle('hide',v!=='cal');$('logEdV').classList.toggle('hide',v!=='ed');if(v==='cal')renderCal();else{renderWheels();renderList();refreshSave();if(WSPIN){const f=WSPIN;WSPIN=null;spinFrom(f);}}if(window.matchMedia('(min-width:1170px)').matches)setTimeout(()=>window.dispatchEvent(new Event('resize')),0);}
 // 날짜 한 줄: 2026/11/05 (목) — 반접기(날짜 화면 머리)·완전 접힘(로그북 머리)에 씀
 const ymdW=()=>{const t=L();return Y+'/'+pad(M)+'/'+pad(D)+' ('+t.wd[new Date(Y,M-1,D).getDay()]+')';};
 function renderLogSum(){const el=$('logSum');if(!el)return;if(open&&LBF===2){el.textContent=ymdW();el.classList.add('dt');return;}el.classList.remove('dt');const n=load().reduce((a,x)=>a+((x.state&&x.state.dives&&x.state.dives.length)||1),0);el.textContent=n?L().n(n):'';}
@@ -2310,6 +2310,9 @@ try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayou
 let LASTO=false,PLAN=null,LOGST=null,FIRSTIN=false,WSPUN=false,PRESEL=null;
 const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[],fit:d.fit||undefined,cfg:d.cfg||undefined,pln:d.pln||undefined}))),cur:S.cur,start:S.start,T,mode:S.mode});
 const putS=P=>{KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;if(P.mode)S.mode=P.mode;};
+/* 플래너→로그북으로 넘어갈 때 그 로그가 있으면: 다이빙 길이와 상관없이 약 0.65초에 처음부터 끝까지 빠르게 그림(플립이 끝날 때 다 그려짐). 재생 버튼·그래프를 건드리면 멈춤 */
+let SWK=0;function logSweep(){const k=++SWK;if(!open||!CUR||typeof RES==='undefined')return;const r=RES[S.cur];if(!r||!(dive().pts.length>1)||!S.playMode)return;const E=playEnd(r);if(!(E>0))return;
+  const t0=performance.now(),D=650;window.__SWEEP=true;seek(0);const fin=()=>{if(k===SWK)window.__SWEEP=false;};const step=now=>{if(k!==SWK||!open||P.run){fin();return;}const f=Math.min(1,(now-t0)/D),e=f<.5?2*f*f:1-Math.pow(-2*f+2,2)/2;seek(E*e);if(f<1)requestAnimationFrame(step);else fin();};requestAnimationFrame(step);}
 function flipSwap(fn){const el=document.getElementById('tabsCard');if(!el){fn();return;}el.classList.remove('flipIn','flipOut');void el.offsetWidth;el.classList.add('flipOut');
   setTimeout(()=>{fn();el.classList.remove('flipOut');void el.offsetWidth;el.classList.add('flipIn');setTimeout(()=>el.classList.remove('flipIn'),380);},300);}
 function enterLog(){PRESEL=null;PLAN=snapS();$('tabsCard').classList.add('lbMode');
@@ -2329,7 +2332,7 @@ function leaveLog(){$('tabsCard').classList.remove('lbMode');if(!PLAN)return;LOG
 let SWT=0;
 function sync(){FAUTO=true;try{sync0();}finally{FAUTO=false;}}
 function sync0(){window.__LOGEND=open;if(open!==LASTO){LASTO=open;const tk=++SWT,o=open,w=$('logWrap');let fired=false;
-    const run=()=>{if(fired||tk!==SWT)return;fired=true;w.removeEventListener('transitionend',te);setTimeout(()=>{if(tk!==SWT)return;flipSwap(()=>{/* 뒤집는 사이에 다시 열고/닫으면 지금 상태 기준으로만: 빈 점선 로그가 생기던 원인 */if(o){if(!open)return;FAUTO=true;try{if(!PLAN)enterLog();show(view);}finally{FAUTO=false;}}else{if(open)return;leaveLog();}});},200);};
+    const run=()=>{if(fired||tk!==SWT)return;fired=true;w.removeEventListener('transitionend',te);setTimeout(()=>{if(tk!==SWT)return;flipSwap(()=>{/* 뒤집는 사이에 다시 열고/닫으면 지금 상태 기준으로만: 빈 점선 로그가 생기던 원인 */if(o){if(!open)return;FAUTO=true;try{if(!PLAN)enterLog();show(view);}finally{FAUTO=false;}logSweep();/* 플래너→로그북: 플립 동안 로그를 한 번 쓸어 그림 */}else{if(open)return;leaveLog();}});},200);};
     const te=e=>{if(e.target===w&&e.propertyName==='grid-template-rows')run();};w.addEventListener('transitionend',te);setTimeout(run,380);}
   if(open&&!PLAN){/* 들어갈 때 = 달력 한 달 전체. 처음이면 가장 최근 로그의 달, 다녀온 거면 보던 로그의 달 */view='cal';LBF=0;CALW=false;
     if(LOGST){vy=LOGST.Y;vm=LOGST.M;}else{const a=load();if(a.length){const ld=a.map(v=>v.date).sort().pop().split('-').map(Number);vy=ld[0];vm=ld[1];}else{const n=new Date();vy=n.getFullYear();vm=n.getMonth()+1;}}
