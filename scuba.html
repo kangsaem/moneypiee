@@ -248,7 +248,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 #spTut .sp1{font-size:clamp(38px,11vw,64px);font-weight:800;letter-spacing:-1px;line-height:1.1}
 #spTut .sp2{font-size:clamp(22px,6.2vw,32px);opacity:.9;font-weight:700;text-align:center;width:100%;line-height:1.1}
 #splash .sp3{color:rgba(255,255,255,.75);font-size:16px;font-weight:700;background:none;border:0;cursor:default;padding:6px 10px;font-family:inherit}
-#spVer{min-width:8.6em;text-align:left;font-variant-numeric:tabular-nums}
+#spVer{min-width:4em;text-align:left;font-variant-numeric:tabular-nums}
 @keyframes spIn{from{opacity:0}to{opacity:1}}#splash>*{animation:spIn .35s ease-out}#splash.out>*{opacity:0;transition:opacity .2s}
 #splash .spFoot{display:flex;align-items:center;gap:10px;margin-top:2px;color:rgba(255,255,255,.45);font-size:11px}#spReload{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0}#spReload span{display:inline-block;line-height:1}@keyframes reloadSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}#spReload.spin{animation:reloadSpin .6s linear}#spReload.spinL{animation:reloadSpin .6s linear infinite}
 #spGo{display:flex;justify-content:center;gap:6px;margin-bottom:50px}/* 버튼 높이(36px)만큼 더 위로 */#spGo button{height:36px;min-width:96px;padding:0 18px;border:0;border-radius:4px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center}#spLog{background:#38bdf8}#spPlan{background:#E31B3F}#spGo button.pk{animation:spWait .8s ease-in-out infinite alternate}@keyframes spWait{to{opacity:.55}}/* 시작 화면 아래: [로그북](하늘색) [플래너](빨강) 나란히 가운데 */
@@ -263,6 +263,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.0.1';</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" id="modeBtn">로그북</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
@@ -1692,7 +1693,7 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
     const u=location.pathname+'?v='+Date.now();try{if('caches' in window)caches.keys().then(k=>k.forEach(n=>caches.delete(n)));}catch(x){}
     const t0=Date.now();let gone=false;const go=()=>{if(gone)return;gone=true;setTimeout(()=>location.replace(u+(location.hash||'')),Math.max(0,600-(Date.now()-t0)));};
     try{fetch(u,{cache:'reload'}).then(r=>r.text()).then(go,go);}catch(x){go();}setTimeout(go,5000);};
-  try{const d=new Date(document.lastModified);if(!isNaN(d)){const p=n=>String(n).padStart(2,'0');document.getElementById('spVer').textContent=d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}}catch(e){}const nm=document.getElementById('spName');/* 제목 글자: 누르기 없음(어긋난 터치로 닫히던 것) */
+  document.getElementById('spVer').textContent='v'+APP_VER;const nm=document.getElementById('spName');/* 제목 글자: 누르기 없음(어긋난 터치로 닫히던 것) */
   /* 누르는 범위(화면 구조는 그대로, 좌표로만): [플래너][로그북] 위 50px·아래 20px, ↻ 위 50px, 튜토리얼은 가장자리 10% 무시 */
   {const zone=(id,up,dn)=>{const b=document.getElementById(id),r=b.getBoundingClientRect();return {b,l:r.left,r:r.right,t:r.top-up,bt:r.bottom+dn};};
    const inZ=(z,x,y)=>x>=z.l&&x<=z.r&&y>=z.t&&y<=z.bt;
