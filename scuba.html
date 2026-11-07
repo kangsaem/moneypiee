@@ -749,8 +749,7 @@ let LSOFF=578;// 로그북 '현재 로그 저장' 버튼 바닥의 위치(메인
 function topBarH(){/* 화면 위 흐림 띠(상태바 자리) 높이 */try{return parseFloat(getComputedStyle(document.body,'::before').height)||0;}catch(e){return 0;}}
 function layout(){
   const dpr=window.devicePixelRatio||1;
-  FS=window.matchMedia('(orientation: landscape) and (max-height: 540px) and (pointer: coarse)').matches?1.25:1;
-  const PH2=FS>1&&window.matchMedia('(min-width:780px) and (max-width:1169px)').matches;if(PH2)FS=1;/* 휴대폰 가로 두 줄 보기: 눈금 글자 키우지 않음 → 그래프 영역 넓게 */
+  /* 그래프 글자 확대(가로 휴대폰 1.25배)는 사용 안 함: 항상 1 */const PH2=window.matchMedia('(orientation: landscape) and (max-height: 540px) and (pointer: coarse)').matches&&window.matchMedia('(min-width:780px) and (max-width:1169px)').matches;FS=1;/* 휴대폰 가로 두 줄 보기: 눈금 글자 키우지 않음 → 그래프 영역 넓게 */
   const w0=cv.parentElement.clientWidth;let h0=Math.round(clamp(w0*0.5,260,400));
   // 가로 3단: 재생 줄의 바닥이 왼쪽 '현재 로그 저장' 버튼(로그북이 닫혀 있으면 왼쪽 단 끝)과 맞도록 그래프를 세로로 늘림
   if(window.matchMedia('(min-width:1170px)').matches){const ls=document.getElementById('logSave'),pl=document.querySelector('#graphCard .play');
