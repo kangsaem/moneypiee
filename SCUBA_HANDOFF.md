@@ -9,7 +9,7 @@
 - 2.0.1 = 11/07 11:20 첫 버전.
 
 ## ★ 사용 안내서 (11/08)
-- guide/dtmd_guide.html (항목 10개 접힘 메뉴, 흰 배경 일반 문서, 화면 폭에 맞춰 줄어듦(최대 760px), [모두 펼치기/접기], 인쇄 시 전부 펼침) + guide/dtmd_guide.pdf (A4 8쪽) + guide/img/*.jpg 스크린샷 14장(사진 배경·메모 사진·데이터 로그·포토로그 포함, 사진은 scuba-bg/splash 영상 프레임). 지도 배경·지도+사진 반반 스크린샷은 없음 — 작업 환경에서 OSM 타일 접속 차단.
+- guide/dtmd_guide.html (항목 10개 접힘 메뉴, 흰 배경 일반 문서, 화면 폭에 맞춰 줄어듦(최대 760px), [모두 펼치기/접기], 인쇄 시 전부 펼침) + guide/dtmd_guide.pdf (A4 8쪽) + guide/img/*.jpg 스크린샷 14장(사진 배경·메모 사진·데이터 로그·포토로그 포함, 사진은 scuba-bg/splash 영상 프레임). 지도 배경·반반 스크린샷은 가상의 섬 타일로 찍음(작업 환경에서 OSM 타일 차단 → /home/claude/g/tiles.py로 대체 타일 생성, 캡션에 가상 지도라고 표시).
 - 주소: moneypie.kr/guide/dtmd_guide.html · 같은 내용 Claude Doc: https://claude.ai/artifact/PKbcoP2RzpSegGWi3X8kRM
 - 스크린샷은 크로미움 자동 캡처(430×932 @2x, 2단 1000×760, 휴대폰 가로 852×393 터치). 앱 화면이 바뀌면 다시 찍어 교체. 캡처·PDF 스크립트는 저장소 밖(/home/claude/g/cap.py, cap2.py, pdf.py).
 
