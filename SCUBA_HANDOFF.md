@@ -29,7 +29,7 @@
   3. 제안 a(사용자 '내일하자'로 보류, 아직 ㄱㄱ 전): 진단에 '열 때 innerHeight → 지금 innerHeight, 바뀐 시각' 추가 + 시작 화면이 항상 기기 화면 전체를 덮게(높이 보정) + 높이 바뀌면 시작 화면 배치 즉시 다시 계산.
   4. 원인 확정 후 진단 글씨(#spDbg, __dbg, scuba_spdbg) 삭제.
   ★ 11/07 03:07 처리(사용자 결정: 진단 없이 처리): 진단 글씨·기록 코드 전부 삭제(#spDbg, __dbg, scuba_spdbg, dbgShow). #splash = top/left/right 0 + height:100lvh(+min-height), spFit()이 열린 직후(즉시·rAF·150/500/1200ms)·resize·visualViewport resize·pageshow·회전·showSplash 때 min-height를 max(innerHeight, clientHeight, visualViewport.height, 세로 홈화면앱이면 screen.height)로 맞춤. [플래너][로그북] 인식 범위 = 위 50px + 아래 20px, ↻ = 위 50px. 아이폰에서 띠가 없어졌는지 확인 필요. 구버전 문제(1번 후보)는 아직.
-  ★ 11/07 20:07 (v2.1.6): 시작 화면 배경 물고기 영상 재생 속도 1/2(playbackRate·defaultPlaybackRate 0.5, 불러온 뒤·재생 때 다시 지정).
+  ★ 11/07 20:10 (v2.1.7): 배경 영상 1/2 속도(v2.1.6)는 되돌림 → 원래 1배속.
   ★ 11/07 19:40 (v2.1.5): 수심그래프 아래 시간 글자를 그래프에 붙임(G.T+G.H+2, 데이터 로그 이미지는 +6 그대로), 아래 여백 G.B 26→15 → 같은 캔버스에서 그래프 세로 11px 늘어남.
   ★ 11/07 14:40 (v2.1.4): 플래너→로그북 쓸어 그리기를 '누르는 순간 ~ 플립 끝'으로: sync0에서 열 때(PLAN 없음) 바로 enterLog+show+logSweep(1250), 탭 카드는 TABFREEZE(복사본 .tabGhost 덮고 진짜 숨김)로 플립 중간까지 예전 모습 → flipSwap 중간에 TABTHAW, 끝 시각 SWEND=지금+350ms(플립 들어오는 시간)로 맞춤. 측정: 누른 뒤 80ms부터 그리기 시작, 약 1.0초에 끝, 플립은 약 1.1초에 끝.
   ★ 11/07 14:30 (v2.1.3): 제목으로 플래너→로그북 넘어갈 때 그 로그가 있으면 logSweep(): 플립 중 로그를 0.65초 동안 처음부터 끝까지 빠르게 그림(다이빙 길이 무관, 가속·감속). 그동안 show()의 '끝까지 채우기'는 __SWEEP로 건너뜀. 재생 버튼을 누르면 멈춤. 시작 화면 [로그북](플립 없음)은 그대로.
