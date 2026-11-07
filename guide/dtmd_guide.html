@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DTMD 다이빙 플래너 / 로그북 — 숙련 다이버용 사용법·특장점</title>
+<style>
+body{margin:0;background:#fff;color:#222;font:16px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+main{max-width:760px;margin:0 auto;padding:32px 20px 60px}
+h1{font-size:24px;line-height:1.35;margin:0 0 6px}
+.meta{color:#777;font-size:14px;margin:0 0 20px}
+.meta a{color:#555}
+.bar{display:flex;gap:8px;margin:0 0 14px}
+.bar button{font:inherit;font-size:14px;padding:5px 12px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer}
+details{border-top:1px solid #e3e3e3}
+details:last-of-type{border-bottom:1px solid #e3e3e3}
+summary{cursor:pointer;list-style:none;padding:14px 4px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸";color:#999;font-size:14px;transition:transform .15s}
+details[open] summary::before{transform:rotate(90deg)}
+summary .n{color:#999;font-weight:400;font-size:14px;min-width:20px}
+.body{padding:0 4px 18px 34px}
+ul,ol{margin:0 0 12px;padding-left:20px}
+li{margin:2px 0}
+table{border-collapse:collapse;margin:4px 0 14px;font-size:15px;width:100%}
+th,td{border:1px solid #e3e3e3;padding:6px 10px;text-align:left;vertical-align:top}
+th{background:#f6f6f6;font-weight:600}
+figure{margin:10px 0 16px}
+figure img{display:block;max-width:100%;height:auto;border:1px solid #e3e3e3;border-radius:6px}
+figure.ph img{max-width:360px}
+figcaption{color:#777;font-size:13px;margin-top:6px}
+.two{display:flex;gap:12px;flex-wrap:wrap}
+.two figure{flex:1 1 300px;margin:10px 0}
+h3{font-size:15px;margin:10px 0 6px}
+.warn{color:#c8102e}
+@media print{
+  .bar{display:none}
+  main{padding:0;max-width:none}
+  summary::before{display:none}
+  details{break-inside:auto}
+  figure{break-inside:avoid}
+  body{font-size:13px}
+  figure img{max-height:120mm;width:auto}
+  figure.ph img{max-width:62mm}
+  .two figure img{max-width:80mm}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>DTMD 다이빙 플래너 / 로그북<br>숙련 다이버용 사용법·특장점</h1>
+<p class="meta">v2.1.7 기준 · 2026-11-08 · <a href="https://moneypie.kr/scuba.html">moneypie.kr/scuba.html</a></p>
+<p class="warn">학습용 시뮬레이터. 실제 감압 계획이나 다이빙 컴퓨터 대용으로 쓰지 말 것.</p>
+<div class="bar"><button id="openAll">모두 펼치기</button><button id="closeAll">모두 접기</button></div>
+
+<details>
+<summary><span class="n">1</span>정체</summary>
+<div class="body">
+<ul>
+<li>웹 앱. 설치 불필요. 홈 화면에 추가하면 앱처럼 동작.</li>
+<li>학습용 시뮬레이터. 실제 감압 계획이나 다이빙 컴퓨터 대용 아님.</li>
+<li>한국어·영어·일본어 지원.</li>
+<li>시작 화면: 튜토리얼(3분) · [플래너] · [로그북] · ↻(새로고침)과 버전 표시.</li>
+</ul>
+<figure class="ph"><img src="img/01_splash.jpg" alt="시작 화면"><figcaption>시작 화면</figcaption></figure>
+</div>
+</details>
+
+<details>
+<summary><span class="n">2</span>계산 모델</summary>
+<div class="body">
+<ul>
+<li>Bühlmann ZHL-16C, 질소 16구획.</li>
+<li>Baker GF. 기본 40/85, 직접 입력 가능.</li>
+<li>1초 단위 계산. 수증기압 0.0627 bar 반영.</li>
+<li>감압 정지 3 m·1분 단위. 마지막 정지 3 m.</li>
+<li>5 m 3분 안전정지 포함.</li>
+<li>고도는 적응 상태로 가정.</li>
+<li>CNS%만 NOAA 한도로 계산. OTU·헬륨은 미계산.</li>
+<li>실제 컴퓨터와 수 분 차이 가능.</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary><span class="n">3</span>설정</summary>
+<div class="body">
+<ul>
+<li>물·고도.</li>
+<li>기체: 공기, 나이트록스(O₂% 입력).</li>
+<li>보수성: 저·중·고 또는 GF 직접 입력.</li>
+<li>상승 속도 3~18 m/분.</li>
+<li>탱크 용량·충전압. 호흡량 15/20/25 L/분 또는 직접 입력.</li>
+<li>단위 m/ft, bar/psi.</li>
+<li>다이빙마다 설정 따로 기억. 접힌 머리에 GF·기체·호흡량·충전압 요약.</li>
+</ul>
+<figure class="ph"><img src="img/02_settings.jpg" alt="설정"><figcaption>설정 펼침 (EAN32 · 15 L · 230 bar)</figcaption></figure>
+</div>
+</details>
+
+<details>
+<summary><span class="n">4</span>플래너</summary>
+<div class="body">
+<ul>
+<li>도구: 그리기 / 점찍기 / 점지우기 / 실행취소 / 지우기.</li>
+<li>출수 전에 멈추면 추천 경로(감압·안전정지) 자동 연장.</li>
+<li>반복 다이빙: [+] 탭 추가 + 수면휴식 시간 입력 → 잔류 질소 이어서 계산.</li>
+<li>재생 0.5/1/2×. 막대로 시점 이동.</li>
+<li>지표: 경과 시간, 수심, NDL/천장, TTS, 수면 GF, GF99, PO₂, CNS, 잔압.</li>
+</ul>
+<figure><img src="img/03_graph.jpg" alt="플래너 그래프"><figcaption>32 m 감압 다이빙을 그리다 멈춘 상태. 초록 점선 = 남은 추천 경로</figcaption></figure>
+</div>
+</details>
+
+<details>
+<summary><span class="n">5</span>그래프 표시</summary>
+<div class="body">
+<table>
+<tr><th>표시</th><th>의미</th></tr>
+<tr><td>흰 실선</td><td>내 경로</td></tr>
+<tr><td>초록 점선</td><td>추천 경로</td></tr>
+<tr><td>분홍 영역</td><td>감압 천장</td></tr>
+<tr><td>빨강 구간</td><td>급상승</td></tr>
+<tr><td>20 m 회색 / 30 m 빨강 선</td><td>OW / AD 한계</td></tr>
+<tr><td>보라 선</td><td>MOD 1.2/1.4/1.6 (나이트록스만)</td></tr>
+<tr><td>빨간 화살표</td><td>급상승·천장 위반·MOD 초과 시작점</td></tr>
+<tr><td>분홍 세로 점선</td><td>감압 천장이 처음 생기는 시점</td></tr>
+<tr><td>주황 점선</td><td>50 bar 이후 추천 경로</td></tr>
+<tr><td>회색 점선·해골</td><td>공기 고갈 이후</td></tr>
+<tr><td>오른쪽 막대</td><td>잔압</td></tr>
+</table>
+<ul><li>최대·총 팝업: 화살표 피해 자동 배치. 끌어서 이동 가능. 감압이면 DECO 표시.</li></ul>
+<figure class="ph"><img src="img/07_log_day.jpg" alt="위반 화살표"><figcaption>로그 재생: 천장 시작 점선, 급상승·천장 위반 화살표, 경고 박스</figcaption></figure>
+</div>
+</details>
+
+<details>
+<summary><span class="n">6</span>질소막대</summary>
+<div class="body">
+<ul>
+<li>16구획 막대.</li>
+<li>두 방식: 수면 기준(수면 M값 대비 %), 쉐어워터식(흡입 질소·주변압·M값·GF 한계).</li>
+<li>색: 흡수(빨강) / 배출(파랑) / 평형.</li>
+<li>구획 누르면 반감기·질소 분압·% 표시.</li>
+<li>반복 다이빙 잔류 질소 확인에 유용.</li>
+</ul>
+<div class="two">
+<figure><img src="img/05_n2_surf.jpg" alt="수면 기준"><figcaption>수면 기준 (바닥 끝 24:10)</figcaption></figure>
+<figure><img src="img/06_n2_sw.jpg" alt="쉐어워터식"><figcaption>쉐어워터식</figcaption></figure>
+</div>
+</div>
+</details>
+
+<details>
+<summary><span class="n">7</span>로그북</summary>
+<div class="body">
+<ul>
+<li>달력 ↔ 일별 보기. 누르면 선택, 한 번 더 누르면 들어감.</li>
+<li>이전/다음 로그, 달 이동.</li>
+<li>하루 = 기록 1개. 그 안에 다이빙 1·2…</li>
+<li>로그 줄 정보. 선택된 줄을 다시 누르면 반접기 토글.</li>
+<li>수정: 입수 시각 휠·메모·사진. [저장] / [취소].</li>
+<li>저장 안 한 변경은 다른 날짜나 플래너로 가면 버림.</li>
+<li>사진: 다이빙당 10장. 기기 안에 저장.</li>
+<li>접힘 3단계. 마지막 상태 기억(질소막대·시뮬레이션 탭 포함).</li>
+<li>플래너 → 로그북 전환 시 해당 로그를 빠르게 그려 보여줌.</li>
+</ul>
+<figure class="ph"><img src="img/09_edit.jpg" alt="수정 모드"><figcaption>수정 모드: 메모·사진, 시각 휠, [취소]/[저장]</figcaption></figure>
+</div>
+</details>
+
+<details>
+<summary><span class="n">8</span>FIT 불러오기</summary>
+<div class="body">
+<ol>
+<li>[FIT] → 폴더 고르기 → 하위 폴더까지 .fit 검색. PC 크롬·엣지, iOS 18.4+.</li>
+<li>폴더를 못 고르는 기기는 파일 고르기(FIT·ZIP).</li>
+<li>자동 제외: 비다이빙, 프리다이빙(apnea 또는 3분 안 수면 상승), 이미 불러온 기록.</li>
+<li>불러오기 전 요약 확인.</li>
+</ol>
+<ul>
+<li>직접 쓴 로그와 겹치면 수심만 교체. 메모는 유지.</li>
+<li>GPS 좌표·지명(OpenStreetMap)·수온을 메모에 기록.</li>
+<li>위반 화살표는 FIT 로그에도 표시.</li>
+</ul>
+<figure class="ph"><img src="img/12_fit.jpg" alt="FIT 요약"><figcaption>폴더 선택 후 요약: 5개 중 다이빙 3개, 프리다이빙 1개 제외</figcaption></figure>
+</div>
+</details>
+
+<details>
+<summary><span class="n">9</span>출력·공유·화면·주소</summary>
+<div class="body">
+<ul>
+<li>출력: 데이터 로그 이미지, 포토로그, 스냅샷.</li>
+<li>백업: 사진 포함 ZIP 저장. ZIP/JSON 불러오기.</li>
+<li>화면: 1단 / 2단(780–1169px, 재생 버튼·범례 재배치) / 3단(1170px+).</li>
+<li>휴대폰 가로: 메뉴 숨김. 그래프 탭이 화면에 꽉 맞음.</li>
+</ul>
+<table>
+<tr><th>주소</th><th>시작</th></tr>
+<tr><td>/scuba, /dtmd</td><td>한국어 시작 화면</td></tr>
+<tr><td>/plan</td><td>영어 로그북</td></tr>
+<tr><td>/dive</td><td>일본어 로그북</td></tr>
+</table>
+<figure><img src="img/10_two_col.jpg" alt="2단 보기"><figcaption>2단 보기 (폭 1000px): 재생 버튼이 도구 줄로 이동</figcaption></figure>
+<figure><img src="img/11_landscape.jpg" alt="휴대폰 가로"><figcaption>휴대폰 가로: 그래프 탭만 꽉 차게</figcaption></figure>
+</div>
+</details>
+
+<details>
+<summary><span class="n">10</span>장점과 한계</summary>
+<div class="body">
+<h3>장점</h3>
+<ul>
+<li>GF·보수성·기체·상승 속도별 감압 의무를 즉시 비교.</li>
+<li>구획별 질소를 두 방식으로 시각화.</li>
+<li>반복 다이빙 잔류 질소 확인.</li>
+<li>FIT 사후 분석과 위반 지점 표시.</li>
+<li>계획 ↔ 실제 비교가 빠름.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>트라이믹스·다중 기체 전환·OTU 미지원.</li>
+<li>실제 컴퓨터와 수 분 차이 가능.</li>
+<li>기기 안 저장만. 동기화 없음. ZIP으로 백업.</li>
+<li>튜토리얼은 한국어 음성만.</li>
+</ul>
+</div>
+</details>
+</main>
+<script>
+const D=[...document.querySelectorAll('details')];
+document.getElementById('openAll').onclick=()=>D.forEach(d=>d.open=true);
+document.getElementById('closeAll').onclick=()=>D.forEach(d=>d.open=false);
+let prev;addEventListener('beforeprint',()=>{prev=D.map(d=>d.open);D.forEach(d=>d.open=true)});
+addEventListener('afterprint',()=>{if(prev)D.forEach((d,i)=>d.open=prev[i])});
+</script>
+</body>
+</html>
