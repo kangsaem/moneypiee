@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DTMD 다이빙 플래너 / 로그북 — 숙련 다이버용 사용법·특장점</title>
+<title>DTMD 다이빙 플래너 / 로그북</title>
 <style>
 body{margin:0;word-break:keep-all;overflow-wrap:anywhere;background:#fff;color:#222;font:16px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
 main{max-width:760px;margin:0 auto;padding:32px 20px 60px}
@@ -31,6 +31,8 @@ figure.ph img{width:360px;max-width:100%}
 figcaption{color:#777;font-size:13px;margin-top:6px}
 .two{display:flex;gap:12px;flex-wrap:wrap}
 .two figure{flex:1 1 260px;min-width:0;margin:10px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid figure{margin:4px 0}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
 @media(max-width:600px){main{padding:20px 14px 40px}.body{padding-left:8px}summary{font-size:17px}table{font-size:14px}th,td{padding:5px 7px}}
 h3{font-size:15px;margin:10px 0 6px}
 .warn{color:#c8102e}
@@ -44,24 +46,22 @@ h3{font-size:15px;margin:10px 0 6px}
   figure img{max-height:120mm;width:auto}
   figure.ph img{width:62mm}
   .two figure img{max-width:80mm}
+  .grid figure img{max-height:60mm}
 }
 </style>
 </head>
 <body>
 <main>
-<h1>DTMD 다이빙 플래너 / 로그북<br>숙련 다이버용 사용법·특장점</h1>
+<h1>DTMD 다이빙 플래너 / 로그북</h1>
 <p class="meta">v2.1.8 기준 · 2026-11-08 · <a href="https://moneypie.kr/scuba.html">moneypie.kr/scuba.html</a></p>
-<p class="warn">학습용 시뮬레이터. 실제 감압 계획이나 다이빙 컴퓨터 대용으로 쓰지 말 것.</p>
 <div class="bar"><button id="openAll">모두 펼치기</button><button id="closeAll">모두 접기</button></div>
 
 <details>
 <summary><span class="n">1</span>정체</summary>
 <div class="body">
 <ul>
-<li>웹 앱. 설치 불필요. 홈 화면에 추가하면 앱처럼 동작.</li>
-<li>학습용 시뮬레이터. 실제 감압 계획이나 다이빙 컴퓨터 대용 아님.</li>
+<li>웹 앱. 설치 불필요.</li>
 <li>한국어·영어·일본어 지원.</li>
-<li>시작 화면: 튜토리얼(3분) · [플래너] · [로그북] · ↻(새로고침)과 버전 표시.</li>
 </ul>
 <figure class="ph"><img src="img/01_splash.jpg" alt="시작 화면"><figcaption>시작 화면</figcaption></figure>
 </div>
@@ -76,9 +76,7 @@ h3{font-size:15px;margin:10px 0 6px}
 <li>1초 단위 계산. 수증기압 0.0627 bar 반영.</li>
 <li>감압 정지 3 m·1분 단위. 마지막 정지 3 m.</li>
 <li>5 m 3분 안전정지 포함.</li>
-<li>고도는 적응 상태로 가정.</li>
 <li>CNS%만 NOAA 한도로 계산. OTU·헬륨은 미계산.</li>
-<li>실제 컴퓨터와 수 분 차이 가능.</li>
 </ul>
 </div>
 </details>
@@ -86,15 +84,18 @@ h3{font-size:15px;margin:10px 0 6px}
 <details>
 <summary><span class="n">3</span>설정</summary>
 <div class="body">
-<ul>
-<li>물·고도.</li>
-<li>기체: 공기, 나이트록스(O₂% 입력).</li>
-<li>보수성: 저·중·고 또는 GF 직접 입력.</li>
-<li>상승 속도 3~18 m/분.</li>
-<li>탱크 용량·충전압. 호흡량 15/20/25 L/분 또는 직접 입력.</li>
-<li>단위 m/ft, bar/psi.</li>
-<li>다이빙마다 설정 따로 기억. 접힌 머리에 GF·기체·호흡량·충전압 요약.</li>
-</ul>
+<table>
+<tr><th>항목</th><th>선택지</th></tr>
+<tr><td>고도</td><td>0 / 300 / 600 / 900 / 1500 / 2400 m, 직접 입력</td></tr>
+<tr><td>수질</td><td>해수 / 담수</td></tr>
+<tr><td>기체</td><td>공기, EAN28 / 30 / 32 / 36 / 40, 직접 입력(O₂%)</td></tr>
+<tr><td>보수</td><td>높음(GF 35/75) / 중간(GF 40/85) / 낮음(GF 45/95), 직접 입력</td></tr>
+<tr><td>상승 속도</td><td>3~18 m/분 (기본 9)</td></tr>
+<tr><td>탱크</td><td>10 / 11.1 / 12 / 15 L, 충전압 150~230 bar(10 bar 단위)</td></tr>
+<tr><td>단위</td><td>bar · m / PSI · ft</td></tr>
+<tr><td>호흡량</td><td>적음 15 / 보통 20 / 많음 25 L/분, 직접 입력</td></tr>
+</table>
+<ul><li>다이빙마다 설정 따로 기억. 접힌 머리에 GF·기체·호흡량·충전압 요약.</li></ul>
 <figure class="ph"><img src="img/02_settings.jpg" alt="설정"><figcaption>설정 펼침 (EAN32 · 15 L · 230 bar)</figcaption></figure>
 </div>
 </details>
@@ -104,7 +105,7 @@ h3{font-size:15px;margin:10px 0 6px}
 <div class="body">
 <ul>
 <li>도구: 그리기 / 점찍기 / 점지우기 / 실행취소 / 지우기.</li>
-<li>출수 전에 멈추면 추천 경로(감압·안전정지) 자동 연장.</li>
+<li>추천 경로(감압·안전정지) 자동 연장.</li>
 <li>반복 다이빙: [+] 탭 추가 + 수면휴식 시간 입력 → 잔류 질소 이어서 계산.</li>
 <li>재생 0.5/1/2×. 막대로 시점 이동.</li>
 <li>지표: 경과 시간, 수심, NDL/천장, TTS, 수면 GF, GF99, PO₂, CNS, 잔압.</li>
@@ -130,19 +131,19 @@ h3{font-size:15px;margin:10px 0 6px}
 <tr><td>회색 점선·해골</td><td>공기 고갈 이후</td></tr>
 <tr><td>오른쪽 막대</td><td>잔압</td></tr>
 </table>
-<ul><li>최대·총 팝업: 화살표 피해 자동 배치. 끌어서 이동 가능. 감압이면 DECO 표시.</li></ul>
-<h3>그래프 배경</h3>
-<ul>
-<li>[사진]: 그 다이빙의 1번 사진을 그래프 배경(0~40 m × 0~70분)에 깔기. 다이빙을 바꾸면 다시 켜짐.</li>
-<li>[지도]: 메모에 GPS 줄이 없고 <code>장소:</code> 같은 지명 줄만 있으면 지명 검색 위치를 점 없이 보여 줌(못 찾으면 안내).</li>
-<li>[지도]: 메모에 GPS가 있으면 35~70분 구간에 입·출수 지점 지도(OpenStreetMap). 끌기 = 이동, +/− = 확대·축소, 왼쪽 끝 ◀▶ = 폭 조절.</li>
-<li>둘 다 켜면 왼쪽 사진 · 오른쪽 지도 반반.</li>
-<li>스냅샷(데이터 로그)에는 배경을 넣지 않음.</li>
-</ul>
-<figure><img src="img/14_bg_photo.jpg" alt="사진 배경"><figcaption>[사진] 배경 켬</figcaption></figure>
-<figure><img src="img/17_bg_map.jpg" alt="지도 배경"><figcaption>[지도] 켬: 입수(빨강)·출수(파랑) 점, 시각, 두 점 사이 점선. 지도는 설명용 가상의 섬</figcaption></figure>
-<figure><img src="img/18_bg_half.jpg" alt="사진+지도 반반"><figcaption>[사진]+[지도] 둘 다 켬: 왼쪽 사진 · 오른쪽 지도. ◀▶ 끌어 경계 이동</figcaption></figure>
 <figure class="ph"><img src="img/07_log_day.jpg" alt="위반 화살표"><figcaption>로그 재생: 천장 시작 점선, 급상승·천장 위반 화살표, 경고 박스</figcaption></figure>
+<h3>그래프 배경 [사진] · [지도]</h3>
+<ul>
+<li>메모에 GPS가 있으면 35~70분 구간에 입·출수 지점 지도.</li>
+<li>메모에 GPS 줄이 없고 <code>장소:</code> 같은 지명 줄만 있으면 지명 검색 위치를 점 없이 보여 줌.</li>
+<li>로그 수정창에서 세부 설정 가능.</li>
+</ul>
+<div class="grid">
+<figure><img src="img/19_bg_none.jpg" alt="배경 없음"><figcaption>배경 없음</figcaption></figure>
+<figure><img src="img/14_bg_photo.jpg" alt="사진"><figcaption>사진만</figcaption></figure>
+<figure><img src="img/17_bg_map.jpg" alt="지도"><figcaption>지도만 (설명용 가상의 섬)</figcaption></figure>
+<figure><img src="img/18_bg_half.jpg" alt="반반"><figcaption>사진 + 지도 반반</figcaption></figure>
+</div>
 </div>
 </details>
 
@@ -150,11 +151,9 @@ h3{font-size:15px;margin:10px 0 6px}
 <summary><span class="n">6</span>질소막대</summary>
 <div class="body">
 <ul>
-<li>16구획 막대.</li>
 <li>두 방식: 수면 기준(수면 M값 대비 %), 쉐어워터식(흡입 질소·주변압·M값·GF 한계).</li>
 <li>색: 흡수(빨강) / 배출(파랑) / 평형.</li>
 <li>구획 누르면 반감기·질소 분압·% 표시.</li>
-<li>반복 다이빙 잔류 질소 확인에 유용.</li>
 </ul>
 <div class="two">
 <figure><img src="img/05_n2_surf.jpg" alt="수면 기준"><figcaption>수면 기준 (바닥 끝 24:10)</figcaption></figure>
@@ -172,14 +171,17 @@ h3{font-size:15px;margin:10px 0 6px}
 <li>하루 = 기록 1개. 그 안에 다이빙 1·2…</li>
 <li>로그 줄 정보. 선택된 줄을 다시 누르면 반접기 토글.</li>
 <li>수정: 입수 시각 휠·메모·사진. [저장] / [취소].</li>
-<li>입수·출수 지점: 수정 중 메모창 아래 위치(핀) 버튼 → 지도 팝업에서 [입수]/[출수] 누르고 지도 탭. 찍힌 점은 끌어서 이동. 메모에 GPS 줄로 들어가고 [저장]해야 확정.</li>
 <li>저장 안 한 변경은 다른 날짜나 플래너로 가면 버림.</li>
 <li>사진: 다이빙당 10장. 기기 안에 저장.</li>
 <li>접힘 3단계. 마지막 상태 기억(질소막대·시뮬레이션 탭 포함).</li>
 <li>플래너 → 로그북 전환 시 해당 로그를 빠르게 그려 보여줌.</li>
 </ul>
-<figure class="ph"><img src="img/13_memo_photos.jpg" alt="메모와 사진"><figcaption>메모창 아래 사진 줄: 썸네일 누르면 크게 보기·삭제·포토로그, [+]로 추가(붙여넣기도 됨)</figcaption></figure>
 <figure class="ph"><img src="img/09_edit.jpg" alt="수정 모드"><figcaption>수정 모드: 메모·사진, 시각 휠, [취소]/[저장]</figcaption></figure>
+<figure class="ph"><img src="img/13_memo_photos.jpg" alt="메모와 사진"><figcaption>메모창 아래 사진 줄: [+]로 추가(붙여넣기도 됨)</figcaption></figure>
+<div class="two">
+<figure class="ph"><img src="img/22_photo_view.jpg" alt="사진 보기"><figcaption>메모창 사진 누르면 크게 보기. 넘기기·삭제, [포토 로그]로 바로 만들기</figcaption></figure>
+<figure class="ph"><img src="img/23_loc_edit.jpg" alt="위치 수정"><figcaption>핀 버튼 → 지도 팝업. [입수]/[출수] 누르고 지도 탭, 찍힌 점은 끌어서 이동. 메모 GPS 줄로 저장</figcaption></figure>
+</div>
 </div>
 </details>
 
@@ -210,19 +212,19 @@ h3{font-size:15px;margin:10px 0 6px}
 <li>화면: 1단 / 2단(780–1169px, 재생 버튼·범례 재배치) / 3단(1170px+).</li>
 <li>휴대폰 가로: 메뉴 숨김. 그래프 탭이 화면에 꽉 맞음.</li>
 </ul>
-<h3>데이터 로그</h3>
-<ul><li>스냅샷 버튼 → [데이터 로그]. 날짜·장소·기체·GF·탱크, 프로필, 위반 화살표, 경고, 입·출수 시각을 한 장에.</li></ul>
-<figure><img src="img/15_datalog.jpg" alt="데이터 로그"><figcaption>데이터 로그 이미지</figcaption></figure>
-<h3>포토로그</h3>
-<ul><li>스냅샷 버튼 → [포토 로그] → 사진 선택 → 지명 선택. 사진 위에 최대 수심·시간·프로필 선·지명. 위반 화살표는 넣지 않음.</li></ul>
-<figure><img src="img/16_photolog.jpg" alt="포토로그"><figcaption>포토로그 이미지</figcaption></figure>
 <table>
 <tr><th>주소</th><th>시작</th></tr>
 <tr><td>/scuba, /dtmd</td><td>한국어 시작 화면</td></tr>
 <tr><td>/plan</td><td>영어 로그북</td></tr>
 <tr><td>/dive</td><td>일본어 로그북</td></tr>
 </table>
-<figure><img src="img/10_two_col.jpg" alt="2단 보기"><figcaption>2단 보기 (폭 1000px): 재생 버튼이 도구 줄로 이동</figcaption></figure>
+<h3>데이터 로그</h3>
+<figure><img src="img/15_datalog.jpg" alt="데이터 로그"><figcaption>데이터 로그 이미지</figcaption></figure>
+<h3>포토로그</h3>
+<figure><img src="img/16_photolog.jpg" alt="포토로그"><figcaption>포토로그 이미지</figcaption></figure>
+<h3>화면</h3>
+<figure><img src="img/20_two_full.jpg" alt="2단 보기"><figcaption>2단 보기 (폭 1000px) 전체 펼침</figcaption></figure>
+<figure><img src="img/21_three_full.jpg" alt="3단 보기"><figcaption>3단 보기 (폭 1400px) 전체 펼침</figcaption></figure>
 <figure><img src="img/11_landscape.jpg" alt="휴대폰 가로"><figcaption>휴대폰 가로: 그래프 탭만 꽉 차게</figcaption></figure>
 </div>
 </details>
@@ -232,6 +234,7 @@ h3{font-size:15px;margin:10px 0 6px}
 <div class="body">
 <h3>장점</h3>
 <ul>
+<li>튜토리얼(3분): 초보자용이지만 핵심 기능. 그래프를 직접 드래그하며 무감압·감압 다이빙의 차이, 수심과 질소의 관계 같은 기초 필수 개념을 몸으로 익힘.</li>
 <li>GF·보수성·기체·상승 속도별 감압 의무를 즉시 비교.</li>
 <li>구획별 질소를 두 방식으로 시각화.</li>
 <li>반복 다이빙 잔류 질소 확인.</li>
