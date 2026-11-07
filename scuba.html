@@ -263,7 +263,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.1.0';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.1.1';</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" id="modeBtn">로그북</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
@@ -1981,9 +1981,12 @@ function fitToDives(o){const E=FIT_EPOCH,ses=o.session.length?o.session:[{2:o.re
     const pre=gps.filter(r=>r[253]<tA),post=gps.filter(r=>r[253]>tB);
     let g0=null;for(let i=pre.length-1;i>=0;i--){if(!jump(pre[i],pre[i-1])||!pre[i-1]){g0=pre[i];break;}}
     let g=null;for(let i=0;i<post.length;i++){if(!jump(post[i],post[i+1])||!post[i+1]){g=post[i];break;}}
-    return {startUTC:st+E,localOff:off,dur:en-st,maxD:Math.max(0,...rs.map(r=>r[92]/1000)),pts:keep,nRaw:rs.length,
+    let uwMax=0;{let a=null;rs.forEach(r=>{const u=r[92]/1000>0.5;if(u&&a==null)a=r[253];if(!u&&a!=null){uwMax=Math.max(uwMax,r[253]-a);a=null;}});if(a!=null&&rs.length)uwMax=Math.max(uwMax,rs[rs.length-1][253]-a);}/* 한 번 들어가 가장 오래 물속에 있던 시간(초) */
+    return {startUTC:st+E,localOff:off,dur:en-st,maxD:Math.max(0,...rs.map(r=>r[92]/1000)),pts:keep,nRaw:rs.length,uwMax,
       tMin:temps.length?Math.min(...temps):null,tMax:temps.length?Math.max(...temps):null,
       gps:g?{lat:g[0]*sc,lon:g[1]*sc}:null,gps0:g0?{lat:g0[0]*sc,lon:g0[1]*sc}:null,sport:s[5],sub:s[6]};});}
+/* 프리다이빙 = FIT 세부 종류가 프리다이빙(56)·스피어피싱(57)이거나, 3분 안에 수면으로 올라온 기록(가장 길게 물속에 있던 시간 < 3분) */
+function isFreeDive(d){return d.sub===56||d.sub===57||(d.uwMax!=null&&d.uwMax<180);}
 function rdpV(a,eps){if(a.length<3)return a.slice();const keep=new Uint8Array(a.length);keep[0]=keep[a.length-1]=1;const st=[[0,a.length-1]];
   while(st.length){const [i,j]=st.pop();let mx=-1,mi=-1;const A=a[i],B=a[j];for(let k=i+1;k<j;k++){const u=(a[k].t-A.t)/((B.t-A.t)||1),dd=Math.abs(a[k].d-(A.d+(B.d-A.d)*u));if(dd>mx){mx=dd;mi=k;}}
     if(mx>eps){keep[mi]=1;st.push([i,mi],[mi,j]);}}return a.filter((_,k)=>keep[k]);}
@@ -2563,11 +2566,11 @@ $('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value=''
   if(!store(a)){toast(t.fail);return;}renderAll();window.__photo&&window.__photo.refresh&&window.__photo.refresh();flash($('loadBtn'));};
 /* FIT 불러오기: [파일(FIT·ZIP)] / [폴더](폴더 고르기 되는 브라우저: PC 크롬·엣지, 아이폰 iOS 18.4+) → 다이빙만 골라 요약 → 한 번에 */
 const FW=()=>LANG==='en'?{ttl:'Import FIT',files:'Files (FIT·ZIP)',dir:'Folder',cancel:'Cancel',go:'Import',read:(i,n)=>`Reading ${i}/${n}…`,imp:(i,n)=>`Importing ${i}/${n}…`,
-    sum:(f,d,nw,old,ov)=>`FIT files: ${f} · dive files: ${d}<br>New dives: <strong>${nw}</strong>`+(old?`<br>Already in logbook (skipped): ${old}`:'')+(ov?`<br>Overlap with logs you wrote: ${ov} (depth replaced by FIT, memo kept)`:''),none:'No dive FIT files found.',noNew:'All dives are already in the logbook.'}
+    sum:(f,d,nw,old,ov)=>`FIT files: ${f} · dive files: ${d}<br>New dives: <strong>${nw}</strong>`+(old?`<br>Already in logbook (skipped): ${old}`:'')+(ov?`<br>Overlap with logs you wrote: ${ov} (depth replaced by FIT, memo kept)`:''),none:'No dive FIT files found.',free:n=>`Freediving excluded (surfaced within 3 min): ${n}`,noNew:'All dives are already in the logbook.'}
   :LANG==='ja'?{ttl:'FIT読込',files:'ファイル(FIT・ZIP)',dir:'フォルダ',cancel:'キャンセル',go:'読み込む',read:(i,n)=>`読み取り中 ${i}/${n}…`,imp:(i,n)=>`読み込み中 ${i}/${n}…`,
-    sum:(f,d,nw,old,ov)=>`FITファイル ${f}件 · ダイブ ${d}件<br>新しいダイブ: <strong>${nw}</strong>`+(old?`<br>登録済み(スキップ): ${old}`:'')+(ov?`<br>手入力ログと重なる: ${ov}(水深をFITに置換・メモは維持)`:''),none:'ダイブのFITファイルが見つかりません。',noNew:'すべてのダイブは登録済みです。'}
+    sum:(f,d,nw,old,ov)=>`FITファイル ${f}件 · ダイブ ${d}件<br>新しいダイブ: <strong>${nw}</strong>`+(old?`<br>登録済み(スキップ): ${old}`:'')+(ov?`<br>手入力ログと重なる: ${ov}(水深をFITに置換・メモは維持)`:''),none:'ダイブのFITファイルが見つかりません。',free:n=>`フリーダイビング除外(3分以内に浮上): ${n}`,noNew:'すべてのダイブは登録済みです。'}
   :{ttl:'FIT 불러오기',files:'파일 (FIT·ZIP)',dir:'폴더',cancel:'취소',go:'불러오기',read:(i,n)=>`읽는 중 ${i}/${n}…`,imp:(i,n)=>`불러오는 중 ${i}/${n}…`,
-    sum:(f,d,nw,old,ov)=>`FIT 파일 ${f}개 중 다이빙 ${d}개<br>새 다이빙: <strong>${nw}</strong>`+(old?`<br>이미 있는 로그(건너뜀): ${old}`:'')+(ov?`<br>직접 쓴 로그와 겹침: ${ov} (수심만 FIT로 바꾸고 메모는 유지)`:''),none:'다이빙 FIT 파일을 찾지 못했어요.',noNew:'모든 다이빙이 이미 로그북에 있어요.'};
+    sum:(f,d,nw,old,ov)=>`FIT 파일 ${f}개 중 다이빙 ${d}개<br>새 다이빙: <strong>${nw}</strong>`+(old?`<br>이미 있는 로그(건너뜀): ${old}`:'')+(ov?`<br>직접 쓴 로그와 겹침: ${ov} (수심만 FIT로 바꾸고 메모는 유지)`:''),none:'다이빙 FIT 파일을 찾지 못했어요.',free:n=>`프리다이빙 제외(3분 안에 수면 상승): ${n}개`,noNew:'모든 다이빙이 이미 로그북에 있어요.'};
 const fitPop=()=>{const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><b></b><p></p><div class="lwBtns"></div></div>';document.body.appendChild(ov);
   const P={ov,set(t,h,btns){ov.querySelector('b').textContent=t;ov.querySelector('p').innerHTML=h||'';const bb=ov.querySelector('.lwBtns');bb.innerHTML='';(btns||[]).forEach(([lab,cls,fn])=>{const b=document.createElement('button');b.textContent=lab;b.className=cls||'';b.onclick=fn;bb.appendChild(b);});},close(){ov.remove();}};return P;};
 const DIRSUP=(()=>{try{return 'webkitdirectory' in document.createElement('input');}catch(e){return false;}})();
@@ -2581,18 +2584,19 @@ async function fitBulk(files){const w=FW(),P=fitPop();let srcs=[],nF=0;const t0=
     // ZIP 풀기(안에 ZIP이 또 있으면 한 단계 더)
     for(const f of files){if(/\.zip$/i.test(f.name)){try{const z=await zipRead(await f.arrayBuffer(),n=>/\.(fit|zip)$/i.test(n));for(const [n,b] of Object.entries(z)){if(!b)continue;if(/\.zip$/i.test(n)){try{const z2=await zipRead(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),m=>/\.fit$/i.test(m));for(const [m,c] of Object.entries(z2))if(c)srcs.push({name:m,buf:c.buffer.slice(c.byteOffset,c.byteOffset+c.byteLength)});}catch(e){}}else srcs.push({name:n,buf:b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)});}}catch(e){}}
       else srcs.push({name:f.name,file:f});}
-    nF=srcs.length;const dv=[],all=load();let old=0,ovm=0,nDF=0;
+    nF=srcs.length;const dv=[],all=load();let old=0,ovm=0,nDF=0,nFree=0;
     for(let i=0;i<srcs.length;i++){if(i%5===0){P.set(w.ttl,w.read(i,srcs.length));await new Promise(r=>setTimeout(r,0));}const s0=srcs[i];
-      try{const buf=s0.buf||await s0.file.arrayBuffer();const o=parseFIT(buf);let ds=fitToDives(o);ds.forEach(d=>{d.pts=trimSurface(d.pts);});ds=ds.filter(d=>d.pts.length>1&&d.maxD>0.5);if(!ds.length)continue;nDF++;
+      try{const buf=s0.buf||await s0.file.arrayBuffer();const o=parseFIT(buf);let ds=fitToDives(o);ds.forEach(d=>{d.pts=trimSurface(d.pts);});ds=ds.filter(d=>d.pts.length>1&&d.maxD>0.5);{const fr=ds.filter(isFreeDive).length;if(fr){nFree+=fr;ds=ds.filter(d=>!isFreeDive(d));}}if(!ds.length)continue;nDF++;
         const off=ds[0].localOff!=null?ds[0].localOff:-new Date(ds[0].startUTC*1000).getTimezoneOffset()*60,loc=u=>new Date((u+off)*1000),l0=loc(ds[0].startUTC),date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
         let fresh=0;for(const d of ds){const l=loc(d.startUTC),sm=l.getUTCHours()*60+l.getUTCMinutes()+l.getUTCSeconds()/60,dur=d.pts[d.pts.length-1].t/60;
           let hit=null;for(const x of all.filter(x=>x.date===date)){const rows=rowsOf(x);(x.state.dives||[]).forEach((q,k)=>{const r=rows[k];if(!r||r.st==null)return;if(r.st<sm+dur&&sm<r.st+r.N/60)hit=hit||{fit:q.fit||isFitMemo(diveMemo(x,k))};});}
           if(hit&&hit.fit)old++;else{fresh++;if(hit)ovm++;}}
         if(fresh)dv.push({name:s0.name,buf,t:ds[0].startUTC,n:fresh});}catch(e){}}
     const nNew=dv.reduce((a,b)=>a+b.n,0);
-    if(!nF||!nDF){P.set(w.ttl,w.none,[['OK','lwS',()=>P.close()]]);return;}
-    if(!nNew){P.set(w.ttl,w.sum(nF,nDF,0,old,0)+'<br>'+w.noNew,[['OK','lwS',()=>P.close()]]);return;}
-    const go=await new Promise(ok=>P.set(w.ttl,w.sum(nF,nDF,nNew,old,ovm),[[w.cancel,'lwC',()=>ok(false)],[w.go,'lwS',()=>ok(true)]]));
+    const fl=nFree?'<br>'+w.free(nFree):'';
+    if(!nF||!nDF){P.set(w.ttl,w.none+fl,[['OK','lwS',()=>P.close()]]);return;}
+    if(!nNew){P.set(w.ttl,w.sum(nF,nDF,0,old,0)+fl+'<br>'+w.noNew,[['OK','lwS',()=>P.close()]]);return;}
+    const go=await new Promise(ok=>P.set(w.ttl,w.sum(nF,nDF,nNew,old,ovm)+fl,[[w.cancel,'lwC',()=>ok(false)],[w.go,'lwS',()=>ok(true)]]));
     if(!go){P.close();return;}
     dv.sort((a,b)=>a.t-b.t);FITQ={n:0,rep:0};let ok=0,bad=0;
     for(let i=0;i<dv.length;i++){P.set(w.ttl,w.imp(i+1,dv.length));const d=dv[i];const r=await fitOne({name:d.name,arrayBuffer:async()=>d.buf},true);if(r)ok++;else bad++;}
@@ -2612,7 +2616,8 @@ $('fitIn').onchange=async()=>{const fs=[...$('fitIn').files].sort((a,b)=>a.name.
 let FITQ=null;
 async function fitOne(f,quiet){const t=L();let dives;
   let dev='';try{const o=parseFIT(await f.arrayBuffer());dev=(o.file_id[0]&&o.file_id[0][8])||(o.device_info[0]&&o.device_info[0][27])||'';dives=fitToDives(o);}catch(e){msg(t.fitErr,true);return;}
-  dives.forEach(d=>{d.pts=trimSurface(d.pts);});dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);if(!dives.length){msg(t.fitNo,true);return;}
+  dives.forEach(d=>{d.pts=trimSurface(d.pts);});dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);const nFree=dives.filter(isFreeDive).length;dives=dives.filter(d=>!isFreeDive(d));
+  if(!dives.length){msg(nFree?(LANG==='en'?'Freediving record – not imported.':LANG==='ja'?'フリーダイビングの記録のため読み込みません。':'프리다이빙 기록이라 불러오지 않았어요.'):t.fitNo,true);return;}
   const off=dives[0].localOff!=null?dives[0].localOff:-new Date(dives[0].startUTC*1000).getTimezoneOffset()*60;
   const loc=u=>new Date((u+off)*1000);const l0=loc(dives[0].startUTC);const date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
   const minOf=u=>{const d=loc(u);return d.getUTCHours()*60+d.getUTCMinutes()+d.getUTCSeconds()/60;};
