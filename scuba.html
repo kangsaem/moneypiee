@@ -997,6 +997,17 @@ function drawProfile(){
   }
   if(timeTag){cx.beginPath();cx.arc(timeTag.x,timeTag.y,10,0,7);cx.fillStyle=DK?'rgba(255,255,255,.28)':'rgba(31,35,40,.18)';cx.fill();
     cx.beginPath();cx.arc(timeTag.x,timeTag.y,6.5,0,7);cx.fillStyle='#1f2328';cx.fill();cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke();}
+  /* 위반 지점 화살표(앱·데이터 로그 이미지, 포토로그 제외): 급상승·천장 위반·MOD 초과 구간의 시작점마다, 경로선 아래(깊은 쪽)에서 그 점의 기울기에 직각으로 선을 향함. 재생 중이면 지나온 것만 */
+  if(r&&!drawing&&dv.pts.length>1){const lim=S.playMode?Math.min(Math.round(P.t),r.N):r.N,st=[];
+    const scan=a=>{if(!a)return;for(let k=0;k<a.length;k++)if(a[k]&&!(k&&a[k-1])&&k*5<=lim)st.push(k*5);};scan(r.fast);scan(r.viol);
+    {const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;let pv=false;for(let t=0;t<=lim;t+=5){const o=r.depth[t]>mod+0.1;if(o&&!pv)st.push(t);pv=o;}}
+    st.sort((a,b)=>a-b);const used=[];
+    st.forEach(t=>{const x=X(t),y=Y(r.depth[t]);if(used.some(([ux,uy])=>Math.hypot(ux-x,uy-y)<10))return;used.push([x,y]);
+      const ta=Math.max(0,t-10),tb=Math.min(r.N,t+10);const dx=X(tb)-X(ta),dy=Y(r.depth[tb])-Y(r.depth[ta]),L=Math.hypot(dx,dy)||1;let nx=-dy/L,ny=dx/L;if(ny<0){nx=-nx;ny=-ny;}{const ox=x+nx*26,oy=y+ny*26;if(ox<G.L||ox>G.L+G.W||oy>G.T+G.H){nx=-nx;ny=-ny;}}/* 꼬리가 그래프 밖(눈금 글자 쪽)으로 나가면 반대쪽에서 */
+      const g=4,len=22,hx=x+nx*g,hy=y+ny*g,tx=x+nx*(g+len),ty=y+ny*(g+len),px=-ny,py=nx,hw=5.5,hl=9;
+      const path=()=>{cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(hx+nx*hl,hy+ny*hl);};const head=()=>{cx.beginPath();cx.moveTo(hx,hy);cx.lineTo(hx+nx*hl+px*hw,hy+ny*hl+py*hw);cx.lineTo(hx+nx*hl-px*hw,hy+ny*hl-py*hw);cx.closePath();};
+      cx.save();cx.lineCap='round';cx.lineJoin='round';cx.strokeStyle='#fff';cx.lineWidth=5.5;path();cx.stroke();head();cx.lineWidth=3;cx.stroke();
+      cx.strokeStyle='#E31B3F';cx.lineWidth=2.6;path();cx.stroke();head();cx.fillStyle='#E31B3F';cx.fill();cx.restore();});}
   if(skullAt){cx.save();cx.font='20px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('💀',skullAt[0],skullAt[1]);cx.restore();}
   if(hover&&!P.run&&!S.playMode&&!(LP&&LP.active)){
     const t=clamp(toT(hover.x),0,TMAX),d=clamp(toD(hover.y),0,DMAX);
