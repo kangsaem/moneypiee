@@ -1650,7 +1650,7 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
   const bgReset=()=>{document.documentElement.style.background='';const m=document.querySelector('meta[name=theme-color]');if(m)m.content='#284656';};
   const vid=sp.querySelector('.spVid'),vPlay=()=>{if(!vid||sp.style.display==='none')return;try{vid.muted=true;const r=vid.play();if(r&&r.catch)r.catch(()=>{});}catch(e){}};
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)vPlay();});window.addEventListener('pageshow',vPlay);
-  const close=why=>{if(vid)try{vid.pause();}catch(e){}sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);};
+  const close=why=>{if(vid)try{vid.pause();}catch(e){}sp.style.display='none';document.documentElement.classList.remove('spl');bgReset();window.scrollTo(0,0);if(window.toGraphTop)requestAnimationFrame(()=>toGraphTop());};
     window.showSplash=()=>{window.endTutorial&&window.endTutorial();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
   const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
@@ -2272,6 +2272,9 @@ function relayout(){const cl=document.querySelector('.colL'),cr=document.querySe
 function posPmid(){const pm=document.querySelector('.pmid.inTools'),tl=document.querySelector('.tools'),cl=$('clear');if(!pm||!tl||!cl)return;const T=tl.getBoundingClientRect(),C=cl.getBoundingClientRect(),pw=pm.offsetWidth,nb=($('plPrev')||{}).offsetWidth||30;
   const left=Math.max(T.width/2-pw/2,C.right-T.left+nb/2);pm.style.left=Math.round(left)+'px';}
 addEventListener('resize',()=>posPmid());
+/* 두 줄 보기: 수심그래프 카드 위끝이 화면 위끝에 오게 자동 스크롤(들어갈 때·플래너↔로그북·폭이 두 줄 보기로 바뀔 때) */
+window.toGraphTop=()=>{if(!window.matchMedia('(min-width:780px) and (max-width:1169px)').matches||document.documentElement.classList.contains('spl'))return;const g=$('graphCard');if(!g)return;window.scrollTo(0,Math.max(0,Math.round(g.getBoundingClientRect().top+window.scrollY)));};
+try{window.matchMedia('(min-width:780px) and (max-width:1169px)').addEventListener('change',e=>{if(e.matches)setTimeout(()=>toGraphTop(),50);});}catch(e){}
 let FTHOME=null;setTimeout(()=>{try{relayout();}catch(e){}},0);
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());window.matchMedia('(min-width:1170px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
@@ -2375,7 +2378,7 @@ function applyLBF(anim){saveLBF();const go=()=>{CALW=LBF===1;$('logEdV').classLi
     const an=inn.animate([{transform:`${t} translateY(${dy}px)`},{transform:t}],{duration:300,easing:EZ});an.onfinish=an.oncancel=()=>ll.classList.remove('sliding');}}}
 $('logHead').onclick=()=>{if(!open)return;if(LBF===2){LBF=0;applyLBF();syncLogFold();return;}if(LBF===0){LBF=1;applyLBF(true);renderLogSum();return;}LBF=2;syncLogFold();};
 // 플래너 ↔ 로그북 전환은 맨 위 버튼과 제목 '플래너/로그북' 글자로만. instant = 애니메이션 없이 바로(튜토리얼 시작용)
-window.toggleLogbook=()=>{open=!open;sync();};
+window.toggleLogbook=()=>{open=!open;sync();if(window.toGraphTop)[60,900].forEach(t=>setTimeout(()=>toGraphTop(),t));};
 // 애니메이션 없이 바로 로그북 모드로(시작 화면 [Skip]용: 화면이 가려진 사이에 바꿔 둠)
 window.toLogInstant=()=>{if(open)return;let sv=null;try{sv=JSON.parse(localStorage.getItem('scuba_lbf')||'null');}catch(e){}const de=document.documentElement;de.classList.add('noAnim');open=true;LASTO=true;SWT++;sync();FAUTO=true;try{if(!PLAN)enterLog();}finally{FAUTO=false;}
   /* 시작 화면에서 들어갈 때만: 마지막에 쓰던 펼침/반접기/완전접힘(+달력/날짜 화면) 그대로.
