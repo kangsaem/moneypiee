@@ -972,16 +972,27 @@ function drawProfile(){
       const txt=String(pu(cur));if(cx.measureText(txt).width>gw-1){cx.rotate(-Math.PI/2);cx.textAlign='left';cx.textBaseline='middle';cx.fillText(txt,2,0);}else{cx.textAlign='center';cx.fillText(txt,0,0);}cx.restore();}}
   }
   if(!SN)gmHandle();
+  /* 위반 지점 화살표(앱·데이터 로그 이미지, 포토로그 제외): 급상승·천장 위반·MOD 초과·감압 천장이 생기는 구간의 시작점마다, 경로선 아래(깊은 쪽)에서 그 점 기울기에 직각으로 선을 향함. 재생 중이면 지나온 것만 */
+  const ARW=[];
+  if(r&&!drawing&&dv.pts.length>1){const lim=S.playMode?Math.min(Math.round(P.t),r.N):r.N,st=[];
+    const scan=a=>{if(!a)return;for(let k=0;k<a.length;k++)if(a[k]&&!(k&&a[k-1])&&k*5<=lim)st.push(k*5);};scan(r.fast);scan(r.viol);scan(r.ceil5&&r.ceil5.map(v=>v>0));
+    {const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;let pv=false;for(let t=0;t<=lim;t+=5){const o=r.depth[t]>mod+0.1;if(o&&!pv)st.push(t);pv=o;}}
+    st.sort((a,b)=>a-b);const used=[];
+    st.forEach(t=>{if(t>r.N)return;const x=X(t),y=Y(r.depth[t]);if(used.some(([ux,uy])=>Math.hypot(ux-x,uy-y)<10))return;used.push([x,y]);
+      const ta=Math.max(0,t-10),tb=Math.min(r.N,t+10);const dx=X(tb)-X(ta),dy=Y(r.depth[tb])-Y(r.depth[ta]),L=Math.hypot(dx,dy)||1;let nx=-dy/L,ny=dx/L;if(ny<0){nx=-nx;ny=-ny;}
+      {const ox=x+nx*26,oy=y+ny*26;if(ox<G.L||ox>G.L+G.W||oy>G.T+G.H){nx=-nx;ny=-ny;}}
+      const g=4,len=22;ARW.push({x,y,nx,ny,hx:x+nx*g,hy:y+ny*g,tx:x+nx*(g+len),ty:y+ny*(g+len)});});}
   if(labPos){const L0=labPos;
       if(L0.maxD>0.5){
         const l1=tr('max',L0.maxD.toFixed(1)),l2=tr('total',fmt(L0.N)),SN0=!!window.SNAP,l3=SN0?diveClock(S.cur):'',F3=SN0?null:'600 11px sans-serif';/* 앱 화면: 입수→출수 줄은 화살표 간격 좁게·글자 11px */cx.font=window.SNAP?"700 13px 'Helvetica Neue',Helvetica,Arial,sans-serif":'600 12px sans-serif';
         const isDeco=r&&r.ceil5.some(v=>v>0),hh=isDeco?18:0;
         const w3=l3?(()=>{if(!F3)return cx.measureText(l3).width;const f0=cx.font;cx.font=F3;const w=cx.measureText(l3).width;cx.font=f0;return w;})():0;
         const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,w3,isDeco?48:0)+12,th=36+hh+(l3?16:0),LK=window.matchMedia('(min-width:780px) and (max-width:1169px)').matches?1.4:1.1,/* 두 줄 보기는 1.4배 */TW=tw*LK,TH=th*LK;// 팝업 1.1배(앱 화면만, 데이터 로그 이미지는 그대로 1.3)
-        const hits=(bx,by)=>{if(!r)return false;for(let x=bx-2;x<=bx+TW+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+TH+3)return true;}return false;};
+        const hitA=(bx,by)=>ARW.some(a=>{const x0=Math.min(a.tx,a.hx)-7,x1=Math.max(a.tx,a.hx)+7,y0=Math.min(a.ty,a.hy)-7,y1=Math.max(a.ty,a.hy)+7;return x1>=bx-2&&x0<=bx+TW+2&&y1>=by-2&&y0<=by+TH+2;});
+        const hits=(bx,by)=>{if(hitA(bx,by))return true;if(!r)return false;for(let x=bx-2;x<=bx+TW+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+TH+3)return true;}return false;};
         const cand=[[L0.xn-TW-4,L0.yd-TH-4],[L0.xn+6,L0.yd-TH-4],[L0.xn+6,L0.yd+4],[L0.xn-TW-4,L0.yd+4],[L0.xn+6,G.T+28],[L0.xn-TW-4,G.T+28]]
           .map(([x,y])=>[clamp(x,G.L+2,G.L+G.W-TW-2),clamp(y,G.T+2,G.T+G.H-TH-2)]);
-        let [bx,by]=cand.find(([x,y])=>!hits(x,y))||cand[0];
+        let [bx,by]=cand.find(([x,y])=>!hits(x,y))||(()=>{/* 여섯 자리 모두 겹치면 그래프 안을 훑어 가장 가까운 빈 자리 */let best=null,bd=1e9;for(let y=G.T+2;y<=G.T+G.H-TH-2;y+=12)for(let x=G.L+2;x<=G.L+G.W-TW-2;x+=12){if(hits(x,y))continue;const d=Math.hypot(x+TW/2-L0.xn,y+TH/2-L0.yd);if(d<bd){bd=d;best=[x,y];}}return best;})()||cand[0];
         if(dv.lab){bx=G.L+2+dv.lab.fx*Math.max(0,G.W-TW-4);by=G.T+2+dv.lab.fy*Math.max(0,G.H-TH-4);}
         const SNPL=!!window.SNAP;if(SNPL){const LS=1.3;cx.save();cx.translate(G.L+G.W/2-tw*LS/2,G.T+G.H/3-th*LS/2);cx.scale(LS,LS);bx=0;by=0;LABBOX={bx,by,tw,th};}
         else{LABBOX={bx,by,tw:TW,th:TH};cx.save();cx.translate(bx,by);cx.scale(LK,LK);bx=0;by=0;}const lift=LP&&LP.active,soft=!lift&&!SNPL;if(lift){cx.save();cx.shadowColor='rgba(0,0,0,.35)';cx.shadowBlur=10;cx.shadowOffsetY=3;}else if(soft){cx.save();cx.shadowColor='rgba(15,23,42,.18)';cx.shadowBlur=10;cx.shadowOffsetX=8;cx.shadowOffsetY=8;}/* 앱 화면: 연한 그림자로 살짝 떠 보이게 */
@@ -997,17 +1008,11 @@ function drawProfile(){
   }
   if(timeTag){cx.beginPath();cx.arc(timeTag.x,timeTag.y,10,0,7);cx.fillStyle=DK?'rgba(255,255,255,.28)':'rgba(31,35,40,.18)';cx.fill();
     cx.beginPath();cx.arc(timeTag.x,timeTag.y,6.5,0,7);cx.fillStyle='#1f2328';cx.fill();cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke();}
-  /* 위반 지점 화살표(앱·데이터 로그 이미지, 포토로그 제외): 급상승·천장 위반·MOD 초과 구간의 시작점마다, 경로선 아래(깊은 쪽)에서 그 점의 기울기에 직각으로 선을 향함. 재생 중이면 지나온 것만 */
-  if(r&&!drawing&&dv.pts.length>1){const lim=S.playMode?Math.min(Math.round(P.t),r.N):r.N,st=[];
-    const scan=a=>{if(!a)return;for(let k=0;k<a.length;k++)if(a[k]&&!(k&&a[k-1])&&k*5<=lim)st.push(k*5);};scan(r.fast);scan(r.viol);
-    {const mod=(1.4/r.c.fO2-ENV.psurf)/ENV.bpm;let pv=false;for(let t=0;t<=lim;t+=5){const o=r.depth[t]>mod+0.1;if(o&&!pv)st.push(t);pv=o;}}
-    st.sort((a,b)=>a-b);const used=[];
-    st.forEach(t=>{const x=X(t),y=Y(r.depth[t]);if(used.some(([ux,uy])=>Math.hypot(ux-x,uy-y)<10))return;used.push([x,y]);
-      const ta=Math.max(0,t-10),tb=Math.min(r.N,t+10);const dx=X(tb)-X(ta),dy=Y(r.depth[tb])-Y(r.depth[ta]),L=Math.hypot(dx,dy)||1;let nx=-dy/L,ny=dx/L;if(ny<0){nx=-nx;ny=-ny;}{const ox=x+nx*26,oy=y+ny*26;if(ox<G.L||ox>G.L+G.W||oy>G.T+G.H){nx=-nx;ny=-ny;}}/* 꼬리가 그래프 밖(눈금 글자 쪽)으로 나가면 반대쪽에서 */
-      const g=4,len=22,hx=x+nx*g,hy=y+ny*g,tx=x+nx*(g+len),ty=y+ny*(g+len),px=-ny,py=nx,hw=5.5,hl=9;
+  /* 위반 지점 화살표 그리기(계산은 ARW, 최대·총 팝업 배치 전에) */
+  ARW.forEach(({tx,ty,hx,hy,nx,ny})=>{const px=-ny,py=nx,hw=5.5,hl=9;
       const path=()=>{cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(hx+nx*hl,hy+ny*hl);};const head=()=>{cx.beginPath();cx.moveTo(hx,hy);cx.lineTo(hx+nx*hl+px*hw,hy+ny*hl+py*hw);cx.lineTo(hx+nx*hl-px*hw,hy+ny*hl-py*hw);cx.closePath();};
       cx.save();cx.lineCap='round';cx.lineJoin='round';cx.strokeStyle='#fff';cx.lineWidth=5.5;path();cx.stroke();head();cx.lineWidth=3;cx.stroke();
-      cx.strokeStyle='#E31B3F';cx.lineWidth=2.6;path();cx.stroke();head();cx.fillStyle='#E31B3F';cx.fill();cx.restore();});}
+      cx.strokeStyle='#E31B3F';cx.lineWidth=2.6;path();cx.stroke();head();cx.fillStyle='#E31B3F';cx.fill();cx.restore();});
   if(skullAt){cx.save();cx.font='20px sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('💀',skullAt[0],skullAt[1]);cx.restore();}
   if(hover&&!P.run&&!S.playMode&&!(LP&&LP.active)){
     const t=clamp(toT(hover.x),0,TMAX),d=clamp(toD(hover.y),0,DMAX);
