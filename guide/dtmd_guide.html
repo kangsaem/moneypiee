@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DTMD 다이빙 플래너 / 로그북 — 숙련 다이버용 사용법·특장점</title>
 <style>
-body{margin:0;background:#fff;color:#222;font:16px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+body{margin:0;word-break:keep-all;overflow-wrap:anywhere;background:#fff;color:#222;font:16px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
 main{max-width:760px;margin:0 auto;padding:32px 20px 60px}
 h1{font-size:24px;line-height:1.35;margin:0 0 6px}
 .meta{color:#777;font-size:14px;margin:0 0 20px}
@@ -27,10 +27,11 @@ th,td{border:1px solid #e3e3e3;padding:6px 10px;text-align:left;vertical-align:t
 th{background:#f6f6f6;font-weight:600}
 figure{margin:10px 0 16px}
 figure img{display:block;max-width:100%;height:auto;border:1px solid #e3e3e3;border-radius:6px}
-figure.ph img{max-width:360px}
+figure.ph img{width:360px;max-width:100%}
 figcaption{color:#777;font-size:13px;margin-top:6px}
 .two{display:flex;gap:12px;flex-wrap:wrap}
-.two figure{flex:1 1 300px;margin:10px 0}
+.two figure{flex:1 1 260px;min-width:0;margin:10px 0}
+@media(max-width:600px){main{padding:20px 14px 40px}.body{padding-left:8px}summary{font-size:17px}table{font-size:14px}th,td{padding:5px 7px}}
 h3{font-size:15px;margin:10px 0 6px}
 .warn{color:#c8102e}
 @media print{
@@ -41,7 +42,7 @@ h3{font-size:15px;margin:10px 0 6px}
   figure{break-inside:avoid}
   body{font-size:13px}
   figure img{max-height:120mm;width:auto}
-  figure.ph img{max-width:62mm}
+  figure.ph img{width:62mm}
   .two figure img{max-width:80mm}
 }
 </style>
