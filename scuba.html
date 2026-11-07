@@ -761,7 +761,7 @@ function layout(){
   const w=w0/FS,h=h0/FS;
   cv.width=w0*dpr;cv.height=h0*dpr;cv.style.height=h0+'px';cx.setTransform(dpr*FS,0,0,dpr*FS,0,0);
   /* 왼쪽 여백 = 가장 긴 수심 글자 폭 + 6px (글자를 그래프에 붙이고 그래프를 넓게) */cx.font='11px sans-serif';const LW=Math.ceil(cx.measureText(isFt()?Math.round(DMAX*FT/20)*20+'ft':DMAX+'m').width);
-  G={w,h,L:LW+6,R:30,T:10,B:26};G.W=w-G.L-G.R;G.H=h-G.T-G.B;
+  G={w,h,L:LW+6,R:22,T:10,B:26};/* 오른쪽 = 공기 막대 14px + 간격 7px */G.W=w-G.L-G.R;G.H=h-G.T-G.B;
   const bc=$('bars'),bw=bc.parentElement.clientWidth,bh=16*(bw<300?17:20)+24;
   bc.width=bw*dpr;bc.height=bh*dpr;bc.style.height=bh+'px';bc.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
 }
