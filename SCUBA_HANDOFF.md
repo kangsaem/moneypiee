@@ -29,6 +29,7 @@
   3. 제안 a(사용자 '내일하자'로 보류, 아직 ㄱㄱ 전): 진단에 '열 때 innerHeight → 지금 innerHeight, 바뀐 시각' 추가 + 시작 화면이 항상 기기 화면 전체를 덮게(높이 보정) + 높이 바뀌면 시작 화면 배치 즉시 다시 계산.
   4. 원인 확정 후 진단 글씨(#spDbg, __dbg, scuba_spdbg) 삭제.
   ★ 11/07 03:07 처리(사용자 결정: 진단 없이 처리): 진단 글씨·기록 코드 전부 삭제(#spDbg, __dbg, scuba_spdbg, dbgShow). #splash = top/left/right 0 + height:100lvh(+min-height), spFit()이 열린 직후(즉시·rAF·150/500/1200ms)·resize·visualViewport resize·pageshow·회전·showSplash 때 min-height를 max(innerHeight, clientHeight, visualViewport.height, 세로 홈화면앱이면 screen.height)로 맞춤. [플래너][로그북] 인식 범위 = 위 50px + 아래 20px, ↻ = 위 50px. 아이폰에서 띠가 없어졌는지 확인 필요. 구버전 문제(1번 후보)는 아직.
+  ★ 11/07 11:32 (v2.0.2): 로그북에서 저장 안 한 변경(그래프·메모 등) 상태로 플래너로 가면 버림 = leaveLog에서 dirty 기록, 다시 로그북 올 때 저장된 로그는 applyLog로 저장본, 새 로그(초안)는 빈 그래프. (전엔 LOGST로 그리던 상태가 그대로 돌아왔음)
   ★ 11/07 11:15: 감압 천장이 생기는 시점은 화살표 대신 그 점에서 수면까지 분홍(#db2777) 세로 점선.
   ★ 11/07 11:13: 상단 제목 아래 'Don’t Touch Maximum Depth' 띠(.ttl .dtmd) 삭제 → 시작 화면 튜토리얼 버튼 위(#spDtmd)에 아래 'DTMD 다이빙 플래너 / 로그북'과 같은 글씨(16px·400·흰 75%).
   ★ 11/07 11:10: 화살표에 '감압 천장이 생기는 시점'(r.ceil5>0 시작)도 추가. 화살표 계산(ARW)을 최대·총 팝업 배치 전에 하고, 팝업 자리 고를 때 화살표와 겹치면 다른 자리(후보 6곳 다 겹치면 그래프 안을 12px 간격으로 훑어 가장 가까운 빈 자리).

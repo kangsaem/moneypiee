@@ -263,7 +263,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.0.1';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.0.2';</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
 <div class="top"><h1 class="ttl"><span data-i18n="h1">DTMD 다이빙 플래너</span></h1><span style="display:inline-flex;align-items:center"><button class="tutBtn" id="modeBtn">로그북</button><span class="seg lang"><button data-lang="ko">KR</button><button data-lang="en">EN</button><button data-lang="ja">JP</button></span></span></div>
@@ -2311,13 +2311,15 @@ function flipSwap(fn){const el=document.getElementById('tabsCard');if(!el){fn();
 function enterLog(){PRESEL=null;PLAN=snapS();$('tabsCard').classList.add('lbMode');
   // 로그북에서 작업하다 플래너로 갔다 온 경우: 그때 보던 로그·날짜·수정 중인 내용 그대로
   if(LOGST){const L0=LOGST;LOGST=null;putS(L0.s);CUR=L0.CUR&&load().some(v=>v.id===L0.CUR)?L0.CUR:null;Y=L0.Y;M=L0.M;D=L0.D;vy=L0.vy;vm=L0.vm;view=L0.view;
-    view='cal';vy=Y;vm=M;CJ=CUR?ymd():CJ;$('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();return;}
+    view='cal';vy=Y;vm=M;CJ=CUR?ymd():CJ;$('logMemo').value=(S.dives[S.cur]&&S.dives[S.cur].memo)||'';renderPh();if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderWheels();renderList();
+    /* 저장 안 하고 플래너로 갔던 변경은 버림: 저장된 로그면 저장된 내용으로, 새 로그(초안)면 빈 그래프로 */if(L0.dirty){EDIT=null;if(CUR)applyLog(CUR,true,S.cur);else{S.dives.forEach(d=>{d.pts=d.pts.slice(0,1);d.memo='';d.ph=[];});$('logMemo').value='';renderPh();recompute();renderList();}}
+    return;}
   // 첫 진입: 가장 최근 날짜의 마지막 다이빙
   const a=load();view='cal';$('logList').classList.remove('noDraft');if(!a.length){FIRSTIN=false;WSPUN=false;}
   if(!a.length){dayChanged();if(!CUR){S.start=T;drawProfile();}renderWheels();return;}
   const ld=a.map(v=>v.date).sort().pop(),x=a.filter(v=>v.date===ld).sort((p,q)=>(p.time||'').localeCompare(q.time||''))[0];
   const [yy,mm,dd]=x.date.split('-').map(Number);WSPIN=null;WSPUN=false;FIRSTIN=false;Y=yy;M=mm;D=dd;vy=yy;vm=mm;CJ=x.date;{const rr=dayRows(x.date),lr=rr[rr.length-1];if(lr)applyLog(lr.id,true,lr.i);else applyLog(x.id,true,0);}}
-function leaveLog(){$('tabsCard').classList.remove('lbMode');if(!PLAN)return;LOGST={s:snapS(),CUR,Y,M,D,vy,vm,view};const P=PLAN;PLAN=null;putS(P);CUR=null;
+function leaveLog(){$('tabsCard').classList.remove('lbMode');if(!PLAN)return;LOGST={s:snapS(),CUR,Y,M,D,vy,vm,view,dirty:isDirty()};const P=PLAN;PLAN=null;putS(P);CUR=null;
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();}
 // 탭 줄 바꾸기(+뒤집기)는 로그북이 다 펼쳐지거나 접힌 뒤(.setWrap 0.3초)에
 let SWT=0;
