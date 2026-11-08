@@ -1,0 +1,217 @@
+DTMD 튜토리얼 대본 — 영어·일본어 (한국어 직역)
+앱 버전 v2.4.0 · 2026-11-08
+
+[녹음 파일 안내]
+- 저장 위치: 저장소 tut/ 폴더
+- 파일 이름: 영어 en01.mp3 ~ en13.mp3, 일본어 ja01.mp3 ~ ja13.mp3 (한국어 ko01~ko13과 같은 번호)
+- 01~12 = 단계별 내레이션(제목 + 본문), 13 = 마지막 맺음말(화면 표시 없음)
+- 형식: 한국어 녹음과 같게 mp3, 64kbps, 모노 권장
+- 녹음 파일이 없으면 앱이 브라우저 음성(영어 en-US / 일본어 ja-JP)으로 읽음
+- 12번: 빨간 규칙 4개가 녹음 길이의 0%·27%·49%·82% 시점에 하나씩 나타남(한국어 ko12 타이밍 비율). 규칙 1~4를 읽는 시점이 대략 이 비율에 맞으면 자연스러움
+
+============================================================
+01  [ko01 / en01 / ja01]
+------------------------------------------------------------
+KO  1부 · 무감압 다이빙
+    ① 그리기 모드
+    그리기를 고르고 그래프 위를 누른 채로 끌면 수심 경로가 그려져요. 가로는 시간, 세로는 수심이에요.
+
+EN  Part 1 · No-decompression dive
+    ① Draw mode
+    Choose Draw, then press and drag on the graph, and a depth path is drawn. Horizontal is time, vertical is depth.
+
+JA  第1部 · 無減圧ダイビング
+    ① 描画モード
+    描画を選んで、グラフの上を押したままドラッグすると、水深の経路が描かれます。横は時間、縦は水深です。
+
+============================================================
+02  [ko02 / en02 / ja02]
+------------------------------------------------------------
+KO  1부 · 무감압 다이빙
+    ② 내려가서 머물기
+    3분에 걸쳐 18미터까지 내려가 25분까지 머물러 볼게요. 출수하기 전에 손을 떼면 추천 경로가 자동으로 이어져요. 5미터 안전정지 3분 후 출수하라는 뜻이에요.
+
+EN  Part 1 · No-decompression dive
+    ② Go down and stay
+    Let’s go down to 18 meters over 3 minutes and stay until 25 minutes. If you lift your finger before surfacing, the suggested path continues automatically. It means: do a 3-minute safety stop at 5 meters, then surface.
+
+JA  第1部 · 無減圧ダイビング
+    ② 潜って留まる
+    3分かけて18メートルまで潜り、25分まで留まってみます。浮上する前に指を離すと、推奨経路が自動的に続きます。5メートルで3分間安全停止してから浮上しなさい、という意味です。
+
+============================================================
+03  [ko03 / en03 / ja03]
+------------------------------------------------------------
+KO  1부 · 무감압 다이빙
+    ③ 점찍기로 상승 만들기
+    점찍기로 바꾸고 점을 하나씩 찍어요. 10미터에서 5미터까지는 분당 9미터 이하로 천천히, 5미터에서 3분 안전정지 후 수면으로. 수면에 닿으면 다이빙이 끝나요.
+
+EN  Part 1 · No-decompression dive
+    ③ Make the ascent with Points
+    Switch to Points and place points one by one. From 10 meters to 5 meters, go slowly at 9 meters per minute or less, then a 3-minute safety stop at 5 meters, then to the surface. When it reaches the surface, the dive ends.
+
+JA  第1部 · 無減圧ダイビング
+    ③ 点打ちで浮上を作る
+    点打ちに切り替えて、点を一つずつ打ちます。10メートルから5メートルまでは毎分9メートル以下でゆっくり、5メートルで3分間安全停止してから水面へ。水面に着くとダイビングが終わります。
+
+============================================================
+04  [ko04 / en04 / ja04]
+------------------------------------------------------------
+KO  1부 · 무감압 다이빙
+    ④ 점을 끌어서 다듬기
+    점은 끌어서 옮길 수 있어요. 바닥을 떠나는 점을 25분에서 22분으로 당겨 바닥 시간을 줄였어요. 그리고 다이빙 시간을 늘였어요. 바닥 시간이 짧을수록 NDL이 커지고 공기도 덜 써요.
+
+EN  Part 1 · No-decompression dive
+    ④ Drag points to refine
+    Points can be dragged to move them. I pulled the point that leaves the bottom from 25 minutes to 22 minutes to shorten the bottom time. And I lengthened the dive time. The shorter the bottom time, the larger the NDL and the less air you use.
+
+JA  第1部 · 無減圧ダイビング
+    ④ 点をドラッグして整える
+    点はドラッグして動かせます。水底を離れる点を25分から22分に引き寄せて、ボトムタイムを短くしました。そしてダイビング時間を延ばしました。ボトムタイムが短いほどNDLが大きくなり、空気も少なく使います。
+
+============================================================
+05  [ko05 / en05 / ja05]
+------------------------------------------------------------
+KO  1부 · 무감압 다이빙
+    ⑤ 잘못 찍은 점 지우기
+    실수로 엉뚱한 곳에 점을 찍었어요. 점지우기를 고르고, 그 점을 누르면 지워져요. 실행취소로 되돌릴 수도 있어요.
+
+EN  Part 1 · No-decompression dive
+    ⑤ Erase a wrongly placed point
+    By mistake, I placed a point in the wrong spot. Choose Erase points and tap that point, and it is erased. You can also go back with Undo.
+
+JA  第1部 · 無減圧ダイビング
+    ⑤ 間違えて打った点を消す
+    うっかり変な所に点を打ってしまいました。点消去を選んでその点を押すと消えます。元に戻すで戻すこともできます。
+
+============================================================
+06  [ko06 / en06 / ja06]
+------------------------------------------------------------
+KO  1부 · 무감압 다이빙
+    ⑥ 이상적인 무감압 다이빙
+    완성! 핑크색 천장이 없고, 경고도 없어요. 라벨은 최대 수심과 총 시간, 그래프 오른쪽 끝 막대는 남은 공기예요. 출수 때 50바 이상 남기는 게 기본이에요.
+
+EN  Part 1 · No-decompression dive
+    ⑥ An ideal no-decompression dive
+    Done! There is no pink ceiling, and no warnings either. The label is the maximum depth and total time, and the bar at the right end of the graph is remaining air. Leaving 50 bar or more at surfacing is the basic rule.
+
+JA  第1部 · 無減圧ダイビング
+    ⑥ 理想的な無減圧ダイビング
+    完成！ピンクのシーリングがなく、警告もありません。ラベルは最大水深と総時間、グラフ右端のバーは残りの空気です。浮上時に50バール以上残すのが基本です。
+
+============================================================
+07  [ko07 / en07 / ja07]
+------------------------------------------------------------
+KO  2부 · 천장 위반
+    ⑦ 위험한 다이빙 그리기
+    이번엔 30미터에서 28분 머문 뒤 2분 만에 바로 올라와 볼게요. 그래프에 핑크색 천장이 생기고, 경로가 그걸 뚫고 올라가요.
+
+EN  Part 2 · Ceiling violation
+    ⑦ Draw a dangerous dive
+    This time, let’s stay at 30 meters for 28 minutes, then come straight up in 2 minutes. A pink ceiling appears on the graph, and the path breaks through it on the way up.
+
+JA  第2部 · シーリング違反
+    ⑦ 危険なダイビングを描く
+    今度は30メートルで28分留まった後、2分ですぐに上がってみます。グラフにピンクのシーリングができて、経路がそれを突き破って上がります。
+
+============================================================
+08  [ko08 / en08 / ja08]
+------------------------------------------------------------
+KO  2부 · 천장 위반
+    ⑧ 왜 위험한가
+    깊은 수심에 오래 머물면 질소가 많이 쌓여 천장이 생겨요. 천장을 뚫고 올라오면 몸속 질소가 기포가 되어 감압병 위험이 커져요. 급상승에다가 공기도 50바 밑으로 떨어졌어요.
+
+EN  Part 2 · Ceiling violation
+    ⑧ Why it is dangerous
+    If you stay long at a deep depth, a lot of nitrogen builds up and a ceiling forms. If you break through the ceiling on the way up, the nitrogen in your body turns into bubbles and the risk of decompression sickness grows. On top of the fast ascent, the air also dropped below 50 bar.
+
+JA  第2部 · シーリング違反
+    ⑧ なぜ危険なのか
+    深い水深に長く留まると窒素がたくさん溜まってシーリングができます。シーリングを突き破って上がると、体内の窒素が気泡になって減圧症の危険が大きくなります。急浮上に加えて、空気も50バールを下回りました。
+
+============================================================
+09  [ko09 / en09 / ja09]
+------------------------------------------------------------
+KO  2부 · 천장 위반
+    ⑨ 질소 막대로 보기
+    질소 막대를 수면 기준으로 볼게요. 28분에 여러 막대가 100퍼센트를 넘었어요. 100퍼센트를 넘으면 바로 출수할 수 없어요. 감압이 필요해요. 이 상태로 바로 올라오면 몸 안에 넘친 질소가 기포가 돼요.
+
+EN  Part 2 · Ceiling violation
+    ⑨ See it with the nitrogen bars
+    Let’s look at the nitrogen bars on the surface basis. At 28 minutes, several bars went over 100 percent. Over 100 percent, you cannot surface right away. Decompression is needed. If you come straight up in this state, the overflowing nitrogen in your body turns into bubbles.
+
+JA  第2部 · シーリング違反
+    ⑨ 窒素バーで見る
+    窒素バーを水面基準で見てみます。28分で複数のバーが100パーセントを超えました。100パーセントを超えるとすぐには浮上できません。減圧が必要です。この状態ですぐ上がると、体内にあふれた窒素が気泡になります。
+
+============================================================
+10  [ko10 / en10 / ja10]
+------------------------------------------------------------
+KO  2부 · 천장 위반
+    ⑩ 감압하면 되지 않나? 싱글탱크 한계
+    추천 경로가 감압 정지를 넣어줘요. 하지만 오른쪽 공기 막대를 보면 다이빙 도중 공기가 바닥나요. 12리터 탱크 하나로는 30미터 28분에 감압까지 버틸 수 없어요. 레저용 싱글탱크 다이빙은 무감압 한계 안에서 끝내야 해요.
+
+EN  Part 2 · Ceiling violation
+    ⑩ Can’t I just decompress? The single-tank limit
+    The suggested path puts in decompression stops. But looking at the air bar on the right, the air runs out in the middle of the dive. With one 12-liter tank, you cannot hold out through decompression at 30 meters for 28 minutes. A recreational single-tank dive must end within the no-decompression limit.
+
+JA  第2部 · シーリング違反
+    ⑩ 減圧すればいいのでは？シングルタンクの限界
+    推奨経路が減圧停止を入れてくれます。しかし右の空気バーを見ると、ダイビングの途中で空気が尽きます。12リットルのタンク1本では、30メートル28分で減圧まで持ちこたえられません。レジャー用のシングルタンクダイビングは無減圧限界の中で終えなければなりません。
+
+============================================================
+11  [ko11 / en11 / ja11]
+------------------------------------------------------------
+KO  2부 · 천장 위반
+    ⑪ 플랜 고치기
+    첫째, 바닥 시간을 줄일 것. 둘째, 또는 더 얕게 다이빙. 셋째, 천천히 상승하고 5미터 안전정지. 바닥을 떠나는 점을 13분으로 당기고 상승 점을 찍으니 천장이 사라지고 공기도 넉넉해요.
+
+EN  Part 2 · Ceiling violation
+    ⑪ Fix the plan
+    First, shorten the bottom time. Second, or dive shallower. Third, ascend slowly and do a 5-meter safety stop. I pulled the point that leaves the bottom to 13 minutes and placed the ascent points, and the ceiling is gone and there is plenty of air.
+
+JA  第2部 · シーリング違反
+    ⑪ プランを直す
+    第一に、ボトムタイムを減らすこと。第二に、またはもっと浅く潜ること。第三に、ゆっくり浮上して5メートルで安全停止。水底を離れる点を13分に引き寄せて浮上の点を打つと、シーリングが消えて空気も十分です。
+
+============================================================
+12  [ko12 / en12 / ja12]
+------------------------------------------------------------
+KO  정리
+    ⑫ 기억할 것
+    하나, 핑크색 천장이 안 나오게. 무감압. 둘, 나오면 절대 침범하지 않기. 셋, 상승은 분당 9에서 10미터 이하, 5미터 3분 안전정지. 넷, 출수 때 공기 50바 이상.
+
+EN  Summary
+    ⑫ Things to remember
+    One, don’t let a pink ceiling appear. No decompression. Two, if it appears, never violate it. Three, ascend at 9 to 10 meters per minute or less, with a 5-meter 3-minute safety stop. Four, 50 bar or more of air at surfacing.
+
+JA  まとめ
+    ⑫ 覚えておくこと
+    一つ、ピンクのシーリングが出ないように。無減圧。二つ、出たら絶対に侵さないこと。三つ、浮上は毎分9から10メートル以下、5メートル3分の安全停止。四つ、浮上時に空気50バール以上。
+
+    [화면 규칙 4개]
+    1. KO 핑크색 천장이 안 나오게 (무감압)
+       EN Don’t let a pink ceiling appear (no decompression)
+       JA ピンクのシーリングが出ないように(無減圧)
+    2. KO 나오면 절대 침범하지 않기
+       EN If it appears, never violate it
+       JA 出たら絶対に侵さないこと
+    3. KO 상승은 분당 9~10m 이하 · 5m 3분 안전정지
+       EN Ascend at 9–10 m/min or less · 5 m 3-min safety stop
+       JA 浮上は毎分9〜10m以下 · 5m 3分安全停止
+    4. KO 출수 때 공기 50bar 이상
+       EN 50 bar or more of air at surfacing
+       JA 浮上時に空気50bar以上
+
+============================================================
+13  [ko13 / en13 / ja13]  맺음말(음성만)
+------------------------------------------------------------
+KO  안전한 다이빙 즐거운 다이빙 안따즐따
+EN  Safe diving, fun diving!
+JA  安全なダイビング、楽しいダイビング！
+    ※ "안따즐따"는 한국어 줄임말이라 영어·일본어에서는 뺐습니다.
+
+[튜토리얼 창 버튼]
+KO  이전 / 다음 / 끝내기 / 종료 / 자동 ▶
+EN  Back / Next / Finish / Exit / Auto ▶
+JA  前へ / 次へ / 終える / 終了 / 自動 ▶

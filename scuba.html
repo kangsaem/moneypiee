@@ -266,7 +266,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.3.2';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.4.0';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
@@ -503,7 +503,7 @@ en:{
  disc:'For education and learning only. Do not use it to plan real decompression dives or as a substitute for a dive computer.',more:'Calculation',disc2:'Includes a logbook. FIT files from most dive computers can be imported. Logs are stored only in this browser; use Save to back them up or to continue in a browser on another device.',
  model:'Model: Bühlmann ZHL-16C, 16 nitrogen compartments, Baker gradient factors, water vapour 0.0627 bar, 1-second steps. Deco stops in 3 m steps and whole minutes, last stop 3 m. A 3-minute safety stop at 5 m is included. Altitude assumes you are acclimatised. Oxygen toxicity: CNS% only, using NOAA limits (nitrox); helium and OTU are not calculated. Results can differ from real dive computers by a few minutes because of how stops are handled and rounded.',
  tank:'Tank',sac:'Breathing (SAC)',sacLo:'Low (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'High (25 L/min)',wGas:(v,m)=>`Surfacing with ${v}`,wGas0:'Out of air',
- tutBtn:'Tutorial (KR)',bmSurf:'Surface-based',bmSw:'Shearwater-style',swU:'Below ambient',swY:'Supersaturated',swR:'Above M-value',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
+ tutBtn:'Tutorial',bmSurf:'Surface-based',bmSw:'Shearwater-style',swU:'Below ambient',swY:'Supersaturated',swR:'Above M-value',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
  siTitle:'Surface interval',hUnit:'h',minUnit:'min',cancel:'Cancel',ok:'OK',
  axisMin:m=>String(m),axisLast:m=>m+' min',max:v=>`Max ${DU(v)}`,total:v=>`Total ${v}`,
  empty:'Draw your depth profile on the graph. If you stop before surfacing, a suggested ascent is added.',
@@ -564,7 +564,7 @@ ja:{
  disc:'教育・学習用のシミュレーターです。実際の減圧ダイビング計画やダイブコンピューターの代わりに使用しないでください。',more:'計算方法',disc2:'ログブック機能を含みます。ほとんどのダイブコンピューターのFITファイルを読み込めます。ログはこのブラウザにのみ保存されます。保存でバックアップするか、別の端末のブラウザで続けて使えます。',
  model:'計算: Bühlmann ZHL-16C 窒素16コンパートメント、Baker グラディエントファクター、水蒸気圧 0.0627 bar、1秒単位の計算。減圧停止は3 m刻み・1分単位、最終停止 3 m。5 mで3分の安全停止を含む。標高はその標高に順応した状態を想定。酸素毒性はCNS%のみNOAA限度で計算(ナイトロックス)、ヘリウム・OTUは計算しません。停止の扱いや丸め方の違いにより、実際のダイブコンピューターと数分の差が出ることがあります。',
  tank:'タンク',sac:'呼吸量',sacLo:'少ない (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'多い (25 L/分)',wGas:(v,m)=>`浮上時残圧 ${v}`,wGas0:'エア切れ',
- tutBtn:'チュートリアル(韓)',bmSurf:'水面基準',bmSw:'Shearwater式',swU:'周囲圧以下',swY:'過飽和',swR:'M値超過',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
+ tutBtn:'チュートリアル',bmSurf:'水面基準',bmSw:'Shearwater式',swU:'周囲圧以下',swY:'過飽和',swR:'M値超過',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
  siTitle:'水面休息時間',hUnit:'時間',minUnit:'分',cancel:'キャンセル',ok:'OK',
  axisMin:m=>m+'分',max:v=>`最大 ${DU(v)}`,total:v=>`合計 ${v}`,
  empty:'グラフに水深を描いてください。浮上まで描かなければ推奨プランが続きます。',
@@ -1526,23 +1526,23 @@ const H=document.getElementById('tutHand'),BOX=document.getElementById('tutBox')
 let TOK=0,IDX=0,ON=false,VOICE=true,AUTO=true,DONE=-1;
 const SS=window.speechSynthesis;
 let VSEL;
-function koVoice(){if(VSEL!==undefined)return VSEL;try{const all=SS.getVoices();if(!all.length)return null;
-  const ko=all.filter(x=>/^ko/i.test(x.lang)&&!/eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|bad news|bells|boing|bubbles|cellos|jester|organ|superstar|trinoids|whisper|wobble|zarvox/i.test(x.name));
-  const pref=['Yuna','유나','Sora','Google 한국의','SunHi','Heami','InJoon'];
+let VLANG='ko';function koVoice(){const lg=TLANG();if(VLANG!==lg){VLANG=lg;VSEL=undefined;}if(VSEL!==undefined)return VSEL;try{const all=SS.getVoices();if(!all.length)return null;
+  const ko=all.filter(x=>new RegExp('^'+lg,'i').test(x.lang)&&!/eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|bad news|bells|boing|bubbles|cellos|jester|organ|superstar|trinoids|whisper|wobble|zarvox/i.test(x.name));
+  const pref=lg==='en'?['Samantha','Google US English','Aria','Jenny']:lg==='ja'?['Kyoko','O-ren','Google 日本語','Nanami']:['Yuna','유나','Sora','Google 한국의','SunHi','Heami','InJoon'];
   VSEL=ko.find(x=>pref.some(p=>x.name.includes(p)))||ko.find(x=>x.default)||ko.find(x=>x.localService)||ko[0]||null;}catch(e){VSEL=null;}return VSEL;}
 function spokenText(html){
-  let t=html.replace(/<br\s*\/?>/g,'. ').replace(/<[^>]+>/g,'').replace(/[①-⑳]/g,'').replace(/→/g,', ').replace(/·/g,', ').replace(/—/g,', ');
+  let t=html.replace(/<br\s*\/?>/g,'. ').replace(/<[^>]+>/g,'').replace(/[①-⑳]/g,'').replace(/→/g,', ').replace(/·/g,', ').replace(/—/g,', ');if(TLANG()!=='ko')return t;
   t=t.replace(/GF High/g,'지에프 하이').replace(/GF/g,'지에프').replace(/NDL/g,'엔디엘').replace(/50bar/g,'50바').replace(/(\d+)bar/g,'$1바').replace(/bar/g,'바')
      .replace(/(\d+(?:\.\d+)?)\s*L(?![a-zA-Z])/g,'$1리터').replace(/(\d+)~(\d+)m\/분/g,'분당 $1에서 $2미터').replace(/(\d+)m\/분/g,'분당 $1미터').replace(/분당 (\d+)m/g,'분당 $1미터').replace(/(\d+)~(\d+)m/g,'$1에서 $2미터').replace(/(\d+)m(?![a-zA-Z])/g,'$1미터')
      .replace(/(\d+)\/(\d+)/g,'$1 $2').replace(/\(/g,', ').replace(/\)/g,', ');
   return t;}
 function speak(text,onProg){return new Promise(res=>{if(!VOICE||!SS){res();return;}
-  try{const busy=SS.speaking||SS.pending;if(busy)SS.cancel();const sp=spokenText(text);const u=new SpeechSynthesisUtterance(sp);if(onProg)u.onboundary=ev=>{if(ev.charIndex!=null)onProg(ev.charIndex/sp.length);};u.lang='ko-KR';const v=koVoice();if(v)u.voice=v;u.rate=1.05;
+  try{const busy=SS.speaking||SS.pending;if(busy)SS.cancel();const sp=spokenText(text);const u=new SpeechSynthesisUtterance(sp);if(onProg)u.onboundary=ev=>{if(ev.charIndex!=null)onProg(ev.charIndex/sp.length);};u.lang={ko:'ko-KR',en:'en-US',ja:'ja-JP'}[TLANG()];const v=koVoice();if(v)u.voice=v;u.rate=1.05;
     let done=false;const fin=()=>{if(!done){done=true;res();}};u.onend=fin;u.onerror=fin;setTimeout(fin,Math.max(3500,text.length*190));window.__tutU=u;
     const go=()=>{try{SS.resume();}catch(e){}SS.speak(u);};if(busy)setTimeout(go,150);else go();}catch(e){res();}});}
 // 녹음 음성(tut/ko01~13.mp3) — 실패 시 브라우저 음성으로 대체
 const AU=new Audio();AU.preload='auto';const CH=new Audio('tut/chime.mp3');CH.preload='auto';let CHTOK=0;
-const clip=n=>'tut/ko'+String(n).padStart(2,'0')+'.mp3';
+const clip=n=>'tut/'+TLANG()+String(n).padStart(2,'0')+'.mp3';
 const auProg=()=>(AU.duration&&!AU.paused)?AU.currentTime/AU.duration:null;
 let CLIPTOK=0;
 function playClip(src,fallback){return new Promise(res=>{if(!VOICE){res();return;}let done=false;const my=++CLIPTOK;
@@ -1611,14 +1611,17 @@ function hideOverlay(){if(OVL){OVL.remove();OVL=null;}}
 async function showRules(t){hideOverlay();const card=cv.closest('.card'),r=card.getBoundingClientRect();
   OVL=document.createElement('div');Object.assign(OVL.style,{position:'fixed',left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',background:'rgba(15,20,26,.86)',borderRadius:'10px',zIndex:57,display:'flex',flexDirection:'column',justifyContent:'center',gap:'10px',padding:'14px',boxSizing:'border-box'});
   document.body.appendChild(OVL);
-  const items=['핑크색 천장이 안 나오게 (무감압)','나오면 절대 침범하지 않기','상승은 분당 9~10m 이하 · 5m 3분 안전정지','출수 때 공기 50bar 이상'];
-  const RT=[0,4.15,7.58,12.76],synced=()=>!AU.paused&&/ko12\.mp3$/.test(AU.src);
+  const lg=TLANG(),items=lg==='ko'?['핑크색 천장이 안 나오게 (무감압)','나오면 절대 침범하지 않기','상승은 분당 9~10m 이하 · 5m 3분 안전정지','출수 때 공기 50bar 이상']:TUTL[lg].rules;
+  const RF=[0,.27,.49,.82]/* ko12 녹음 0·4.15·7.58·12.76초 ÷ 15.5초 */,re12=new RegExp(lg+'12\\.mp3$'),synced=()=>!AU.paused&&re12.test(AU.src)&&AU.duration>0;
   for(let i=0;i<items.length;i++){chk(t);
-    if(synced()){while(synced()&&AU.currentTime<RT[i]){await sleep(50);chk(t);}}else if(i>0)await sleep(900);
+    if(synced()){while(synced()&&AU.currentTime<RF[i]*AU.duration){await sleep(50);chk(t);}}else if(i>0)await sleep(900);
     chk(t);const b=document.createElement('div');
     Object.assign(b.style,{background:'#E31B3F',color:'#fff',borderRadius:'10px',padding:'12px 14px',fontWeight:'800',fontSize:'clamp(15px,4.4vw,20px)',lineHeight:'1.35',wordBreak:'keep-all',opacity:0,transform:'translateX(-14px)',transition:'all .35s ease-out'});
     b.innerHTML=`<span style="opacity:.75;margin-right:8px">${i+1}</span>${items[i]}`;OVL.appendChild(b);await sleep(40);b.style.opacity=1;b.style.transform='none';}
   await sleep(900);}
+// 튜토리얼 영어·일본어(한국어 직역). 녹음 파일 tut/en01~13.mp3, tut/ja01~13.mp3가 없으면 브라우저 음성으로 읽음
+const TUTL={"en": {"p": ["Part 1 · No-decompression dive", "Part 2 · Ceiling violation", "Summary"], "st": [["① Draw mode", "Choose <b>Draw</b>, then press and drag on the graph, and a depth path is drawn. Horizontal is time, vertical is depth."], ["② Go down and stay", "Let’s go down to 18 meters over 3 minutes and stay until 25 minutes. If you lift your finger before surfacing, the <span style=\"color:#34d399\">suggested path</span> continues automatically. It means: do a 3-minute safety stop at 5 meters, then surface."], ["③ Make the ascent with Points", "Switch to <b>Points</b> and place points one by one. From 10 meters to 5 meters, go slowly at <b>9 meters per minute or less</b>, then <b>a 3-minute safety stop at 5 meters</b>, then to the surface. When it reaches the surface, the dive ends."], ["④ Drag points to refine", "Points can be dragged to move them. I pulled the point that leaves the bottom from 25 minutes to <b>22 minutes</b> to shorten the bottom time. And I lengthened the dive time. The shorter the bottom time, the larger the NDL and the less air you use."], ["⑤ Erase a wrongly placed point", "By mistake, I placed a point in the wrong spot. Choose <b>Erase points</b> and tap that point, and it is erased. You can also go back with Undo."], ["⑥ An ideal no-decompression dive", "Done! There is <b>no pink ceiling</b>, and no warnings either. The label is the maximum depth and total time, and the bar at the right end of the graph is <b>remaining air</b>. Leaving 50 bar or more at surfacing is the basic rule."], ["⑦ Draw a dangerous dive", "This time, let’s stay <b>at 30 meters for 28 minutes</b>, then come straight up in 2 minutes. A <b style=\"color:#f472b6\">pink ceiling</b> appears on the graph, and the path breaks through it on the way up."], ["⑧ Why it is dangerous", "If you stay long at a deep depth, a lot of nitrogen builds up and a <b>ceiling</b> forms. If you break through the ceiling on the way up, the nitrogen in your body turns into bubbles and the risk of <b>decompression sickness</b> grows. On top of the fast ascent, the air also dropped below 50 bar."], ["⑨ See it with the nitrogen bars", "Let’s look at the nitrogen bars on the surface basis. At 28 minutes, several bars <b>went over 100 percent</b>. Over 100 percent, you cannot surface right away. Decompression is needed. If you come straight up in this state, the overflowing nitrogen in your body turns into bubbles."], ["⑩ Can’t I just decompress? The single-tank limit", "The suggested path puts in <b>decompression stops</b>. But looking at the air bar on the right, <b>the air runs out in the middle of the dive</b>. With one 12-liter tank, you cannot hold out through decompression at 30 meters for 28 minutes. A recreational single-tank dive must end <b>within the no-decompression limit</b>."], ["⑪ Fix the plan", "First, shorten the bottom time. Second, or dive shallower. Third, ascend slowly and do a 5-meter safety stop. I pulled the point that leaves the bottom to 13 minutes and placed the ascent points, and the ceiling is gone and there is plenty of air."], ["⑫ Things to remember", "One, don’t let a pink ceiling appear. No decompression. Two, if it appears, never violate it. Three, ascend at 9 to 10 meters per minute or less, with a 5-meter 3-minute safety stop. Four, 50 bar or more of air at surfacing."]], "rules": ["Don’t let a pink ceiling appear (no decompression)", "If it appears, never violate it", "Ascend at 9–10 m/min or less · 5 m 3-min safety stop", "50 bar or more of air at surfacing"], "end": "Safe diving, fun diving!", "ui": {"next": "Next", "prev": "Back", "end": "Exit", "fin": "Finish", "auto": "Auto ▶"}}, "ja": {"p": ["第1部 · 無減圧ダイビング", "第2部 · シーリング違反", "まとめ"], "st": [["① 描画モード", "<b>描画</b>を選んで、グラフの上を押したままドラッグすると、水深の経路が描かれます。横は時間、縦は水深です。"], ["② 潜って留まる", "3分かけて18メートルまで潜り、25分まで留まってみます。浮上する前に指を離すと、<span style=\"color:#34d399\">推奨経路</span>が自動的に続きます。5メートルで3分間安全停止してから浮上しなさい、という意味です。"], ["③ 点打ちで浮上を作る", "<b>点打ち</b>に切り替えて、点を一つずつ打ちます。10メートルから5メートルまでは<b>毎分9メートル以下</b>でゆっくり、<b>5メートルで3分間安全停止</b>してから水面へ。水面に着くとダイビングが終わります。"], ["④ 点をドラッグして整える", "点はドラッグして動かせます。水底を離れる点を25分から<b>22分</b>に引き寄せて、ボトムタイムを短くしました。そしてダイビング時間を延ばしました。ボトムタイムが短いほどNDLが大きくなり、空気も少なく使います。"], ["⑤ 間違えて打った点を消す", "うっかり変な所に点を打ってしまいました。<b>点消去</b>を選んでその点を押すと消えます。元に戻すで戻すこともできます。"], ["⑥ 理想的な無減圧ダイビング", "完成！<b>ピンクのシーリングがなく</b>、警告もありません。ラベルは最大水深と総時間、グラフ右端のバーは<b>残りの空気</b>です。浮上時に50バール以上残すのが基本です。"], ["⑦ 危険なダイビングを描く", "今度は<b>30メートルで28分</b>留まった後、2分ですぐに上がってみます。グラフに<b style=\"color:#f472b6\">ピンクのシーリング</b>ができて、経路がそれを突き破って上がります。"], ["⑧ なぜ危険なのか", "深い水深に長く留まると窒素がたくさん溜まって<b>シーリング</b>ができます。シーリングを突き破って上がると、体内の窒素が気泡になって<b>減圧症</b>の危険が大きくなります。急浮上に加えて、空気も50バールを下回りました。"], ["⑨ 窒素バーで見る", "窒素バーを水面基準で見てみます。28分で複数のバーが<b>100パーセントを超えました</b>。100パーセントを超えるとすぐには浮上できません。減圧が必要です。この状態ですぐ上がると、体内にあふれた窒素が気泡になります。"], ["⑩ 減圧すればいいのでは？シングルタンクの限界", "推奨経路が<b>減圧停止</b>を入れてくれます。しかし右の空気バーを見ると、<b>ダイビングの途中で空気が尽きます</b>。12リットルのタンク1本では、30メートル28分で減圧まで持ちこたえられません。レジャー用のシングルタンクダイビングは<b>無減圧限界の中</b>で終えなければなりません。"], ["⑪ プランを直す", "第一に、ボトムタイムを減らすこと。第二に、またはもっと浅く潜ること。第三に、ゆっくり浮上して5メートルで安全停止。水底を離れる点を13分に引き寄せて浮上の点を打つと、シーリングが消えて空気も十分です。"], ["⑫ 覚えておくこと", "一つ、ピンクのシーリングが出ないように。無減圧。二つ、出たら絶対に侵さないこと。三つ、浮上は毎分9から10メートル以下、5メートル3分の安全停止。四つ、浮上時に空気50バール以上。"]], "rules": ["ピンクのシーリングが出ないように(無減圧)", "出たら絶対に侵さないこと", "浮上は毎分9〜10m以下 · 5m 3分安全停止", "浮上時に空気50bar以上"], "end": "安全なダイビング、楽しいダイビング！", "ui": {"next": "次へ", "prev": "前へ", "end": "終了", "fin": "終える", "auto": "自動 ▶"}}};
+const TLANG=()=>(typeof LANG!=='undefined'&&TUTL[LANG])?LANG:'ko';
 const STEPS=[
 {p:'1부 · 무감압 다이빙',ti:'① 그리기 모드',tx:'<b>그리기</b>를 고르고 그래프 위를 누른 채로 끌면 수심 경로가 그려져요. 가로는 시간, 세로는 수심이에요.',
  set:()=>setState(A0,'none'),go:async t=>{await scrollTo(GRAPH(),t);await tapEl($('mFree'),t);}},
@@ -1647,15 +1650,17 @@ const STEPS=[
  set:()=>setState(B2,'pt'),go:async t=>{await scrollTo(GRAPH(),t);await dragPoint([1680,30],[780,30],t);for(const [a,b] of [[960,12],[1620,12],[1740,5],[1920,5],[1980,0]])await tapPoint(a,b,t);await sleep(400);}},
 {p:'정리',ti:'⑫ 기억할 것',tx:'하나, 핑크색 천장이 안 나오게. 무감압. 둘, 나오면 절대 침범하지 않기. 셋, 상승은 분당 9에서 10미터 이하, 5미터 3분 안전정지. 넷, 출수 때 공기 50바 이상.',
  set:()=>setState(B3,'none'),go:async t=>{await scrollTo(GRAPH(),t);showHand(false);await showRules(t);}}];
-async function run(i){IDX=i;const t=++TOK;ARMED=false;const st=STEPS[i];hideOverlay();
+function stL(i){const s0=STEPS[i],lg=TLANG();if(lg==='ko')return s0;const T=TUTL[lg];return Object.assign({},s0,{p:T.p[i<6?0:i<11?1:2],ti:T.st[i][0],tx:T.st[i][1]});}
+function tutUI(){const lg=TLANG(),U=lg==='ko'?{next:'다음',prev:'이전',end:'종료',fin:'끝내기',auto:'자동 ▶'}:TUTL[lg].ui;document.getElementById('tutPrev').textContent=U.prev;document.getElementById('tutEnd').textContent=U.end;document.getElementById('tutAuto').textContent=U.auto;return U;}
+async function run(i){IDX=i;const t=++TOK;ARMED=false;const st=stL(i);hideOverlay();const U=tutUI();
   document.getElementById('tutPart').textContent=st.p;document.getElementById('tutCnt').textContent=(i+1)+' / '+STEPS.length;
   document.getElementById('tutTitle').textContent=st.ti;document.getElementById('tutText').innerHTML=st.tx;
-  document.getElementById('tutPrev').disabled=i===0;document.getElementById('tutNext').textContent=i===STEPS.length-1?'끝내기':'다음';
+  document.getElementById('tutPrev').disabled=i===0;document.getElementById('tutNext').textContent=i===STEPS.length-1?U.fin:U.next;
   hush();const tw=typeRun(document.getElementById('tutText'),TOK,VOICE,VOICE?auProg:null);
   const sp=playClip(clip(i+1),()=>speak(st.ti+'. '+st.tx,p=>tw.prog&&tw.prog(Math.max(0,(p*(st.ti.length+2+st.tx.length)-st.ti.length-2)/(st.tx.length)))));
   sp.then(()=>{if(TW===tw)typeAll();});
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
-    if(i===STEPS.length-1){await sleep(400);chk(t);await playClip(clip(STEPS.length+1));chk(t);}
+    if(i===STEPS.length-1){await sleep(400);chk(t);const lg=TLANG();await playClip(clip(STEPS.length+1),lg==='ko'?null:()=>speak(TUTL[lg].end));chk(t);}
     DONE=t;if(i===STEPS.length-1){await sleep(600);chk(t);end();setState(A0,'free');if(window.loadSac){loadSac();syncForm();recompute();}window.scrollTo({top:0,behavior:'smooth'});return;}
     if(AUTO&&i<STEPS.length-1){await sleep(700);chk(t);run(i+1);}}catch(e){if(!(e instanceof Stop))console.error(e);}}
 let PU0=null,ARMED=false;
@@ -1669,7 +1674,7 @@ function armBlank(t){ARMED=true;const h=e=>{if(t!==TOK){document.removeEventList
     if(e.target.closest&&e.target.closest('#tutPrev,#tutVoice,#tutAuto,#splash'))return;
     document.removeEventListener('click',h,true);e.preventDefault();e.stopPropagation();end();setState(A0,'free');if(window.loadSac){loadSac();syncForm();recompute();}window.scrollTo({top:0,behavior:'smooth'});};
   setTimeout(()=>document.addEventListener('click',h,true),0);}
-function start(){if(ON)return;window.toDefaultScreen&&window.toDefaultScreen();window.scrollTo(0,0);ON=true;if(S.pu!=='bar'){PU0=S.pu;S.pu='bar';syncForm();}try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang='ko-KR';SS.speak(w);}}catch(e){}if(LANG!=='ko'){LANG='ko';applyLang();}BOX.style.display='block';
+function start(){if(ON)return;window.toDefaultScreen&&window.toDefaultScreen();window.scrollTo(0,0);ON=true;if(S.pu!=='bar'){PU0=S.pu;S.pu='bar';syncForm();}try{if(SS){SS.resume();const w=new SpeechSynthesisUtterance(' ');w.volume=0;w.lang={ko:'ko-KR',en:'en-US',ja:'ja-JP'}[TLANG()];SS.speak(w);}}catch(e){}BOX.style.display='block';/* 튜토리얼도 지금 언어로(영어·일본어 = 직역 문구, 녹음 없으면 브라우저 음성) */
   // 시작 차임(0.9초): 차임 전용 오디오로 재생(이전 튜토리얼이 내레이션 오디오를 멈춰도 영향 없음).
   // 같은 순간 내레이션 오디오도 무음으로 한 번 재생해 아이폰 재생 권한을 열어 둠 → 차임 끝나면 1단계
   const tk=++CHTOK;let gone=false;const go=()=>{if(gone||!ON||tk!==CHTOK)return;gone=true;run(0);};
@@ -1683,7 +1688,7 @@ document.getElementById('tutEnd').onclick=end;
 document.getElementById('tutText').onclick=typeAll;
 const vb=document.getElementById('tutVoice'),ab=document.getElementById('tutAuto');
 const syncTB=()=>{vb.classList.toggle('on',VOICE);vb.textContent=VOICE?'🔊':'🔇';ab.classList.toggle('on',AUTO);};
-vb.onclick=()=>{VOICE=!VOICE;if(!VOICE)hush();else{const st=STEPS[IDX];playClip(clip(IDX+1),()=>speak(st.ti+'. '+st.tx));}syncTB();};
+vb.onclick=()=>{VOICE=!VOICE;if(!VOICE)hush();else{const st=stL(IDX);playClip(clip(IDX+1),()=>speak(st.ti+'. '+st.tx));}syncTB();};
 ab.onclick=()=>{AUTO=!AUTO;syncTB();if(AUTO&&ON&&DONE===TOK&&IDX<STEPS.length-1){const t=TOK;setTimeout(()=>{if(t===TOK&&AUTO)run(IDX+1);},400);}};
 syncTB();try{if(SS){SS.getVoices();SS.onvoiceschanged=()=>{if(VSEL===null)VSEL=undefined;koVoice();};}}catch(e){}
 window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
@@ -1693,7 +1698,7 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
 <script>
 (function(){const sp=document.getElementById('splash');if(!sp)return;
   const h=(location.hash||'').slice(1),toLog=/-log$/.test(h);/* #en-log·#ja-log = 시작 화면 없이 바로 로그북 */
-  const spLang=()=>{const L=typeof LANG!=='undefined'?LANG:'ko';const T=L==='en'?{t:'Tutorial',m:'Korean · 3 min',n:'DTMD Dive Planner / Logbook',g:['Logbook','Planner']}:L==='ja'?{t:'チュートリアル',m:'韓国語 · 3分',n:'DTMD ダイブプランナー / ログブック',g:['ログブック','プランナー']}:{t:'튜토리얼',m:'3분',n:'DTMD 다이빙 플래너 / 로그북',g:['로그북','플래너']};
+  const spLang=()=>{const L=typeof LANG!=='undefined'?LANG:'ko';const T=L==='en'?{t:'Tutorial',m:'3 min',n:'DTMD Dive Planner / Logbook',g:['Logbook','Planner']}:L==='ja'?{t:'チュートリアル',m:'3分',n:'DTMD ダイブプランナー / ログブック',g:['ログブック','プランナー']}:{t:'튜토리얼',m:'3분',n:'DTMD 다이빙 플래너 / 로그북',g:['로그북','플래너']};
     sp.querySelector('.sp1').textContent=T.t;sp.querySelector('.sp2').textContent=T.m;document.getElementById('spName').textContent=T.n;document.getElementById('spLog').textContent=T.g[0];document.getElementById('spPlan').textContent=T.g[1];sp.classList.toggle('spJa',L==='ja');};
   try{history.scrollRestoration='manual';}catch(e){}
   const bgReset=()=>{document.documentElement.style.background='';const m=document.querySelector('meta[name=theme-color]');if(m)m.content='#284656';};
