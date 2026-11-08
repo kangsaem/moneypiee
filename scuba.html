@@ -266,7 +266,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.4.2';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.5.0';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
@@ -328,7 +328,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
       <div class="yearPick hide" id="yearPick"><div class="yp"><div class="lsel"></div><div class="lw" id="lwY" tabindex="0"></div></div><button id="yearOk">OK</button></div>
       <div class="cal" id="cal"></div>
       <div class="logHint" id="logHint"></div>
-      <input type="file" id="fitIn" accept=".fit,.zip,application/zip" multiple hidden><input type="file" id="fitDir" webkitdirectory multiple hidden>
+      <input type="file" id="fitIn" accept=".fit,.uddf,.xml,.zip,application/zip" multiple hidden><input type="file" id="fitDir" webkitdirectory multiple hidden>
     </div>
     <div id="logEdV" class="hide">
       <div class="edHd"><span class="calNav"><button id="logBack">◀ <span id="logBackT">달력</span></button><button id="edPrev" class="jump" aria-label="previous log date"><svg viewBox="0 0 12 12" width="12" height="12"><rect x="1" y="1" width="1.8" height="10" fill="currentColor"/><path d="M11 1L3.6 6L11 11z" fill="currentColor"/></svg></button></span><b id="edYM" class="edYM"></b><span class="calNav"><button id="fitBtn2" class="fitJ">FIT</button><button id="edNext" class="jump" aria-label="next log date"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M1 1L8.4 6L1 11z" fill="currentColor"/><rect x="9.2" y="1" width="1.8" height="10" fill="currentColor"/></svg></button></span><b id="edTitle"></b></div>
@@ -2016,7 +2016,7 @@ function fitToDives(o){const E=FIT_EPOCH,ses=o.session.length?o.session:[{2:o.re
   return ses.map(s=>{const st=s[2],en=s[253];const rs=o.record.filter(r=>r[253]>=st&&r[253]<=en&&r[92]!=null);
     const raw=[{t:0,d:0}];rs.forEach(r=>{const t=r[253]-st;if(t>0)raw.push({t,d:r[92]/1000});});
     const keep=rdpV(raw,0.3).map(q=>({t:Math.round(q.t),d:Math.round(Math.max(0,q.d)*10)/10}));
-    const temps=rs.map(r=>r[13]).filter(v=>v!=null),gps=rs.filter(r=>r[0]!=null&&r[1]!=null);
+    const temps=rs.map(r=>r[13]).filter(v=>v!=null),gps=rs.filter(r=>r[0]!=null&&r[1]!=null&&(r[0]||r[1]));/* Suunto: 위치 없음을 (0,0)으로 기록 → 버림 */
     const sc=180/2147483648;
     // GPS는 물 밖에서만 잡힘. 입수 = 첫 잠수(0.5m 넘음) 전 마지막 위치, 출수 = 마지막 잠수 후 첫 위치. 옆 위치와 초속 15m 넘게 튀는 값(첫 수신 오차)은 버림
     const uw=rs.filter(r=>r[92]/1000>0.5),tA=uw.length?uw[0][253]:st,tB=uw.length?uw[uw.length-1][253]:en;
@@ -2028,6 +2028,31 @@ function fitToDives(o){const E=FIT_EPOCH,ses=o.session.length?o.session:[{2:o.re
     return {startUTC:st+E,localOff:off,dur:en-st,maxD:Math.max(0,...rs.map(r=>r[92]/1000)),pts:keep,nRaw:rs.length,uwMax,
       tMin:temps.length?Math.min(...temps):null,tMax:temps.length?Math.max(...temps):null,
       gps:g?{lat:g[0]*sc,lon:g[1]*sc}:null,gps0:g0?{lat:g0[0]*sc,lon:g0[1]*sc}:null,sport:s[5],sub:s[6]};});}
+/* UDDF(표준 다이빙 XML: Shearwater Cloud·Subsurface 등 내보내기) → fitToDives와 같은 모양의 다이빙 목록. 수심 m, 시간 s, 온도 K(150 넘으면 켈빈으로 봄).
+   시각에 시간대가 있으면 그대로, 없으면 현지 시각으로 봄(localOff 0). 다이브 사이트 GPS = 입수 지점, 사이트 이름 = 위치 */
+function uddfToDives(txt){const x=new DOMParser().parseFromString(txt,'application/xml'),R=x.documentElement;
+  if(!R||R.localName!=='uddf'||x.getElementsByTagName('parsererror').length)throw new Error('uddf');
+  const k1=(e,n)=>e?[...e.children].find(c=>c.localName===n):null,all=(e,n)=>e?[...e.getElementsByTagNameNS('*',n)]:[],tx=e=>e?e.textContent.trim():'',
+    num=e=>{const v=e?parseFloat(e.textContent):NaN;return isFinite(v)?v:null;},C=v=>v==null?null:Math.round(v>150?v-273.15:v);
+  const sites={};all(R,'site').forEach(s=>{const g=k1(s,'geography'),la=num(k1(g,'latitude')),lo=num(k1(g,'longitude')),nm=tx(k1(s,'name')),lc=tx(k1(g,'location'));
+    sites[s.getAttribute('id')]={place:[nm,lc&&lc!==nm?lc:''].filter(Boolean).join(', ')||null,gps:(la!=null&&lo!=null&&(la||lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180)?{lat:la,lon:lo}:null};});
+  const dc=all(R,'divecomputer')[0],gen=k1(R,'generator'),dev=tx(k1(dc,'model'))||tx(k1(dc,'name'))||tx(k1(gen,'name'));
+  const dives=all(R,'dive').filter(d=>k1(d,'informationbeforedive')||k1(d,'samples')).map(d=>{const ib=k1(d,'informationbeforedive'),ia=k1(d,'informationafterdive');
+    const m=/^(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d)(?::(\d\d))?)?(?:\.\d+)?(Z|[+-]\d\d:?\d\d)?/.exec(tx(k1(ib,'datetime')));if(!m)return null;
+    const loc=Date.UTC(+m[1],m[2]-1,+m[3],+(m[4]||0),+(m[5]||0),+(m[6]||0))/1000;let off=0;
+    if(m[7]&&m[7]!=='Z'){const z=m[7].replace(':','');off=(z[0]==='-'?-1:1)*(+z.slice(1,3)*3600+ +z.slice(3,5)*60);}
+    const raw=[{t:0,d:0}],temps=[];all(k1(d,'samples'),'waypoint').forEach(w=>{const t=num(k1(w,'divetime')),dd=num(k1(w,'depth')),tp=num(k1(w,'temperature'));if(tp!=null)temps.push(C(tp));if(t==null||dd==null)return;if(t<=0)raw[0].d=dd;else raw.push({t,d:dd});});
+    raw.sort((a,b)=>a.t-b.t);const keep=rdpV(raw,0.3).map(q=>({t:Math.round(q.t),d:Math.round(Math.max(0,q.d)*10)/10}));
+    let uwMax=0;{let a=null;raw.forEach(r=>{const u=r.d>0.5;if(u&&a==null)a=r.t;if(!u&&a!=null){uwMax=Math.max(uwMax,r.t-a);a=null;}});if(a!=null)uwMax=Math.max(uwMax,raw[raw.length-1].t-a);}
+    if(!temps.length){const lt=num(k1(ia,'lowesttemperature'));if(lt!=null)temps.push(C(lt));}
+    const st=[...(ib?ib.children:[])].filter(c=>c.localName==='link').map(l=>sites[l.getAttribute('ref')]).find(Boolean)||{};
+    return {startUTC:loc-off,localOff:m[7]?off:0,dur:num(k1(ia,'diveduration'))||raw[raw.length-1].t,maxD:Math.max(0,...raw.map(r=>r.d)),pts:keep,nRaw:raw.length,uwMax,
+      tMin:temps.length?Math.min(...temps):null,tMax:temps.length?Math.max(...temps):null,gps:null,gps0:st.gps||null,place:st.place||null};}).filter(Boolean);
+  return {dev,dives,fmt:'UDDF'};}
+/* 파일 하나 → {dev, dives, fmt}. .fit = FIT, .uddf/.xml = UDDF(아니면 오류) */
+function readDives(name,buf){if(/\.(uddf|xml)$/i.test(name))return uddfToDives(new TextDecoder('utf-8').decode(buf));
+  const o=parseFIT(buf);return {dev:(o.file_id[0]&&o.file_id[0][8])||(o.device_info[0]&&o.device_info[0][27])||'',dives:fitToDives(o),fmt:'FIT'};}
+window.__readDives=readDives;
 /* 프리다이빙 = FIT 세부 종류가 프리다이빙(56)·스피어피싱(57)이거나, 3분 안에 수면으로 올라온 기록(가장 길게 물속에 있던 시간 < 3분) */
 function isFreeDive(d){return d.sub===56||d.sub===57||(d.uwMax!=null&&d.uwMax<180);}
 function rdpV(a,eps){if(a.length<3)return a.slice();const keep=new Uint8Array(a.length);keep[0]=keep[a.length-1]=1;const st=[[0,a.length-1]];
@@ -2043,7 +2068,7 @@ const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return A
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));setTimeout(()=>{try{bkChanged();}catch(e){}},0);return true;}catch(e){return false;}};
 // ===== 하루 = 기록 하나: 같은 날짜의 기록들을 입수 시각 순으로 한 기록(다이빙1·2·3…)에 합침. 수면휴식 = 앞 출수 ~ 다음 입수(1분 단위)
 // 설정(기체·GF·탱크 등)은 다이빙마다(dive.cfg) 가지므로 같은 날은 모두 합침. FIT에서 온 다이빙은 다이빙마다 fit 표시
-const isFitMemo=m=>/\(FIT\)\s*$/m.test(m||'');
+const isFitMemo=m=>/\((FIT|UDDF)\)\s*$/m.test(m||'');
 function mergeDayArr(a,date){const same=a.filter(x=>x.date===date&&x.state&&x.sum);if(same.length<2)return {a,map:null};
   const groups=[same];/* 설정은 다이빙마다 있으므로 같은 날은 모두 합침 */
   let out=a.slice(),map={};groups.forEach(g=>{if(g.length<2)return;
@@ -2059,9 +2084,9 @@ function mergeDayArr(a,date){const same=a.filter(x=>x.date===date&&x.state&&x.su
 function mergeDayStore(date,id,i){const r=mergeDayArr(load(),date);if(!r.map)return null;if(!store(r.a))return null;return r.map[id+':'+i]||null;}
 
 const pad=n=>String(n).padStart(2,'0');
-const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Place: Blue Corner\nSuit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',svFile:'Save',svShare:'Share',cancel2:'Cancel',noShare:'This browser cannot share files. Save as a file instead.',noPrev:'No earlier logs',noNext:'No later logs',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this FIT file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
- :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップするとログを書けます',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件保存',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'場所: 青の洞窟\nスーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',svFile:'保存',svShare:'共有',cancel2:'キャンセル',noShare:'このブラウザはファイル共有に対応していません。ファイルに保存してください。',noPrev:'前のログはありません',noNext:'後のログはありません',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このFITファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`ダイブ${n}本を読み込みました · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
- :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'장소: 문섬\n슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',svFile:'저장하기',svShare:'공유하기',cancel2:'취소',noShare:'이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장해 보내 주세요.',noPrev:'이전 로그가 없습니다',noNext:'이후 로그가 없습니다',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 FIT 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
+const L=()=>LANG==='en'?{wd:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ttl:(y,m)=>y+'.'+pad(m),m:v=>v,ed:(y,m,d,w)=>`${y}.${pad(m)}.${pad(d)} (${w})`,back:'Calendar',hint:'Tap a date to write a log',none:'No dives on this day yet',del:'Delete',in:'in',out:'out',n:k=>k+' saved',dives:k=>k+' dives',saved:'Saved',upd:'Saved',updB:'Update this log',full:'Logbook is full (200). Delete some first.',fail:'Could not save on this browser.',ph:'Place: Blue Corner\nSuit 5mm\nWeight 6kg\nAir / water temp\nVisibility\nMarine life',empty:'Draw a profile first.',min:' min',loaded:'Loaded: ',title:'DTMD Dive Logbook',same:'Nothing changed since it was saved.',svFile:'Save',svShare:'Share',cancel2:'Cancel',noShare:'This browser cannot share files. Save as a file instead.',noPrev:'No earlier logs',noNext:'No later logs',saveQ:'Save the current logs?\n(Downloads the whole logbook as a JSON file)',noLog:'No logs saved yet',exp:k=>`Saved ${k} log(s) to a file`,imp:(k,r)=>`Loaded ${k} log(s)`+(r?` (${r} replaced)`:''),badJ:'Not a DTMD log file',fitB:'Import FIT',fitErr:'Could not read this file.',fitNo:'No depth data in this file.',fitOk:(n,d,t)=>`Imported ${n} dive(s) · ${d} ${t}`,ovl:l=>`⚠ Overlaps the ${l} dive. Saving will delete it and save this one instead.`,repl:k=>`Replaced ${k} overlapping log(s)`}
+ :LANG==='ja'?{wd:['日','月','火','水','木','金','土'],ttl:(y,m)=>y+'年'+m+'月',m:v=>v+'月',ed:(y,m,d,w)=>`${y}年${m}月${d}日 (${w})`,back:'カレンダー',hint:'日付をタップするとログを書けます',none:'この日のダイブはまだありません',del:'削除',in:'入',out:'出',n:k=>k+'件保存',dives:k=>k+'本',saved:'保存完了',upd:'保存完了',updB:'このログを更新',full:'ログブックが一杯です(200件)。',fail:'このブラウザに保存できません。',ph:'場所: 青の洞窟\nスーツ 5mm\nウェイト 6kg\n気温 / 水温\n透明度\n水中生物',empty:'先に経路を描いてください。',min:'分',loaded:'読込: ',title:'DTMD ダイブログブック',same:'保存済みの内容から変更がありません。',svFile:'保存',svShare:'共有',cancel2:'キャンセル',noShare:'このブラウザはファイル共有に対応していません。ファイルに保存してください。',noPrev:'前のログはありません',noNext:'後のログはありません',saveQ:'現在のログを保存しますか?\n(ログブック全体をJSONファイルでダウンロードします)',noLog:'保存されたログがありません',exp:k=>`ログ${k}件をファイルに保存しました`,imp:(k,r)=>`ログ${k}件を読み込みました`+(r?`(${r}件置換)`:''),badJ:'DTMDのログファイルではありません',fitB:'FIT読込',fitErr:'このファイルを読めません。',fitNo:'水深データがありません。',fitOk:(n,d,t)=>`ダイブ${n}本を読み込みました · ${d} ${t}`,ovl:l=>`⚠ ${l}のダイブと時間が重なります。保存すると既存のログを削除して新しく保存します。`,repl:k=>`重なるログ${k}件を置き換えました`}
+ :{wd:['일','월','화','수','목','금','토'],ttl:(y,m)=>y+'년 '+m+'월',m:v=>v+'월',ed:(y,m,d,w)=>`${y}년 ${m}월 ${d}일 (${w})`,back:'달력',hint:'날짜를 누르면 로그를 쓸 수 있어요',none:'이 날 저장한 다이빙이 아직 없어요',del:'삭제',in:'입수',out:'출수',n:k=>k+'개 저장',dives:k=>k+'회',saved:'저장완료',upd:'저장완료',updB:'이 로그 수정',full:'로그북이 가득 찼어요(200개). 먼저 지워주세요.',fail:'이 브라우저에는 저장할 수 없어요.',ph:'장소: 문섬\n슈트 5mm\n웨이트 6kg\n기온 / 수온\n시야\n수중생물',empty:'먼저 경로를 그려주세요.',min:'분',loaded:'불러옴: ',title:'DTMD 다이빙 로그북',same:'저장된 내용과 같아서 저장할 게 없어요.',svFile:'저장하기',svShare:'공유하기',cancel2:'취소',noShare:'이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장해 보내 주세요.',noPrev:'이전 로그가 없습니다',noNext:'이후 로그가 없습니다',saveQ:'현재 로그를 저장하시겠어요?\n(로그북 전체를 JSON 파일로 내려받아요)',noLog:'저장된 로그가 없어요',exp:k=>`로그 ${k}개를 파일로 저장했어요`,imp:(k,r)=>`로그 ${k}개를 불러왔어요`+(r?` (같은 로그 ${r}개 교체)`:''),badJ:'DTMD 로그 파일이 아니에요',fitB:'FIT 불러오기',fitErr:'이 파일을 읽을 수 없어요.',fitNo:'수심 기록이 없는 파일이에요.',fitOk:(n,d,t)=>`다이빙 ${n}개를 불러왔어요 · ${d} ${t}`,ovl:l=>`⚠ ${l} 다이빙과 시간이 겹쳐요. 저장하면 기존 로그를 지우고 새로 저장해요.`,repl:k=>`겹치는 로그 ${k}개를 지우고 저장했어요`};
 const now=new Date();let vy=now.getFullYear(),vm=now.getMonth()+1;   // 달력에 보이는 달
 let LBF=0;/* 로그북 카드 접기: 0 펼침 / 1 반접기 / 2 완전 접힘 */
 let EDIT=null,WROW=false,WKEY='',EY=0,EM=0,ED=0,WBUSY=false,MVT=null;/* MVT = 다른 날짜로 옮길 때의 시각(분): 그때는 앞뒤 다이빙과 겹침 제한 없음 *//* 점선 줄 안 날짜 휠: EDIT = 수정 중인 저장 다이빙, WROW = 휠이 줄 안에 있음, EY/EM/ED = 휠의 날짜(저장 때 옮김) */
@@ -2699,34 +2724,35 @@ async function importFile(f){const t=L();let j,ph={};
     try{if(await window.__photo.get(id))continue;const thumb=ph[id+'_t.jpg']||full,m=meta.get(id)||{};await window.__photo.put({id,full:new Blob([full],{type:'image/jpeg'}),thumb:new Blob([thumb],{type:'image/jpeg'}),ts:m.ts||Date.now(),name:m.name||''});}catch(e){}}
   if(!store(a)){toast(t.fail);return;}renderAll();window.__photo&&window.__photo.refresh&&window.__photo.refresh();flash($('loadBtn'));}
 /* FIT 불러오기: [파일(FIT·ZIP)] / [폴더](폴더 고르기 되는 브라우저: PC 크롬·엣지, 아이폰 iOS 18.4+) → 다이빙만 골라 요약 → 한 번에 */
-const FW=()=>LANG==='en'?{ttl:'Import FIT',files:'Files (FIT·ZIP)',dir:'Folder',cancel:'Cancel',go:'Import',read:(i,n)=>`Reading ${i}/${n}…`,imp:(i,n)=>`Importing ${i}/${n}…`,
-    sum:(f,d,nw,old,ov)=>`FIT files: ${f} · dive files: ${d}<br>New dives: <strong>${nw}</strong>`+(old?`<br>Already in logbook (skipped): ${old}`:'')+(ov?`<br>Overlap with logs you wrote: ${ov} (depth replaced by FIT, memo kept)`:''),none:'No dive FIT files found.',free:n=>`Freediving excluded (surfaced within 3 min): ${n}`,unzip:'No FIT files in this folder, only ZIP files. Please unzip them first (in the Files app, tap the ZIP).',noNew:'All dives are already in the logbook.'}
-  :LANG==='ja'?{ttl:'FIT読込',files:'ファイル(FIT・ZIP)',dir:'フォルダ',cancel:'キャンセル',go:'読み込む',read:(i,n)=>`読み取り中 ${i}/${n}…`,imp:(i,n)=>`読み込み中 ${i}/${n}…`,
-    sum:(f,d,nw,old,ov)=>`FITファイル ${f}件 · ダイブ ${d}件<br>新しいダイブ: <strong>${nw}</strong>`+(old?`<br>登録済み(スキップ): ${old}`:'')+(ov?`<br>手入力ログと重なる: ${ov}(水深をFITに置換・メモは維持)`:''),none:'ダイブのFITファイルが見つかりません。',free:n=>`フリーダイビング除外(3分以内に浮上): ${n}`,unzip:'このフォルダにはFITがなくZIPだけです。先にZIPを解凍してください(ファイルAppでZIPをタップ)。',noNew:'すべてのダイブは登録済みです。'}
-  :{ttl:'FIT 불러오기',files:'파일 (FIT·ZIP)',dir:'폴더',cancel:'취소',go:'불러오기',read:(i,n)=>`읽는 중 ${i}/${n}…`,imp:(i,n)=>`불러오는 중 ${i}/${n}…`,
-    sum:(f,d,nw,old,ov)=>`FIT 파일 ${f}개 중 다이빙 ${d}개<br>새 다이빙: <strong>${nw}</strong>`+(old?`<br>이미 있는 로그(건너뜀): ${old}`:'')+(ov?`<br>직접 쓴 로그와 겹침: ${ov} (수심만 FIT로 바꾸고 메모는 유지)`:''),none:'다이빙 FIT 파일을 찾지 못했어요.',free:n=>`프리다이빙 제외(3분 안에 수면 상승): ${n}개`,unzip:'이 폴더에는 FIT 없이 ZIP만 있어요. 먼저 압축을 풀어 주세요(파일 앱에서 ZIP을 누르면 풀립니다).',noNew:'모든 다이빙이 이미 로그북에 있어요.'};
+const FW=()=>LANG==='en'?{ttl:'Import FIT·UDDF',files:'Files (FIT·ZIP)',dir:'Folder',cancel:'Cancel',go:'Import',read:(i,n)=>`Reading ${i}/${n}…`,imp:(i,n)=>`Importing ${i}/${n}…`,
+    sum:(f,d,nw,old,ov)=>`Files: ${f} · dives: ${d}<br>New dives: <strong>${nw}</strong>`+(old?`<br>Already in logbook (skipped): ${old}`:'')+(ov?`<br>Overlap with logs you wrote: ${ov} (depth replaced, memo kept)`:''),none:'No dive records (FIT·UDDF) found.',free:n=>`Freediving excluded (surfaced within 3 min): ${n}`,unzip:'No FIT/UDDF files in this folder, only ZIP files. Please unzip them first (in the Files app, tap the ZIP).',noNew:'All dives are already in the logbook.'}
+  :LANG==='ja'?{ttl:'FIT・UDDF読込',files:'ファイル(FIT・ZIP)',dir:'フォルダ',cancel:'キャンセル',go:'読み込む',read:(i,n)=>`読み取り中 ${i}/${n}…`,imp:(i,n)=>`読み込み中 ${i}/${n}…`,
+    sum:(f,d,nw,old,ov)=>`ファイル ${f}件 · ダイブ ${d}本<br>新しいダイブ: <strong>${nw}</strong>`+(old?`<br>登録済み(スキップ): ${old}`:'')+(ov?`<br>手入力ログと重なる: ${ov}(水深を置換・メモは維持)`:''),none:'ダイブ記録(FIT・UDDF)が見つかりません。',free:n=>`フリーダイビング除外(3分以内に浮上): ${n}`,unzip:'このフォルダにはFIT・UDDFがなくZIPだけです。先にZIPを解凍してください(ファイルAppでZIPをタップ)。',noNew:'すべてのダイブは登録済みです。'}
+  :{ttl:'FIT·UDDF 불러오기',files:'파일 (FIT·ZIP)',dir:'폴더',cancel:'취소',go:'불러오기',read:(i,n)=>`읽는 중 ${i}/${n}…`,imp:(i,n)=>`불러오는 중 ${i}/${n}…`,
+    sum:(f,d,nw,old,ov)=>`파일 ${f}개 · 다이빙 ${d}개<br>새 다이빙: <strong>${nw}</strong>`+(old?`<br>이미 있는 로그(건너뜀): ${old}`:'')+(ov?`<br>직접 쓴 로그와 겹침: ${ov} (수심만 바꾸고 메모는 유지)`:''),none:'다이빙 기록(FIT·UDDF)을 찾지 못했어요.',free:n=>`프리다이빙 제외(3분 안에 수면 상승): ${n}개`,unzip:'이 폴더에는 FIT·UDDF 없이 ZIP만 있어요. 먼저 압축을 풀어 주세요(파일 앱에서 ZIP을 누르면 풀립니다).',noNew:'모든 다이빙이 이미 로그북에 있어요.'};
 const fitPop=()=>{const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><b></b><p></p><div class="lwBtns"></div></div>';document.body.appendChild(ov);
   const P={ov,set(t,h,btns){ov.querySelector('b').textContent=t;ov.querySelector('p').innerHTML=h||'';const bb=ov.querySelector('.lwBtns');bb.innerHTML='';(btns||[]).forEach(([lab,cls,fn])=>{const b=document.createElement('button');b.textContent=lab;b.className=cls||'';b.onclick=fn;bb.appendChild(b);});},close(){ov.remove();}};return P;};
 const DIRSUP=(()=>{try{return 'webkitdirectory' in document.createElement('input');}catch(e){return false;}})();
 /* [FIT] = 바로 폴더 고르기(폴더 고르기가 안 되는 기기는 파일 고르기: FIT·ZIP) */const fitPick=()=>{$(DIRSUP?'fitDir':'fitIn').click();};
 $('fitBtn').onclick=fitPick;$('fitBtn2').onclick=fitPick;
 /* 폴더: .fit만 읽음(ZIP은 관계없는 큰 파일일 수 있어 무시). .fit이 없고 ZIP만 있으면 압축 풀기 안내 */
-$('fitDir').onchange=()=>{const all=[...$('fitDir').files];$('fitDir').value='';const fs=all.filter(f=>/\.fit$/i.test(f.name));
+$('fitDir').onchange=()=>{const all=[...$('fitDir').files];$('fitDir').value='';const fs=all.filter(f=>/\.(fit|uddf)$/i.test(f.name)||(/\.xml$/i.test(f.name)&&f.size<3e7));
   if(!fs.length&&all.some(f=>/\.zip$/i.test(f.name))){const w=FW(),P=fitPop();P.set(w.ttl,w.unzip,[['OK','lwS',()=>P.close()]]);return;}fitBulk(fs);};
 // 여러 파일·폴더·ZIP: 다이빙 FIT만 골라 요약 → 확인하면 시간 순으로 한 번에
 async function fitBulk(files){const w=FW(),P=fitPop();let srcs=[],nF=0;const t0=L();
   try{P.set(w.ttl,w.read(0,files.length));
     // ZIP 풀기(안에 ZIP이 또 있으면 한 단계 더)
-    for(const f of files){if(/\.zip$/i.test(f.name)){try{const z=await zipRead(await f.arrayBuffer(),n=>/\.(fit|zip)$/i.test(n));for(const [n,b] of Object.entries(z)){if(!b)continue;if(/\.zip$/i.test(n)){try{const z2=await zipRead(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),m=>/\.fit$/i.test(m));for(const [m,c] of Object.entries(z2))if(c)srcs.push({name:m,buf:c.buffer.slice(c.byteOffset,c.byteOffset+c.byteLength)});}catch(e){}}else srcs.push({name:n,buf:b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)});}}catch(e){}}
+    for(const f of files){if(/\.zip$/i.test(f.name)){try{const z=await zipRead(await f.arrayBuffer(),n=>/\.(fit|uddf|xml|zip)$/i.test(n));for(const [n,b] of Object.entries(z)){if(!b)continue;if(/\.zip$/i.test(n)){try{const z2=await zipRead(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),m=>/\.(fit|uddf|xml)$/i.test(m));for(const [m,c] of Object.entries(z2))if(c)srcs.push({name:m,buf:c.buffer.slice(c.byteOffset,c.byteOffset+c.byteLength)});}catch(e){}}else srcs.push({name:n,buf:b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)});}}catch(e){}}
       else srcs.push({name:f.name,file:f});}
     nF=srcs.length;const dv=[],all=load();let old=0,ovm=0,nDF=0,nFree=0;
     for(let i=0;i<srcs.length;i++){if(i%5===0){P.set(w.ttl,w.read(i,srcs.length));await new Promise(r=>setTimeout(r,0));}const s0=srcs[i];
-      try{const buf=s0.buf||await s0.file.arrayBuffer();const o=parseFIT(buf);let ds=fitToDives(o);ds.forEach(d=>{d.pts=trimSurface(d.pts);});ds=ds.filter(d=>d.pts.length>1&&d.maxD>0.5);{const fr=ds.filter(isFreeDive).length;if(fr){nFree+=fr;ds=ds.filter(d=>!isFreeDive(d));}}if(!ds.length)continue;nDF++;
-        const off=ds[0].localOff!=null?ds[0].localOff:-new Date(ds[0].startUTC*1000).getTimezoneOffset()*60,loc=u=>new Date((u+off)*1000),l0=loc(ds[0].startUTC),date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
-        let fresh=0;for(const d of ds){const l=loc(d.startUTC),sm=l.getUTCHours()*60+l.getUTCMinutes()+l.getUTCSeconds()/60,dur=d.pts[d.pts.length-1].t/60;
+      try{const buf=s0.buf||await s0.file.arrayBuffer();const R=readDives(s0.name,buf);let ds=R.dives;ds.forEach(d=>{d.pts=trimSurface(d.pts);});ds=ds.filter(d=>d.pts.length>1&&d.maxD>0.5);{const fr=ds.filter(isFreeDive).length;if(fr){nFree+=fr;ds=ds.filter(d=>!isFreeDive(d));}}if(!ds.length)continue;nDF+=ds.length;
+        /* 한 파일에 여러 날 다이빙(UDDF)이 있으면 날짜별 묶음으로 나눔 — fitOne은 한 날짜씩 처리 */
+        const grp={};for(const d of ds){const off=d.localOff!=null?d.localOff:-new Date(d.startUTC*1000).getTimezoneOffset()*60,l=new Date((d.startUTC+off)*1000),date=l.getUTCFullYear()+'-'+pad(l.getUTCMonth()+1)+'-'+pad(l.getUTCDate());
+          const sm=l.getUTCHours()*60+l.getUTCMinutes()+l.getUTCSeconds()/60,dur=d.pts[d.pts.length-1].t/60;(grp[date]=grp[date]||{ds:[],fresh:0}).ds.push(d);
           let hit=null;for(const x of all.filter(x=>x.date===date)){const rows=rowsOf(x);(x.state.dives||[]).forEach((q,k)=>{const r=rows[k];if(!r||r.st==null)return;if(r.st<sm+dur&&sm<r.st+r.N/60)hit=hit||{fit:q.fit||isFitMemo(diveMemo(x,k))};});}
-          if(hit&&hit.fit)old++;else{fresh++;if(hit)ovm++;}}
-        if(fresh)dv.push({name:s0.name,buf,t:ds[0].startUTC,n:fresh});}catch(e){}}
+          if(hit&&hit.fit)old++;else{grp[date].fresh++;if(hit)ovm++;}}
+        for(const g of Object.values(grp))if(g.fresh)dv.push({name:s0.name,pre:true,dives:g.ds,dev:R.dev,fmt:R.fmt,t:g.ds[0].startUTC,n:g.fresh});}catch(e){}}
     const nNew=dv.reduce((a,b)=>a+b.n,0);
     const fl=nFree?'<br>'+w.free(nFree):'';
     if(!nF||!nDF){P.set(w.ttl,w.none+fl,[['OK','lwS',()=>P.close()]]);return;}
@@ -2734,7 +2760,7 @@ async function fitBulk(files){const w=FW(),P=fitPop();let srcs=[],nF=0;const t0=
     const go=await new Promise(ok=>P.set(w.ttl,w.sum(nF,nDF,nNew,old,ovm)+fl,[[w.cancel,'lwC',()=>ok(false)],[w.go,'lwS',()=>ok(true)]]));
     if(!go){P.close();return;}
     dv.sort((a,b)=>a.t-b.t);FITQ={n:0,rep:0};let ok=0,bad=0;
-    for(let i=0;i<dv.length;i++){P.set(w.ttl,w.imp(i+1,dv.length));const d=dv[i];const r=await fitOne({name:d.name,arrayBuffer:async()=>d.buf},true);if(r)ok++;else bad++;}
+    for(let i=0;i<dv.length;i++){P.set(w.ttl,w.imp(i+1,dv.length));const d=dv[i];const r=await fitOne(d,true);if(r)ok++;else bad++;}
     const q=FITQ;FITQ=null;P.close();msg(LANG==='en'?`${q.n} dives imported${bad?` · ${bad} failed`:''}`:LANG==='ja'?`ダイブ${q.n}本を読み込みました${bad?` · 失敗${bad}`:''}`:`다이빙 ${q.n}개를 불러왔어요${bad?` · 실패 ${bad}`:''}`,!!bad);}
   catch(e){console.error(e);P.close();msg(t0.fitErr,true);}}
 // GPS → 지역 이름(OpenStreetMap Nominatim). 실패하면 null
@@ -2746,20 +2772,22 @@ async function placeName(lat,lon){try{const ac=new AbortController(),tm=setTimeo
 // FIT 불러오기: 같은 날 다이빙은 입수 시각 순으로 연속 다이빙(다이빙1·2…), 수면휴식 = 앞 출수~다음 입수, 1분 단위 반올림(10분 내림은 다시 불러올 때마다 시각이 밀려서 바꿈)
 // 여러 파일: 이름(=기록 시각) 순으로 하나씩 처리, 끝나면 결과 요약
 $('fitIn').onchange=async()=>{const fs=[...$('fitIn').files].sort((a,b)=>a.name.localeCompare(b.name));$('fitIn').value='';if(!fs.length)return;
-  if(fs.length===1&&!/\.zip$/i.test(fs[0].name)){await fitOne(fs[0]);return;}fitBulk(fs);return;let ok=0,bad=0;FITQ={n:0,rep:0};for(const f of fs){const r=await fitOne(f,true);if(r)ok++;else bad++;}
+  if(fs.length===1&&/\.fit$/i.test(fs[0].name)){await fitOne(fs[0]);return;}fitBulk(fs);return;let ok=0,bad=0;FITQ={n:0,rep:0};for(const f of fs){const r=await fitOne(f,true);if(r)ok++;else bad++;}
   const q=FITQ;FITQ=null;msg(LANG==='en'?`${ok} FIT files imported (${q.n} dives, ${q.rep} updated)${bad?` · ${bad} failed`:''}`:LANG==='ja'?`FIT ${ok}件 読み込み(ダイブ${q.n}・更新${q.rep})${bad?` · 失敗${bad}`:''}`:`FIT ${ok}개 불러옴(다이빙 ${q.n} · 갱신 ${q.rep})${bad?` · 실패 ${bad}`:''}`,!!bad);};
 let FITQ=null;
-async function fitOne(f,quiet){const t=L();let dives;
-  let dev='';try{const o=parseFIT(await f.arrayBuffer());dev=(o.file_id[0]&&o.file_id[0][8])||(o.device_info[0]&&o.device_info[0][27])||'';dives=fitToDives(o);}catch(e){msg(t.fitErr,true);return;}
-  dives.forEach(d=>{d.pts=trimSurface(d.pts);});dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);const nFree=dives.filter(isFreeDive).length;dives=dives.filter(d=>!isFreeDive(d));
+async function fitOne(f,quiet){const t=L();let dives,dev='',fmt='FIT',nFree=0;
+  /* f.pre = 일괄 불러오기에서 이미 읽고 거른 같은 날 다이빙 묶음 */
+  if(f.pre){dives=f.dives;dev=f.dev||'';fmt=f.fmt||'FIT';}
+  else{try{const r=readDives(f.name,await f.arrayBuffer());dev=r.dev;dives=r.dives;fmt=r.fmt;}catch(e){msg(t.fitErr,true);return;}
+    dives.forEach(d=>{d.pts=trimSurface(d.pts);});dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);nFree=dives.filter(isFreeDive).length;dives=dives.filter(d=>!isFreeDive(d));}
   if(!dives.length){msg(nFree?(LANG==='en'?'Freediving record – not imported.':LANG==='ja'?'フリーダイビングの記録のため読み込みません。':'프리다이빙 기록이라 불러오지 않았어요.'):t.fitNo,true);return;}
   const off=dives[0].localOff!=null?dives[0].localOff:-new Date(dives[0].startUTC*1000).getTimezoneOffset()*60;
   const loc=u=>new Date((u+off)*1000);const l0=loc(dives[0].startUTC);const date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
   const minOf=u=>{const d=loc(u);return d.getUTCHours()*60+d.getUTCMinutes()+d.getUTCSeconds()/60;};
   const PL=LANG==='en'?'Location: ':LANG==='ja'?'位置: ':'위치: ',WT=LANG==='en'?'Water ':LANG==='ja'?'水温 ':'수온 ';
-  for(const d of dives){d.place=d.gps?await placeName(d.gps.lat,d.gps.lon):null;}
+  for(const d of dives){const g=d.gps||d.gps0;d.place=d.place||(g?await placeName(g.lat,g.lon):null);}
   const imp=dives.map(d=>({s:minOf(d.startUTC),dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true,
-    memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.fit$/i,''))+' (FIT)',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps0?('GPS '+(LANG==='en'?'entry':LANG==='ja'?'エントリー':'입수')+' '+d.gps0.lat.toFixed(5)+', '+d.gps0.lon.toFixed(5)):'',d.gps?('GPS '+(LANG==='en'?'exit':LANG==='ja'?'エキジット':'출수')+' '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
+    memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.(fit|uddf|xml)$/i,''))+' ('+fmt+')',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps0?('GPS '+(LANG==='en'?'entry':LANG==='ja'?'エントリー':'입수')+' '+d.gps0.lat.toFixed(5)+', '+d.gps0.lon.toFixed(5)):'',d.gps?('GPS '+(LANG==='en'?'exit':LANG==='ja'?'エキジット':'출수')+' '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
   // 같은 날 기존 다이빙 펼치기
   const all=load(),same=all.filter(x=>x.date===date).sort((p,q)=>(p.time||'').localeCompare(q.time||''));const old=[];let base=null;
   same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,10):[],fit:d.fit||isFitMemo(diveMemo(x,i)),cfg:d.cfg||Object.fromEntries(KEYS.filter(k=>k in x.state).map(k=>[k,x.state[k]]))});});if(!base)base=x;});

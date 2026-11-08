@@ -1,39 +1,47 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-08 14:00 (v2.4.2) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
-시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md의 '기본화면'과 가장 최신 '새 대화 시작용 요약'부터 읽은 뒤, '다음에 할 것' 목록을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
+최종 갱신: 2026-11-08 14:25 (v2.5.0) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
 
-## ▶▶ 새 대화 시작용 (2026-11-08 14:00, v2.4.2) — 가장 최신. 여기부터 읽을 것
-현재 상태: v2.4.2까지 main 반영 완료(아래 ★ 항목들). 다음 대화에서 할 일은 A·B 두 가지. 사용자 규칙대로 **바로 작업하지 말고 선택지·추천을 먼저 보여주고 "ㄱㄱ" 받은 뒤 진행.**
+## ▶▶ 새 대화 시작용 (2026-11-08 14:25, v2.5.0) — 가장 최신. 여기부터 읽을 것
+현재 상태: v2.5.0까지 main 반영(A-1 끝). 다음 할 일 = B(언어 추가). 사용자 규칙대로 **바로 작업하지 말고 선택지·추천 먼저, "ㄱㄱ" 받은 뒤 진행.** (11/08 14:07 결정은 아래에 확정으로 적음 → B는 이 결정대로 시작 가능)
 
-### A. Shearwater·Suunto 로그 가져오기 (현재는 Garmin FIT만)
-- 지금 구조: `#fitIn`(accept .fit,.zip) → `fitBulk(files)` → 파싱 → `fitToDives(o)`가 앱 내부 다이빙 객체로 변환. 새 형식도 **같은 다이빙 객체로 변환하는 파서만 추가**하면 나머지(그래프·로그북·지도)는 그대로 씀.
-- 선택지(상의 필요):
-  - a) **UDDF + Subsurface(.ssrf/.xml)** 먼저 — 표준 XML이라 Subsurface를 거치면 대부분의 다이브컴퓨터를 커버. (추천: 1순위)
-  - b) **Shearwater Cloud 내보내기**(CSV/XML 또는 .db) 전용 파서.
-  - c) **Suunto**(Suunto 앱 내보내기 .fit/.json, 구형 DM5 .sml) 전용 파서. 신형 Suunto가 FIT이면 기존 FIT 파서 재사용 가능한지 확인.
-- 필요한 것: **사용자에게 실제 샘플 파일 요청**(Shearwater·Suunto·UDDF 각 1~2개). 형식 세부(필드명·단위·GPS·가스 전환)는 샘플로 확인 — 추측으로 짜지 말 것.
-- 확인 포인트: 깊이·시간·수온·가스(O2/He)·가스 전환·GF 설정·입출수 GPS, 여러 다이빙이 한 파일에 든 경우, 중복 가져오기 방지(기존 FIT 중복 판정 재사용).
+### 11/08 14:07 사용자 결정(확정)
+- 순서: A 먼저 → B.
+- A 범위: **A-1만**(Suunto FIT + UDDF). [FIT] 버튼 이름·동작 그대로(A②: 폴더 바로 고르기, 안 되는 기기는 파일 고르기).
+- B 진행: **B-a** = ① 인라인 언어 3분기(`LANG==='en'?..:LANG==='ja'?..:..`) 약 52곳을 I18N 키로 정리(화면 변화 없음) → ② de·es·zh(간체 zh-CN) 화면 문구 → ③ 튜토리얼 문구·음성 마지막.
+- 언어 버튼 UI: **B①** = 머리줄 [KR|EN|JP] 대신 지금 언어 하나 [KR ▾] → 누르면 목록(한국어·English·日本語·Deutsch·Español·简体中文). (B② 6개 나란히는 360px에서 너무 작아 기각)
+- 언어 자동 설정: **a안** = 우선순위 ① 주소 해시(#en #ja #de #es #zh, +'-log') ② 사용자가 직접 고른 언어(기기 저장) ③ 브라우저 언어(navigator.languages: ko·en·ja·de·es·zh-CN/zh-Hans/zh-SG) ④ 지원 안 하는 언어 = 영어. 번체(zh-TW·zh-HK·zh-Hant) = 영어. → 11/07 '처음엔 항상 한국어' 규칙을 대체. 주의: 구글 검색 로봇(en-US)이 /scuba를 영어로 색인할 수 있음 → 로봇(navigator.webdriver·UA Googlebot)이면 한국어 유지 등 처리 필요.
+- 중국어 = 간체.
 
-### B. 언어 추가: 독일어·스페인어·중국어
-- 지금 구조: `I18N={ko,en,ja}`(433행~, 키 약 60줄씩) + 코드 곳곳의 `LANG==='en'?..:LANG==='ja'?..:..` 인라인 3분기 **52곳** + 튜토리얼 `TUTL{en,ja}` + 시작 화면 언어 버튼 + 주소 `#en`·`#ja`.
-- 선택지(상의 필요):
-  - a) **먼저 인라인 3분기 52곳을 I18N 키로 정리**(v2.5.0, 화면 변화 없음) → 그다음 de·es·zh 화면 문구 추가(v2.6.0) → 튜토리얼 문구·음성은 마지막. (추천)
-  - b) 화면 문구만 먼저 3개 언어 추가, 튜토리얼은 한국어/영어로 대체.
-  - c) 튜토리얼까지 한 번에.
-- 정할 것: 중국어 **간체(zh-CN) / 번체(zh-TW)** 중 무엇(시장 규모상 간체 추천). 주소 해시 `#de #es #zh`. 시작 화면 버튼 6개 배치(폭 좁은 폰).
-- 주의: 독일어는 문구가 길어 버튼·설정 요약 줄(`fitSetSum`)·막대 라벨 넘침 점검. 중국어는 CJK 글꼴·TTS 음성(zh-CN) 확인. 브라우저 음성 속도 cps 값(T0.rate)을 언어별로 추가(de≈13, es≈14, zh≈6 정도에서 시작해 조정).
-- 번역은 직역 + 다이빙 용어는 각국 관용어(예: GF, NDL, 감압정지 = Dekostopp / parada de descompresión / 减压停留). 사용 안내서(guide/)는 이번 범위 아님.
+### A-1 결과 (v2.5.0, 11/08 14:25)
+- 샘플: 사용자 샘플 없음 → Subsurface 저장소 dives/ 테스트 파일 사용(github.com/subsurface/subsurface): suunto_ocean_nitrox.fit, suunto_*.json(Ocean·Nautic·EON Core, 정답 xml 포함), TestDiveShearwaterCloud.db(+정답 xml), *.uddf 7개(Subsurface·DivingLog·AP DiveSight).
+- Suunto Ocean FIT: 기존 파서로 그대로 읽힘(장비명 'Suunto Ocean', 10.6m·66분·수온). 위치 없음이 (0,0)으로 기록됨 → fitToDives에서 (0,0) GPS 버림. Suunto FIT에는 탱크 압력·기체 소모가 빠진다는 사용자 보고 있음(포럼).
+- UDDF: `uddfToDives(txt)`(DOMParser, 네임스페이스 무관 localName) → fitToDives와 같은 다이빙 모양. 수심 m·시간 s·온도 K(150 넘으면 켈빈). 시각에 시간대 없으면 현지 시각(localOff 0). 다이브 사이트 GPS = 입수 GPS(gps0), 사이트 이름(+location) = 위치 줄(nominatim 안 부름). 장비명 = divecomputer model/name → generator name. 정답 비교: test42 = 39.0m·78분·4°C(Subsurface 정답 38.99m·77:54·4.3°C).
+- `readDives(name,buf)` → {dev,dives,fmt}: .fit = FIT, .uddf/.xml = UDDF(루트가 uddf 아니면 오류 = 건너뜀). window.__readDives(테스트용).
+- 일괄(fitBulk): 한 파일에 여러 날 다이빙(UDDF)이 있으면 날짜별 묶음으로 나눠 fitOne({pre:true,dives,dev,fmt})로 처리. 요약 문구 '파일 N개 · 다이빙 M개'(전엔 FIT 파일 수), 제목 'FIT·UDDF 불러오기'. 메모 줄 '장비명 (UDDF)', isFitMemo가 (FIT|UDDF) 둘 다 인식(중복 판정).
+- 고르기: 파일 accept .fit,.uddf,.xml,.zip / 폴더 = .fit·.uddf·.xml(30MB 미만) / ZIP 안도 같은 형식. 파일 하나만 고르면 .fit은 예전처럼 바로, 그 밖은 요약 창.
+- 위치 이름: FIT도 출수 GPS 없고 입수 GPS만 있으면 입수 GPS로 지명 찾기(전엔 출수만).
+- 테스트(크롬): 여러 파일(UDDF 3·FIT 2) → 4개 불러옴(2분짜리 테스트 다이빙 1개는 프리다이빙 규칙으로 제외), 다시 불러오기 = 4개 모두 건너뜀, UDDF 하나만 = 건너뜀, 폴더(하위 폴더 포함, .db·비UDDF xml 무시) 정상, FIT 하나 = 예전처럼 바로.
+- 한계: **Shearwater Cloud가 직접 만든 UDDF 샘플은 못 구함**(표준대로 짬) → 실제 Shearwater 파일로 확인 필요. 기체(O2/He)·기체 전환·GF·탱크 압력은 FIT과 마찬가지로 아직 안 가져옴(수심·시간·수온·위치만).
+- 남은 A(보류): A-2 Shearwater .db 직접 읽기(SQLite 안 log_data.data_bytes_1 = 'sw-pnf' 형식, 앞 4바이트 뒤 gzip → 바이너리 레코드. sql.js 약 1MB를 .db 고를 때만 불러오기. 정답 xml로 검증 가능), A-3 Suunto 앱 JSON(DeviceLog.Header/Samples, 기체 정보 있음).
+
+### B. 언어 추가: 독일어·스페인어·중국어(간체) — 다음 작업
+- 지금 구조: `I18N={ko,en,ja}`(433행~, 키 약 60줄씩) + 코드 곳곳의 인라인 3분기 **52곳** + 튜토리얼 `TUTL{en,ja}` + 머리줄 언어 버튼(.seg.lang) + 주소 `#en`·`#ja`. 시작 화면에는 언어 버튼 없음(spLang이 지금 언어로 표시).
+- 주의: 독일어는 문구가 길어 버튼·설정 요약 줄(`fitSetSum`)·막대 라벨 넘침 점검. 중국어는 CJK 글꼴·TTS 음성(zh-CN) 확인. 브라우저 음성 속도 cps(T0.rate)를 언어별로 추가(de≈13, es≈14, zh≈6에서 시작). nominatim accept-language도 언어별로.
+- 번역은 직역 + 다이빙 용어는 각국 관용어(GF, NDL, 감압정지 = Dekostopp / parada de descompresión / 减压停留). 사용 안내서(guide/)는 범위 아님.
 
 ### 그 외 대기
-- 실기기 확인: iOS 파일 앱 같은 이름 저장 시 '대치' 묻는지, 안드로이드 백업 폴더, 안드로이드 설치 안내, 지도 팝업 터치 누른 채 끌기, 실제 음성 속도, 카카오 광고 표시.
+- 실기기 확인: iOS 파일 앱 같은 이름 저장 시 '대치' 묻는지, 안드로이드 백업 폴더, 안드로이드 설치 안내, 지도 팝업 터치 누른 채 끌기, 실제 음성 속도, 카카오 광고 표시, **iOS에서 .uddf 파일이 파일 고르기에서 선택되는지**.
 - 접기 삼각형(.foldB) 2px 어긋남 — 사용자 답 대기.
 - 참고(11/08 조사): 경쟁 제품 대비 차별점 = 설치 없는 웹앱·Garmin FIT 깊은 분석·플랜↔로그↔조직 그래프 한 화면·교육용 튜토리얼·한/일어. 수익은 광고 단독으로는 작음 → Garmin 분석·강사 교육 도구 쪽 포지셔닝 추천.
 
 ## ★ 버전 규칙 (11/07부터)
 - scuba.html 맨 앞 `const APP_VER='x.y.z'` — main에 올릴 때마다 끝자리 +1, 큰 기능 변경은 가운데 자리 +1(끝자리 0). 시작 화면 ↻ 옆에 'v' + 버전 표시(날짜·시간 표시는 삭제).
 - 2.0.1 = 11/07 11:20 첫 버전.
+
+## ★ 11/08 14:25 v2.5.0 Suunto FIT 보정 · UDDF 가져오기 (자세한 건 맨 앞 'A-1 결과')
 
 ## ★ 11/08 13:55 v2.4.2 브라우저 음성은 단계 제목(① 그리기 모드 등)을 읽지 않고 본문만 읽음(녹음 파일은 녹음 그대로).
 
