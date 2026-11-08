@@ -9,6 +9,10 @@
 현재 상태: v2.7.0까지 main 반영. 11/08 14:53 사용자 "ㄱㄱ 중간에 묻지말고 다 진행후 보고" → 추천 순서 1(배포 확인) → 5(A-3 Suunto JSON) → 7(구버전 문제) 진행.
 다음 후보: 카톡 공유 디버거로 언어별 미리보기 확인(사용자), 실기기 확인(아래 '그 외 대기' + 새 항목), 3개 언어 원어민 검수, 튜토리얼 녹음(tut/script_de_es_zh.txt), A-2 Shearwater .db, 사용 안내서(guide/) 다국어, 기체(O2/He)·탱크 압력 가져오기(FIT·UDDF·JSON 공통, 아직 안 함), 아이폰 시작 화면 하단 띠(보류).
 
+### 11/08 15:15 사용자 결정: 입수·출수 지점 저장 = 그대로 둠
+- 규칙: 지점을 옮긴 뒤 로그 줄 [저장]을 눌러야 확정. 크롬 확인 = 이미 그렇게 동작(핀 버튼 → openLocEd → 메모창만 바뀜, 저장된 로그는 그대로, 지도 닫아도 [취소][저장] 유지).
+- 참고: 옛 .mapb 경로(renderList 안 openMap → 바로 store)는 즉시 저장하지만 화면에 버튼이 없어 쓰이지 않음. 사용자 결정으로 손대지 않음 — 되살릴 때는 [저장] 확정 방식으로 바꿀 것.
+
 ### v2.7.0 결과 (11/08) — 공유 페이지 점검 · Suunto 앱 JSON · 열 때 최신 버전 확인
 1) 배포 확인: 0555ea2(v2.6.1) GitHub Pages 배포 success(05:50 UTC). 이 작업 환경에서는 moneypie.kr에 접속 못 해 실제 응답·카톡 미리보기는 확인 못 함 → 사용자가 카카오 공유 디버거(developers.kakao.com/tool/debugger/sharing)에서 /dtmd-en 등 캐시 비우고 확인 필요.
    - 수정: 공유 페이지 7개(dtmd-en/ja/de/es/zh.html, plan.html, dive.html)에서 `<meta http-equiv="refresh">` 삭제, JS location.replace만 남김. 이유: 미리보기 수집 로봇이 meta refresh는 따라갈 수 있음(→ scuba.html의 한국어 og를 가져갈 위험). 로봇은 JS를 안 돌리므로 JS 이동은 사람만 이동. JS 꺼진 브라우저는 본문 링크를 눌러야 함. dtmd.html(한국어로 이동)은 그대로.
