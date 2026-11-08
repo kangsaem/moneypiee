@@ -8,6 +8,12 @@
 현재 상태: v2.6.0까지 main 반영. A-1(Suunto FIT·UDDF)과 B(독일어·스페인어·중국어 간체: 화면·튜토리얼·언어 목록·자동 설정) 끝. 사용자 규칙대로 새 작업은 선택지·추천 먼저(단, 11/08 14:21 사용자가 "묻지 말고 한 번에"로 B를 한꺼번에 진행시킴).
 다음 후보: 실기기 확인(아래 '그 외 대기'), 3개 언어 원어민 검수, 튜토리얼 녹음(tut/script_de_es_zh.txt), A-2 Shearwater .db, A-3 Suunto JSON, 사용 안내서(guide/) 다국어.
 
+### 보류(11/08 14:48 사용자: "나중에 수정하자, 지금은 그냥 두고") — 언어별 이름·미리보기
+- 지금 한글로 남는 곳: ① 링크 미리보기(og:title·og:description·twitter:title·meta description = 'DTMD 다이빙 플래너' / '3분 강의 / 초보를 위한 무감압·감압 / 컵라면 익기전에 다 배움') ② 설치 이름(dtmd.webmanifest name 'DTMD 다이빙 플래너', lang ko-KR → 안드로이드·PC 설치 창·앱 정보) ③ 앱 코드를 다 받기 전 잠깐: 탭 제목(<title>), 상단 이름(h1), [로그북] 버튼, 시작 화면 글자(정적 HTML이 한국어, applyLang·spLang이 본체 스크립트 끝에서 바꿈).
+- 언어 무관이라 그대로 둘 것: 아이폰 홈 화면 이름(apple-mobile-web-app-title 'DTMD'), short_name 'DTMD', 아이콘·dtmd-launch 실행 그림·og-scuba3.jpg(영어 'Don’t Touch Maximum Depth').
+- 제안했던 계획(아직 ㄱㄱ 전): 1) 맨 앞 작은 스크립트에서 언어를 먼저 정해(규칙은 여기 한 곳, 본체 LANG은 그 결과 사용) 탭 제목·h1·modeBtn·시작 화면 글자·manifest href를 첫 화면부터 그 언어로 2) 언어별 manifest 6개(name만 언어별, id·start_url·short_name 같음) 3) 언어별 공유 주소 dtmd-en/ja/de/es/zh.html(그 언어 og·twitter·description + scuba.html#xx로 이동), plan.html·dive.html에도 og 4) hreflang. 한계: 주소 하나에 미리보기 하나(/scuba는 한국어 유지), 설치된 안드로이드 앱 이름은 크롬 업데이트 때 바뀜, 카톡 미리보기 캐시.
+- /scuba 미리보기를 영어로 바꾸는 안은 사용자가 취소(한국어 유지).
+
 ### B ②③ 결과 (v2.6.0, 11/08 15:20)
 - I18N에 de·es·zh 블록(키 136 + 설명 36, 빠진 키 없음; zh는 ko·ja처럼 axisLast 없음). 사전형 LX 17곳 모두 de·es·zh 추가.
 - 머리줄 언어: [KR|EN|JP] → `#langBtn`(지금 언어 KR/EN/JP/DE/ES/中文 + ▾, 흰 버튼) → `#langMenu`(한국어·English·日本語·Deutsch·Español·简体中文, 지금 언어 하늘색 배경). 목록 밖 누르기·Esc·고르기 = 닫힘. 기존 [data-lang] 클릭 처리 그대로.
