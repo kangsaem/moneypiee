@@ -266,7 +266,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.4.0';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.4.1';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
@@ -1557,9 +1557,10 @@ function typeInit(el){const nodes=[];const w=document.createTreeWalker(el,NodeFi
   let total=0;nodes.forEach(x=>{total+=x[1].length;x[0].nodeValue='';});
   const show=k=>{let left=Math.round(k);for(const [nd,tx] of nodes){const c=Math.max(0,Math.min(tx.length,left));nd.nodeValue=tx.slice(0,c);left-=tx.length;}};
   return {total,show,shown:0};}
-function typeRun(el,tok,voiced,get){const T0=typeInit(el);TW=T0;const cps=get?2:voiced?8:16;let start=performance.now(),boost=0;
+function typeRun(el,tok,voiced,get){const T0=typeInit(el);TW=T0;let cps=get?2:voiced?8:16,base=0;let start=performance.now(),boost=0;
   T0.prog=p=>{boost=Math.max(boost,p*T0.total);};
-  const tick=()=>{if(TW!==T0||tok!==TOK)return;if(get){const p=get();if(p!=null)boost=Math.max(boost,Math.min(1,p*1.04)*T0.total);}const by=(performance.now()-start)/1000*cps;T0.shown=Math.min(T0.total,Math.max(T0.shown,by,boost));T0.show(T0.shown);if(T0.shown<T0.total)requestAnimationFrame(tick);};
+  /* 브라우저 음성으로 읽을 때: 언어별 읽는 속도(글자/초)로 표시, 단어 경계 이벤트가 오면 그걸 우선 */T0.rate=(c,off)=>{base=T0.shown-(off||0);start=performance.now();cps=c;get=null;};/* off = 제목 읽는 동안 기다릴 글자 수 */
+  const tick=()=>{if(TW!==T0||tok!==TOK)return;if(get){const p=get();if(p!=null)boost=Math.max(boost,Math.min(1,p*1.04)*T0.total);}const by=base+(performance.now()-start)/1000*cps;T0.shown=Math.min(T0.total,Math.max(T0.shown,by,boost));T0.show(T0.shown);if(T0.shown<T0.total)requestAnimationFrame(tick);};
   requestAnimationFrame(tick);return T0;}
 function typeAll(){if(TW){TW.shown=TW.total;TW.show(TW.total);}}
 function hush(){try{AU.pause();}catch(e){}try{if(SS&&(SS.speaking||SS.pending))SS.cancel();}catch(e){}}
@@ -1657,7 +1658,8 @@ async function run(i){IDX=i;const t=++TOK;ARMED=false;const st=stL(i);hideOverla
   document.getElementById('tutTitle').textContent=st.ti;document.getElementById('tutText').innerHTML=st.tx;
   document.getElementById('tutPrev').disabled=i===0;document.getElementById('tutNext').textContent=i===STEPS.length-1?U.fin:U.next;
   hush();const tw=typeRun(document.getElementById('tutText'),TOK,VOICE,VOICE?auProg:null);
-  const sp=playClip(clip(i+1),()=>speak(st.ti+'. '+st.tx,p=>tw.prog&&tw.prog(Math.max(0,(p*(st.ti.length+2+st.tx.length)-st.ti.length-2)/(st.tx.length)))));
+  const sp=playClip(clip(i+1),()=>{const lg=TLANG(),Lt=spokenText(st.ti).length+2,La=spokenText(st.ti+'. '+st.tx).length;tw.rate({ko:7,en:14.5,ja:8}[lg],Lt);
+    return speak(st.ti+'. '+st.tx,p=>tw.prog&&tw.prog(Math.max(0,(p*La-Lt)/Math.max(1,La-Lt))));});
   sp.then(()=>{if(TW===tw)typeAll();});
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
     if(i===STEPS.length-1){await sleep(400);chk(t);const lg=TLANG();await playClip(clip(STEPS.length+1),lg==='ko'?null:()=>speak(TUTL[lg].end));chk(t);}
