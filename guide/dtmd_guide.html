@@ -27,8 +27,10 @@ th,td{border:1px solid #e3e3e3;padding:6px 10px;text-align:left;vertical-align:t
 th{background:#f6f6f6;font-weight:600}
 figure{margin:10px 0 16px}
 figure img{display:block;max-width:100%;height:auto;border:1px solid #e3e3e3;border-radius:6px}
-figure.ph img{width:360px;max-width:100%}
-figcaption{color:#777;font-size:13px;margin-top:6px}
+figure.ph img{width:360px;max-width:100%;margin:0 auto}
+.two figure img{width:100%}
+.adv h3{font-size:16px;margin:14px 0 4px}.adv p{margin:0 0 6px}
+figcaption{color:#222;font-size:14px;margin-top:6px;text-align:center}
 .two{display:flex;gap:12px;flex-wrap:wrap}
 .two figure{flex:1 1 260px;min-width:0;margin:10px 0}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid figure{margin:4px 0}
@@ -57,18 +59,47 @@ h3{font-size:15px;margin:10px 0 6px}
 <div class="bar"><button id="openAll">모두 펼치기</button><button id="closeAll">모두 접기</button></div>
 
 <details>
-<summary><span class="n">1</span>정체</summary>
+<summary><span class="n">1</span>장점</summary>
+<div class="body adv">
+<h3>1. 튜토리얼</h3>
+<ul>
+<li>3분 만에 익히는 초보자용 핵심 기능.</li>
+<li>그래프를 드래그하며 무감압·감압 다이빙의 차이, 수심과 질소의 관계 같은 기초 필수 개념을 쉽게 익힘.</li>
+</ul>
+<h3>2. FIT 분석</h3>
+<ul>
+<li>FIT 연동, 위반 지점을 시각적으로 표시.</li>
+<li>그래프 수정으로 사후 시뮬레이션 가능.</li>
+<li>직관적으로 볼 수 있는 다이빙 개선 도구.</li>
+<li>직접 그래프를 그려서 로그 작성도 가능.</li>
+</ul>
+<h3>3. GPS 지도 · 사진 로그</h3>
+<ul>
+<li>FIT 연동 입·출수 지점 수정 및 등록.</li>
+<li>포인트별 사진 등록 및 포토로그 저장.</li>
+<li>직접 포인트를 찾아서 로그 작성도 가능.</li>
+</ul>
+<h3>4. 일반 방식 / 쉐어워터 방식</h3>
+<ul>
+<li>구획별 질소를 두 방식으로 시각화.</li>
+<li>GF·보수성·기체·상승 속도별 감압 의무를 즉시 비교.</li>
+<li>반복 다이빙 잔류 질소 확인.</li>
+</ul>
+</div>
+</details>
+
+<details>
+<summary><span class="n">2</span>정체</summary>
 <div class="body">
 <ul>
 <li>웹 앱. 설치 불필요.</li>
 <li>한국어·영어·일본어 지원.</li>
 </ul>
-<figure class="ph"><img src="img/01_splash.jpg" alt="시작 화면"><figcaption>시작 화면</figcaption></figure>
 </div>
 </details>
 
 <details>
-<summary><span class="n">2</span>계산 모델</summary>
+<summary><span class="n">3</span>계산 모델</summary>
 <div class="body">
 <ul>
 <li>Bühlmann ZHL-16C, 질소 16구획.</li>
@@ -82,7 +113,7 @@ h3{font-size:15px;margin:10px 0 6px}
 </details>
 
 <details>
-<summary><span class="n">3</span>설정</summary>
+<summary><span class="n">4</span>설정</summary>
 <div class="body">
 <table>
 <tr><th>항목</th><th>선택지</th></tr>
@@ -96,12 +127,12 @@ h3{font-size:15px;margin:10px 0 6px}
 <tr><td>호흡량</td><td>적음 15 / 보통 20 / 많음 25 L/분, 직접 입력</td></tr>
 </table>
 <ul><li>다이빙마다 설정 따로 기억. 접힌 머리에 GF·기체·호흡량·충전압 요약.</li></ul>
-<figure class="ph"><img src="img/02_settings.jpg" alt="설정"><figcaption>설정 펼침 (EAN32 · 15 L · 230 bar)</figcaption></figure>
+<figure><img src="img/02_settings.jpg" alt="설정"><figcaption>설정 펼침 (EAN32 · 15 L · 230 bar)</figcaption></figure>
 </div>
 </details>
 
 <details>
-<summary><span class="n">4</span>플래너</summary>
+<summary><span class="n">5</span>플래너</summary>
 <div class="body">
 <ul>
 <li>도구: 그리기 / 점찍기 / 점지우기 / 실행취소 / 지우기.</li>
@@ -115,7 +146,7 @@ h3{font-size:15px;margin:10px 0 6px}
 </details>
 
 <details>
-<summary><span class="n">5</span>그래프 표시</summary>
+<summary><span class="n">6</span>그래프 표시</summary>
 <div class="body">
 <table>
 <tr><th>표시</th><th>의미</th></tr>
@@ -148,7 +179,7 @@ h3{font-size:15px;margin:10px 0 6px}
 </details>
 
 <details>
-<summary><span class="n">6</span>질소막대</summary>
+<summary><span class="n">7</span>질소막대</summary>
 <div class="body">
 <ul>
 <li>두 방식: 수면 기준(수면 M값 대비 %), 쉐어워터식(흡입 질소·주변압·M값·GF 한계).</li>
@@ -163,7 +194,7 @@ h3{font-size:15px;margin:10px 0 6px}
 </details>
 
 <details>
-<summary><span class="n">7</span>로그북</summary>
+<summary><span class="n">8</span>로그북</summary>
 <div class="body">
 <ul>
 <li>달력 ↔ 일별 보기. 누르면 선택, 한 번 더 누르면 들어감.</li>
@@ -176,17 +207,19 @@ h3{font-size:15px;margin:10px 0 6px}
 <li>접힘 3단계. 마지막 상태 기억(질소막대·시뮬레이션 탭 포함).</li>
 <li>플래너 → 로그북 전환 시 해당 로그를 빠르게 그려 보여줌.</li>
 </ul>
-<figure class="ph"><img src="img/09_edit.jpg" alt="수정 모드"><figcaption>수정 모드: 메모·사진, 시각 휠, [취소]/[저장]</figcaption></figure>
-<figure class="ph"><img src="img/13_memo_photos.jpg" alt="메모와 사진"><figcaption>메모창 아래 사진 줄: [+]로 추가(붙여넣기도 됨)</figcaption></figure>
 <div class="two">
-<figure class="ph"><img src="img/22_photo_view.jpg" alt="사진 보기"><figcaption>메모창 사진 누르면 크게 보기. 넘기기·삭제, [포토 로그]로 바로 만들기</figcaption></figure>
-<figure class="ph"><img src="img/23_loc_edit.jpg" alt="위치 수정"><figcaption>핀 버튼 → 지도 팝업. [입수]/[출수] 누르고 지도 탭, 찍힌 점은 끌어서 이동. 메모 GPS 줄로 저장</figcaption></figure>
+<figure><img src="img/09_edit.jpg" alt="수정 모드"><figcaption>수정 모드: 메모, 시각 휠, [취소]/[저장]</figcaption></figure>
+<figure><img src="img/13_memo_photos.jpg" alt="사진·위치 버튼"><figcaption>사진 줄: 사진 · [+] 추가 · 핀(입수·출수 지점)</figcaption></figure>
+</div>
+<div class="two">
+<figure><img src="img/22_photo_view.jpg" alt="사진 보기"><figcaption>메모창 사진 누르면 크게 보기. 넘기기·삭제, [포토 로그]로 바로 만들기</figcaption></figure>
+<figure><img src="img/23_loc_edit.jpg" alt="위치 수정"><figcaption>핀 버튼 → 지도 팝업. [입수]/[출수] 누르고 지도 탭, 찍힌 점은 끌어서 이동. 메모 GPS 줄로 저장</figcaption></figure>
 </div>
 </div>
 </details>
 
 <details>
-<summary><span class="n">8</span>FIT 불러오기</summary>
+<summary><span class="n">9</span>FIT 불러오기</summary>
 <div class="body">
 <ol>
 <li>[FIT] → 폴더 고르기 → 하위 폴더까지 .fit 검색. PC 크롬·엣지, iOS 18.4+.</li>
@@ -199,12 +232,12 @@ h3{font-size:15px;margin:10px 0 6px}
 <li>GPS 좌표·지명(OpenStreetMap)·수온을 메모에 기록.</li>
 <li>위반 화살표는 FIT 로그에도 표시.</li>
 </ul>
-<figure class="ph"><img src="img/12_fit.jpg" alt="FIT 요약"><figcaption>폴더 선택 후 요약: 5개 중 다이빙 3개, 프리다이빙 1개 제외</figcaption></figure>
+<figure><img src="img/12_fit.jpg" alt="FIT 요약"><figcaption>폴더 선택 후 요약: 5개 중 다이빙 3개, 프리다이빙 1개 제외</figcaption></figure>
 </div>
 </details>
 
 <details>
-<summary><span class="n">9</span>출력·공유·화면·주소</summary>
+<summary><span class="n">10</span>출력·공유·화면·주소</summary>
 <div class="body">
 <ul>
 <li>출력: 데이터 로그 이미지, 포토로그, 스냅샷.</li>
@@ -230,18 +263,8 @@ h3{font-size:15px;margin:10px 0 6px}
 </details>
 
 <details>
-<summary><span class="n">10</span>장점과 한계</summary>
+<summary><span class="n">11</span>한계</summary>
 <div class="body">
-<h3>장점</h3>
-<ul>
-<li>튜토리얼(3분): 초보자용이지만 핵심 기능. 그래프를 직접 드래그하며 무감압·감압 다이빙의 차이, 수심과 질소의 관계 같은 기초 필수 개념을 몸으로 익힘.</li>
-<li>GF·보수성·기체·상승 속도별 감압 의무를 즉시 비교.</li>
-<li>구획별 질소를 두 방식으로 시각화.</li>
-<li>반복 다이빙 잔류 질소 확인.</li>
-<li>FIT 사후 분석과 위반 지점 표시.</li>
-<li>계획 ↔ 실제 비교가 빠름.</li>
-</ul>
-<h3>한계</h3>
 <ul>
 <li>트라이믹스·다중 기체 전환·OTU 미지원.</li>
 <li>실제 컴퓨터와 수 분 차이 가능.</li>
