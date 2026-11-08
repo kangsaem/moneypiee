@@ -1,18 +1,20 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-08 15:20 (v2.6.0) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-08 15:40 (v2.6.1) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
 
-## ▶▶ 새 대화 시작용 (2026-11-08 15:20, v2.6.0) — 가장 최신. 여기부터 읽을 것
-현재 상태: v2.6.0까지 main 반영. A-1(Suunto FIT·UDDF)과 B(독일어·스페인어·중국어 간체: 화면·튜토리얼·언어 목록·자동 설정) 끝. 사용자 규칙대로 새 작업은 선택지·추천 먼저(단, 11/08 14:21 사용자가 "묻지 말고 한 번에"로 B를 한꺼번에 진행시킴).
-다음 후보: 실기기 확인(아래 '그 외 대기'), 3개 언어 원어민 검수, 튜토리얼 녹음(tut/script_de_es_zh.txt), A-2 Shearwater .db, A-3 Suunto JSON, 사용 안내서(guide/) 다국어.
+## ▶▶ 새 대화 시작용 (2026-11-08 15:40, v2.6.1) — 가장 최신. 여기부터 읽을 것
+현재 상태: v2.6.1까지 main 반영(아래 'v2.6.1 결과' = 언어별 첫 화면·설치 이름·공유 주소·hreflang). A-1(Suunto FIT·UDDF)과 B(독일어·스페인어·중국어 간체: 화면·튜토리얼·언어 목록·자동 설정) 끝. 사용자 규칙대로 새 작업은 선택지·추천 먼저(단, 11/08 14:21 사용자가 "묻지 말고 한 번에"로 B를 한꺼번에 진행시킴).
+다음 후보: 배포 후 언어별 공유 주소 미리보기 확인(카톡 공유 디버거), 실기기 확인(아래 '그 외 대기'), 3개 언어 원어민 검수, 튜토리얼 녹음(tut/script_de_es_zh.txt), A-2 Shearwater .db, A-3 Suunto JSON, 사용 안내서(guide/) 다국어.
 
-### 보류(11/08 14:48 사용자: "나중에 수정하자, 지금은 그냥 두고") — 언어별 이름·미리보기
-- 지금 한글로 남는 곳: ① 링크 미리보기(og:title·og:description·twitter:title·meta description = 'DTMD 다이빙 플래너' / '3분 강의 / 초보를 위한 무감압·감압 / 컵라면 익기전에 다 배움') ② 설치 이름(dtmd.webmanifest name 'DTMD 다이빙 플래너', lang ko-KR → 안드로이드·PC 설치 창·앱 정보) ③ 앱 코드를 다 받기 전 잠깐: 탭 제목(<title>), 상단 이름(h1), [로그북] 버튼, 시작 화면 글자(정적 HTML이 한국어, applyLang·spLang이 본체 스크립트 끝에서 바꿈).
-- 언어 무관이라 그대로 둘 것: 아이폰 홈 화면 이름(apple-mobile-web-app-title 'DTMD'), short_name 'DTMD', 아이콘·dtmd-launch 실행 그림·og-scuba3.jpg(영어 'Don’t Touch Maximum Depth').
-- 제안했던 계획(아직 ㄱㄱ 전): 1) 맨 앞 작은 스크립트에서 언어를 먼저 정해(규칙은 여기 한 곳, 본체 LANG은 그 결과 사용) 탭 제목·h1·modeBtn·시작 화면 글자·manifest href를 첫 화면부터 그 언어로 2) 언어별 manifest 6개(name만 언어별, id·start_url·short_name 같음) 3) 언어별 공유 주소 dtmd-en/ja/de/es/zh.html(그 언어 og·twitter·description + scuba.html#xx로 이동), plan.html·dive.html에도 og 4) hreflang. 한계: 주소 하나에 미리보기 하나(/scuba는 한국어 유지), 설치된 안드로이드 앱 이름은 크롬 업데이트 때 바뀜, 카톡 미리보기 캐시.
-- /scuba 미리보기를 영어로 바꾸는 안은 사용자가 취소(한국어 유지).
+### v2.6.1 결과 (11/08 15:40) — 언어별 첫 화면·설치 이름·공유 주소·hreflang (사용자 14:48 "1~4만" 지시로 진행)
+1) 첫 화면부터 그 언어: 시작 화면 바로 뒤(.wrap 앞) 작은 스크립트가 언어를 먼저 정함(**규칙은 여기 한 곳**, window.__L0·__T0) → html lang, 탭 제목, 시작 화면(튜토리얼·시간·이름·[플래너][로그북]·spJa), manifest href. 머리줄 바로 뒤 스크립트가 상단 이름(h1)·[로그북] 버튼. 본체 LANG은 __L0 사용(없을 때만 예전 규칙). 확인: 본체 스크립트를 잘라낸 HTML로도 de·zh·ja·fr(→en)·ko 모두 첫 화면이 그 언어.
+2) 설치 이름: dtmd-en/ja/de/es/zh.webmanifest(name·lang만 다름, id·start_url·short_name 'DTMD'·아이콘 같음). ko는 기존 dtmd.webmanifest. 언어 목록에서 바꾸면 applyLang이 manifest href도 바꿈.
+3) 공유 주소: dtmd-en/ja/de/es/zh.html = 그 언어 og·twitter·description·og:locale(이미지 og-scuba3.jpg 같음, site_name 'DTMD') + scuba.html#xx로 이동. plan.html(→#en)·dive.html(→#ja)도 같은 형식으로 og 추가(이동 대상 그대로). /scuba는 한국어 미리보기 그대로(+og:locale ko_KR).
+   미리보기 설명: en '3-min lesson / No-deco & deco basics for beginners / Learn it all before your instant noodles are ready', ja '3分レッスン / 初心者のための無減圧・減圧 / カップ麺ができる前に全部わかる', de '3-Minuten-Lektion / Nullzeit & Deko für Einsteiger / Alles gelernt, bevor die Instantnudeln fertig sind', es 'Lección de 3 min / Sin descompresión y descompresión para principiantes / Lo aprendes antes de que estén listos los fideos instantáneos', zh '3 分钟课程 / 给新手的免减压与减压 / 泡面还没泡好就学完了'.
+4) hreflang: scuba.html와 공유 페이지에 ko=/scuba, en·ja·de·es·zh-Hans=/dtmd-xx, x-default=/scuba.
+- 확인 못 한 것: 실제 카톡·페북 미리보기(배포 후 카카오 공유 디버거로 캐시 비우고 확인), 안드로이드 설치 창 이름, 설치된 앱 이름 업데이트 시점. 한계: 공유 페이지는 즉시 이동하는 페이지라 구글이 hreflang 대상으로 인정하지 않을 수 있음(색인용으로는 약함, 미리보기용으로는 문제없음). 테스트용 헤드리스 크롬은 UA에 HeadlessChrome이 있어 로봇(=한국어)으로 판정됨 → 테스트 때 UA 바꿀 것.
 
 ### B ②③ 결과 (v2.6.0, 11/08 15:20)
 - I18N에 de·es·zh 블록(키 136 + 설명 36, 빠진 키 없음; zh는 ko·ja처럼 axisLast 없음). 사전형 LX 17곳 모두 de·es·zh 추가.
@@ -67,6 +69,8 @@
 ## ★ 버전 규칙 (11/07부터)
 - scuba.html 맨 앞 `const APP_VER='x.y.z'` — main에 올릴 때마다 끝자리 +1, 큰 기능 변경은 가운데 자리 +1(끝자리 0). 시작 화면 ↻ 옆에 'v' + 버전 표시(날짜·시간 표시는 삭제).
 - 2.0.1 = 11/07 11:20 첫 버전.
+
+## ★ 11/08 15:40 v2.6.1 언어별 첫 화면·설치 이름(manifest)·공유 주소 dtmd-xx·hreflang (자세한 건 맨 앞 'v2.6.1 결과')
 
 ## ★ 11/08 15:20 v2.6.0 독일어·스페인어·중국어(간체) · 언어 목록 버튼 · 기기 언어 자동 설정 (자세한 건 맨 앞 'B ②③ 결과')
 

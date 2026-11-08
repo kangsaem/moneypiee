@@ -1,0 +1,25 @@
+{
+  "name": "DTMD Tauchplaner",
+  "short_name": "DTMD",
+  "id": "/scuba",
+  "start_url": "/scuba",
+  "scope": "/scuba",
+  "display": "standalone",
+  "background_color": "#e31b3f",
+  "theme_color": "#284656",
+  "lang": "de-DE",
+  "icons": [
+    {
+      "src": "/dtmd-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/dtmd-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
