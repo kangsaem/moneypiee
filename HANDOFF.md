@@ -1319,3 +1319,8 @@
 - 종목추가 가이드·사용 매뉴얼은 자동으로 뜨지 않게 함: showIntroGuide() 앞에 `const INTRO_MANUAL_ON = false;` + 첫 줄 `if(!INTRO_MANUAL_ON) return;`. 매뉴얼은 가이드 뒤에서만 불리므로 같이 꺼짐.
   모달 HTML·함수·그림(in001~003.png, 0001·0004.png)은 그대로 둠 → 다시 쓰려면 true로 바꾸면 됨. index.html·test.html 둘 다.
 - 시험: Playwright 390px — V1 → 공지 → FAQ 닫은 뒤 가이드·매뉴얼 display:none, 오류 없음.
+
+## 2026-11-08 17:46 시작 공지 교체(사용자 1번안)
+- notice.html = 하워드 막스 "You can't predict. You can prepare. / 예측할 수는 없다. 대비할 수는 있다." (기존 양식 그대로, 제목·영문·한글만 바꿈).
+  고른 이유: 코스피(고점 −44%, 200일선 −22%, 현금 30% 칩)·나스닥(11-05 200일선 첫 이탈, 10거래일 판정 전) 국면이 달라 매수·매도 방향이 없는 격언.
+- 기존 템플턴 "Don't panic" → notice-템플턴-패닉.html로 보관(git mv, 다른 격언 공지와 같은 이름 규칙). 내용이 바뀌어 '다시 보지 않기' 누른 사람에게도 다시 뜸(공지 리프레시 겸함).
