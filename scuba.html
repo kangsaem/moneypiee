@@ -266,7 +266,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.4.1';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.4.2';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
@@ -1658,8 +1658,8 @@ async function run(i){IDX=i;const t=++TOK;ARMED=false;const st=stL(i);hideOverla
   document.getElementById('tutTitle').textContent=st.ti;document.getElementById('tutText').innerHTML=st.tx;
   document.getElementById('tutPrev').disabled=i===0;document.getElementById('tutNext').textContent=i===STEPS.length-1?U.fin:U.next;
   hush();const tw=typeRun(document.getElementById('tutText'),TOK,VOICE,VOICE?auProg:null);
-  const sp=playClip(clip(i+1),()=>{const lg=TLANG(),Lt=spokenText(st.ti).length+2,La=spokenText(st.ti+'. '+st.tx).length;tw.rate({ko:7,en:14.5,ja:8}[lg],Lt);
-    return speak(st.ti+'. '+st.tx,p=>tw.prog&&tw.prog(Math.max(0,(p*La-Lt)/Math.max(1,La-Lt))));});
+  const sp=playClip(clip(i+1),()=>{const lg=TLANG();tw.rate({ko:7,en:14.5,ja:8}[lg],0);/* 단계 제목은 읽지 않고 본문만 */
+    return speak(st.tx,p=>tw.prog&&tw.prog(p));});
   sp.then(()=>{if(TW===tw)typeAll();});
   try{st.set();showHand(i<STEPS.length-1);await st.go(t);await sp;chk(t);
     if(i===STEPS.length-1){await sleep(400);chk(t);const lg=TLANG();await playClip(clip(STEPS.length+1),lg==='ko'?null:()=>speak(TUTL[lg].end));chk(t);}
@@ -1690,7 +1690,7 @@ document.getElementById('tutEnd').onclick=end;
 document.getElementById('tutText').onclick=typeAll;
 const vb=document.getElementById('tutVoice'),ab=document.getElementById('tutAuto');
 const syncTB=()=>{vb.classList.toggle('on',VOICE);vb.textContent=VOICE?'🔊':'🔇';ab.classList.toggle('on',AUTO);};
-vb.onclick=()=>{VOICE=!VOICE;if(!VOICE)hush();else{const st=stL(IDX);playClip(clip(IDX+1),()=>speak(st.ti+'. '+st.tx));}syncTB();};
+vb.onclick=()=>{VOICE=!VOICE;if(!VOICE)hush();else{const st=stL(IDX);playClip(clip(IDX+1),()=>speak(st.tx));}syncTB();};
 ab.onclick=()=>{AUTO=!AUTO;syncTB();if(AUTO&&ON&&DONE===TOK&&IDX<STEPS.length-1){const t=TOK;setTimeout(()=>{if(t===TOK&&AUTO)run(IDX+1);},400);}};
 syncTB();try{if(SS){SS.getVoices();SS.onvoiceschanged=()=>{if(VSEL===null)VSEL=undefined;koVoice();};}}catch(e){}
 window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
