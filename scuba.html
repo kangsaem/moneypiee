@@ -239,6 +239,7 @@ button:not(.fitJ):not(#spTut):not(.setHead){font-weight:400!important}.lang butt
 .play .ico{background:#1b4277!important;border-color:#1b4277!important}
 #adTop{display:flex;justify-content:center;min-height:50px;margin:0 auto 6px}@media print{#adTop{display:none}}
 #logBtn{position:relative;overflow:visible}#logBtn .bkN{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:8px;background:#E31B3F;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;pointer-events:none}
+#saveMenu .svNote{max-width:240px;padding:6px 10px 4px;font-size:11px;line-height:1.45;color:#6b7280;white-space:normal}
 </style>
 <style>
 html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100vh + 2px);min-height:calc(100lvh + 2px)}/* 아이폰: 뒤 본문이 화면보다 짧으면(탭 접힘 등) 시작 화면 아래가 안 그려짐 → 시작 화면 동안 본문을 항상 화면보다 조금 길게 */
@@ -265,7 +266,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.2.2';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.3.0';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
@@ -2574,60 +2575,79 @@ async function zipRead(buf,want){const u=new Uint8Array(buf),dv=new DataView(buf
   return out;}
 const stampNow=()=>{const d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());};
 function exportJSON(){return JSON.stringify({app:'DTMD',kind:'logbook',v:1,exported:new Date().toISOString(),logs:load()});}
-async function exportZip(){const logs=load(),ids=[...new Set(logs.flatMap(x=>(x.state&&x.state.dives||[]).flatMap(d=>d.ph||[])))],files=[],meta=[];
+async function exportZip(noPh){const logs=load(),ids=noPh?[]:[...new Set(logs.flatMap(x=>(x.state&&x.state.dives||[]).flatMap(d=>d.ph||[])))],files=[],meta=[];
   for(const id of ids){try{const o=window.__photo&&await window.__photo.get(id);if(!o||!o.full)continue;files.push({name:'photos/'+id+'.jpg',data:new Uint8Array(await o.full.arrayBuffer())});
     if(o.thumb)files.push({name:'photos/'+id+'_t.jpg',data:new Uint8Array(await o.thumb.arrayBuffer())});meta.push({id,ts:o.ts||0,name:o.name||''});}catch(e){}}
   const json=JSON.stringify({app:'DTMD',kind:'logbook',v:2,exported:new Date().toISOString(),photos:meta,logs});
   return zipMake([{name:'logbook.json',data:new TextEncoder().encode(json)},...files]);}
 // iOS 홈화면 앱은 파일 다운로드가 동작하지 않음 → 공유 시트(파일에 저장)로
 const IOS_APP=(navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches)&&(/iP(hone|ad|od)/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&'ontouchend' in document));
-async function saveFile(){const blob=await exportZip(),name='dtmd-logbook-'+stampNow()+'.zip';
+async function saveFile(){if(DIR.h){const r=await bkWrite(true,true);if(r==='cancel')return;if(r===true){toast(BKT().dirT(DIR.h.name));return;}}/* 백업 폴더가 있으면 거기에 */const blob=await exportZip(),name=BKNAME;
   if(IOS_APP){const f=new File([blob],name,{type:'application/zip'});try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'DTMD logbook'}).then(bkDone).catch(()=>{});return;}}catch(e){}}
   const u=URL.createObjectURL(blob),el=document.createElement('a');el.href=u;el.download=name;document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);bkDone();}
 function saveMenu(){let m=document.getElementById('saveMenu');if(m){m.remove();return;}const t=L(),btn=$('logBtn'),r=btn.getBoundingClientRect();
   m=document.createElement('div');m.id='saveMenu';const it=(txt,fn)=>{const x=document.createElement('button');x.textContent=txt;x.onclick=e=>{e.stopPropagation();m.remove();fn();};m.appendChild(x);};
   it(t.svFile,async()=>{await saveFile();flash(btn);});
   // 공유하기: 사진 포함 ZIP을 먼저 시도, 그 앱이 ZIP을 못 받으면(안드로이드 크롬 등) 사진 없는 .txt
-  it(t.svShare,async()=>{const st=stampNow();let f=new File([await exportZip()],'dtmd-logbook-'+st+'.zip',{type:'application/zip'});
-    try{if(!(navigator.canShare&&navigator.canShare({files:[f]})))f=new File([exportJSON()],'dtmd-logbook-'+st+'.txt',{type:'text/plain'});
+  it(t.svShare,async()=>{let f=new File([await exportZip()],BKNAME,{type:'application/zip'});
+    try{if(!(navigator.canShare&&navigator.canShare({files:[f]})))f=new File([exportJSON()],'dtmd-logbook.txt',{type:'text/plain'});
       if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'DTMD logbook'});bkDone();flash(btn);return;}}catch(e){if(e&&e.name==='AbortError')return;}
     toast(t.noShare);});
-  if(BK_FS){const B=BKT();it(AUTO.h?B.autoOff(AUTO.h.name):B.autoOn,async()=>{if(AUTO.h){AUTO.h=null;AUTO.pend=false;await bkIdb('delete');toast(B.offT);return;}
-    try{const h=await window.showSaveFilePicker({suggestedName:'dtmd-logbook-auto.zip',types:[{description:'ZIP',accept:{'application/zip':['.zip']}}]});AUTO.h=h;await bkIdb('put',h);if(await bkWrite(true))toast(B.onT(h.name));}catch(e){}});}
+  {const B=BKT();it(B.logsOnly,async()=>{const blob=await exportZip(true);await dlBlob(blob,'dtmd-logbook-logs.zip');flash(btn);});
+  if(BK_FS)it(DIR.h?B.dirOff(DIR.h.name):B.dirOn,async()=>{if(DIR.h){DIR.h=null;DIR.pend=false;await bkIdb('delete','d');toast(B.offT);return;}
+    try{const d=await window.showDirectoryPicker({id:'dtmdbk',mode:'readwrite'});DIR.h=d;await bkIdb('put','d',d);if(await bkWrite(true,true)===true)toast(B.onT(d.name));}catch(e){}});
+  else if(!IOS_APP&&!/iP(hone|ad|od)/.test(navigator.userAgent)){const n=document.createElement('div');n.className='svNote';n.textContent=B.ffNote;m.appendChild(n);}}
   document.body.appendChild(m);if(window.centerOnGraph)window.centerOnGraph(m);
   setTimeout(()=>document.addEventListener('click',function h(e){if(!m.contains(e.target)){m.remove();document.removeEventListener('click',h);}}),0);}
-$('logBtn').onclick=()=>{const a=load();if(!a.length){flash($('logBtn'),true);return;}if(AUTO.h&&bkDirty())bkWrite(true).then(ok=>{if(ok)toast(BKT().autoT);});saveMenu();};
-// ===== 백업 알림 · 자동 백업 =====
-// 마지막 ZIP 백업 뒤 바뀐 로그 수 = 💾 버튼 빨간 숫자. 7일 지났거나 5개 이상이면 로그북 들어올 때 하루 한 번 '백업할까요?'.
-// PC 크롬·엣지(showSaveFilePicker): 저장 메뉴에서 자동 백업 파일을 한 번 지정하면 로그가 바뀔 때마다 같은 ZIP에 덮어씀(권한이 풀리면 💾 누를 때 다시 허용)
-const BKK='scuba_bk',BK_FS=('showSaveFilePicker' in window)&&!IOS_APP&&!(navigator.maxTouchPoints>0&&/Android|iP(hone|ad|od)/.test(navigator.userAgent));
-const BKT=()=>LANG==='en'?{ask:n=>`${n} log(s) changed since your last backup. Back up to a ZIP now?`,later:'Later',go:'Back up',autoOn:'Set auto-backup file (PC)',autoOff:n=>'Turn off auto-backup ('+n+')',onT:n=>'Auto-backup on: '+n,offT:'Auto-backup off',autoT:'Auto-backup saved'}
- :LANG==='ja'?{ask:n=>`前回のバックアップ以降、ログが${n}件変わりました。今ZIPでバックアップしますか?`,later:'あとで',go:'バックアップ',autoOn:'自動バックアップファイルを指定(PC)',autoOff:n=>'自動バックアップを止める('+n+')',onT:n=>'自動バックアップ開始: '+n,offT:'自動バックアップ停止',autoT:'自動バックアップ保存'}
- :{ask:n=>`마지막 백업 뒤 바뀐 로그가 ${n}개 있어요. 지금 ZIP으로 백업할까요?`,later:'나중에',go:'백업',autoOn:'자동 백업 파일 지정(PC)',autoOff:n=>'자동 백업 끄기 ('+n+')',onT:n=>'자동 백업 켜짐: '+n,offT:'자동 백업 꺼짐',autoT:'자동 백업 저장됨'};
+$('logBtn').onclick=()=>{const a=load();if(!a.length){flash($('logBtn'),true);return;}if(DIR.h&&DIR.pend&&bkDirty()){bkWrite(true,true).then(ok=>{if(ok===true)toast(BKT().autoT);});return;}/* 미뤄진 폴더 저장(권한·줄어듦 확인)부터 */saveMenu();};
+// ===== 백업 알림 · 백업 폴더 =====
+// 백업 파일은 하나(dtmd-logbook.zip, 로그+사진). 마지막 백업 뒤 바뀐 로그 수 = 💾 빨간 숫자. 7일 지났거나 5개 이상이면 로그북 들어올 때 하루 한 번 '백업할까요?'.
+// 폴더 지정 되는 브라우저(PC 크롬·엣지, 안드로이드 크롬 132+·삼성 인터넷 29+): 💾 메뉴에서 백업 폴더를 한 번 고르면
+//  → 로그가 바뀔 때마다 그 폴더의 dtmd-logbook.zip에 덮어씀. 덮기 전 원래 파일은 dtmd-logbook-prev.zip으로 복사 → 폴더에는 최대 2개.
+//  → 로그 수가 마지막 백업보다 줄면 자동으로는 덮지 않고, 💾(또는 저장하기)에서 물어본 뒤 저장. 📂 열기는 그 폴더에서 시작.
+//  → 권한이 풀려 있으면(브라우저 다시 열기) 💾 누를 때 다시 허용 요청. 쓰기 실패하면 일반 다운로드로.
+const BKK='scuba_bk',BKNAME='dtmd-logbook.zip',BKPREV='dtmd-logbook-prev.zip',BK_FS=('showDirectoryPicker' in window)&&!/iP(hone|ad|od)/.test(navigator.userAgent)&&!IOS_APP;
+const BKT=()=>LANG==='en'?{ask:n=>`${n} log(s) changed since your last backup. Back up to a ZIP now?`,later:'Later',go:'Back up',dirOn:'Set backup folder',dirOff:n=>'Stop backup folder ('+n+')',onT:n=>'Backup folder: '+n,offT:'Backup folder off',autoT:'Backed up to folder',dirT:n=>'Saved to '+n,
+   shrink:n=>`You now have ${n} fewer log(s) than in the backup. Overwrite the backup file?`,ow:'Overwrite',logsOnly:'Quick save, logs only (no photos)',ffNote:'Tip: turn on “Always ask where to save” in your browser to overwrite the same file.'}
+ :LANG==='ja'?{ask:n=>`前回のバックアップ以降、ログが${n}件変わりました。今ZIPでバックアップしますか?`,later:'あとで',go:'バックアップ',dirOn:'バックアップフォルダを指定',dirOff:n=>'バックアップフォルダを解除('+n+')',onT:n=>'バックアップフォルダ: '+n,offT:'バックアップフォルダ解除',autoT:'フォルダにバックアップしました',dirT:n=>n+' に保存しました',
+   shrink:n=>`ログがバックアップより${n}件少なくなっています。バックアップファイルを上書きしますか?`,ow:'上書き',logsOnly:'ログだけ素早く保存(写真なし)',ffNote:'ヒント: ブラウザの「保存先を毎回確認」をオンにすると同じファイルに上書きできます。'}
+ :{ask:n=>`마지막 백업 뒤 바뀐 로그가 ${n}개 있어요. 지금 ZIP으로 백업할까요?`,later:'나중에',go:'백업',dirOn:'백업 폴더 지정',dirOff:n=>'백업 폴더 해제 ('+n+')',onT:n=>'백업 폴더: '+n,offT:'백업 폴더 해제',autoT:'백업 폴더에 저장됨',dirT:n=>n+' 폴더에 저장됨',
+   shrink:n=>`로그가 백업보다 ${n}개 줄었어요. 백업 파일을 덮어쓸까요?`,ow:'덮어쓰기',logsOnly:'로그만 빠르게 저장(사진 제외)',ffNote:'팁: 브라우저 설정에서 ‘다운로드할 때마다 저장 위치 묻기’를 켜면 같은 파일에 덮어쓸 수 있어요.'};
 const bkHash=t=>{let h=5381;for(let i=0;i<t.length;i++)h=((h*33)^t.charCodeAt(i))>>>0;return h.toString(36);};
 const bkGet=()=>{try{return JSON.parse(localStorage.getItem(BKK)||'null')||{t:0,h:{}};}catch(e){return {t:0,h:{}};}};
 function bkDirty(){const b=bkGet(),a=load(),seen=new Set();let n=0,g=0;a.forEach(x=>{seen.add(x.id);if(b.h[x.id]!==bkHash(JSON.stringify(x)))n++;});Object.keys(b.h).forEach(id=>{if(!seen.has(id))g++;});return Math.max(n,g);/* 다시 저장하면 id가 바뀌므로(새 1 + 없어짐 1) 큰 쪽만 */}
-function bkDone(){const h={};load().forEach(x=>{h[x.id]=bkHash(JSON.stringify(x));});try{localStorage.setItem(BKK,JSON.stringify({t:Date.now(),h}));}catch(e){}AUTO.pend=false;bkBadge();}
+function bkDone(){const h={},a=load();a.forEach(x=>{h[x.id]=bkHash(JSON.stringify(x));});try{localStorage.setItem(BKK,JSON.stringify({t:Date.now(),h,n:a.length}));}catch(e){}DIR.pend=false;bkBadge();}
 function bkBadge(){const b=$('logBtn');if(!b)return;let el=b.querySelector('.bkN');const n=bkDirty();if(!n){if(el)el.remove();return;}if(!el){el=document.createElement('span');el.className='bkN';b.appendChild(el);}el.textContent=n>99?'99+':String(n);}
+async function dlBlob(blob,name){if(IOS_APP){const f=new File([blob],name,{type:'application/zip'});try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'DTMD logbook'}).catch(()=>{});return;}}catch(e){}}
+  const u=URL.createObjectURL(blob),el=document.createElement('a');el.href=u;el.download=name;document.body.appendChild(el);el.click();setTimeout(()=>{URL.revokeObjectURL(u);el.remove();},1500);}
 let bkTm=null,bkPs=false;
 function bkChanged(){bkBadge();if(!bkPs&&load().length){bkPs=true;try{navigator.storage&&navigator.storage.persisted&&navigator.storage.persisted().then(p=>{if(!p&&navigator.storage.persist)navigator.storage.persist();});}catch(e){}}
-  if(AUTO.h){clearTimeout(bkTm);bkTm=setTimeout(()=>bkWrite(false),3000);}}
-// 자동 백업 파일 핸들은 IndexedDB(dtmd_bk)에 보관(사진 DB는 시작할 때 정리되므로 따로)
-const AUTO={h:null,pend:false};
-function bkIdb(op,v){return new Promise(ok=>{try{const r=indexedDB.open('dtmd_bk',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onerror=()=>ok(null);
-  r.onsuccess=()=>{try{const t=r.result.transaction('kv',op==='get'?'readonly':'readwrite'),st=t.objectStore('kv');const q=op==='get'?st.get('h'):op==='put'?st.put(v,'h'):st.delete('h');t.oncomplete=()=>ok(q.result||null);t.onerror=()=>ok(null);}catch(e){ok(null);}};}catch(e){ok(null);}});}
-async function bkWrite(ask){const h=AUTO.h;if(!h)return false;try{let p=await h.queryPermission({mode:'readwrite'});if(p!=='granted'&&ask)p=await h.requestPermission({mode:'readwrite'});
-  if(p!=='granted'){AUTO.pend=true;return false;}const w=await h.createWritable();await w.write(await exportZip());await w.close();bkDone();return true;}catch(e){AUTO.pend=true;return false;}}
+  if(DIR.h){clearTimeout(bkTm);bkTm=setTimeout(()=>bkWrite(false,false),3000);}}
+// 폴더 핸들은 IndexedDB(dtmd_bk)에 보관(사진 DB는 시작할 때 정리되므로 따로)
+const DIR={h:null,pend:false};
+function bkIdb(op,k,v){return new Promise(ok=>{try{const r=indexedDB.open('dtmd_bk',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onerror=()=>ok(null);
+  r.onsuccess=()=>{try{const t=r.result.transaction('kv',op==='get'?'readonly':'readwrite'),st=t.objectStore('kv');const q=op==='get'?st.get(k):op==='put'?st.put(v,k):st.delete(k);t.oncomplete=()=>ok(q.result||null);t.onerror=()=>ok(null);}catch(e){ok(null);}};}catch(e){ok(null);}});}
+// 줄어든 로그 확인 창
+function bkShrinkAsk(n){return new Promise(ok=>{const B=BKT(),ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><p></p><div class="lwBtns"><button class="lwC"></button><button class="lwD lwS"></button></div></div>';
+  ov.querySelector('p').textContent=B.shrink(n);const c=ov.querySelector('.lwC'),d=ov.querySelector('.lwD');c.textContent=B.later;d.textContent=B.ow;const done=v=>{ov.remove();ok(v);};
+  ov.onclick=e=>{if(e.target===ov)done(false);};c.onclick=()=>done(false);d.onclick=()=>done(true);document.body.appendChild(ov);});}
+// 폴더에 쓰기. ask=권한 다시 요청 가능(사용자가 누른 때), manual=사용자가 직접 저장(줄어든 경우 물어봄)
+async function bkWrite(ask,manual){const d=DIR.h;if(!d)return false;try{let p=await d.queryPermission({mode:'readwrite'});if(p!=='granted'&&ask)p=await d.requestPermission({mode:'readwrite'});
+  if(p!=='granted'){DIR.pend=true;return false;}
+  const b=bkGet(),cut=(b.n||0)-load().length;if(b.t&&cut>0){if(!manual){DIR.pend=true;return false;}if(!await bkShrinkAsk(cut))return 'cancel';}
+  const blob=await exportZip();
+  try{const old=await d.getFileHandle(BKNAME);const of=await old.getFile();if(of.size){const pv=await d.getFileHandle(BKPREV,{create:true}),w0=await pv.createWritable();await w0.write(of);await w0.close();}}catch(e){}
+  const fh=await d.getFileHandle(BKNAME,{create:true}),w=await fh.createWritable();await w.write(blob);await w.close();bkDone();return true;}catch(e){DIR.pend=true;return false;}}
 function bkAsk(){const sp=document.getElementById('splash');if(sp&&getComputedStyle(sp).display!=='none'&&!sp.classList.contains('hide')){setTimeout(bkAsk,1500);return;}
   const n=bkDirty();if(!n||document.getElementById('ldWarn'))return;const b=bkGet(),days=b.t?(Date.now()-b.t)/864e5:1e9,today=new Date().toDateString();
   if(!(n>=5||days>=7))return;if(localStorage.getItem('scuba_bkask')===today)return;try{localStorage.setItem('scuba_bkask',today);}catch(e){}
-  if(AUTO.h){bkWrite(false).then(ok=>{if(ok)toast(BKT().autoT);else bkDialog(n);});return;}bkDialog(n);}
+  if(DIR.h){bkWrite(false,false).then(ok=>{if(ok===true)toast(BKT().autoT);else bkDialog(n);});return;}bkDialog(n);}
 function bkDialog(n){const B=BKT(),ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><p></p><div class="lwBtns"><button class="lwC"></button><button class="lwD lwS"></button></div></div>';
   ov.querySelector('p').textContent=B.ask(n);const c=ov.querySelector('.lwC'),d=ov.querySelector('.lwD');c.textContent=B.later;d.textContent=B.go;
-  const done=()=>ov.remove();ov.onclick=e=>{if(e.target===ov)done();};c.onclick=done;d.onclick=async()=>{done();if(AUTO.h&&await bkWrite(true)){toast(B.autoT);return;}await saveFile();flash($('logBtn'));};document.body.appendChild(ov);}
-bkIdb('get').then(h=>{if(h&&BK_FS){AUTO.h=h;if(bkDirty())bkWrite(false);}});
+  const done=()=>ov.remove();ov.onclick=e=>{if(e.target===ov)done();};c.onclick=done;d.onclick=async()=>{done();await saveFile();flash($('logBtn'));};document.body.appendChild(ov);}
+bkIdb('get','d').then(h=>{if(h&&BK_FS){DIR.h=h;if(bkDirty())bkWrite(false,false);}});bkIdb('delete','h');/* 예전 '자동 백업 파일' 핸들 정리 */
 setTimeout(bkBadge,0);
-$('loadBtn').onclick=()=>$('jsonIn').click();
+$('loadBtn').onclick=async()=>{/* 백업 폴더가 있으면 그 폴더에서 열기 창 시작 */if(DIR.h&&window.showOpenFilePicker){try{const [fh]=await window.showOpenFilePicker({id:'dtmdbk',startIn:DIR.h,types:[{description:'DTMD',accept:{'application/zip':['.zip'],'application/json':['.json','.txt']}}]});importFile(await fh.getFile());}catch(e){}return;}$('jsonIn').click();};
 // 불러오기: 시간이 겹치는 로그가 있으면 개수를 보여 주고 교체 / 유지 / 백업 후 교체 선택
 const spanOf=x=>Math.max(1,(x.sum&&(x.sum.span||x.sum.N/60||x.sum.N0/60))||0);
 function overlaps(x,y){if(x.id===y.id)return true;if(x.date!==y.date)return false;const a1=tmin(x.time),b1=tmin(y.time);if(a1==null||b1==null)return (x.time||'')===(y.time||'');return a1===b1||(a1<b1+spanOf(y)&&b1<a1+spanOf(x));}
@@ -2637,7 +2657,8 @@ function askOverlap(nInc,nHit,nOld){return new Promise(ok=>{const W=LANG==='en'?
   const ov=document.createElement('div');ov.id='ldWarn';ov.innerHTML='<div class="lwBox"><p></p><div class="lwBtns"><button class="lwK"></button><button class="lwR"></button><button class="lwS"></button></div></div>';
   ov.querySelector('p').textContent=W.b;const k=ov.querySelector('.lwK'),r=ov.querySelector('.lwR'),bk=ov.querySelector('.lwS');k.textContent=W.k;r.textContent=W.r;bk.textContent=W.bk;
   const done=v=>{ov.remove();ok(v);};ov.onclick=e=>{if(e.target===ov)done(null);};k.onclick=()=>done('keep');r.onclick=()=>done('replace');bk.onclick=()=>done('backup');document.body.appendChild(ov);});}
-$('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value='';if(!f)return;const t=L();let j,ph={};
+$('jsonIn').onchange=()=>{const f=$('jsonIn').files[0];$('jsonIn').value='';if(f)importFile(f);};
+async function importFile(f){const t=L();let j,ph={};
   try{const buf=await f.arrayBuffer(),u8=new Uint8Array(buf);
     if(u8[0]===0x50&&u8[1]===0x4b){const z=await zipRead(buf);if(!z['logbook.json'])throw 0;j=JSON.parse(new TextDecoder().decode(z['logbook.json']));ph=z;}
     else j=JSON.parse(new TextDecoder().decode(u8));}catch(e){toast(t.badJ);return;}
@@ -2651,7 +2672,7 @@ $('jsonIn').onchange=async()=>{const f=$('jsonIn').files[0];$('jsonIn').value=''
   const meta=new Map(((j&&j.photos)||[]).map(o=>[o.id,o]));
   for(const id of new Set(add.flatMap(x=>x.state.dives.flatMap(d=>d.ph||[])))){const full=ph[id+'.jpg'];if(!full||!window.__photo)continue;
     try{if(await window.__photo.get(id))continue;const thumb=ph[id+'_t.jpg']||full,m=meta.get(id)||{};await window.__photo.put({id,full:new Blob([full],{type:'image/jpeg'}),thumb:new Blob([thumb],{type:'image/jpeg'}),ts:m.ts||Date.now(),name:m.name||''});}catch(e){}}
-  if(!store(a)){toast(t.fail);return;}renderAll();window.__photo&&window.__photo.refresh&&window.__photo.refresh();flash($('loadBtn'));};
+  if(!store(a)){toast(t.fail);return;}renderAll();window.__photo&&window.__photo.refresh&&window.__photo.refresh();flash($('loadBtn'));}
 /* FIT 불러오기: [파일(FIT·ZIP)] / [폴더](폴더 고르기 되는 브라우저: PC 크롬·엣지, 아이폰 iOS 18.4+) → 다이빙만 골라 요약 → 한 번에 */
 const FW=()=>LANG==='en'?{ttl:'Import FIT',files:'Files (FIT·ZIP)',dir:'Folder',cancel:'Cancel',go:'Import',read:(i,n)=>`Reading ${i}/${n}…`,imp:(i,n)=>`Importing ${i}/${n}…`,
     sum:(f,d,nw,old,ov)=>`FIT files: ${f} · dive files: ${d}<br>New dives: <strong>${nw}</strong>`+(old?`<br>Already in logbook (skipped): ${old}`:'')+(ov?`<br>Overlap with logs you wrote: ${ov} (depth replaced by FIT, memo kept)`:''),none:'No dive FIT files found.',free:n=>`Freediving excluded (surfaced within 3 min): ${n}`,unzip:'No FIT files in this folder, only ZIP files. Please unzip them first (in the Files app, tap the ZIP).',noNew:'All dives are already in the logbook.'}
