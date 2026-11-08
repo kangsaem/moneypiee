@@ -275,7 +275,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.8.0';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.8.1';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <script>/* v2.6.1 언어를 앱 코드보다 먼저 정함(규칙은 여기 한 곳): ① 주소 #ko·#en·#ja·#de·#es·#zh(·-log) ② 사용자가 고른 언어(scuba_lang) ③ 기기 언어(navigator.languages, 번체 zh-TW·HK·MO·Hant는 건너뜀) ④ 영어. 검색 로봇·자동화 브라우저 = 한국어.
@@ -3155,7 +3155,7 @@ function smpEnsure(){try{if(localStorage.getItem(SMP_K))return;const a=load();lo
   const keys=Object.assign(Object.fromEntries(KEYS.map(k=>[k,S[k]])),{water:'salt',altSel:'0',alt:0,gasSel:'21',o2:21,gfLo:40,gfHi:85,tankV:12,tankP:200,sac:15,sacSel:'15'});/* 공기 소모 적음(15 L/분) — 기본 20이면 출수 잔압 경고가 떠서 */
   a.push({id:SMP_ID,sample:1,date,time:'10:00',memo:'',saved:Date.now(),state:Object.assign({dives:[{pts:SMP_PTS.map(q=>({t:q.t,d:q.d})),si:60,lab:null,memo:smpMemo(LANG),ph:[SMP_PH]}]},keys),sum:smpSum()});
   try{localStorage.setItem(KEY,JSON.stringify(a));}catch(e){return;}
-  (async()=>{try{const r=await fetch('sample-jack.jpg');if(!r.ok)return;const b=await r.blob(),im=await loadImg(b);const [full,thumb]=await Promise.all([toBlob(im,1200,.8),toBlob(im,240,.7,true)]);await PDB.put({id:SMP_PH,full,thumb,ts:Date.now(),name:'jackfish.jpg'});if(typeof renderAll==='function')renderAll();}catch(e){}})();}catch(e){}}
+  (async()=>{try{const r=await fetch('sample-jack.jpg');if(!r.ok)return;const b=await r.blob(),im=await loadImg(b);const [full,thumb]=await Promise.all([toBlob(im,1200,.8),toBlob(im,240,.7,true)]);await PDB.put({id:SMP_PH,full,thumb,ts:Date.now(),name:'jackfish.jpg'});/* 사진 넣기 전에 이미 그린 화면(사진 줄·그래프 배경)을 다시 */if(typeof renderAll==='function')renderAll();if(typeof renderPh==='function')renderPh();if(typeof drawProfile==='function')drawProfile();}catch(e){}})();}catch(e){}}
 /* 언어를 바꾸면: 사용자가 고치지 않은 샘플 메모·기체 이름을 새 언어로 */
 function smpLang(){try{const a=load(),x=a.find(v=>v.id===SMP_ID);if(!x)return;const d=x.state&&x.state.dives&&x.state.dives[0];if(!d)return;
   /* 사용자가 안 고친 샘플 메모인지: GPS 줄(입수·출수 단어가 언어마다 다름)은 빼고 글 4줄이 어느 언어 원문과 같고, GPS 두 점이 그대로면 */
@@ -3171,7 +3171,7 @@ window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
 // ===== 사진: 다이빙마다 최대 3장. 기기 안 IndexedDB에 줄인 사본(긴 변 1200px)과 썸네일(240px) 저장, 로그에는 id만 =====
 const PDB={db:null,open(){if(this.db)return Promise.resolve(this.db);return new Promise((ok,no)=>{const r=indexedDB.open('dtmd',1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos',{keyPath:'id'});};r.onsuccess=()=>{this.db=r.result;ok(this.db);};r.onerror=()=>no(r.error);});},
   tx(mode,fn){return this.open().then(d=>new Promise((ok,no)=>{const t=d.transaction('photos',mode),st=t.objectStore('photos');const q=fn(st);t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error);}));},
-  put(o){return this.tx('readwrite',st=>st.put(o));},get(id){return this.tx('readonly',st=>st.get(id));},del(id){return this.tx('readwrite',st=>st.delete(id));},keys(){return this.tx('readonly',st=>st.getAllKeys());}};
+  put(o){return this.tx('readwrite',st=>st.put(o));},get(id){const q=this.tx('readonly',st=>st.get(id));if(id!=='psample')return q;/* 샘플 사진: 저장소(IndexedDB)에 없거나 못 쓰면(아이폰 개인정보 보호 모드 등) 사이트의 파일을 바로 */return q.catch(()=>null).then(o=>o||fetch('sample-jack.jpg').then(r=>r.ok?r.blob():null).then(b=>b?{id,full:b,thumb:b,ts:0,name:'jackfish.jpg'}:null).catch(()=>null));},del(id){return this.tx('readwrite',st=>st.delete(id));},keys(){return this.tx('readonly',st=>st.getAllKeys());}};
 const THU=new Map();// id → 썸네일 objectURL
 window.__photo={get:id=>PDB.get(id),put:o=>PDB.put(o),thumb:id=>thumbURL(id)};
 async function thumbURL(id){if(THU.has(id))return THU.get(id);try{const o=await PDB.get(id);if(!o)return null;const u=URL.createObjectURL(o.thumb);THU.set(id,u);return u;}catch(e){return null;}}
