@@ -1,12 +1,31 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-08 15:40 (v2.6.1) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-08 15:00 (v2.7.0) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
 
-## ▶▶ 새 대화 시작용 (2026-11-08 15:40, v2.6.1) — 가장 최신. 여기부터 읽을 것
-현재 상태: v2.6.1까지 main 반영(아래 'v2.6.1 결과' = 언어별 첫 화면·설치 이름·공유 주소·hreflang). A-1(Suunto FIT·UDDF)과 B(독일어·스페인어·중국어 간체: 화면·튜토리얼·언어 목록·자동 설정) 끝. 사용자 규칙대로 새 작업은 선택지·추천 먼저(단, 11/08 14:21 사용자가 "묻지 말고 한 번에"로 B를 한꺼번에 진행시킴).
-다음 후보: 배포 후 언어별 공유 주소 미리보기 확인(카톡 공유 디버거), 실기기 확인(아래 '그 외 대기'), 3개 언어 원어민 검수, 튜토리얼 녹음(tut/script_de_es_zh.txt), A-2 Shearwater .db, A-3 Suunto JSON, 사용 안내서(guide/) 다국어.
+## ▶▶ 새 대화 시작용 (2026-11-08 15:00, v2.7.0) — 가장 최신. 여기부터 읽을 것
+(주의: 아래 v2.5.x~v2.6.1의 시각(14:25~15:40)은 예전 대화가 적은 값으로 실제 시각보다 늦게 적혀 있음. 순서는 버전 번호 기준, v2.7.0이 가장 최신)
+현재 상태: v2.7.0까지 main 반영. 11/08 14:53 사용자 "ㄱㄱ 중간에 묻지말고 다 진행후 보고" → 추천 순서 1(배포 확인) → 5(A-3 Suunto JSON) → 7(구버전 문제) 진행.
+다음 후보: 카톡 공유 디버거로 언어별 미리보기 확인(사용자), 실기기 확인(아래 '그 외 대기' + 새 항목), 3개 언어 원어민 검수, 튜토리얼 녹음(tut/script_de_es_zh.txt), A-2 Shearwater .db, 사용 안내서(guide/) 다국어, 기체(O2/He)·탱크 압력 가져오기(FIT·UDDF·JSON 공통, 아직 안 함), 아이폰 시작 화면 하단 띠(보류).
+
+### v2.7.0 결과 (11/08) — 공유 페이지 점검 · Suunto 앱 JSON · 열 때 최신 버전 확인
+1) 배포 확인: 0555ea2(v2.6.1) GitHub Pages 배포 success(05:50 UTC). 이 작업 환경에서는 moneypie.kr에 접속 못 해 실제 응답·카톡 미리보기는 확인 못 함 → 사용자가 카카오 공유 디버거(developers.kakao.com/tool/debugger/sharing)에서 /dtmd-en 등 캐시 비우고 확인 필요.
+   - 수정: 공유 페이지 7개(dtmd-en/ja/de/es/zh.html, plan.html, dive.html)에서 `<meta http-equiv="refresh">` 삭제, JS location.replace만 남김. 이유: 미리보기 수집 로봇이 meta refresh는 따라갈 수 있음(→ scuba.html의 한국어 og를 가져갈 위험). 로봇은 JS를 안 돌리므로 JS 이동은 사람만 이동. JS 꺼진 브라우저는 본문 링크를 눌러야 함. dtmd.html(한국어로 이동)은 그대로.
+2) A-3 Suunto 앱 JSON: `suuntoJsonToDives(txt)`(uddfToDives 바로 뒤) → fitToDives와 같은 모양, fmt 'JSON'. readDives가 .json을 이 함수로.
+   - 구조: DeviceLog.Header(ActivityType 51 = 스쿠버만, Device.Name: Vaasa→Suunto Nautic, Porvoo→Suunto Ocean, 그 밖 'Suunto '+이름) + Samples(TimeISO8601 시간대 포함).
+   - 시작 = DiveEvents.DiveStatus true(Nautic·Ocean) 또는 Events[].State 'Dive Active'(EON), 없으면 첫 수심 샘플. 수심 샘플은 1초에 하나. 최대 수심 = Header.Depth.Max(샘플보다 정확, 샘플과 1m 넘게 다르면 샘플 값). 길이 = min(Header.DiveTime, 마지막 수심 샘플). 온도 = Temperature(K, 다이빙 시간 안의 샘플만).
+   - GPS: DiveRouteOrigin(도 단위, 0·0이면 없음) = 입수. 샘플 Latitude/Longitude는 **라디안** → 입수(DiveRouteOrigin 없을 때) = 입수 전 마지막 위치, 출수 = 마지막 잠수 후 첫 위치(FIT과 같은 튀는 값 거르기).
+   - 정답 비교(Subsurface dives/*.xml): EON Core 66:10·22.65m·29°C, Ocean air 50:20·23.4m·29°C(출수 GPS 몰디브), Ocean nitrox 61:10·10.73m(출수 GPS 후르가다), Nautic multigas 12:20·21.24m(입수 GPS 48.33,7.78) = 모두 맞음.
+   - 같은 다이빙 중복: Suunto 앱은 같은 이름의 .json과 .fit을 같이 내보냄 → fitBulk에서 JSON > FIT > UDDF 순서로 읽고, 시간이 절반 넘게 겹치는 다이빙은 건너뜀(요약 '다이빙 수'에서도 빠짐). JSON이 GPS가 있어 우선(Ocean FIT은 GPS 없음).
+   - 고르기: 파일 accept에 .json 추가, 폴더(.json 30MB 미만)·ZIP 안 .json도. 백업 JSON(jsonIn)과는 별개 — 백업 JSON을 [FIT]으로 고르면 '다이빙 기록을 찾지 못했어요'.
+   - 메모 줄 '장비명 (JSON)', isFitMemo·지명 찾기 제외 정규식에 JSON(지명 제외는 UDDF도 새로 추가). 안내 문구 disc2 6개 언어에 'Suunto 앱 JSON' 추가. 불러오기 창 제목 'FIT·UDDF 불러오기'는 그대로.
+   - 크롬 테스트: JSON 3 + FIT 1(같은 다이빙) → '파일 4개 · 다이빙 3개', 불러온 뒤 다시 → 모두 건너뜀. 한계: 실제 사용자 파일로는 확인 못 함(Suunto 앱에서 JSON 내보내기가 되는 버전·방법도 확인 안 함). 기체·탱크 압력·메모(Header.Notes)는 안 가져옴.
+3) 구버전 문제(홈 화면 앱이 캐시의 옛 /scuba를 엶): 시작 화면 스크립트(spVer 바로 뒤)에서 열 때 `fetch(pathname+'?vc=…',{cache:'no-store',Range:bytes=0-65535})`로 앞부분만 받아(APP_VER은 약 52KB 지점, Range 안 되는 서버면 찾는 즉시 읽기 중단) APP_VER 비교.
+   - 서버가 더 새 버전 + 시작 화면이 떠 있음(아무것도 안 누름) + 이번 세션(sessionStorage `scuba_vchk`)에 그 버전으로 다시 연 적 없음 → `fetch(pathname,{cache:'reload'})`로 /scuba 캐시도 새로 받은 뒤 `pathname?v=시각#해시`로 다시 열기. 앱 안에 들어간 뒤면 안 함(쓰던 내용 보호), 서버가 더 옛 버전이면 안 함.
+   - 테스트 6가지(같은 버전·새 버전(#de 유지)·다시 열린 뒤 같은 버전·앱 안·옛 서버·세션 가드) 통과. window.__verChk = 테스트용.
+   - **버전 규칙이 더 중요해짐: APP_VER를 올리지 않으면 이 확인이 동작하지 않음.** 한계: 실제 아이폰 홈 화면 앱에서 확인 필요. 앱을 열 때마다 약 64KB 더 받음. 시작 화면이 잠깐 보였다가 다시 열림(새 버전일 때만).
+   - 실기기 확인 대기에 추가: 아이폰 홈 화면 앱에서 새 버전 배포 후 앱 재실행 → 시작 화면 ↻ 옆 버전이 새 버전인지.
 
 ### v2.6.1 결과 (11/08 15:40) — 언어별 첫 화면·설치 이름·공유 주소·hreflang (사용자 14:48 "1~4만" 지시로 진행)
 1) 첫 화면부터 그 언어: 시작 화면 바로 뒤(.wrap 앞) 작은 스크립트가 언어를 먼저 정함(**규칙은 여기 한 곳**, window.__L0·__T0) → html lang, 탭 제목, 시작 화면(튜토리얼·시간·이름·[플래너][로그북]·spJa), manifest href. 머리줄 바로 뒤 스크립트가 상단 이름(h1)·[로그북] 버튼. 본체 LANG은 __L0 사용(없을 때만 예전 규칙). 확인: 본체 스크립트를 잘라낸 HTML로도 de·zh·ja·fr(→en)·ko 모두 첫 화면이 그 언어.
@@ -69,6 +88,8 @@
 ## ★ 버전 규칙 (11/07부터)
 - scuba.html 맨 앞 `const APP_VER='x.y.z'` — main에 올릴 때마다 끝자리 +1, 큰 기능 변경은 가운데 자리 +1(끝자리 0). 시작 화면 ↻ 옆에 'v' + 버전 표시(날짜·시간 표시는 삭제).
 - 2.0.1 = 11/07 11:20 첫 버전.
+
+## ★ 11/08 v2.7.0 공유 페이지 meta refresh 삭제 · Suunto 앱 JSON 가져오기 · 열 때 최신 버전 확인(자세한 건 맨 앞 'v2.7.0 결과')
 
 ## ★ 11/08 15:40 v2.6.1 언어별 첫 화면·설치 이름(manifest)·공유 주소 dtmd-xx·hreflang (자세한 건 맨 앞 'v2.6.1 결과')
 

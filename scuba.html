@@ -274,7 +274,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.6.1';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.7.0';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <script>/* v2.6.1 언어를 앱 코드보다 먼저 정함(규칙은 여기 한 곳): ① 주소 #ko·#en·#ja·#de·#es·#zh(·-log) ② 사용자가 고른 언어(scuba_lang) ③ 기기 언어(navigator.languages, 번체 zh-TW·HK·MO·Hant는 건너뜀) ④ 영어. 검색 로봇·자동화 브라우저 = 한국어.
@@ -353,7 +353,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
       <div class="yearPick hide" id="yearPick"><div class="yp"><div class="lsel"></div><div class="lw" id="lwY" tabindex="0"></div></div><button id="yearOk">OK</button></div>
       <div class="cal" id="cal"></div>
       <div class="logHint" id="logHint"></div>
-      <input type="file" id="fitIn" accept=".fit,.uddf,.xml,.zip,application/zip" multiple hidden><input type="file" id="fitDir" webkitdirectory multiple hidden>
+      <input type="file" id="fitIn" accept=".fit,.uddf,.xml,.json,.zip,application/zip,application/json" multiple hidden><input type="file" id="fitDir" webkitdirectory multiple hidden>
     </div>
     <div id="logEdV" class="hide">
       <div class="edHd"><span class="calNav"><button id="logBack">◀ <span id="logBackT">달력</span></button><button id="edPrev" class="jump" aria-label="previous log date"><svg viewBox="0 0 12 12" width="12" height="12"><rect x="1" y="1" width="1.8" height="10" fill="currentColor"/><path d="M11 1L3.6 6L11 11z" fill="currentColor"/></svg></button></span><b id="edYM" class="edYM"></b><span class="calNav"><button id="fitBtn2" class="fitJ">FIT</button><button id="edNext" class="jump" aria-label="next log date"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M1 1L8.4 6L1 11z" fill="currentColor"/><rect x="9.2" y="1" width="1.8" height="10" fill="currentColor"/></svg></button></span><b id="edTitle"></b></div>
@@ -465,7 +465,7 @@ ko:{
  logT:'로그북',logDate:'날짜',logStart:'입수 시각',logSave:'현재 로그 저장',draw:'그리기',points:'점찍기',erase:'점지우기',sel:'점선택',peHint:'점을 누르면 시간·수심을 입력할 수 있어요',pePt:n=>`점 ${n}`,peT:'시간',peD:'수심',peDel:'삭제',peSeg:(v,up)=>up===null?'다음 점까지 수심 유지':`다음 점까지 ${up?'상승':'하강'} ${v}/분`,peLast:'마지막 점',undo:'실행취소',clear:'지우기',
  lgPath:'내 경로',lgPlan:'추천',lgCeil:'천장',lgFast:'급상승',on:'질소 흡수 중',off:'질소 배출 중',pct:'100% = 수면 허용한계(GF High)',
  elapsed:'시간',depth:'수심',surfGF:'수면 GF',
- disc:'학습용 시뮬레이터 · 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 말 것',more:'계산 방식',disc2:'로그북 기능을 포함하고 있습니다. 대부분의 다이빙 컴퓨터에서 FIT 파일과 UDDF 파일을 불러올 수 있습니다. 로그는 현재 사용하는 브라우저에만 저장됩니다. 저장하기로 백업하시거나 다른 단말기 브라우저에서 이어서 사용할 수 있습니다.',
+ disc:'학습용 시뮬레이터 · 감압 다이빙 계획이나 다이빙 컴퓨터 대용으로 사용하지 말 것',more:'계산 방식',disc2:'로그북 기능을 포함하고 있습니다. 대부분의 다이빙 컴퓨터에서 FIT 파일과 UDDF 파일, Suunto 앱의 JSON 파일을 불러올 수 있습니다. 로그는 현재 사용하는 브라우저에만 저장됩니다. 저장하기로 백업하시거나 다른 단말기 브라우저에서 이어서 사용할 수 있습니다.',
  model:'계산: Bühlmann ZHL-16C 질소 16구획, Baker 그래디언트 팩터, 수증기압 0.0627 bar, 1초 단위 계산. 감압 정지는 3 m 단위·1분 단위, 마지막 정지 3 m. 5 m 3분 안전정지 포함. 고도는 그 고도에 적응된 상태로 가정. 산소 독성은 CNS%만 NOAA 한도로 계산(나이트록스), 헬륨·OTU는 계산하지 않습니다. 실제 다이빙 컴퓨터와는 정지 처리·반올림 방식 차이로 수 분 차이가 날 수 있습니다.',
  tank:'탱크',sac:'호흡',sacLo:'적음 (15 L/분)',sacMd:'보통 (20 L/분)',sacHi:'많음 (25 L/분)',wGas:(v,m)=>`출수 잔압 ${v}`,wGas0:'공기 고갈',
  tutBtn:'튜토리얼',bmSurf:'수면 기준',bmSw:'쉐어워터식',swU:'주변압 이하',swY:'과포화',swR:'M값 초과',swIn:'들이마신 질소',swAmb:'주변 압력',swM:'M값(원래 한계)',swGF:'GF 한계(천장)',
@@ -527,7 +527,7 @@ en:{
  logT:'Logbook',logDate:'Date',logStart:'Entry time',logSave:'Save this log',draw:'Draw',points:'Points',erase:'Erase points',sel:'Select',peHint:'Tap a point to enter its time and depth',pePt:n=>`Point ${n}`,peT:'Time',peD:'Depth',peDel:'Delete',peSeg:(v,up)=>up===null?'To next: level':`To next: ${up?'ascent':'descent'} ${v}/min`,peLast:'Last point',undo:'Undo',clear:'Clear',
  lgPath:'My profile',lgPlan:'Suggested',lgCeil:'Ceiling',lgFast:'Fast ascent',on:'N₂ on-gassing',off:'N₂ off-gassing',pct:'100% = surfacing limit (GF High)',
  elapsed:'Time',depth:'Depth',surfGF:'Surface GF',
- disc:'For education and learning only. Do not use it to plan real decompression dives or as a substitute for a dive computer.',more:'Calculation',disc2:'Includes a logbook. FIT files from most dive computers and UDDF files can be imported. Logs are stored only in this browser; use Save to back them up or to continue in a browser on another device.',
+ disc:'For education and learning only. Do not use it to plan real decompression dives or as a substitute for a dive computer.',more:'Calculation',disc2:'Includes a logbook. FIT files from most dive computers, UDDF files and Suunto app JSON files can be imported. Logs are stored only in this browser; use Save to back them up or to continue in a browser on another device.',
  model:'Model: Bühlmann ZHL-16C, 16 nitrogen compartments, Baker gradient factors, water vapour 0.0627 bar, 1-second steps. Deco stops in 3 m steps and whole minutes, last stop 3 m. A 3-minute safety stop at 5 m is included. Altitude assumes you are acclimatised. Oxygen toxicity: CNS% only, using NOAA limits (nitrox); helium and OTU are not calculated. Results can differ from real dive computers by a few minutes because of how stops are handled and rounded.',
  tank:'Tank',sac:'Breathing (SAC)',sacLo:'Low (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'High (25 L/min)',wGas:(v,m)=>`Surfacing with ${v}`,wGas0:'Out of air',
  tutBtn:'Tutorial',bmSurf:'Surface-based',bmSw:'Shearwater-style',swU:'Below ambient',swY:'Supersaturated',swR:'Above M-value',swIn:'Inspired N₂',swAmb:'Ambient',swM:'M-value (raw limit)',swGF:'GF limit (ceiling)',
@@ -589,7 +589,7 @@ ja:{
  logT:'ログブック',logDate:'日付',logStart:'潜水開始',logSave:'このログを保存',draw:'描画',points:'点打ち',erase:'点消去',sel:'点を選択',peHint:'点をタップすると時間・水深を入力できます',pePt:n=>`点 ${n}`,peT:'時間',peD:'水深',peDel:'削除',peSeg:(v,up)=>up===null?'次の点まで 水深維持':`次の点まで ${up?'浮上':'潜降'} ${v}/分`,peLast:'最後の点',undo:'元に戻す',clear:'クリア',
  lgPath:'自分の経路',lgPlan:'推奨',lgCeil:'シーリング',lgFast:'急浮上',on:'窒素 吸収中',off:'窒素 排出中',pct:'100% = 浮上許容限界(GF High)',
  elapsed:'時間',depth:'水深',surfGF:'水面 GF',
- disc:'教育・学習用のシミュレーターです。実際の減圧ダイビング計画やダイブコンピューターの代わりに使用しないでください。',more:'計算方法',disc2:'ログブック機能を含みます。ほとんどのダイブコンピューターのFITファイルとUDDFファイルを読み込めます。ログはこのブラウザにのみ保存されます。保存でバックアップするか、別の端末のブラウザで続けて使えます。',
+ disc:'教育・学習用のシミュレーターです。実際の減圧ダイビング計画やダイブコンピューターの代わりに使用しないでください。',more:'計算方法',disc2:'ログブック機能を含みます。ほとんどのダイブコンピューターのFITファイル、UDDFファイル、SuuntoアプリのJSONファイルを読み込めます。ログはこのブラウザにのみ保存されます。保存でバックアップするか、別の端末のブラウザで続けて使えます。',
  model:'計算: Bühlmann ZHL-16C 窒素16コンパートメント、Baker グラディエントファクター、水蒸気圧 0.0627 bar、1秒単位の計算。減圧停止は3 m刻み・1分単位、最終停止 3 m。5 mで3分の安全停止を含む。標高はその標高に順応した状態を想定。酸素毒性はCNS%のみNOAA限度で計算(ナイトロックス)、ヘリウム・OTUは計算しません。停止の扱いや丸め方の違いにより、実際のダイブコンピューターと数分の差が出ることがあります。',
  tank:'タンク',sac:'呼吸量',sacLo:'少ない (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'多い (25 L/分)',wGas:(v,m)=>`浮上時残圧 ${v}`,wGas0:'エア切れ',
  tutBtn:'チュートリアル',bmSurf:'水面基準',bmSw:'Shearwater式',swU:'周囲圧以下',swY:'過飽和',swR:'M値超過',swIn:'吸気の窒素',swAmb:'周囲圧',swM:'M値(本来の限界)',swGF:'GF限界(シーリング)',
@@ -651,7 +651,7 @@ de:{
  logT:'Logbuch',logDate:'Datum',logStart:'Abtauchzeit',logSave:'Log speichern',draw:'Zeichnen',points:'Punkte',erase:'Punkte löschen',sel:'Auswahl',peHint:'Tippe auf einen Punkt, um Zeit und Tiefe einzugeben',pePt:n=>`Punkt ${n}`,peT:'Zeit',peD:'Tiefe',peDel:'Löschen',peSeg:(v,up)=>up===null?'Bis zum nächsten: Tiefe halten':`Bis zum nächsten: ${up?'Aufstieg':'Abstieg'} ${v}/min`,peLast:'Letzter Punkt',undo:'Rückgängig',clear:'Leeren',
  lgPath:'Mein Profil',lgPlan:'Empfohlen',lgCeil:'Decke',lgFast:'Zu schnell',on:'N₂-Aufsättigung',off:'N₂-Entsättigung',pct:'100% = Auftauchgrenze (GF High)',
  elapsed:'Zeit',depth:'Tiefe',surfGF:'Surface GF',
- disc:'Nur für Ausbildung und Lernen. Nicht zur Planung echter Dekotauchgänge oder als Ersatz für einen Tauchcomputer verwenden.',more:'Berechnung',disc2:'Mit Logbuch. FIT-Dateien der meisten Tauchcomputer und UDDF-Dateien können importiert werden. Logs werden nur in diesem Browser gespeichert; sichere sie mit Speichern oder um auf einem anderen Gerät weiterzumachen.',
+ disc:'Nur für Ausbildung und Lernen. Nicht zur Planung echter Dekotauchgänge oder als Ersatz für einen Tauchcomputer verwenden.',more:'Berechnung',disc2:'Mit Logbuch. FIT-Dateien der meisten Tauchcomputer, UDDF-Dateien und JSON-Dateien der Suunto-App können importiert werden. Logs werden nur in diesem Browser gespeichert; sichere sie mit Speichern oder um auf einem anderen Gerät weiterzumachen.',
  model:'Modell: Bühlmann ZHL-16C, 16 Stickstoff-Kompartimente, Gradientenfaktoren nach Baker, Wasserdampf 0,0627 bar, 1-Sekunden-Schritte. Dekostopps in 3-m-Schritten und ganzen Minuten, letzter Stopp 3 m. Ein 3-minütiger Sicherheitsstopp auf 5 m ist enthalten. Bei Höhe wird Akklimatisierung angenommen. Sauerstofftoxizität: nur CNS% nach NOAA-Grenzen (Nitrox); Helium und OTU werden nicht berechnet. Ergebnisse können wegen Stopp-Behandlung und Rundung einige Minuten von echten Tauchcomputern abweichen.',
  tank:'Flasche',sac:'Atemverbrauch (AMV)',sacLo:'Niedrig (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'Hoch (25 L/min)',wGas:(v,m)=>`Auftauchen mit ${v}`,wGas0:'Luft leer',
  tutBtn:'Tutorial',bmSurf:'Oberflächenbezug',bmSw:'Shearwater-Stil',swU:'Unter Umgebungsdruck',swY:'Übersättigt',swR:'Über M-Wert',swIn:'Eingeatmeter N₂',swAmb:'Umgebungsdruck',swM:'M-Wert (Rohgrenze)',swGF:'GF-Grenze (Decke)',
@@ -713,7 +713,7 @@ es:{
  logT:'Bitácora',logDate:'Fecha',logStart:'Hora de entrada',logSave:'Guardar este registro',draw:'Dibujar',points:'Puntos',erase:'Borrar puntos',sel:'Seleccionar',peHint:'Toca un punto para introducir su tiempo y profundidad',pePt:n=>`Punto ${n}`,peT:'Tiempo',peD:'Prof.',peDel:'Borrar',peSeg:(v,up)=>up===null?'Hasta el siguiente: mantener':`Hasta el siguiente: ${up?'ascenso':'descenso'} ${v}/min`,peLast:'Último punto',undo:'Deshacer',clear:'Borrar todo',
  lgPath:'Mi perfil',lgPlan:'Sugerido',lgCeil:'Techo',lgFast:'Ascenso rápido',on:'Absorción de N₂',off:'Eliminación de N₂',pct:'100% = límite para salir (GF High)',
  elapsed:'Tiempo',depth:'Prof.',surfGF:'Surface GF',
- disc:'Solo para formación y aprendizaje. No lo uses para planificar inmersiones reales con descompresión ni como sustituto de un ordenador de buceo.',more:'Cálculo',disc2:'Incluye bitácora. Se pueden importar archivos FIT de la mayoría de los ordenadores de buceo y archivos UDDF. Los registros se guardan solo en este navegador; usa Guardar para hacer copia o para seguir en otro dispositivo.',
+ disc:'Solo para formación y aprendizaje. No lo uses para planificar inmersiones reales con descompresión ni como sustituto de un ordenador de buceo.',more:'Cálculo',disc2:'Incluye bitácora. Se pueden importar archivos FIT de la mayoría de los ordenadores de buceo, archivos UDDF y archivos JSON de la app de Suunto. Los registros se guardan solo en este navegador; usa Guardar para hacer copia o para seguir en otro dispositivo.',
  model:'Modelo: Bühlmann ZHL-16C, 16 compartimentos de nitrógeno, factores de gradiente de Baker, vapor de agua 0,0627 bar, pasos de 1 segundo. Paradas de descompresión cada 3 m y en minutos enteros, última parada a 3 m. Incluye una parada de seguridad de 3 minutos a 5 m. En altitud se supone aclimatación. Toxicidad del oxígeno: solo CNS% con límites NOAA (nitrox); no se calculan helio ni OTU. Los resultados pueden diferir unos minutos de un ordenador real por cómo se tratan y redondean las paradas.',
  tank:'Botella',sac:'Consumo (SAC)',sacLo:'Bajo (15 L/min)',sacMd:'Normal (20 L/min)',sacHi:'Alto (25 L/min)',wGas:(v,m)=>`Sales con ${v}`,wGas0:'Sin aire',
  tutBtn:'Tutorial',bmSurf:'Respecto a superficie',bmSw:'Estilo Shearwater',swU:'Bajo la ambiente',swY:'Sobresaturado',swR:'Sobre el valor M',swIn:'N₂ inspirado',swAmb:'Ambiente',swM:'Valor M (límite bruto)',swGF:'Límite GF (techo)',
@@ -775,7 +775,7 @@ zh:{
  logT:'潜水日志',logDate:'日期',logStart:'入水时间',logSave:'保存当前日志',draw:'绘制',points:'打点',erase:'删除点',sel:'选择',peHint:'点击一个点可输入时间和深度',pePt:n=>`点 ${n}`,peT:'时间',peD:'深度',peDel:'删除',peSeg:(v,up)=>up===null?'到下一点：保持深度':`到下一点：${up?'上升':'下潜'} ${v}/分`,peLast:'最后一点',undo:'撤销',clear:'清除',
  lgPath:'我的路线',lgPlan:'建议',lgCeil:'天花板',lgFast:'快速上升',on:'氮气吸收中',off:'氮气排出中',pct:'100% = 出水允许极限 (GF High)',
  elapsed:'时间',depth:'深度',surfGF:'Surface GF',
- disc:'仅供教学和学习使用。请勿用于规划真实的减压潜水，也不能代替潜水电脑。',more:'计算说明',disc2:'附带潜水日志。可导入大多数潜水电脑的 FIT 文件和 UDDF 文件。日志只保存在此浏览器中；请用“保存”备份，或在其他设备的浏览器中继续使用。',
+ disc:'仅供教学和学习使用。请勿用于规划真实的减压潜水，也不能代替潜水电脑。',more:'计算说明',disc2:'附带潜水日志。可导入大多数潜水电脑的 FIT 文件、UDDF 文件和 Suunto 应用的 JSON 文件。日志只保存在此浏览器中；请用“保存”备份，或在其他设备的浏览器中继续使用。',
  model:'模型：Bühlmann ZHL-16C，16 个氮气组织舱，Baker 梯度因子，水蒸气 0.0627 bar，1 秒步长。减压停留按 3 m 间隔、整分钟计算，最后一站 3 m。包含 5 m 处 3 分钟安全停留。高海拔按已适应计算。氧中毒：仅按 NOAA 限值计算 CNS%（高氧）；不计算氦气和 OTU。由于停留的处理和取整方式不同，结果可能与真实潜水电脑相差几分钟。',
  tank:'气瓶',sac:'呼吸量 (SAC)',sacLo:'低 (15 L/分)',sacMd:'普通 (20 L/分)',sacHi:'高 (25 L/分)',wGas:(v,m)=>`出水时剩 ${v}`,wGas0:'气体耗尽',
  tutBtn:'教程',bmSurf:'水面基准',bmSw:'Shearwater 式',swU:'低于环境压',swY:'过饱和',swR:'超过 M 值',swIn:'吸入氮气',swAmb:'环境压',swM:'M 值（原始极限）',swGF:'GF 极限（天花板）',
@@ -1953,6 +1953,22 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
     const t0=Date.now();let gone=false;const go=()=>{if(gone)return;gone=true;setTimeout(()=>location.replace(u+(location.hash||'')),Math.max(0,600-(Date.now()-t0)));};
     try{fetch(u,{cache:'reload'}).then(r=>r.text()).then(go,go);}catch(x){go();}setTimeout(go,5000);};
   document.getElementById('spVer').textContent='v'+APP_VER;
+  /* 열 때 최신 버전 확인(홈 화면 앱이 캐시의 옛 /scuba를 여는 문제): 서버 파일 앞부분만 받아 APP_VER 비교(Range + 찾으면 읽기 중단).
+     서버가 더 새 버전이고 시작 화면이 아직 떠 있고(아무것도 안 눌렀을 때) 이번 세션에 그 버전으로 다시 연 적이 없으면 = 캐시 새로 받고 ?v=로 다시 열기.
+     앱 안에 들어간 뒤라면 다시 열지 않음(쓰던 내용 보호) → 다음에 열 때 반영 */
+  {const vNum=v=>(v||'').split('.').map(n=>+n||0),newer=(a,b)=>{const x=vNum(a),y=vNum(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0);}return false;};
+   const chk=async()=>{if(location.protocol==='file:'||!window.fetch||!window.TextDecoder)return;
+     try{const r=await fetch(location.pathname+'?vc='+Date.now(),{cache:'no-store',headers:{Range:'bytes=0-65535'}});if(!r.ok&&r.status!==206)return;
+       let txt='',m=null;const dec=new TextDecoder();
+       if(r.body&&r.body.getReader){const rd=r.body.getReader();while(!m&&txt.length<600000){const c=await rd.read();if(c.done)break;txt+=dec.decode(c.value,{stream:true});m=/const APP_VER='([\d.]+)'/.exec(txt);}try{rd.cancel();}catch(e){}}
+       else{txt=await r.text();m=/const APP_VER='([\d.]+)'/.exec(txt);}
+       if(!m||!newer(m[1],APP_VER))return;const sv=m[1];
+       let done=null;try{done=sessionStorage.getItem('scuba_vchk');}catch(e){}if(done===sv)return;/* 같은 버전으로 이미 한 번 다시 열었는데 또 옛 버전 = 반복 안 함 */
+       if(sp.style.display==='none'||window.__spPick)return;
+       try{sessionStorage.setItem('scuba_vchk',sv);}catch(e){}
+       try{await fetch(location.pathname,{cache:'reload'});}catch(e){}/* 주소 그대로(/scuba)의 캐시도 새것으로 → 다음 실행부터 바로 새 버전 */
+       if(sp.style.display==='none'||window.__spPick)return;location.replace(location.pathname+'?v='+Date.now()+(location.hash||''));}catch(e){}};
+   window.__verChk=chk;setTimeout(chk,0);}
   /* [앱으로 쓰기]: 브라우저로 열었을 때만. 안드로이드·PC 크롬은 설치 창, 아이폰·그 외는 '홈 화면에 추가' 안내 */
   {const ab=document.getElementById('spApp'),SA=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches,UA=navigator.userAgent,IOS=/iP(hone|ad|od)/.test(UA)||(/Macintosh/.test(UA)&&'ontouchend' in document),AND=/Android/.test(UA);
    const T=()=>{const L=typeof LANG!=='undefined'?LANG:'ko';return LX({de:{b:'Als App nutzen',h:'Wie eine App nutzen',p:'Füge DTMD zum Home-Bildschirm hinzu, dann öffnet es sich im Vollbild ohne Adressleiste.',ios:['In Safari auf Teilen (□↑) tippen','„Zum Home-Bildschirm“ wählen','„Hinzufügen“ tippen und DTMD vom Home-Bildschirm öffnen'],and:['Browser-Menü (⋮) öffnen','„App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen','DTMD vom Startbildschirm öffnen'],oth:['Browser-Menü öffnen','„Installieren“ oder „Zum Startbildschirm / Dock hinzufügen“ wählen'],ok:'OK'},
@@ -2021,7 +2037,7 @@ const CTRY=[['KR','대한민국|한국','South Korea|Korea','韓国'],['PH','필
 function hasCtry(l){return CTRY.some(x=>{x.re.lastIndex=0;return x.re.test(l);});}
 function pickPlace(m){const L=(m||'').split('\n').map(x=>x.trim()).filter(Boolean);let k;
   for(const l of L)if((k=l.match(PL_USER)))return {t:k[1].trim(),line:l,src:'user'};
-  for(const l of L)if(!/gps|\(fit\)|°/i.test(l)&&!PL_AUTO.test(l)&&l.length<=40&&hasCtry(l))return {t:l,line:l,src:'ctry'};
+  for(const l of L)if(!/gps|\((fit|uddf|json)\)|°/i.test(l)&&!PL_AUTO.test(l)&&l.length<=40&&hasCtry(l))return {t:l,line:l,src:'ctry'};
   for(const l of L)if((k=l.match(PL_AUTO)))return {t:k[1].trim(),line:l,src:'auto'};
   const g=L.find(l=>!/\d/.test(l)&&!/(슈트|suit|웨이트|weight|기온|수온|시야|visib|gps|fit|생물|life|°|スーツ|ウェイト|透明度|水温|気温|anzug|blei|temp|sicht|leben|traje|lastre|vida|潜水服|配重|气温|能见度|生物)/i.test(l)&&l.length<=24);
   return g?{t:g,line:g,src:'guess'}:{t:'',line:null,src:''};}
@@ -2280,8 +2296,39 @@ function uddfToDives(txt){const x=new DOMParser().parseFromString(txt,'applicati
     return {startUTC:loc-off,localOff:m[7]?off:0,dur:num(k1(ia,'diveduration'))||raw[raw.length-1].t,maxD:Math.max(0,...raw.map(r=>r.d)),pts:keep,nRaw:raw.length,uwMax,
       tMin:temps.length?Math.min(...temps):null,tMax:temps.length?Math.max(...temps):null,gps:null,gps0:st.gps||null,place:st.place||null};}).filter(Boolean);
   return {dev,dives,fmt:'UDDF'};}
-/* 파일 하나 → {dev, dives, fmt}. .fit = FIT, .uddf/.xml = UDDF(아니면 오류) */
+/* Suunto 앱 JSON(DeviceLog: Header + Samples) → fitToDives와 같은 모양. ActivityType 51(스쿠버)만.
+   시작 = DiveEvents.DiveStatus(Nautic·Ocean) 또는 Events[].State 'Dive Active'(EON), 없으면 첫 수심 샘플. 시각은 TimeISO8601(시간대 포함).
+   온도 K(다이빙 중 샘플만). GPS: DiveRouteOrigin(도, 0·0이면 없음) = 입수, 샘플 Latitude/Longitude(라디안) = 입수 전 마지막·출수 후 첫 위치 */
+function suuntoJsonToDives(txt){const j=JSON.parse(txt),L=j&&j.DeviceLog,H=L&&L.Header,S=(L&&Array.isArray(L.Samples))?L.Samples:[];
+  if(!H||typeof H!=='object')throw new Error('suunto');
+  const nm=(H.Device&&H.Device.Name)||'',dev=nm==='Vaasa'?'Suunto Nautic':nm==='Porvoo'?'Suunto Ocean':nm?(/suunto/i.test(nm)?nm:'Suunto '+nm):'Suunto';
+  if(H.ActivityType!==51)return {dev,dives:[],fmt:'JSON'};
+  const iso=s=>{const m=/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.(\d+))?(Z|[+-]\d\d:?\d\d)?/.exec(s||'');if(!m)return null;
+    let off=0;if(m[8]&&m[8]!=='Z'){const z=m[8].replace(':','');off=(z[0]==='-'?-1:1)*(+z.slice(1,3)*3600+ +z.slice(3,5)*60);}
+    return {u:Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6])/1000+(m[7]?+('0.'+m[7]):0)-off,off:m[8]?off:null};};
+  const h0=iso(H.DateTime);let st=null;const ts=S.map(s=>{const r=iso(s.TimeISO8601);return r?r.u:null;});
+  S.forEach((s,i)=>{if(st!=null||ts[i]==null)return;const de=s.DiveEvents;if(de&&de.DiveStatus===true){st=ts[i];return;}
+    if(Array.isArray(s.Events)&&s.Events.some(e=>e&&e.State&&e.State.Active&&e.State.Type==='Dive Active'))st=ts[i];});
+  const dIdx=S.map((s,i)=>i).filter(i=>typeof S[i].Depth==='number'&&ts[i]!=null);if(!dIdx.length)return {dev,dives:[],fmt:'JSON'};
+  if(st==null)st=Math.min(ts[dIdx[0]],h0?h0.u:Infinity);
+  const raw=[{t:0,d:0}];let last=-1;dIdx.forEach(i=>{const t=Math.round(ts[i]-st);if(t<0)return;if(t===last)return;last=t;if(t===0)raw[0].d=S[i].Depth;else raw.push({t,d:S[i].Depth});});
+  const tEnd=st+raw[raw.length-1].t;
+  const temps=[];S.forEach((s,i)=>{const k=s.Temperature;if(typeof k==='number'&&k>150&&ts[i]!=null&&ts[i]>=st&&ts[i]<=tEnd)temps.push(Math.round(k-273.15));});
+  const keep=rdpV(raw,0.3).map(q=>({t:Math.round(q.t),d:Math.round(Math.max(0,q.d)*10)/10}));
+  let uwMax=0,tA=null,tB=null;{let a=null;raw.forEach(r=>{const u=r.d>0.5;if(u){if(tA==null)tA=r.t;tB=r.t;}if(u&&a==null)a=r.t;if(!u&&a!=null){uwMax=Math.max(uwMax,r.t-a);a=null;}});if(a!=null)uwMax=Math.max(uwMax,raw[raw.length-1].t-a);}
+  /* 위치 */const R2D=180/Math.PI,ok=(la,lo)=>isFinite(la)&&isFinite(lo)&&(la||lo)&&Math.abs(la)<=90&&Math.abs(lo)<=180;
+  const fx=[];S.forEach((s,i)=>{if(typeof s.Latitude==='number'&&typeof s.Longitude==='number'&&ts[i]!=null){const la=s.Latitude*R2D,lo=s.Longitude*R2D;if(ok(la,lo))fx.push({t:ts[i]-st,lat:la,lon:lo});}});
+  const dm=(a,b)=>Math.hypot((a.lat-b.lat)*111320,(a.lon-b.lon)*111320*Math.cos(a.lat*Math.PI/180)),jump=(a,b)=>b&&dm(a,b)>15*Math.max(1,Math.abs(b.t-a.t));
+  const pre=fx.filter(f=>f.t<(tA==null?0:tA)),post=fx.filter(f=>f.t>(tB==null?Infinity:tB));
+  let g0=null;{const o=(S.find(s=>s.DiveRouteOrigin)||{}).DiveRouteOrigin;if(o&&ok(o.Latitude,o.Longitude))g0={lat:o.Latitude,lon:o.Longitude};}
+  if(!g0)for(let i=pre.length-1;i>=0;i--){if(!pre[i-1]||!jump(pre[i],pre[i-1])){g0={lat:pre[i].lat,lon:pre[i].lon};break;}}
+  let g=null;for(let i=0;i<post.length;i++){if(!post[i+1]||!jump(post[i],post[i+1])){g={lat:post[i].lat,lon:post[i].lon};break;}}
+  const dt=typeof H.DiveTime==='number'?H.DiveTime:null,rl=raw[raw.length-1].t,sm=Math.max(0,...raw.map(r=>r.d)),hm=H.Depth&&typeof H.Depth.Max==='number'?H.Depth.Max:null;/* 헤더 최대 수심이 샘플보다 정확(샘플 간격 사이 최대값) — 샘플과 1m 넘게 다르면 샘플 */
+  return {dev,fmt:'JSON',dives:[{startUTC:Math.round(st),localOff:h0&&h0.off!=null?h0.off:null,dur:Math.round(Math.min(dt||rl,rl)),maxD:(hm!=null&&Math.abs(hm-sm)<=1)?Math.max(hm,sm):sm,pts:keep,nRaw:raw.length,uwMax,
+    tMin:temps.length?Math.min(...temps):null,tMax:temps.length?Math.max(...temps):null,gps:g,gps0:g0}]};}
+/* 파일 하나 → {dev, dives, fmt}. .fit = FIT, .uddf/.xml = UDDF, .json = Suunto 앱 JSON(아니면 오류) */
 function readDives(name,buf){if(/\.(uddf|xml)$/i.test(name))return uddfToDives(new TextDecoder('utf-8').decode(buf));
+  if(/\.json$/i.test(name))return suuntoJsonToDives(new TextDecoder('utf-8').decode(buf));
   const o=parseFIT(buf);return {dev:(o.file_id[0]&&o.file_id[0][8])||(o.device_info[0]&&o.device_info[0][27])||'',dives:fitToDives(o),fmt:'FIT'};}
 window.__readDives=readDives;
 /* 프리다이빙 = FIT 세부 종류가 프리다이빙(56)·스피어피싱(57)이거나, 3분 안에 수면으로 올라온 기록(가장 길게 물속에 있던 시간 < 3분) */
@@ -2299,7 +2346,7 @@ const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return A
 const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));setTimeout(()=>{try{bkChanged();}catch(e){}},0);return true;}catch(e){return false;}};
 // ===== 하루 = 기록 하나: 같은 날짜의 기록들을 입수 시각 순으로 한 기록(다이빙1·2·3…)에 합침. 수면휴식 = 앞 출수 ~ 다음 입수(1분 단위)
 // 설정(기체·GF·탱크 등)은 다이빙마다(dive.cfg) 가지므로 같은 날은 모두 합침. FIT에서 온 다이빙은 다이빙마다 fit 표시
-const isFitMemo=m=>/\((FIT|UDDF)\)\s*$/m.test(m||'');
+const isFitMemo=m=>/\((FIT|UDDF|JSON)\)\s*$/m.test(m||'');
 function mergeDayArr(a,date){const same=a.filter(x=>x.date===date&&x.state&&x.sum);if(same.length<2)return {a,map:null};
   const groups=[same];/* 설정은 다이빙마다 있으므로 같은 날은 모두 합침 */
   let out=a.slice(),map={};groups.forEach(g=>{if(g.length<2)return;
@@ -2987,17 +3034,20 @@ const DIRSUP=(()=>{try{return 'webkitdirectory' in document.createElement('input
 /* [FIT] = 바로 폴더 고르기(폴더 고르기가 안 되는 기기는 파일 고르기: FIT·ZIP) */const fitPick=()=>{$(DIRSUP?'fitDir':'fitIn').click();};
 $('fitBtn').onclick=fitPick;$('fitBtn2').onclick=fitPick;
 /* 폴더: .fit만 읽음(ZIP은 관계없는 큰 파일일 수 있어 무시). .fit이 없고 ZIP만 있으면 압축 풀기 안내 */
-$('fitDir').onchange=()=>{const all=[...$('fitDir').files];$('fitDir').value='';const fs=all.filter(f=>/\.(fit|uddf)$/i.test(f.name)||(/\.xml$/i.test(f.name)&&f.size<3e7));
+$('fitDir').onchange=()=>{const all=[...$('fitDir').files];$('fitDir').value='';const fs=all.filter(f=>/\.(fit|uddf)$/i.test(f.name)||(/\.(xml|json)$/i.test(f.name)&&f.size<3e7));
   if(!fs.length&&all.some(f=>/\.zip$/i.test(f.name))){const w=FW(),P=fitPop();P.set(w.ttl,w.unzip,[['OK','lwS',()=>P.close()]]);return;}fitBulk(fs);};
 // 여러 파일·폴더·ZIP: 다이빙 FIT만 골라 요약 → 확인하면 시간 순으로 한 번에
 async function fitBulk(files){const w=FW(),P=fitPop();let srcs=[],nF=0;const t0=L();
   try{P.set(w.ttl,w.read(0,files.length));
     // ZIP 풀기(안에 ZIP이 또 있으면 한 단계 더)
-    for(const f of files){if(/\.zip$/i.test(f.name)){try{const z=await zipRead(await f.arrayBuffer(),n=>/\.(fit|uddf|xml|zip)$/i.test(n));for(const [n,b] of Object.entries(z)){if(!b)continue;if(/\.zip$/i.test(n)){try{const z2=await zipRead(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),m=>/\.(fit|uddf|xml)$/i.test(m));for(const [m,c] of Object.entries(z2))if(c)srcs.push({name:m,buf:c.buffer.slice(c.byteOffset,c.byteOffset+c.byteLength)});}catch(e){}}else srcs.push({name:n,buf:b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)});}}catch(e){}}
+    for(const f of files){if(/\.zip$/i.test(f.name)){try{const z=await zipRead(await f.arrayBuffer(),n=>/\.(fit|uddf|xml|json|zip)$/i.test(n));for(const [n,b] of Object.entries(z)){if(!b)continue;if(/\.zip$/i.test(n)){try{const z2=await zipRead(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),m=>/\.(fit|uddf|xml|json)$/i.test(m));for(const [m,c] of Object.entries(z2))if(c)srcs.push({name:m,buf:c.buffer.slice(c.byteOffset,c.byteOffset+c.byteLength)});}catch(e){}}else srcs.push({name:n,buf:b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength)});}}catch(e){}}
       else srcs.push({name:f.name,file:f});}
     nF=srcs.length;const dv=[],all=load();let old=0,ovm=0,nDF=0,nFree=0;
+    /* 같은 다이빙이 여러 형식으로 같이 들어오면(Suunto 앱은 같은 이름의 .json과 .fit을 함께 내보냄) 하나만: JSON > FIT > UDDF 순서로 먼저 읽고, 시간이 절반 넘게 겹치는 다이빙은 건너뜀 */
+    const PRI=n=>/\.json$/i.test(n)?0:/\.fit$/i.test(n)?1:2;srcs.sort((p,q)=>PRI(p.name)-PRI(q.name));const seenIv=[];
     for(let i=0;i<srcs.length;i++){if(i%5===0){P.set(w.ttl,w.read(i,srcs.length));await new Promise(r=>setTimeout(r,0));}const s0=srcs[i];
-      try{const buf=s0.buf||await s0.file.arrayBuffer();const R=readDives(s0.name,buf);let ds=R.dives;ds.forEach(d=>{d.pts=trimSurface(d.pts);});ds=ds.filter(d=>d.pts.length>1&&d.maxD>0.5);{const fr=ds.filter(isFreeDive).length;if(fr){nFree+=fr;ds=ds.filter(d=>!isFreeDive(d));}}if(!ds.length)continue;nDF+=ds.length;
+      try{const buf=s0.buf||await s0.file.arrayBuffer();const R=readDives(s0.name,buf);let ds=R.dives;ds.forEach(d=>{d.pts=trimSurface(d.pts);});ds=ds.filter(d=>d.pts.length>1&&d.maxD>0.5);{const fr=ds.filter(isFreeDive).length;if(fr){nFree+=fr;ds=ds.filter(d=>!isFreeDive(d));}}
+        ds=ds.filter(d=>{const a=d.startUTC,e=a+d.pts[d.pts.length-1].t;if(seenIv.some(([c,f])=>Math.min(e,f)-Math.max(a,c)>0.5*Math.min(e-a,f-c)))return false;seenIv.push([a,e]);return true;});if(!ds.length)continue;nDF+=ds.length;
         /* 한 파일에 여러 날 다이빙(UDDF)이 있으면 날짜별 묶음으로 나눔 — fitOne은 한 날짜씩 처리 */
         const grp={};for(const d of ds){const off=d.localOff!=null?d.localOff:-new Date(d.startUTC*1000).getTimezoneOffset()*60,l=new Date((d.startUTC+off)*1000),date=l.getUTCFullYear()+'-'+pad(l.getUTCMonth()+1)+'-'+pad(l.getUTCDate());
           const sm=l.getUTCHours()*60+l.getUTCMinutes()+l.getUTCSeconds()/60,dur=d.pts[d.pts.length-1].t/60;(grp[date]=grp[date]||{ds:[],fresh:0}).ds.push(d);
@@ -3038,7 +3088,7 @@ async function fitOne(f,quiet){const t=L();let dives,dev='',fmt='FIT',nFree=0;
   const PL=tr('u_locL'),WT=tr('u_water');
   for(const d of dives){const g=d.gps||d.gps0;d.place=d.place||(g?await placeName(g.lat,g.lon):null);}
   const imp=dives.map(d=>({s:minOf(d.startUTC),dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true,
-    memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.(fit|uddf|xml)$/i,''))+' ('+fmt+')',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps0?('GPS '+(tr('u_entry'))+' '+d.gps0.lat.toFixed(5)+', '+d.gps0.lon.toFixed(5)):'',d.gps?('GPS '+(tr('u_exit'))+' '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
+    memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.(fit|uddf|xml|json)$/i,''))+' ('+fmt+')',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps0?('GPS '+(tr('u_entry'))+' '+d.gps0.lat.toFixed(5)+', '+d.gps0.lon.toFixed(5)):'',d.gps?('GPS '+(tr('u_exit'))+' '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
   // 같은 날 기존 다이빙 펼치기
   const all=load(),same=all.filter(x=>x.date===date).sort((p,q)=>(p.time||'').localeCompare(q.time||''));const old=[];let base=null;
   same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,10):[],fit:d.fit||isFitMemo(diveMemo(x,i)),cfg:d.cfg||Object.fromEntries(KEYS.filter(k=>k in x.state).map(k=>[k,x.state[k]]))});});if(!base)base=x;});
