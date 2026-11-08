@@ -266,7 +266,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.3.1';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.3.2';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <div class="wrap">
@@ -1130,8 +1130,8 @@ cv.addEventListener('pointermove',e=>{const R=GM.box,p=pos(e);
 ['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(!GM.drag)return;GPT.delete(e.pointerId);
   if(GM.drag.pinch&&GPT.size===1){const [q]=[...GPT.values()];GM.drag={hd:false,x:q.x,y:q.y,ux:GM.ux,uy:GM.uy};}/* 한 손가락 남으면 이어서 끌기 */else if(!GPT.size)GM.drag=null;e.stopImmediatePropagation();},true));
 // 노트북 트랙패드 핀치(Ctrl+휠)도 확대·축소
-cv.addEventListener('wheel',e=>{const R=GM.box;if(!R||!e.ctrlKey)return;const p=pos(e);if(p.y<R.y0||p.y>R.y1||p.x<R.x0||p.x>R.x1)return;e.preventDefault();
-  const P0=256*Math.pow(2,GM.zf),cy=(R.y0+R.y1)/2;gmZoomAt(GM.zf-e.deltaY*0.01,GM.ux-(R.x1-p.x)/P0,GM.uy+(p.y-cy)/P0,p.x,p.y);},{passive:false});
+cv.addEventListener('wheel',e=>{const R=GM.box;if(!R)return;/* 지도 위 휠 = 지도 확대·축소(페이지 스크롤 안 함), 트랙패드 핀치(ctrl) 포함 */const p=pos(e);if(p.y<R.y0||p.y>R.y1||p.x<R.x0||p.x>R.x1)return;e.preventDefault();
+  const P0=256*Math.pow(2,GM.zf),cy=(R.y0+R.y1)/2;gmZoomAt(GM.zf-e.deltaY*(e.ctrlKey?0.01:e.deltaMode===1?0.12:0.004),GM.ux-(R.x1-p.x)/P0,GM.uy+(p.y-cy)/P0,p.x,p.y);},{passive:false});
 // 라벨 꾹 눌러 옮기기: 0.4초 안 움직이면 잡힘, 먼저 움직이면 원래 동작(그리기 등)
 const inLab=p=>LABBOX&&p.x>=LABBOX.bx-4&&p.x<=LABBOX.bx+LABBOX.tw+4&&p.y>=LABBOX.by-4&&p.y<=LABBOX.by+LABBOX.th+4;
 cv.addEventListener('pointerdown',e=>{const p=pos(e);
@@ -2280,7 +2280,10 @@ function openMap(loc,title,onSet){let mode=null,G=null;/* 점 편집 상태(아�
     {const a=EP('in'),b=EP('out'),ln=box.querySelector('.mpLn line');if(a&&b){const X=q=>(WXp(q.lon,N)-cx)*sc+w/2,Y=q=>(WYp(q.lat,N)-cy)*sc+h/2;ln.setAttribute('x1',X(a));ln.setAttribute('y1',Y(a));ln.setAttribute('x2',X(b));ln.setAttribute('y2',Y(b));ln.style.display='';}else ln.style.display='none';}
     box.__syncBtn&&box.__syncBtn();};
   setZ(zf,false);draw();
-  box.querySelector('.mpZi').onclick=e=>{e.stopPropagation();setZ(zf+1,true);draw();};box.querySelector('.mpZo').onclick=e=>{e.stopPropagation();setZ(zf-1,true);draw();};
+  box.querySelector('.mpZi').onclick=e=>{e.stopPropagation();setZ(zf+1,true);draw();};
+  // 마우스 휠 = 커서 위치 기준 확대·축소(페이지 스크롤 막음)
+  body.addEventListener('wheel',e=>{e.preventDefault();const r=body.getBoundingClientRect(),px=e.clientX-r.left-w/2,py=e.clientY-r.top-h/2,fx=(cx+px/sc)/N,fy=(cy+py/sc)/N;
+    setZ(zf-e.deltaY*(e.ctrlKey?0.01:e.deltaMode===1?0.12:0.004),true);cx=fx*N-px/sc;cy=fy*N-py/sc;draw();},{passive:false});box.querySelector('.mpZo').onclick=e=>{e.stopPropagation();setZ(zf-1,true);draw();};
   // 점 편집: 없음 → [입수]만(찍으면 이어서 출수 지정) / 입수만 → [출수]만 / 출수만 → [입수]만 / 둘 다 → 버튼 없음. [삭제]는 누른 뒤 지울 점을 누름.
   // 찍는 동안 마우스(또는 누르고 있는 손가락)를 따라 미리보기 점과 점선. 기존 점은 끌어서 옮기거나, 눌러서 고른 뒤 지도를 눌러 옮김.
   const tx=(ko,en,ja)=>LANG==='en'?en:LANG==='ja'?ja:ko;
