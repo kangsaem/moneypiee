@@ -1,11 +1,25 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-08 14:45 (v2.5.1) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-08 15:20 (v2.6.0) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
 
-## ▶▶ 새 대화 시작용 (2026-11-08 14:45, v2.5.1) — 가장 최신. 여기부터 읽을 것
-현재 상태: v2.5.1까지 main 반영(A-1 끝, B-a ① 끝). 다음 할 일 = B-a ② de·es·zh 화면 문구 + 언어 버튼 B① + 자동 설정 a안(v2.6.0). 사용자 규칙대로 **바로 작업하지 말고 선택지·추천 먼저, "ㄱㄱ" 받은 뒤 진행.** (11/08 14:07 결정은 아래에 확정으로 적음 → B는 이 결정대로 시작 가능)
+## ▶▶ 새 대화 시작용 (2026-11-08 15:20, v2.6.0) — 가장 최신. 여기부터 읽을 것
+현재 상태: v2.6.0까지 main 반영. A-1(Suunto FIT·UDDF)과 B(독일어·스페인어·중국어 간체: 화면·튜토리얼·언어 목록·자동 설정) 끝. 사용자 규칙대로 새 작업은 선택지·추천 먼저(단, 11/08 14:21 사용자가 "묻지 말고 한 번에"로 B를 한꺼번에 진행시킴).
+다음 후보: 실기기 확인(아래 '그 외 대기'), 3개 언어 원어민 검수, 튜토리얼 녹음(tut/script_de_es_zh.txt), A-2 Shearwater .db, A-3 Suunto JSON, 사용 안내서(guide/) 다국어.
+
+### B ②③ 결과 (v2.6.0, 11/08 15:20)
+- I18N에 de·es·zh 블록(키 136 + 설명 36, 빠진 키 없음; zh는 ko·ja처럼 axisLast 없음). 사전형 LX 17곳 모두 de·es·zh 추가.
+- 머리줄 언어: [KR|EN|JP] → `#langBtn`(지금 언어 KR/EN/JP/DE/ES/中文 + ▾, 흰 버튼) → `#langMenu`(한국어·English·日本語·Deutsch·Español·简体中文, 지금 언어 하늘색 배경). 목록 밖 누르기·Esc·고르기 = 닫힘. 기존 [data-lang] 클릭 처리 그대로.
+- 언어 정하기(a안): ① 주소 #ko·#en·#ja·#de·#es·#zh(+'-log') ② localStorage scuba_lang(목록에서 고를 때 저장) ③ navigator.languages 앞에서부터 지원 언어(zh-CN/zh-Hans/zh-SG → zh, zh-TW·HK·MO·Hant는 건너뜀) ④ 영어. 검색 로봇(UA bot·crawl·spider·Yeti·Daum·Lighthouse·HeadlessChrome) 또는 navigator.webdriver = 한국어. 테스트 10가지(ko·de·es-MX·zh-CN·zh-TW→en·fr→en·ja·#ja 우선·저장값 우선·Googlebot→ko) 통과. **주의: 예전에 EN/JP를 눌렀던 기기는 scuba_lang이 남아 있어 그 언어로 열림(의도된 동작).**
+- html lang(zh → zh-CN), 중국어 글꼴(html:lang(zh-CN) body = PingFang SC·Hiragino Sans GB·Microsoft YaHei·Noto Sans SC), nominatim accept-language(zh → zh-CN), 시작 화면 spJa(작은 글씨)를 zh에도.
+- 메모 읽기 정규식에 de·es·zh 단어: 위치(PL_USER: ort·tauchplatz·lugar·punto·sitio·地点·潜点 / PL_AUTO: standort·ubicación), 지명 제외 단어, 슈트(anzug·traje·潜水服·湿衣), 시야(sicht·visibilidad·visib.·能见度), 기체(Luft·Aire·空气), GPS 입·출수(einstieg·ausstieg·entrada·salida·入水·出水), 로그 목록 지명 줄 2곳. 자동 위치 줄은 de 'Standort: '·es 'Ubicación: '·zh '位置: '(사용자 위치 줄 Ort/Lugar/地点과 구분).
+- 튜토리얼: TUTL에 de·es·zh(직역, 다이빙 용어는 각국 관용어). 음성 언어 de-DE·es-ES·zh-CN, 글자 속도 cps de 13·es 14·zh 6, 선호 목소리(de Anna·Google Deutsch… / es Mónica·Paulina… / zh Tingting·Google 普通话…), zh 목소리는 zh-CN/Hans/cmn만. 녹음(tut/de01~13 등)은 없음 → 브라우저 음성. 대본 tut/script_de_es_zh.txt(영어 참고 포함).
+- 안내 문구(disc2): 6개 언어 모두 'FIT 파일과 UDDF 파일' 언급(ko·en·ja도 수정).
+- 버그 수정(원래 영어에도 있던 것): 일별보기 머리 날짜가 [◀달력][⏮]과 겹침(360px, 긴 '달력' 글자·요일) → fitYM()이 15→11px까지 줄임(날짜 바뀔 때·resize·언어 바꿀 때).
+- 스페인어 로그 줄 [데이터 로그] = 'Datos'(길어서 줄 내용이 잘렸음).
+- 검증: 360px에서 6개 언어 시작 화면·플래너(설정 펼침)·언어 목록·불러오기 창·불러온 뒤 로그북 스크린샷, 버튼 넘침 검사(한국어에도 있는 머리줄 접기 버튼 외 없음), 오류 없음. ko·en·ja는 v2.5.1과 글자 비교 = 언어 버튼·안내 문구 2곳만 다름(의도). 튜토리얼 de·es·zh 1~12단계 진행 확인. 모든 <script> node --check 통과.
+- 한계: 번역은 원어민 검수 전. 독일어는 규칙 2줄 등 줄바꿈이 늘어남(넘침은 없음). 실제 음성 품질은 기기마다 다름.
 
 ### 11/08 14:07 사용자 결정(확정)
 - 순서: A 먼저 → B.
@@ -34,19 +48,21 @@
 - 남은 언어 의존(②에서 처리): `document.documentElement.lang`(zh → zh-CN), nominatim accept-language(지금 LANG 그대로 → zh는 zh-CN), 튜토리얼 rate `{ko:7,en:14.5,ja:8}[lg]`·TUTL·TLANG(③), 메모 읽기 정규식(위치 PL_USER/PL_AUTO, 슈트·시야 su/vi, 1800행 지명 제외 단어, 기체 이름 /^(공기|Air|空気)$/)에 de·es·zh 단어 추가.
 - 검증: 바꾸기 전(HEAD)과 후를 크롬에서 ko·en·ja 각각 시작 화면·플래너·로그북·불러오기 창·불러온 뒤 화면·저장 데이터·로그 줄 버튼·삭제 질문·달력 글자 비교 = 모두 같음, 오류 없음. 모든 <script> 블록 node --check 통과. 변환 경계 diff 눈으로 확인.
 
-### B. 언어 추가: 독일어·스페인어·중국어(간체) — 다음 작업(②부터)
+### B. 언어 추가: 독일어·스페인어·중국어(간체) — v2.6.0에서 끝(아래는 참고)
 - 지금 구조: `I18N={ko,en,ja}`(433행~, 키 약 60줄씩) + 코드 곳곳의 인라인 3분기 **52곳** + 튜토리얼 `TUTL{en,ja}` + 머리줄 언어 버튼(.seg.lang) + 주소 `#en`·`#ja`. 시작 화면에는 언어 버튼 없음(spLang이 지금 언어로 표시).
 - 주의: 독일어는 문구가 길어 버튼·설정 요약 줄(`fitSetSum`)·막대 라벨 넘침 점검. 중국어는 CJK 글꼴·TTS 음성(zh-CN) 확인. 브라우저 음성 속도 cps(T0.rate)를 언어별로 추가(de≈13, es≈14, zh≈6에서 시작). nominatim accept-language도 언어별로.
 - 번역은 직역 + 다이빙 용어는 각국 관용어(GF, NDL, 감압정지 = Dekostopp / parada de descompresión / 减压停留). 사용 안내서(guide/)는 범위 아님.
 
 ### 그 외 대기
-- 실기기 확인: iOS 파일 앱 같은 이름 저장 시 '대치' 묻는지, 안드로이드 백업 폴더, 안드로이드 설치 안내, 지도 팝업 터치 누른 채 끌기, 실제 음성 속도, 카카오 광고 표시, **iOS에서 .uddf 파일이 파일 고르기에서 선택되는지**.
+- 실기기 확인: 3개 언어 브라우저 음성(특히 zh-CN·es-ES 목소리 선택), 기기 언어 자동 설정(아이폰·안드로이드 설정 언어), 언어 목록 터치, iOS 파일 앱 같은 이름 저장 시 '대치' 묻는지, 안드로이드 백업 폴더, 안드로이드 설치 안내, 지도 팝업 터치 누른 채 끌기, 실제 음성 속도, 카카오 광고 표시, **iOS에서 .uddf 파일이 파일 고르기에서 선택되는지**.
 - 접기 삼각형(.foldB) 2px 어긋남 — 사용자 답 대기.
 - 참고(11/08 조사): 경쟁 제품 대비 차별점 = 설치 없는 웹앱·Garmin FIT 깊은 분석·플랜↔로그↔조직 그래프 한 화면·교육용 튜토리얼·한/일어. 수익은 광고 단독으로는 작음 → Garmin 분석·강사 교육 도구 쪽 포지셔닝 추천.
 
 ## ★ 버전 규칙 (11/07부터)
 - scuba.html 맨 앞 `const APP_VER='x.y.z'` — main에 올릴 때마다 끝자리 +1, 큰 기능 변경은 가운데 자리 +1(끝자리 0). 시작 화면 ↻ 옆에 'v' + 버전 표시(날짜·시간 표시는 삭제).
 - 2.0.1 = 11/07 11:20 첫 버전.
+
+## ★ 11/08 15:20 v2.6.0 독일어·스페인어·중국어(간체) · 언어 목록 버튼 · 기기 언어 자동 설정 (자세한 건 맨 앞 'B ②③ 결과')
 
 ## ★ 11/08 14:45 v2.5.1 언어 분기 정리(화면 변화 없음, 자세한 건 맨 앞 'B-a ① 결과')
 

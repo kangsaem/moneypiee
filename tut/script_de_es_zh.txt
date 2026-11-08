@@ -1,0 +1,246 @@
+DTMD 튜토리얼 대본 — 독일어·스페인어·중국어(간체) (한국어 직역, 영어는 참고)
+앱 버전 v2.6.0 · 2026-11-08
+
+[녹음 파일 안내]
+- 저장 위치: 저장소 tut/ 폴더
+- 파일 이름: 독일어 de01.mp3 ~ de13.mp3, 스페인어 es01~es13, 중국어 zh01~zh13 (한국어 ko01~ko13과 같은 번호)
+- 01~12 = 단계별 내레이션(본문만, 단계 제목은 읽지 않음), 13 = 마지막 맺음말(화면 표시 없음)
+- 형식: mp3, 64kbps, 모노 권장
+- 녹음 파일이 없으면 앱이 브라우저 음성(de-DE / es-ES / zh-CN)으로 읽음
+- 12번: 빨간 규칙 4개가 녹음 길이의 0%·27%·49%·82% 시점에 하나씩 나타남
+
+============================================================
+01  [de01 / es01 / zh01]
+------------------------------------------------------------
+EN  Part 1 · No-decompression dive
+    ① Draw mode
+    Choose Draw, then press and drag on the graph, and a depth path is drawn. Horizontal is time, vertical is depth.
+
+DE  Teil 1 · Nullzeittauchgang
+    ① Zeichenmodus
+    Wähle Zeichnen, dann drücke und ziehe auf der Grafik, und ein Tiefenverlauf wird gezeichnet. Waagerecht ist die Zeit, senkrecht die Tiefe.
+
+ES  Parte 1 · Inmersión sin descompresión
+    ① Modo dibujo
+    Elige Dibujar, luego mantén pulsado y arrastra sobre el gráfico, y se dibuja un perfil de profundidad. En horizontal está el tiempo y en vertical la profundidad.
+
+ZH  第 1 部分 · 免减压潜水
+    ① 绘制模式
+    选择绘制，然后在图上按住拖动，就会画出深度路线。横向是时间，纵向是深度。
+
+============================================================
+02  [de02 / es02 / zh02]
+------------------------------------------------------------
+EN  Part 1 · No-decompression dive
+    ② Go down and stay
+    Let’s go down to 18 meters over 3 minutes and stay until 25 minutes. If you lift your finger before surfacing, the suggested path continues automatically. It means: do a 3-minute safety stop at 5 meters, then surface.
+
+DE  Teil 1 · Nullzeittauchgang
+    ② Abtauchen und bleiben
+    Tauchen wir in 3 Minuten auf 18 Meter ab und bleiben bis Minute 25. Hebst du den Finger vor dem Auftauchen, wird der empfohlene Weg automatisch ergänzt. Er bedeutet: 3 Minuten Sicherheitsstopp auf 5 Metern, dann auftauchen.
+
+ES  Parte 1 · Inmersión sin descompresión
+    ② Bajar y quedarse
+    Bajemos a 18 metros en 3 minutos y quedémonos hasta el minuto 25. Si levantas el dedo antes de llegar a la superficie, el camino sugerido continúa automáticamente. Significa: haz una parada de seguridad de 3 minutos a 5 metros y luego sal.
+
+ZH  第 1 部分 · 免减压潜水
+    ② 下潜并停留
+    我们用 3 分钟下潜到 18 米，停留到第 25 分钟。如果在出水前松开手指，建议路线会自动接上。意思是：在 5 米做 3 分钟安全停留，然后出水。
+
+============================================================
+03  [de03 / es03 / zh03]
+------------------------------------------------------------
+EN  Part 1 · No-decompression dive
+    ③ Make the ascent with Points
+    Switch to Points and place points one by one. From 10 meters to 5 meters, go slowly at 9 meters per minute or less, then a 3-minute safety stop at 5 meters, then to the surface. When it reaches the surface, the dive ends.
+
+DE  Teil 1 · Nullzeittauchgang
+    ③ Den Aufstieg mit Punkten setzen
+    Wechsle zu Punkte und setze Punkte nacheinander. Von 10 Metern bis 5 Meter langsam mit höchstens 9 Metern pro Minute, dann 3 Minuten Sicherheitsstopp auf 5 Metern, dann zur Oberfläche. Wenn der Weg die Oberfläche erreicht, endet der Tauchgang.
+
+ES  Parte 1 · Inmersión sin descompresión
+    ③ Hacer el ascenso con Puntos
+    Cambia a Puntos y coloca puntos uno a uno. De 10 a 5 metros, sube despacio a 9 metros por minuto o menos, luego una parada de seguridad de 3 minutos a 5 metros, y después a la superficie. Cuando llega a la superficie, la inmersión termina.
+
+ZH  第 1 部分 · 免减压潜水
+    ③ 用打点完成上升
+    切换到打点，一个一个放点。从 10 米到 5 米，以每分钟 9 米以下慢慢上升，然后在 5 米安全停留 3 分钟，再到水面。路线到达水面时，潜水结束。
+
+============================================================
+04  [de04 / es04 / zh04]
+------------------------------------------------------------
+EN  Part 1 · No-decompression dive
+    ④ Drag points to refine
+    Points can be dragged to move them. I pulled the point that leaves the bottom from 25 minutes to 22 minutes to shorten the bottom time. And I lengthened the dive time. The shorter the bottom time, the larger the NDL and the less air you use.
+
+DE  Teil 1 · Nullzeittauchgang
+    ④ Punkte ziehen und anpassen
+    Punkte lassen sich ziehen. Ich habe den Punkt, an dem wir den Grund verlassen, von Minute 25 auf Minute 22 gezogen, um die Grundzeit zu verkürzen. Und ich habe die Tauchzeit verlängert. Je kürzer die Grundzeit, desto größer die Nullzeit und desto weniger Luft verbrauchst du.
+
+ES  Parte 1 · Inmersión sin descompresión
+    ④ Arrastrar puntos para ajustar
+    Los puntos se pueden arrastrar para moverlos. Moví el punto donde dejamos el fondo del minuto 25 al minuto 22 para acortar el tiempo de fondo. Y alargué el tiempo de inmersión. Cuanto más corto el tiempo de fondo, mayor el NDL y menos aire usas.
+
+ZH  第 1 部分 · 免减压潜水
+    ④ 拖动点来调整
+    点可以拖动移动。我把离开水底的点从第 25 分钟拉到第 22 分钟，缩短了水底时间。并且延长了潜水时间。水底时间越短，NDL 越大，用气也越少。
+
+============================================================
+05  [de05 / es05 / zh05]
+------------------------------------------------------------
+EN  Part 1 · No-decompression dive
+    ⑤ Erase a wrongly placed point
+    By mistake, I placed a point in the wrong spot. Choose Erase points and tap that point, and it is erased. You can also go back with Undo.
+
+DE  Teil 1 · Nullzeittauchgang
+    ⑤ Einen falschen Punkt löschen
+    Aus Versehen habe ich einen Punkt an die falsche Stelle gesetzt. Wähle Punkte löschen und tippe auf den Punkt, dann ist er weg. Du kannst auch mit Rückgängig zurückgehen.
+
+ES  Parte 1 · Inmersión sin descompresión
+    ⑤ Borrar un punto mal puesto
+    Por error puse un punto en el sitio equivocado. Elige Borrar puntos y toca ese punto, y se borra. También puedes volver atrás con Deshacer.
+
+ZH  第 1 部分 · 免减压潜水
+    ⑤ 删除放错的点
+    我不小心把一个点放错了位置。选择删除点再点击那个点，就会删除。也可以用撤销返回。
+
+============================================================
+06  [de06 / es06 / zh06]
+------------------------------------------------------------
+EN  Part 1 · No-decompression dive
+    ⑥ An ideal no-decompression dive
+    Done! There is no pink ceiling, and no warnings either. The label is the maximum depth and total time, and the bar at the right end of the graph is remaining air. Leaving 50 bar or more at surfacing is the basic rule.
+
+DE  Teil 1 · Nullzeittauchgang
+    ⑥ Ein idealer Nullzeittauchgang
+    Fertig! Es gibt keine rosa Decke und auch keine Warnungen. Das Etikett zeigt maximale Tiefe und Gesamtzeit, und der Balken am rechten Rand der Grafik ist die Restluft. Mit 50 bar oder mehr aufzutauchen ist die Grundregel.
+
+ES  Parte 1 · Inmersión sin descompresión
+    ⑥ Una inmersión sin descompresión ideal
+    ¡Listo! No hay techo rosa ni tampoco avisos. La etiqueta es la profundidad máxima y el tiempo total, y la barra del borde derecho del gráfico es el aire restante. Salir con 50 bar o más es la regla básica.
+
+ZH  第 1 部分 · 免减压潜水
+    ⑥ 理想的免减压潜水
+    完成了！没有粉色天花板，也没有警告。标签是最大深度和总时间，图表右边的条是剩余空气。出水时留 50 bar 以上是基本规则。
+
+============================================================
+07  [de07 / es07 / zh07]
+------------------------------------------------------------
+EN  Part 2 · Ceiling violation
+    ⑦ Draw a dangerous dive
+    This time, let’s stay at 30 meters for 28 minutes, then come straight up in 2 minutes. A pink ceiling appears on the graph, and the path breaks through it on the way up.
+
+DE  Teil 2 · Deckenverletzung
+    ⑦ Einen gefährlichen Tauchgang zeichnen
+    Diesmal bleiben wir 28 Minuten auf 30 Metern und kommen dann in 2 Minuten direkt hoch. Eine rosa Decke erscheint in der Grafik, und der Weg durchbricht sie beim Aufstieg.
+
+ES  Parte 2 · Violación del techo
+    ⑦ Dibujar una inmersión peligrosa
+    Esta vez quedémonos a 30 metros durante 28 minutos y luego subamos directamente en 2 minutos. Aparece un techo rosa en el gráfico y el camino lo atraviesa al subir.
+
+ZH  第 2 部分 · 违反天花板
+    ⑦ 画一次危险的潜水
+    这次我们在 30 米停留 28 分钟，然后用 2 分钟直接上来。图上出现粉色天花板，上升时路线穿过了它。
+
+============================================================
+08  [de08 / es08 / zh08]
+------------------------------------------------------------
+EN  Part 2 · Ceiling violation
+    ⑧ Why it is dangerous
+    If you stay long at a deep depth, a lot of nitrogen builds up and a ceiling forms. If you break through the ceiling on the way up, the nitrogen in your body turns into bubbles and the risk of decompression sickness grows. On top of the fast ascent, the air also dropped below 50 bar.
+
+DE  Teil 2 · Deckenverletzung
+    ⑧ Warum es gefährlich ist
+    Bleibst du lange tief, sammelt sich viel Stickstoff an und es bildet sich eine Decke. Durchbrichst du die Decke beim Aufstieg, wird der Stickstoff im Körper zu Blasen und das Risiko der Dekompressionskrankheit steigt. Zusätzlich zum zu schnellen Aufstieg ist die Luft auch unter 50 bar gefallen.
+
+ES  Parte 2 · Violación del techo
+    ⑧ Por qué es peligroso
+    Si te quedas mucho tiempo a gran profundidad, se acumula mucho nitrógeno y se forma un techo. Si atraviesas el techo al subir, el nitrógeno del cuerpo se convierte en burbujas y aumenta el riesgo de enfermedad descompresiva. Además del ascenso rápido, el aire también bajó de 50 bar.
+
+ZH  第 2 部分 · 违反天花板
+    ⑧ 为什么危险
+    在深处停留很久，会积累大量氮气并形成天花板。上升时穿过天花板，体内的氮气会变成气泡，减压病的风险就会增大。除了上升过快，空气也降到了 50 bar 以下。
+
+============================================================
+09  [de09 / es09 / zh09]
+------------------------------------------------------------
+EN  Part 2 · Ceiling violation
+    ⑨ See it with the nitrogen bars
+    Let’s look at the nitrogen bars on the surface basis. At 28 minutes, several bars went over 100 percent. Over 100 percent, you cannot surface right away. Decompression is needed. If you come straight up in this state, the overflowing nitrogen in your body turns into bubbles.
+
+DE  Teil 2 · Deckenverletzung
+    ⑨ Mit den Stickstoffbalken ansehen
+    Schauen wir die Stickstoffbalken mit Oberflächenbezug an. Bei Minute 28 sind mehrere Balken über 100 Prozent. Über 100 Prozent kannst du nicht direkt auftauchen. Deko ist nötig. Kommst du so direkt hoch, wird der überschüssige Stickstoff im Körper zu Blasen.
+
+ES  Parte 2 · Violación del techo
+    ⑨ Verlo con las barras de nitrógeno
+    Miremos las barras de nitrógeno respecto a la superficie. En el minuto 28, varias barras pasaron del 100 por ciento. Por encima del 100 por ciento no puedes salir directamente. Hace falta descompresión. Si subes directamente en este estado, el nitrógeno que sobra en el cuerpo se convierte en burbujas.
+
+ZH  第 2 部分 · 违反天花板
+    ⑨ 用氮气条来看
+    我们用水面基准来看氮气条。在第 28 分钟，有几个条超过了 100%。超过 100% 就不能马上出水，需要减压。在这种状态下直接上来，体内多出的氮气会变成气泡。
+
+============================================================
+10  [de10 / es10 / zh10]
+------------------------------------------------------------
+EN  Part 2 · Ceiling violation
+    ⑩ Can’t I just decompress? The single-tank limit
+    The suggested path puts in decompression stops. But looking at the air bar on the right, the air runs out in the middle of the dive. With one 12-liter tank, you cannot hold out through decompression at 30 meters for 28 minutes. A recreational single-tank dive must end within the no-decompression limit.
+
+DE  Teil 2 · Deckenverletzung
+    ⑩ Einfach dekomprimieren? Die Grenze einer Flasche
+    Der empfohlene Weg fügt Dekostopps ein. Aber der Luftbalken rechts zeigt: Die Luft geht mitten im Tauchgang aus. Mit einer 12-Liter-Flasche hältst du die Deko nach 28 Minuten auf 30 Metern nicht durch. Ein Sporttauchgang mit einer Flasche muss innerhalb der Nullzeit enden.
+
+ES  Parte 2 · Violación del techo
+    ⑩ ¿Y si descomprimo? El límite de una botella
+    El camino sugerido añade paradas de descompresión. Pero la barra de aire de la derecha muestra que el aire se acaba en mitad de la inmersión. Con una botella de 12 litros no aguantas la descompresión tras 28 minutos a 30 metros. Una inmersión recreativa con una botella debe terminar dentro del límite sin descompresión.
+
+ZH  第 2 部分 · 违反天花板
+    ⑩ 做减压不就行了？单瓶的极限
+    建议路线加入了减压停留。但看右边的空气条，潜水中途空气就用完了。只有一个 12 升气瓶，在 30 米停留 28 分钟后撑不过减压。休闲单瓶潜水必须在免减压极限内结束。
+
+============================================================
+11  [de11 / es11 / zh11]
+------------------------------------------------------------
+EN  Part 2 · Ceiling violation
+    ⑪ Fix the plan
+    First, shorten the bottom time. Second, or dive shallower. Third, ascend slowly and do a 5-meter safety stop. I pulled the point that leaves the bottom to 13 minutes and placed the ascent points, and the ceiling is gone and there is plenty of air.
+
+DE  Teil 2 · Deckenverletzung
+    ⑪ Den Plan korrigieren
+    Erstens: Grundzeit verkürzen. Zweitens: oder flacher tauchen. Drittens: langsam aufsteigen und einen Sicherheitsstopp auf 5 Metern machen. Ich habe den Punkt, an dem wir den Grund verlassen, auf Minute 13 gezogen und die Aufstiegspunkte gesetzt, und die Decke ist weg und es bleibt genug Luft.
+
+ES  Parte 2 · Violación del techo
+    ⑪ Corregir el plan
+    Primero, acorta el tiempo de fondo. Segundo, o bucea menos profundo. Tercero, sube despacio y haz una parada de seguridad a 5 metros. Moví el punto donde dejamos el fondo al minuto 13 y coloqué los puntos de ascenso, y el techo desaparece y sobra aire.
+
+ZH  第 2 部分 · 违反天花板
+    ⑪ 修改计划
+    第一，缩短水底时间。第二，或者潜得浅一些。第三，慢慢上升并在 5 米做安全停留。我把离开水底的点拉到第 13 分钟并放好上升的点，天花板消失了，空气也很充足。
+
+============================================================
+12  [de12 / es12 / zh12]
+------------------------------------------------------------
+EN  Summary
+    ⑫ Things to remember
+    One, don’t let a pink ceiling appear. No decompression. Two, if it appears, never violate it. Three, ascend at 9 to 10 meters per minute or less, with a 5-meter 3-minute safety stop. Four, 50 bar or more of air at surfacing.
+
+DE  Zusammenfassung
+    ⑫ Das solltest du dir merken
+    Eins: Lass keine rosa Decke entstehen. Keine Deko. Zwei: Erscheint sie, verletze sie nie. Drei: Steige mit höchstens 9 bis 10 Metern pro Minute auf, mit 3 Minuten Sicherheitsstopp auf 5 Metern. Vier: 50 bar oder mehr Luft beim Auftauchen.
+
+ES  Resumen
+    ⑫ Lo que hay que recordar
+    Uno, no dejes que aparezca un techo rosa. Sin descompresión. Dos, si aparece, no lo violes nunca. Tres, sube a 9 o 10 metros por minuto o menos, con una parada de seguridad de 3 minutos a 5 metros. Cuatro, 50 bar o más de aire al salir.
+
+ZH  总结
+    ⑫ 要记住的事
+    一，不要让粉色天花板出现。免减压。二，如果出现，绝不能违反。三，以每分钟 9 到 10 米以下上升，在 5 米安全停留 3 分钟。四，出水时空气 50 bar 以上。
+
+============================================================
+13  [de13 / es13 / zh13]  맺음말
+------------------------------------------------------------
+EN  Safe diving, fun diving!
+DE  Sicher tauchen, mit Spaß tauchen!
+ES  ¡Buceo seguro, buceo divertido!
+ZH  安全潜水，快乐潜水！
