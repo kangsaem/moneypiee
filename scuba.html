@@ -275,7 +275,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.7.9';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.8.0';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <script>/* v2.6.1 언어를 앱 코드보다 먼저 정함(규칙은 여기 한 곳): ① 주소 #ko·#en·#ja·#de·#es·#zh(·-log) ② 사용자가 고른 언어(scuba_lang) ③ 기기 언어(navigator.languages, 번체 zh-TW·HK·MO·Hant는 건너뜀) ④ 영어. 검색 로봇·자동화 브라우저 = 한국어.
@@ -1046,11 +1046,13 @@ function gmSync(dv){const memo=(dv&&dv.memo)||'',has=!!(window.__hasLoc&&window.
   if(GM.key!==memo){GM.key=memo;GM.loc=null;window.__locOf(memo).then(l=>{if(GM.key!==memo)return;if(!l){GM.on=false;GM.key=null;drawProfile();window.__toast&&window.__toast(tr('u_locNF'));return;}GM.loc=l;const R=gmReg(),c=gmU(l.lat,l.lon);
     GM.zf=Math.max(3,Math.min(18,Math.log2(156543.03*Math.cos(l.lat*Math.PI/180)/(1200/Math.max(60,R.w)))));const P=256*Math.pow(2,GM.zf);GM.ux=c.x+R.w/2/P;GM.uy=c.y;drawProfile();}).catch(()=>{});}
   return !!GM.loc;}
-function gmDraw(dv){GM.box=null;if(!gmSync(dv))return;const R=gmReg(),P=256*Math.pow(2,GM.zf),z=Math.max(0,Math.min(gmSt().max,Math.round(GM.zf))),n=Math.pow(2,z),T=P/n,cy=(R.y0+R.y1)/2;
+function gmDraw(dv){GM.box=null;GM.lbx=[];if(!gmSync(dv))return;const R=gmReg(),P=256*Math.pow(2,GM.zf),z=Math.max(0,Math.min(gmSt().max,Math.round(GM.zf))),n=Math.pow(2,z),T=P/n,cy=(R.y0+R.y1)/2;
   const sx=u=>R.x1-(GM.ux-u)*P,sy=v=>cy+(v-GM.uy)*P;
   cx.save();cx.beginPath();cx.rect(R.x0,R.y0,R.w,R.h);cx.clip();cx.fillStyle='#e9eef2';cx.fillRect(R.x0,R.y0,R.w,R.h);
   const tx0=Math.floor((GM.ux-R.w/P)*n),tx1=Math.floor(GM.ux*n),ty0=Math.floor((GM.uy-R.h/2/P)*n),ty1=Math.floor((GM.uy+R.h/2/P)*n);
-  for(let ty=ty0;ty<=ty1;ty++){if(ty<0||ty>=n)continue;for(let tx=tx0;tx<=tx1;tx++){const im=gmTile(z,((tx%n)+n)%n,ty);if(im.ok)cx.drawImage(im.cv||im,sx(tx/n),sy(ty/n),T+.5,T+.5);}}
+  if(window.__isSmpCur&&window.__isSmpCur()&&window.__smpVec){/* 샘플 로그: 타일 대신 벡터(바다·산호초·섬) */const V=window.__smpVec,poly=(pts,f,st)=>{cx.beginPath();pts.forEach(([la,lo],i)=>{const u=gmU(la,lo),x=sx(u.x),y=sy(u.y);i?cx.lineTo(x,y):cx.moveTo(x,y);});cx.closePath();cx.fillStyle=f;cx.fill();if(st){cx.strokeStyle=st;cx.lineWidth=1;cx.stroke();}};
+    cx.fillStyle='#8fc6dc';cx.fillRect(R.x0,R.y0,R.w,R.h);poly(V.reef,'#bfe3ee');poly(V.isl,'#f3efe4','#d9cfb4');}
+  else for(let ty=ty0;ty<=ty1;ty++){if(ty<0||ty>=n)continue;for(let tx=tx0;tx<=tx1;tx++){const im=gmTile(z,((tx%n)+n)%n,ty);if(im.ok)cx.drawImage(im.cv||im,sx(tx/n),sy(ty/n),T+.5,T+.5);}}
   // 입수 빨강·출수 파랑 점(GPS 있을 때만)
   // 입수 IN(빨강)·출수 OUT(파랑). 둘 다 있으면 점선으로 잇고, 점 위에 다이빙 시작·종료 시각
   const L=GM.loc,ck=(diveClock(S.cur)||'').split(' → '),P2={};[['in','#E31B3F','IN',ck[0]||''],['out','#1F6FEB','OUT',ck[1]||'']].forEach(([k,c,t,tm])=>{const q=L[k]||(k==='out'&&L.dot&&!L.in&&!L.out?L:null);if(q){const u=gmU(q.lat,q.lon);P2[k]={x:sx(u.x),y:sy(u.y),c,t,tm};}});
@@ -1061,9 +1063,9 @@ function gmDraw(dv){GM.box=null;if(!gmSync(dv))return;const R=gmReg(),P=256*Math
   cx.save();cx.beginPath();cx.rect(G.L,G.T,G.W,G.H);cx.clip();
   /* 점이 둘이면 왼쪽 점은 상자를 점의 왼쪽 위, 오른쪽 점은 오른쪽 위에. 하나면 바로 위 가운데 */
   if(P2.in&&P2.out){const l=P2.in.x<=P2.out.x?P2.in:P2.out;l.side=-1;(l===P2.in?P2.out:P2.in).side=1;}
-  Object.values(P2).forEach(p=>{if(p.x<R.x0||p.x>R.x1||p.y<R.y0||p.y>R.y1)return;/* 점이 지도 밖이면 상자도 안 그림 */
+  GM.lbx=[];Object.values(P2).forEach(p=>{if(p.x<R.x0||p.x>R.x1||p.y<R.y0||p.y>R.y1)return;/* 점이 지도 밖이면 상자도 안 그림 */
     cx.font='700 11px sans-serif';const w1=cx.measureText(p.t).width;cx.font='600 13.2px sans-serif';const w2=p.tm?cx.measureText(p.tm).width:0,bw=Math.max(w1,w2)+10,bh=p.tm?32:15,bx=p.side<0?p.x-bw-3:p.side>0?p.x+3:p.x-bw/2,by=p.side?p.y-bh-3:p.y-8-bh;
-    cx.fillStyle='rgba(255,255,255,.9)';cx.strokeStyle=p.c;cx.lineWidth=1;cx.beginPath();cx.roundRect?cx.roundRect(bx,by,bw,bh,3):cx.rect(bx,by,bw,bh);cx.fill();cx.stroke();
+    GM.lbx.push({x:bx,y:by,w:bw,h:bh});cx.fillStyle='rgba(255,255,255,.9)';cx.strokeStyle=p.c;cx.lineWidth=1;cx.beginPath();cx.roundRect?cx.roundRect(bx,by,bw,bh,3):cx.rect(bx,by,bw,bh);cx.fill();cx.stroke();
     cx.textAlign='center';cx.textBaseline='middle';const tx=bx+bw/2;if(p.tm){cx.fillStyle='#1f2328';cx.fillText(p.tm,tx,by+10);}cx.font='700 11px sans-serif';cx.fillStyle=p.c;cx.fillText(p.t,tx,by+bh-8);});
   cx.restore();
 
@@ -1237,7 +1239,8 @@ function drawProfile(){
         const w3=l3?(()=>{if(!F3)return cx.measureText(l3).width;const f0=cx.font;cx.font=F3;const w=cx.measureText(l3).width;cx.font=f0;return w;})():0;
         const tw=Math.max(cx.measureText(l1).width,cx.measureText(l2).width,w3,isDeco?48:0)+12,th=36+hh+(l3?16:0),LK=window.matchMedia('(min-width:780px) and (max-width:1169px)').matches?1.4:1.1,/* 두 줄 보기는 1.4배 */TW=tw*LK,TH=th*LK;// 팝업 1.1배(앱 화면만, 데이터 로그 이미지는 그대로 1.3)
         const hitA=(bx,by)=>ARW.some(a=>{const x0=Math.min(a.tx,a.hx)-7,x1=Math.max(a.tx,a.hx)+7,y0=Math.min(a.ty,a.hy)-7,y1=Math.max(a.ty,a.hy)+7;return x1>=bx-2&&x0<=bx+TW+2&&y1>=by-2&&y0<=by+TH+2;});
-        const hits=(bx,by)=>{if(hitA(bx,by))return true;if(!r)return false;for(let x=bx-2;x<=bx+TW+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+TH+3)return true;}return false;};
+        const hitM=(bx,by)=>!window.SNAP&&GM.box&&(GM.lbx||[]).some(q=>q.x<bx+TW+3&&q.x+q.w>bx-3&&q.y<by+TH+3&&q.y+q.h>by-3);/* 지도의 IN/OUT 상자와 안 겹치게 */
+        const hits=(bx,by)=>{if(hitA(bx,by)||hitM(bx,by))return true;if(!r)return false;for(let x=bx-2;x<=bx+TW+2;x+=3){const t=Math.round(toT(x));if(t<0||t>r.N)continue;const y=Y(r.depth[t]);if(y>=by-3&&y<=by+TH+3)return true;}return false;};
         const cand=[[L0.xn-TW-4,L0.yd-TH-4],[L0.xn+6,L0.yd-TH-4],[L0.xn+6,L0.yd+4],[L0.xn-TW-4,L0.yd+4],[L0.xn+6,G.T+28],[L0.xn-TW-4,G.T+28]]
           .map(([x,y])=>[clamp(x,G.L+2,G.L+G.W-TW-2),clamp(y,G.T+2,G.T+G.H-TH-2)]);
         let [bx,by]=cand.find(([x,y])=>!hits(x,y))||(()=>{/* 여섯 자리 모두 겹치면 그래프 안을 훑어 가장 가까운 빈 자리 */let best=null,bd=1e9;for(let y=G.T+2;y<=G.T+G.H-TH-2;y+=12)for(let x=G.L+2;x<=G.L+G.W-TW-2;x+=12){if(hits(x,y))continue;const d=Math.hypot(x+TW/2-L0.xn,y+TH/2-L0.yd);if(d<bd){bd=d;best=[x,y];}}return best;})()||cand[0];
@@ -2358,11 +2361,11 @@ function rdpV(a,eps){if(a.length<3)return a.slice();const keep=new Uint8Array(a.
 const KEY='scuba_logs',MAX=200,KEYS=['water','altSel','alt','gasSel','o2','cons','gfLo','gfHi','asc','tankV','tankP','sac','sacSel'],IH=40;
 const $=id=>document.getElementById(id);if(!$('logCard'))return;
 const load=()=>{try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}};
-const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));setTimeout(()=>{try{bkChanged();}catch(e){}},0);return true;}catch(e){return false;}};
+const store=a=>{if(a.length>1&&a.some(x=>x.id==='dtmd-sample')){a=a.filter(x=>x.id!=='dtmd-sample');try{window.__photo&&PDB.del('psample');}catch(e){}if(typeof CUR!=='undefined'&&CUR==='dtmd-sample')CUR=null;}/* 샘플 로그: 다른 로그가 생기면 자동 삭제 */try{localStorage.setItem(KEY,JSON.stringify(a));setTimeout(()=>{try{bkChanged();}catch(e){}},0);return true;}catch(e){return false;}};
 // ===== 하루 = 기록 하나: 같은 날짜의 기록들을 입수 시각 순으로 한 기록(다이빙1·2·3…)에 합침. 수면휴식 = 앞 출수 ~ 다음 입수(1분 단위)
 // 설정(기체·GF·탱크 등)은 다이빙마다(dive.cfg) 가지므로 같은 날은 모두 합침. FIT에서 온 다이빙은 다이빙마다 fit 표시
 const isFitMemo=m=>/\((FIT|UDDF|JSON)\)\s*$/m.test(m||'');
-function mergeDayArr(a,date){const same=a.filter(x=>x.date===date&&x.state&&x.sum);if(same.length<2)return {a,map:null};
+function mergeDayArr(a,date){const same=a.filter(x=>x.date===date&&x.state&&x.sum&&x.id!=='dtmd-sample');if(same.length<2)return {a,map:null};
   const groups=[same];/* 설정은 다이빙마다 있으므로 같은 날은 모두 합침 */
   let out=a.slice(),map={};groups.forEach(g=>{if(g.length<2)return;
     const rows=[];g.forEach(x=>{const rr=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rr[i]||{st:tmin(x.time),N:0,maxD:0};rows.push({x,i,d,st:r.st!=null?r.st:0,N:r.N||0,maxD:r.maxD||0});});});
@@ -2589,7 +2592,7 @@ function askDel(kind){return new Promise(ok=>{const ph=kind==='photo',W=LX({de:{
 window.__askDel=askDel;
 // ===== 지도 창(OpenStreetMap 타일): 헤더 끌어 이동, 오른쪽 아래 모서리로 크기 조절(배율 유지), +/− 확대·축소
 // loc={lat,lon,dot,in,out}: 입수 빨간 점·출수 파란 점(둘의 가운데가 중앙). onSet(kind,lat,lon)이 있으면 [입수]/[출수] 누르고 지도를 탭해 지정, 점을 끌어 옮김
-function openMap(loc,title,onSet){let mode=null,G=null;/* 점 편집 상태(아래) */let box=document.getElementById('mapPop');if(box)box.remove();
+function openMap(loc,title,onSet,vec){let mode=null,G=null;/* 점 편집 상태(아래) */let box=document.getElementById('mapPop');if(box)box.remove();
   const tI=tr('u_Entry'),tO=tr('u_Exit');
   box=document.createElement('div');box.id='mapPop';box.innerHTML='<div class="mpHd"><span class="mpT"></span>'+(onSet?'<button class="mpSet in" data-k="in">'+tI+'</button><button class="mpSet out" data-k="out">'+tO+'</button><button class="mpSet mpDel">'+(tr('u_del'))+'</button>':'')+'<button class="mpX" aria-label="close">×</button></div><div class="mpB"><svg class="mpLn"><line></line></svg><div class="mpPin in" data-k="in"></div><div class="mpPin out" data-k="out"></div><div class="mpZ"><button class="mpZi" aria-label="zoom in">+</button><button class="mpZo" aria-label="zoom out">−</button></div><div class="mpHint"></div><a class="mpAt" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a><div class="mpRs" aria-label="resize"></div></div>';
   box.querySelector('.mpT').textContent=title||'';if(onSet)box.classList.add('ed');document.body.appendChild(box);box.querySelector('.mpX').onclick=()=>box.remove();
@@ -2603,9 +2606,11 @@ function openMap(loc,title,onSet){let mode=null,G=null;/* 점 편집 상태(아�
   const setZ=(nzf,keep)=>{const fx=keep?cx/N:null,fy=keep?cy/N:null;zf=Math.max(2,Math.min(19,nzf));z=Math.min(18,Math.floor(zf));sc=Math.pow(2,zf-z);N=Math.pow(2,z)*256;
     tiles.forEach(im=>im.remove());tiles=new Map();if(keep){cx=fx*N;cy=fy*N;}else{const c=ctr();cx=WXp(c.lon,N);cy=WYp(c.lat,N);}};
   const toLL=(px,py)=>{const wx=cx+(px-w/2)/sc,wy=cy+(py-h/2)/sc,lon=wx/N*360-180,n=Math.PI-2*Math.PI*wy/N;return {lat:Math.atan(Math.sinh(n))/R,lon};};
-  const draw=()=>{const T=256*sc,n=Math.pow(2,z),tx0=Math.floor((cx-w/2/sc)/256),ty0=Math.floor((cy-h/2/sc)/256),tx1=Math.floor((cx+w/2/sc)/256),ty1=Math.floor((cy+h/2/sc)/256),keep=new Set();
+  if(vec){body.style.background='#8fc6dc';{const at=box.querySelector('.mpAt');if(at)at.style.display='none';}/* 벡터 지도는 OSM 타일이 아니므로 출처 표기 숨김 */const sv=box.querySelector('.mpLn'),NS='http://www.w3.org/2000/svg';['reef','isl'].forEach(k=>{const e=document.createElementNS(NS,'path');e.setAttribute('class','mpV '+k);e.setAttribute('fill',k==='isl'?'#f3efe4':'#bfe3ee');if(k==='isl'){e.setAttribute('stroke','#d9cfb4');e.setAttribute('stroke-width','1');}sv.insertBefore(e,sv.querySelector('line'));});}
+  const drawV=()=>{if(!vec)return;['reef','isl'].forEach(k=>{const e=box.querySelector('.mpV.'+k);if(!e)return;e.setAttribute('d',vec[k].map(([la,lo],i)=>(i?'L':'M')+(((WXp(lo,N)-cx)*sc+w/2).toFixed(1))+' '+(((WYp(la,N)-cy)*sc+h/2).toFixed(1))).join('')+'Z');});};
+  const draw=()=>{drawV();const T=256*sc,n=Math.pow(2,z),tx0=Math.floor((cx-w/2/sc)/256),ty0=Math.floor((cy-h/2/sc)/256),tx1=Math.floor((cx+w/2/sc)/256),ty1=Math.floor((cy+h/2/sc)/256),keep=new Set();
     for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++){if(ty<0||ty>=n)continue;const k=tx+'/'+ty;keep.add(k);let im=tiles.get(k);
-      if(!im){im=new Image();im.className='mpTile';im.draggable=false;im.alt='';im.onerror=()=>{im.style.visibility='hidden';};im.src='https://tile.openstreetmap.org/'+z+'/'+(((tx%n)+n)%n)+'/'+ty+'.png';body.insertBefore(im,body.firstChild);tiles.set(k,im);}
+      if(vec)continue;if(!im){im=new Image();im.className='mpTile';im.draggable=false;im.alt='';im.onerror=()=>{im.style.visibility='hidden';};im.src='https://tile.openstreetmap.org/'+z+'/'+(((tx%n)+n)%n)+'/'+ty+'.png';body.insertBefore(im,body.firstChild);tiles.set(k,im);}
       im.style.left=((tx*256-cx)*sc+w/2)+'px';im.style.top=((ty*256-cy)*sc+h/2)+'px';im.style.width=im.style.height=Math.ceil(T)+1+'px';}
     tiles.forEach((im,k)=>{if(!keep.has(k)){im.remove();tiles.delete(k);}});
     const EP=k=>(G&&(mode===k||mode==='mv'+k))?G:P[k];['in','out'].forEach(k=>{const q=EP(k),el=pins[k];el.style.display=q?'':'none';el.classList.toggle('ghost',!!(G&&(mode===k||mode==='mv'+k)));el.classList.toggle('sel',mode==='mv'+k);if(q){el.style.left=((WXp(q.lon,N)-cx)*sc+w/2)+'px';el.style.top=((WYp(q.lat,N)-cy)*sc+h/2)+'px';}});
@@ -2667,7 +2672,7 @@ async function openLocEd(){const d=S.dives[S.cur];if(!d)return;const memo=$('log
   const pl=(memo.split('\n').map(l=>l.trim()).find(l=>/^(?:장소|포인트|지명|위치|place|point|spot|location|場所|位置|ポイント|ort|standort|lugar|ubicación|punto|地点)\s*[:：]/i.test(l))||'').replace(/^[^:：]*[:：]\s*/,'');
   const dt=(window.__log&&window.__log.ymd||'').replace(/-/g,'/');
   openMap(loc,pl,(k,la,lo)=>{const nm=la==null?window.__delLocPt($('logMemo').value,k):window.__setLocPt($('logMemo').value,k,la,lo);$('logMemo').value=nm;{const dd=S.dives[S.cur];if(dd)dd.memo=nm;}/* 열 때의 d가 아니라 지금 다이빙([취소]·다시 불러오기 뒤에도 맞게) */
-    if(typeof GM!=='undefined'){if(la!=null&&!GM.on){GM.on=true;GM.tL=2100;}else if(la==null){const o=window.__locPts?window.__locPts(nm):{};if(!o.in&&!o.out)GM.on=false;}}refreshSave();if(typeof drawProfile==='function')drawProfile();});}
+    if(typeof GM!=='undefined'){if(la!=null&&!GM.on){GM.on=true;GM.tL=2100;}else if(la==null){const o=window.__locPts?window.__locPts(nm):{};if(!o.in&&!o.out)GM.on=false;}}refreshSave();if(typeof drawProfile==='function')drawProfile();},window.__isSmp&&window.__isSmp(CUR)?window.__smpVec:null);}
 window.__toast=m=>toast(m);
 function delRow(id,i){const x=load().find(v=>v.id===id);if(!x)return;const n=(x.state&&x.state.dives||[]).length;
   if(n<=1){store(load().filter(v=>v.id!==id));if(CUR===id){CUR=null;S.dives=[newDive()];S.cur=0;S.start=null;renderTabs();syncForm();recompute();}renderSum();renderWheels();renderList();return;}
@@ -2925,7 +2930,7 @@ async function zipRead(buf,want){const u=new Uint8Array(buf),dv=new DataView(buf
   return out;}
 const stampNow=()=>{const d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());};
 function exportJSON(){return JSON.stringify({app:'DTMD',kind:'logbook',v:1,exported:new Date().toISOString(),logs:load()});}
-async function exportZip(noPh){const logs=load(),ids=noPh?[]:[...new Set(logs.flatMap(x=>(x.state&&x.state.dives||[]).flatMap(d=>d.ph||[])))],files=[],meta=[];
+async function exportZip(noPh){const logs=load().filter(x=>x.id!=='dtmd-sample'),ids=noPh?[]:[...new Set(logs.flatMap(x=>(x.state&&x.state.dives||[]).flatMap(d=>d.ph||[])))],files=[],meta=[];
   for(const id of ids){try{const o=window.__photo&&await window.__photo.get(id);if(!o||!o.full)continue;files.push({name:'photos/'+id+'.jpg',data:new Uint8Array(await o.full.arrayBuffer())});
     if(o.thumb)files.push({name:'photos/'+id+'_t.jpg',data:new Uint8Array(await o.thumb.arrayBuffer())});meta.push({id,ts:o.ts||0,name:o.name||''});}catch(e){}}
   const json=JSON.stringify({app:'DTMD',kind:'logbook',v:2,exported:new Date().toISOString(),photos:meta,logs});
@@ -2971,7 +2976,7 @@ const BKT=()=>LX({de:{ask:n=>`Seit der letzten Sicherung haben sich ${n} Log(s) 
    shrink:n=>`로그가 백업보다 ${n}개 줄었어요. 백업 파일을 덮어쓸까요?`,ow:'덮어쓰기',logsOnly:'로그만 빠르게 저장(사진 제외)',ffNote:'팁: 브라우저 설정에서 ‘다운로드할 때마다 저장 위치 묻기’를 켜면 같은 파일에 덮어쓸 수 있어요.'}});
 const bkHash=t=>{let h=5381;for(let i=0;i<t.length;i++)h=((h*33)^t.charCodeAt(i))>>>0;return h.toString(36);};
 const bkGet=()=>{try{return JSON.parse(localStorage.getItem(BKK)||'null')||{t:0,h:{}};}catch(e){return {t:0,h:{}};}};
-function bkDirty(){const b=bkGet(),a=load(),seen=new Set();let n=0,g=0;a.forEach(x=>{seen.add(x.id);if(b.h[x.id]!==bkHash(JSON.stringify(x)))n++;});Object.keys(b.h).forEach(id=>{if(!seen.has(id))g++;});return Math.max(n,g);/* 다시 저장하면 id가 바뀌므로(새 1 + 없어짐 1) 큰 쪽만 */}
+function bkDirty(){const b=bkGet(),a=load().filter(x=>x.id!=='dtmd-sample'),seen=new Set();let n=0,g=0;a.forEach(x=>{seen.add(x.id);if(b.h[x.id]!==bkHash(JSON.stringify(x)))n++;});Object.keys(b.h).forEach(id=>{if(!seen.has(id))g++;});return Math.max(n,g);/* 다시 저장하면 id가 바뀌므로(새 1 + 없어짐 1) 큰 쪽만 */}
 function bkDone(){const h={},a=load();a.forEach(x=>{h[x.id]=bkHash(JSON.stringify(x));});try{localStorage.setItem(BKK,JSON.stringify({t:Date.now(),h,n:a.length}));}catch(e){}DIR.pend=false;bkBadge();}
 function bkBadge(){const b=$('logBtn');if(!b)return;let el=b.querySelector('.bkN');const n=bkDirty();if(!n){if(el)el.remove();return;}if(!el){el=document.createElement('span');el.className='bkN';b.appendChild(el);}el.textContent=n>99?'99+':String(n);}
 async function dlBlob(blob,name){if(IOS_APP){const f=new File([blob],name,{type:'application/zip'});try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'DTMD logbook'}).catch(()=>{});return;}}catch(e){}}
@@ -3126,6 +3131,41 @@ async function fitOne(f,quiet){const t=L();let dives,dev='',fmt='FIT',nFree=0;
   applyLog(id,true,seq.findIndex(d=>d.fit));if(DR.date===date){const ids=new Set(load().map(v=>v.id));Object.keys(DR.m).forEach(k=>{if(k!=='new'&&!ids.has(k))delete DR.m[k];});}
   const b2=load(),x=b2.find(v=>v.id===id);if(x){x.sum=summary();store(b2);}renderSum();renderWheels();renderList();
   flash($('fitBtn2'));if(FITQ){FITQ.n+=imp.length;FITQ.rep+=Math.min(imp.length,replaced);}return true;}
+/* ===== 샘플 로그(처음 접속 때 한 번): 발리카삭섬(보홀, 필리핀) 다이빙 1개 + 잭피시 사진(시작 화면 영상 4초 장면 sample-jack.jpg)
+   - 로그가 하나도 없을 때 처음 열린 날짜 10:00으로 만들고 scuba_smp=1. 지우면 다시 안 생김. 날짜는 처음 그대로
+   - 다른 로그가 저장되면 자동 삭제(store). 같은 날 합치기·백업 안내·ZIP 백업에서 제외
+   - 메모는 지금 언어로(사용자가 고치지 않았으면 언어를 바꿀 때 따라 바뀜). 지도는 타일 대신 벡터(섬·산호초 모양) */
+const SMP_ID='dtmd-sample',SMP_K='scuba_smp',SMP_PH='psample',SMP_C={lat:9.5172,lon:123.6838},SMP_G={in:[9.51720,123.67860],out:[9.51500,123.67900]};
+const SMP_PTS=(a=>{const o=[];for(let i=0;i<a.length;i+=2)o.push({t:a[i],d:a[i+1]});return o;})([0,0,60,8,150,16,240,21.5,310,23.2,374,22.4,446,23.8,526,22.6,587,24.1,649,23.0,726,22.3,789,23.5,860,22.7,938,23.6,1019,20.6,1128,19.1,1224,17.4,1310,18.2,1391,16.0,1473,14.6,1566,15.3,1659,13.1,1741,11.8,1828,12.4,1910,10.2,2007,9.1,2100,8.0,2181,6.6,2241,5.2,2331,4.8,2421,5.0,2481,2.5,2526,0]);
+const SMP_TX={ko:['샘플 로그 · 지워도 됩니다','위치: 발리카삭섬, 보홀, 필리핀','수온 28°C · 시야 20m · 공기','잭피시 떼를 만났어요'],
+  en:['Sample log · you can delete it','Location: Balicasag Island, Bohol, Philippines','Water 28°C · Visibility 20m · Air','Met a big school of jackfish'],
+  ja:['サンプルログ · 削除できます','場所: バリカサグ島, ボホール, フィリピン','水温 28°C · 透明度 20m · 空気','ギンガメアジの群れに会いました'],
+  de:['Beispiel-Log · kann gelöscht werden','Ort: Balicasag Island, Bohol, Philippinen','Wasser 28°C · Sicht 20m · Luft','Großer Schwarm Stachelmakrelen'],
+  es:['Registro de ejemplo · puedes borrarlo','Lugar: Isla Balicasag, Bohol, Filipinas','Agua 28°C · Visibilidad 20m · Aire','Vimos un gran banco de jureles'],
+  zh:['示例日志 · 可以删除','地点: 巴里卡萨岛, 薄荷岛, 菲律宾','水温 28°C · 能见度 20m · 空气','遇到一大群鲹鱼']};
+const smpMemo=lg=>{const t=SMP_TX[lg]||SMP_TX.en;let m=t.join('\n');m=window.__setLocPt(m,'in',SMP_G.in[0],SMP_G.in[1]);return window.__setLocPt(m,'out',SMP_G.out[0],SMP_G.out[1]);};
+const smpGas=()=>tr('sAir'),smpSum=()=>{const N=SMP_PTS[SMP_PTS.length-1].t,mx=Math.max(...SMP_PTS.map(q=>q.d));return {maxD:mx,N,N0:N,gas:smpGas(),nd:1,span:N/60,dv:[{N,maxD:mx,si:0,gas:smpGas()}]};};
+window.__isSmp=id=>id===SMP_ID;window.__isSmpCur=()=>CUR===SMP_ID;
+/* 벡터 지도: 섬(지름 약 600m)·산호초 띠. 좌표 배열 [[lat,lon],…] */
+const SMP_VEC=(()=>{const c=SMP_C,k=Math.cos(c.lat*Math.PI/180),ring=(r,a,b)=>{const o=[];for(let i=0;i<40;i++){const th=i/40*Math.PI*2,rr=r*(1+a*Math.sin(3*th+.4)+b*Math.cos(5*th+1.1));o.push([c.lat+rr*Math.sin(th)/111320,c.lon+rr*Math.cos(th)/(111320*k)]);}return o;};
+  return {reef:ring(430,.05,.03),isl:ring(300,.07,.04)};})();
+window.__smpVec=SMP_VEC;
+function smpEnsure(){try{if(localStorage.getItem(SMP_K))return;const a=load();localStorage.setItem(SMP_K,'1');if(a.length)return;/* 이미 로그가 있으면 안 만듦 */
+  const dt=new Date(),date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  const keys=Object.assign(Object.fromEntries(KEYS.map(k=>[k,S[k]])),{water:'salt',altSel:'0',alt:0,gasSel:'21',o2:21,gfLo:40,gfHi:85,tankV:12,tankP:200,sac:15,sacSel:'15'});/* 공기 소모 적음(15 L/분) — 기본 20이면 출수 잔압 경고가 떠서 */
+  a.push({id:SMP_ID,sample:1,date,time:'10:00',memo:'',saved:Date.now(),state:Object.assign({dives:[{pts:SMP_PTS.map(q=>({t:q.t,d:q.d})),si:60,lab:null,memo:smpMemo(LANG),ph:[SMP_PH]}]},keys),sum:smpSum()});
+  try{localStorage.setItem(KEY,JSON.stringify(a));}catch(e){return;}
+  (async()=>{try{const r=await fetch('sample-jack.jpg');if(!r.ok)return;const b=await r.blob(),im=await loadImg(b);const [full,thumb]=await Promise.all([toBlob(im,1200,.8),toBlob(im,240,.7,true)]);await PDB.put({id:SMP_PH,full,thumb,ts:Date.now(),name:'jackfish.jpg'});if(typeof renderAll==='function')renderAll();}catch(e){}})();}catch(e){}}
+/* 언어를 바꾸면: 사용자가 고치지 않은 샘플 메모·기체 이름을 새 언어로 */
+function smpLang(){try{const a=load(),x=a.find(v=>v.id===SMP_ID);if(!x)return;const d=x.state&&x.state.dives&&x.state.dives[0];if(!d)return;
+  /* 사용자가 안 고친 샘플 메모인지: GPS 줄(입수·출수 단어가 언어마다 다름)은 빼고 글 4줄이 어느 언어 원문과 같고, GPS 두 점이 그대로면 */
+  const body=(d.memo||'').split('\n').filter(l=>!/^\s*GPS\b/i.test(l)).join('\n'),o=window.__locPts(d.memo),same=(q,g)=>q&&Math.abs(q.lat-g[0])<1e-6&&Math.abs(q.lon-g[1])<1e-6;
+  const was=Object.values(SMP_TX).some(t=>t.join('\n')===body)&&same(o.in,SMP_G.in)&&same(o.out,SMP_G.out);if(!was)return;const nm=smpMemo(LANG);if(nm===d.memo&&x.sum.gas===smpGas())return;
+  const show=CUR===SMP_ID&&!isDirty();/* 저장 전에 판단(저장하고 나면 화면과 달라 '바뀜'으로 보임) */
+  d.memo=nm;x.sum.gas=smpGas();(x.sum.dv||[]).forEach(v=>v.gas=smpGas());localStorage.setItem(KEY,JSON.stringify(a));
+  if(show)applyLog(SMP_ID,true,0);}catch(e){}}
+window.addEventListener('scuba:lang',smpLang);
+smpEnsure();
 window.addEventListener('scuba:lang',renderAll);
 window.addEventListener('scuba:plan',()=>{if(open&&view==='ed')renderList();});
 // ===== 사진: 다이빙마다 최대 3장. 기기 안 IndexedDB에 줄인 사본(긴 변 1200px)과 썸네일(240px) 저장, 로그에는 id만 =====
