@@ -1340,3 +1340,4 @@
 - 11:30 kangyonz.com 본 주소 = DTMD(저장소 kangsaem/KANGYONZ, Pages Source = GitHub Actions). sync.yml이 10분마다 moneypiee의 scuba.html·dtmd*·scuba-bg/splash·sample-*.jpg·tut/를 복사(scuba.html → index.html도), 광고(애드핏·애드센스) 뺌, ads.txt = 'google.com, pub-7103292552862249, DIRECT, f08c47fec0942fa0'.
   가비아: @ A 185.199.108~111.153 · www CNAME kangsaem.github.io. parking 저장소(옛 www.kangyonz.com 주차 페이지)는 도메인 해제만, 저장소는 보관.
   목적: 애드센스는 루트 도메인(kangyonz.com) 단위 승인 → 본 주소에 내용 + ads.txt. 광고는 하위 주소(money.)에만. 확인: https://kangyonz.com/.sync-sha·/ads.txt 응답 정상.
+- 11:35 애드센스 스크립트(adsbygoogle.js, ca-pub-7103292552862249) 제거: index.html·test.html(사용자 — moneypie.kr 애드센스 심사 탈락, 광고 안 뜨는데 스크립트만 로드). 클론(money.kangyonz.com)은 동기화 때 원래 빼고 있었음 → 셋 다 없음. 애드핏은 그대로.
