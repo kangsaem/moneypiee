@@ -1328,3 +1328,10 @@
 ## 2026-11-08 20:22 계좌 줄 접기 삼각형(▴) 키움(사용자 '16 같은색')
 - .tabs .tab-fill .tf-fold: font-size 13→16px, 색 #9A9BA1 그대로, padding 4px 4px 4px 10px → 4px 6px 4px 12px(누르는 영역 넓힘). index.html·test.html 둘 다.
 - 시험: Playwright 360·390px — 오른쪽 끝 넘침 없음, 누르면 접힘 정상, 오류 없음.
+
+## 2026-11-09 11:00 복제본 money.kangyonz.com 개통(사용자)
+- 저장소 kangsaem/MONEY(Public, Pages Source = GitHub Actions, Custom domain money.kangyonz.com, 가비아 CNAME money → kangsaem.github.io).
+- .github/workflows/sync.yml: 10분마다 moneypiee main 커밋 확인 → 바뀌었으면 그대로 복사·배포. 복사본에서 광고만 뺌(adsbygoogle 스크립트·#adfit-bottom 블록, 모든 html). 사이트의 /.sync-sha로 배포된 커밋 확인(같으면 건너뜀).
+  → 앱 코드는 계속 moneypiee에서만 고침(MONEY에서 고치지 말 것). 수동 즉시 반영 = MONEY Actions에서 sync-from-moneypiee 'Run workflow'.
+- 데이터는 주소별로 따로(빈 앱으로 시작, 옮기려면 저장하기 → 불러오기). 사파리 즐겨찾기 아이콘도 섞이지 않음.
+- 확인: 배포 성공, Actions에서 https://money.kangyonz.com/.sync-sha = bc626cc(원본 main과 같음).
