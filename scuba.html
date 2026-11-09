@@ -279,7 +279,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.10.5';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.10.6';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <script>/* v2.6.1 언어를 앱 코드보다 먼저 정함(규칙은 여기 한 곳): ① 주소 #ko·#en·#ja·#de·#es·#zh·#tw·#it·#fr(·-log) ② 사용자가 고른 언어(scuba_lang) ③ 기기 언어(navigator.languages, 번체 zh-TW·HK·MO·Hant = tw(번체·대만식, v2.9.0)) ④ 영어. 검색 로봇·자동화 브라우저 = 한국어.
@@ -2760,7 +2760,7 @@ function renderList(){updDvNo();if(WBUSY){updWRow();return;}if(EDIT&&!(EDIT.id==
   $('logList').querySelectorAll('.dlog').forEach(b=>b.onclick=async e=>{e.stopPropagation();applyLog(b.dataset.id,false,+b.dataset.i||0);await new Promise(r=>setTimeout(r,60));window.__dataSnap&&window.__dataSnap(null);});
   updRowBtns();
   $('logList').querySelectorAll('.li:not(.draft)').forEach(el=>{el.onclick=e=>{if(e.target.closest('.del,.dlog,.mapb,.rb,.lwheels'))return;const id=el.dataset.id,i=+el.dataset.i||0;
-      if(!(CUR===id&&S.cur===i)||EDIT){applyLog(id,false,i);return;}/* 처음 = 고르기, 고른 줄을 한 번 더 = 그 로그 줄 하나 보기(반접기) */LBF=LBF===1?0:1;/* 한 줄 보기에서 두 번 = 다시 그날 로그 모두(펴기) */applyLBF(true);renderLogSum();};});
+      if(!(CUR===id&&S.cur===i)||EDIT){if(id!==CUR){leaveOK().then(ok=>{if(ok)applyLog(id,false,i);});return;}applyLog(id,false,i);return;}/* 처음 = 고르기, 고른 줄을 한 번 더 = 그 로그 줄 하나 보기(반접기) */LBF=LBF===1?0:1;/* 한 줄 보기에서 두 번 = 다시 그날 로그 모두(펴기) */applyLBF(true);renderLogSum();};});
   $('logList').querySelectorAll('.del').forEach(b=>b.onclick=e=>{e.stopPropagation();askDel().then(ok=>{if(ok)delRow(b.dataset.id,+b.dataset.i||0);});});
   curMemoSync();if(view==='ed')syncTW();
   refreshSave();}
@@ -3048,7 +3048,19 @@ function jumpLog(dir){const t=L(),ds=[...new Set(load().map(x=>x.date))].sort(),
   const n0=new Date(),td=n0.getFullYear()+'-'+pad(n0.getMonth()+1)+'-'+pad(n0.getDate());const ref=inView?CJ:td.startsWith(mp)?td:(dir<0?mp+'01':mp+pad(new Date(vy,vm,0).getDate()));const d=dir<0?ds.filter(x=>x<ref).pop():ds.find(x=>x>ref);
   if(!d){notePop(dir<0?t.noPrev:t.noNext);return;}const k0=calKey();CJ=d;const [yy,mm,dd]=d.split('-').map(Number);vy=yy;vm=mm;if(CALW)WK0=wkOf(yy,mm,dd);
   /* 달력 그대로 두고 그 날의 다이빙을 아래 탭·그래프에 엶(다이빙1·2를 누르면 그 다이빙 그래프) */const r0=dayRows(d)[0];if(r0){Y=yy;M=mm;D=dd;applyLog(r0.id,true,r0.i);}const k1=calKey();slideCal(k1===k0?0:(k1>k0?1:-1),renderCal);/* 달·주가 바뀌면 옆으로 넘김 */}
-$('logPrev').onclick=()=>jumpLog(-1);$('logNext').onclick=()=>jumpLog(1);
+/* 저장 안 한 변경(메모·사진·그래프 등)이 있는 채로 다른 날짜·로그·달력으로 갈 때 묻기 (11/09 사용자 결정 A):
+   [저장 안 함] = 버리고 이동 / [취소] = 머묾 / [저장] = 저장(겹침 등 확인 창이 있으면 끝날 때까지 기다림) 후 이동 */
+function ask3(){return new Promise(ok=>{const W=LX({ko:['저장하지 않은 변경이 있어요. 저장할까요?','저장 안 함','취소','저장'],en:['You have unsaved changes. Save them?','Don’t save','Cancel','Save'],ja:['保存していない変更があります。保存しますか?','保存しない','キャンセル','保存'],
+  de:['Es gibt ungespeicherte Änderungen. Speichern?','Nicht speichern','Abbrechen','Speichern'],es:['Hay cambios sin guardar. ¿Guardarlos?','No guardar','Cancelar','Guardar'],it:['Ci sono modifiche non salvate. Salvarle?','Non salvare','Annulla','Salva'],
+  fr:['Des modifications ne sont pas enregistrées. Les enregistrer ?','Ne pas enregistrer','Annuler','Enregistrer'],zh:['有未保存的更改。要保存吗？','不保存','取消','保存'],tw:['有未儲存的變更。要儲存嗎？','不儲存','取消','儲存']});
+  const ov=document.createElement('div');ov.id='ldWarn';ov.className='ask3';ov.innerHTML='<div class="lwBox"><p></p><div class="lwBtns"><button class="lwN"></button><button class="lwC"></button><button class="lwD lwS"></button></div></div>';
+  ov.querySelector('p').textContent=W[0];const n=ov.querySelector('.lwN'),c=ov.querySelector('.lwC'),d=ov.querySelector('.lwD');n.textContent=W[1];c.textContent=W[2];d.textContent=W[3];
+  const end=v=>{ov.remove();ok(v);};n.onclick=()=>end('no');c.onclick=()=>end('cancel');d.onclick=()=>end('save');ov.onclick=e=>{if(e.target===ov)end('cancel');};document.body.appendChild(ov);});}
+async function leaveOK(){if(view!=='ed'||!PLAN||!isDirty())return true;const r=await ask3();if(r==='no')return true;if(r==='cancel')return false;
+  $('logSave').onclick();for(let k=0;k<1200&&document.getElementById('ldWarn');k++)await new Promise(z=>setTimeout(z,100));/* 저장 중 확인 창(겹침·합치기)이 닫힐 때까지 */
+  return !isDirty();}
+window.addEventListener('beforeunload',e=>{try{if(view==='ed'&&PLAN&&isDirty()){e.preventDefault();e.returnValue='';}}catch(x){}});/* PC: 탭 닫기·새로고침 때 브라우저 기본 경고 */
+$('logPrev').onclick=async()=>{if(await leaveOK())jumpLog(-1);};$('logNext').onclick=async()=>{if(await leaveOK())jumpLog(1);};
 // 달력 넘기기: 지난 달력은 옆으로 빠지고 새 달력이 반대편에서 들어옴(가속·감속 0.34초). dir = +1 다음 / -1 이전
 function slideCal(dir,fn){const c=$('cal');if(!dir||!c.animate){fn();return;}const before=c.innerHTML,old=c.cloneNode(true);old.removeAttribute('id');fn();if(c.innerHTML===before)return;
   const host=c.parentElement;if(getComputedStyle(host).position==='static')host.style.position='relative';old.style.cssText+=`;position:absolute;left:${c.offsetLeft}px;top:${c.offsetTop}px;width:${c.offsetWidth}px;pointer-events:none;margin:0`;host.appendChild(old);
@@ -3058,7 +3070,7 @@ const calKey=()=>CALW&&WK0?+new Date(WK0):vy*12+vm;
 $('calPrev').onclick=()=>slideCal(-1,()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()-7);wkSetMonth();renderCal();return;}vm--;if(vm<1){vm=12;vy--;}renderCal();});
 $('calNext').onclick=()=>slideCal(1,()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()+7);wkSetMonth();renderCal();return;}vm++;if(vm>12){vm=1;vy++;}renderCal();});
 
-$('logBack').onclick=()=>{vy=Y;vm=M;WK0=wkOf(Y,M,D);if(CUR){CJ=ymd();EDIT=null;WKEY='';applyLog(CUR,true,S.cur);}/* 달력으로 가면 저장 안 한 변경은 되돌림 */
+$('logBack').onclick=async()=>{if(!await leaveOK())return;vy=Y;vm=M;WK0=wkOf(Y,M,D);if(CUR){CJ=ymd();EDIT=null;WKEY='';applyLog(CUR,true,S.cur);}/* 달력으로 가면 저장 안 한 변경은 되돌림 */
   /* 로그 줄·메모는 오른쪽으로 빠지고(가속) 달력이 왼쪽에서 들어옴(감속) */const ev=$('logEdV');if(!ev.animate){show('cal');return;}const a1=ev.animate([{transform:'translateX(0)',opacity:1},{transform:'translateX(100%)',opacity:0}],{duration:220,easing:'cubic-bezier(.55,0,1,.45)'});
   a1.onfinish=()=>{animH($('logBody'),()=>show('cal'));const cv=$('logCalV');if(cv.animate)cv.animate([{transform:'translateX(-100%)',opacity:0},{transform:'translateX(0)',opacity:1}],{duration:280,easing:'cubic-bezier(.2,.8,.2,1)'});};};
 // 이전/다음 로그 날짜의 첫 로그(가장 이른 시각, 다이빙 1)로
@@ -3091,9 +3103,9 @@ function partFit(){const ll=$('logList'),inn=ll.querySelector('.llIn'),part=LBF=
   const c=inn.querySelector('.li.cur')||inn.querySelector('.li');if(!c){ll.style.height='';inn.style.transform='';return;}ll.style.height=(c.offsetHeight+20)+'px';inn.style.transform=`translateY(${-c.offsetTop+10}px)`;}
 function partSlide(from){const ll=$('logList'),inn=ll.querySelector('.llIn');partFit();if(!(LBF===1&&view==='ed')||from==null||!inn||!inn.animate)return;const c=inn.querySelector('.li.cur');if(!c||c.offsetTop===from)return;
   ll.classList.add('sliding');const an=inn.animate([{transform:`translateY(${-from+10}px)`},{transform:`translateY(${-c.offsetTop+10}px)`}],{duration:480,easing:'cubic-bezier(.65,0,.35,1)'});an.onfinish=an.oncancel=()=>ll.classList.remove('sliding');}
-$('edPrev').onclick=()=>goLogDate(-1);$('edNext').onclick=()=>goLogDate(1);
+$('edPrev').onclick=async()=>{if(await leaveOK())goLogDate(-1);};$('edNext').onclick=async()=>{if(await leaveOK())goLogDate(1);};
 /* 수심그래프 아래 이전/다음 로그: 위 버튼과 같은 이동. 재생 중이었으면 새 로그를 처음부터 이어서 재생 */
-const plGo=dir=>{if(!open)return;const run=typeof P!=='undefined'&&P.run;goLogDate(dir,$('prof').parentNode);/* 없으면 수심그래프 가운데에 팝업 */if(view==='cal')renderCal();if(run)setTimeout(()=>{seek(0);startPlay();},60);};$('plPrev').onclick=()=>plGo(-1);$('plNext').onclick=()=>plGo(1);
+const plGo=dir=>{if(!open)return;const run=typeof P!=='undefined'&&P.run;goLogDate(dir,$('prof').parentNode);/* 없으면 수심그래프 가운데에 팝업 */if(view==='cal')renderCal();if(run)setTimeout(()=>{seek(0);startPlay();},60);};$('plPrev').onclick=async()=>{if(await leaveOK())plGo(-1);};$('plNext').onclick=async()=>{if(await leaveOK())plGo(1);};
 
 // 휠에서 날짜를 바꾼 채 저장: 새 로그면 그 날짜로 저장, 저장된 기록의 다이빙이면 그 다이빙만 떼어 그 날짜 기록으로 옮김(그날과 합침)
 function moveSave(){const tgt=EY+'-'+pad(EM)+'-'+pad(ED);if(!CUR){if(MVT!=null){S.start=MVT;T=MVT;}Y=EY;M=EM;D=ED;WKEY='';MVT=null;return false;}
