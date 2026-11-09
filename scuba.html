@@ -137,7 +137,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 #phView img{max-width:100%;max-height:calc(100% - 120px);border-radius:6px;object-fit:contain}
 #phView .pvNav{display:flex;align-items:center;gap:18px;color:rgba(255,255,255,.8);font-size:14px;font-variant-numeric:tabular-nums}#phView .pvNav button{width:30px;height:26px;min-width:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px}#phView .pvNav svg{width:12px;height:12px;display:block}#phView .pvNav button:disabled{opacity:.25}
 #phView .pvB{display:flex;gap:10px}#phView .pvB button{min-width:84px}#phView .pvDel{background:#E31B3F;color:#fff;border-color:#E31B3F}#phView .pvSnap{background:#0ea5e9;color:#fff;border-color:#0ea5e9;font-weight:700}
-#logBack{color:#1b4277;white-space:nowrap;flex-shrink:0}#logEdV .edHd .edYM{min-width:0;overflow:hidden;text-overflow:ellipsis}#logEdV .edHd .calNav{min-width:0}/* 달력·이전/다음 로그 버튼 = 남색 */#logMemo{height:200px;resize:none;padding:8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
+#logBack{color:#1b4277;white-space:nowrap;flex-shrink:0}#logEdV .edHd .edYM{min-width:0;overflow:hidden;text-overflow:ellipsis}#logEdV .edHd .calNav{min-width:0}/* 달력·이전/다음 로그 버튼 = 남색 */#logMemo{height:200px;resize:none;padding:8px 46px 8px 8px;font-size:13px;line-height:1.5;border:1px solid var(--line);border-radius:5px;font-family:inherit;box-sizing:border-box;width:100%}
 .calNav{display:inline-flex;gap:4px}.calHd .jump,.edHd .jump{color:#1b4277;height:32px;width:35px;padding:0;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}.calHd .jump svg,.edHd .jump svg{display:block;width:15px;height:15px}.cal .d.jump{background:#fff;box-shadow:0 0 0 1px rgba(37,99,235,.5),0 0 10px 2px rgba(37,99,235,.45)}/* 달력에서 고른 날 = 로그 줄 선택 그림자 */
 .calY{cursor:pointer;border-bottom:1.5px dashed #0284c7;color:#0369a1}
 #logCalV{position:relative}.yearPick{position:absolute;left:50%;transform:translateX(-50%);top:40px;z-index:400;display:flex;gap:8px;align-items:center;justify-content:center;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
@@ -252,6 +252,7 @@ button:not(.fitJ):not(#spTut):not(.setHead){font-weight:400!important}.lang butt
 #adTop{display:flex;justify-content:center;min-height:50px;margin:0 auto 6px}@media print{#adTop{display:none}}
 #logBtn{position:relative;overflow:visible}#logBtn .bkN{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:8px;background:#E31B3F;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;pointer-events:none}
 #saveMenu .svNote{max-width:240px;padding:6px 10px 4px;font-size:11px;line-height:1.45;color:#6b7280;white-space:normal}
+#dvNo{position:absolute;top:7px;right:10px;font-size:12px;font-weight:700;color:#1b4277;pointer-events:none;z-index:2}#dvNo.pend{opacity:.45}.memoBox{position:relative}
 </style>
 <style>
 html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100vh + 2px);min-height:calc(100lvh + 2px)}/* 아이폰: 뒤 본문이 화면보다 짧으면(탭 접힘 등) 시작 화면 아래가 안 그려짐 → 시작 화면 동안 본문을 항상 화면보다 조금 길게 */
@@ -278,7 +279,7 @@ html.spl body>*:not(#splash){visibility:hidden}html.spl body{min-height:calc(100
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.10.2';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.10.3';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <script>/* v2.6.1 언어를 앱 코드보다 먼저 정함(규칙은 여기 한 곳): ① 주소 #ko·#en·#ja·#de·#es·#zh·#tw·#it·#fr(·-log) ② 사용자가 고른 언어(scuba_lang) ③ 기기 언어(navigator.languages, 번체 zh-TW·HK·MO·Hant = tw(번체·대만식, v2.9.0)) ④ 영어. 검색 로봇·자동화 브라우저 = 한국어.
@@ -2713,7 +2714,18 @@ function dayChanged(){stash();dropDR(ymd());SDATE=ymd();CUR=null;S.dives=[newDiv
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();renderList();}
 function rowsOf(x){const st=tmin(x.time),dv=(x.sum&&x.sum.dv&&x.sum.dv.length)?x.sum.dv:[{N:x.sum.N0,maxD:x.sum.maxD,si:0}];let m=st;
   return dv.map((d,i)=>{if(i>0&&m!=null)m+=dv[i-1].N/60+d.si;return {i,st:m,N:d.N,maxD:d.maxD};});}
-function renderList(){if(WBUSY){updWRow();return;}if(EDIT&&!(EDIT.id===CUR&&EDIT.i===S.cur))EDIT=null;const t=L(),a=dayLogs(),items=[];{const lw=document.querySelector('.lwheels');if(lw&&$('lwHold'))$('lwHold').appendChild(lw);}
+/* 메모창 오른쪽 위 다이빙 번호(#n): 저장된 다이빙 전체(샘플 제외)를 날짜·입수 시각 순으로 1번부터. 하루 여러 번이면 각각.
+   저장 안 한 새 다이빙은 저장하면 받을 번호를 흐리게. 샘플·플래너 그림(날짜 없음)은 표시 안 함 (11/09 사용자 결정) */
+function updDvNo(){const mb=document.querySelector('.memoBox');if(!mb)return;let e=document.getElementById('dvNo');if(!e){e=document.createElement('div');e.id='dvNo';mb.appendChild(e);}
+  const hide=()=>{e.textContent='';e.className='';};if(view!=='ed'||!PLAN||(window.__isSmp&&window.__isSmp(CUR)))return hide();
+  const key=(d,m,i)=>d+'|'+String(Math.round((m==null?0:m)*10)).padStart(6,'0')+'|'+String(i).padStart(2,'0'),all=[];
+  load().forEach(x=>{if(!x.state||!x.sum||(window.__isSmp&&window.__isSmp(x.id)))return;rowsOf(x).forEach(r=>all.push({id:x.id,i:r.i,k:key(x.date,r.st,r.i)}));});
+  all.sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:0);
+  const sv=CUR?load().find(v=>v.id===CUR):null,n0=sv?((sv.state&&sv.state.dives)||[]).length:0,i=S.cur;
+  if(sv&&i<n0){const n=all.findIndex(q=>q.id===CUR&&q.i===i);if(n<0)return hide();e.textContent='#'+(n+1);e.className='';return;}
+  const d=S.dives[i];if(!d||d.pts.length<2)return hide();const st=diveStartMin(i)!=null?diveStartMin(i):T+dOffAt(i),k=key(ymd(),st,99);
+  e.textContent='#'+(all.filter(q=>q.k<k).length+1);e.className='pend';}
+function renderList(){updDvNo();if(WBUSY){updWRow();return;}if(EDIT&&!(EDIT.id===CUR&&EDIT.i===S.cur))EDIT=null;const t=L(),a=dayLogs(),items=[];{const lw=document.querySelector('.lwheels');if(lw&&$('lwHold'))$('lwHold').appendChild(lw);}
   a.forEach(x=>{const rows=rowsOf(x),multi=rows.length>1||(view==='ed'&&x.id===CUR&&S.dives.length>1);
     rows.forEach(r=>{items.push({st:r.st,h:(()=>{const clock=r.st!=null?`${hhmm(r.st)} → ${hhmm(r.st+r.N/60)}`:'';
       const meta=[(multi?(tr('u_dive'))+(r.i+1):''),r.maxD+'m',Math.round(r.N/60)+t.min,(g=>/^(공기|Air|空気|Luft|Aire|空气)$/.test(g||'')?tr('sAir'):g)((x.sum.dv&&x.sum.dv[r.i]&&x.sum.dv[r.i].gas)||x.sum.gas)].filter(Boolean).join(' · ');
