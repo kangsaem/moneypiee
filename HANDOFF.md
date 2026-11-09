@@ -1341,3 +1341,9 @@
   가비아: @ A 185.199.108~111.153 · www CNAME kangsaem.github.io. parking 저장소(옛 www.kangyonz.com 주차 페이지)는 도메인 해제만, 저장소는 보관.
   목적: 애드센스는 루트 도메인(kangyonz.com) 단위 승인 → 본 주소에 내용 + ads.txt. 광고는 하위 주소(money.)에만. 확인: https://kangyonz.com/.sync-sha·/ads.txt 응답 정상.
 - 11:35 애드센스 스크립트(adsbygoogle.js, ca-pub-7103292552862249) 제거: index.html·test.html(사용자 — moneypie.kr 애드센스 심사 탈락, 광고 안 뜨는데 스크립트만 로드). 클론(money.kangyonz.com)은 동기화 때 원래 빼고 있었음 → 셋 다 없음. 애드핏은 그대로.
+
+## 2026-11-09 11:50 관심 탭 순서 버튼(사용자, 5단계 순환안)
+- 관심종목추가 왼쪽 빈자리에 버튼(#watchSortBtn, 모두 닫기와 같은 모양). 누를 때마다 신호순 → 지역순·국장 → 지역순·해외 → 등락순 ▲ → 등락순 ▼ → 신호순. 선택은 localStorage 'mp-watch-sort'.
+  신호순 = 기존(anStockRows: 매도→매수→관찰→없음, 묶음 안 국장 먼저) · 지역순 = 국장/해외 묶음(안은 신호순), 사이 점선(.an-wsep) · 등락순 = anChgOf(줄 오른쪽 삼각형 등락률) 내림/오름, 등락률 없으면 그 아래.
+  분석 안 된 종목은 항상 맨 아래. 코드: AN_WSORT·anWatchSort·anWatchOrder(anWatchFill 안). index.html·test.html.
+- 시험: Playwright 390px, 가짜 5종목+미분석 1 → 5단계 순서·점선 위치 확인, 오류 없음. 시세가 새로 와도 자동 재정렬은 안 함(다시 그릴 때 반영).

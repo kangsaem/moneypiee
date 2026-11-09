@@ -5949,7 +5949,7 @@ function renderPanel0(){
     // 관심 탭(2026-10-14): 관심종목추가 버튼 + 오른쪽 돋보기(V1과 같은 전체 분석) + V1 형식 목록(관심종목만). 합계 없음
     // 2026-10-20: 버튼 줄 위치 = V1 분류 탭 줄과 같게(위 6px · 높이 26px · 아래 8px), 오른쪽 '모두 닫기'(V1과 같은 모양) + 돋보기
     panel.innerHTML = `<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin:0 0 8px;">
-        <div></div>
+        <div><button type="button" class="an-closeall an-wsort" id="watchSortBtn" title="누를 때마다 순서 바꿈: 신호순 → 지역순(국장·해외) → 등락순(▲·▼)">${anWatchSortLabel()}</button></div>
         <button class="btn-memo" id="openAddHoldingBtn" style="height:26px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;line-height:1;">관심종목추가</button>
         <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;"><button type="button" class="an-closeall" id="watchCloseAll">모두 닫기</button><button id="watchAnBtn" title="보유+관심 종목 분석(V1과 같음)" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg></button></div>
@@ -5960,6 +5960,13 @@ function renderPanel0(){
       try{ anWatchFill(); }catch(e){}                                  // 새로 그려서 빈 자리가 남지 않게(2026-10-31)
     }));
     document.getElementById('openAddHoldingBtn').addEventListener('click', () => openAddHolding(WATCHLIST_ID));
+    document.getElementById('watchSortBtn').addEventListener('click', e => {
+      const i = AN_WSORT.findIndex(x => x[0] === anWatchSort());
+      const k = AN_WSORT[(i + 1) % AN_WSORT.length][0];
+      try{ localStorage.setItem('mp-watch-sort', k); }catch(err){}
+      e.currentTarget.innerHTML = anWatchSortLabel();
+      anWatchFill();
+    });
     document.getElementById('watchAnBtn').addEventListener('click', () => { if(anState.running) return; anState.view = 'report'; runAnalysis(); loadMarketData(true).catch(() => {}); });
     anWatchMount();
     return;
@@ -9298,6 +9305,26 @@ function anWatchMount(){
   anWatchFill();
   anQuoteRefresh();
 }
+// 관심 탭 순서 버튼(2026-11-09 사용자): 누를 때마다 5단계 순환. 분석 안 된 종목은 항상 맨 아래
+//  sig = 신호순(V1과 같음: 매도→매수→관찰→없음, 묶음 안 국장 먼저) · kr/os = 지역순(국장 먼저/해외 먼저, 사이 점선, 묶음 안은 신호순)
+//  up/dn = 등락순(줄 오른쪽 삼각형 등락률: 많이 오른 것부터/많이 내린 것부터, 등락률 없으면 그 아래)
+const AN_WSORT = [['sig', '신호순'], ['kr', '지역순 · 국장'], ['os', '지역순 · 해외'], ['up', '등락순 <b class="up">▲</b>'], ['dn', '등락순 <b class="dn">▼</b>']];
+function anWatchSort(){ let k = ''; try{ k = localStorage.getItem('mp-watch-sort') || ''; }catch(e){} return AN_WSORT.some(x => x[0] === k) ? k : 'sig'; }
+function anWatchSortLabel(){ const k = anWatchSort(); return (AN_WSORT.find(x => x[0] === k) || AN_WSORT[0])[1]; }
+function anWatchOrder(rows){
+  const k = anWatchSort(), kr = x => anIsKrCode(x.r.code);
+  if(k === 'kr' || k === 'os'){
+    const a = rows.filter(x => kr(x) === (k === 'kr')), b = rows.filter(x => kr(x) !== (k === 'kr'));
+    return { rows: a.concat(b), sepAt: a.length && b.length ? a.length : -1 };
+  }
+  if(k === 'up' || k === 'dn'){
+    const v = x => { const o = anChgOf(x.r); return o && anOk(o.v) ? o.v : null; };
+    const has = rows.filter(x => v(x) != null), no = rows.filter(x => v(x) == null);
+    has.sort((a, b) => k === 'up' ? v(b) - v(a) : v(a) - v(b));
+    return { rows: has.concat(no), sepAt: -1 };
+  }
+  return { rows, sepAt: -1 };
+}
 function anWatchFill(){
   const root = document.getElementById('watchRoot');
   if(!root) return;
@@ -9309,7 +9336,8 @@ function anWatchFill(){
   const used = new Set();
   const rows = anStockRows(results, r => { const h = hOf(r); if(!h || used.has(h.id)) return false; used.add(h.id); return true; });
   const ctx = (() => { try{ return anLimitCtx(); }catch(e){ return null; } })(), H = anHeldSets();
-  let html = rows.map(x => anStockHtml(x, ctx, H, { right: del(hOf(x.r)) })).join('');
+  const ord = anWatchOrder(rows);
+  let html = ord.rows.map((x, j) => (j === ord.sepAt ? '<div class="an-wsep"></div>' : '') + anStockHtml(x, ctx, H, { right: del(hOf(x.r)) })).join('');
   const rest = items.filter(h => !used.has(h.id));                       // 아직 분석 안 된 종목
   html += rest.map(h => `<div class="an-det an-stock an-wplain"><div class="an-wsum">${anIsWatchOnly({ hname: h.name, code: h.symbol }, H) ? '<i class="an-wdot"></i>' : ''}<b>${anE(h.name)}</b>${del(h)}</div></div>`).join('');
   const busy = anState.running ? `<div class="an-none">분석 중 ${anState.done}/${anState.total}…</div>` : '';
@@ -9707,6 +9735,8 @@ details.an-gauge > summary::before, .an-idx > summary::before { display:inline-b
 .an-hwrap { border:none !important; background:transparent !important; } .an-ht2 tr { background:var(--surface); }
 .an-ht2 th, .an-ht2 td { border-bottom:1px solid var(--bg) !important; }
 /* 모두 닫기: 분류 탭과 같은 크기, 회색 테두리 */
+.an-wsep { border-top:1px dashed #6E6F75; margin:6px 2px; }   /* 관심 탭 지역순: 국장 | 해외 사이 점선(2026-11-09) */
+.an-wsort b { font-weight:inherit; } .an-wsort b.up { color:#E87BA4; } .an-wsort b.dn { color:#5FB8E0; }
 .an-closeall { font:inherit; font-size:11px; height:26px; box-sizing:border-box; padding:0 7px; flex-shrink:0; border-radius:6px; border:1px solid #9A9BA1; background:transparent; color:#9A9BA1; cursor:pointer; white-space:nowrap; }
 #anFtabs { gap:4px !important; flex-wrap:nowrap !important; } #anFtabs .an-ftab { padding:0 8px; flex-shrink:0; } @media (max-width:385px){ #anFtabs .an-ftab, .an-closeall { padding:0 5px !important; } #anFtabs { gap:3px !important; } } #anFtabs .an-barslot { flex-shrink:0; } @media (max-width:600px){ .an-idx > summary small { display:none; } }   /* 모바일: 지수 줄 고점 대비 숨김(2026-10-13) */
 /* 성공·실패·손절·진행중 팝업 */
