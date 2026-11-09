@@ -1335,3 +1335,4 @@
   → 앱 코드는 계속 moneypiee에서만 고침(MONEY에서 고치지 말 것). 수동 즉시 반영 = MONEY Actions에서 sync-from-moneypiee 'Run workflow'.
 - 데이터는 주소별로 따로(빈 앱으로 시작, 옮기려면 저장하기 → 불러오기). 사파리 즐겨찾기 아이콘도 섞이지 않음.
 - 확인: 배포 성공, Actions에서 https://money.kangyonz.com/.sync-sha = bc626cc(원본 main과 같음).
+- 11:05 복제본 시장 지표 403: 프록시 Worker(moneypie-proxy)가 Origin 허용 목록(moneypie.kr만)으로 막음. cloudflare/proxy-worker.js ORIGINS에 https://money.kangyonz.com 추가 → 대시보드에 붙여넣기 배포 필요(사용자, MCP에 쓰기 도구 없음).
