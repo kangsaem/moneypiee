@@ -9414,14 +9414,14 @@ function anUpdateViewBtn(){
   const hb = document.getElementById('analysisHistBtn');
   if(!hb) return;
   const on = anState.view === 'history';
-  hb.textContent = on ? '최근신호' : '신호추적';            // 반전 없이 둘 다 연두 테두리·글자
+  hb.textContent = on ? '최근신호' : '신호추적';            // 반전 없이 둘 다 회색 테두리(2026-11-11 V1 색 정리 B)
   hb.title = on ? '최근 신호로' : '지난 신호를 끝날 때까지 따라간 결과';
 }
 
 function anButtonHtml(){
   return `<div id="analysisBar" style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">
     <div id="analysisLabel" style="font-size:11px;color:var(--text-dim);white-space:nowrap;"></div>
-    <button id="analysisHistBtn" title="지난 신호를 끝날 때까지 따라간 결과" style="height:26px;padding:0 10px;font-size:12px;font-weight:700;border:1px solid #D4FF3D;border-radius:6px;background:transparent;color:#D4FF3D;cursor:pointer;">신호추적</button>
+    <button id="analysisHistBtn" title="지난 신호를 끝날 때까지 따라간 결과" style="height:26px;padding:0 10px;font-size:12px;font-weight:700;border:1px solid #9A9BA1;border-radius:6px;background:transparent;color:#D6D7DB;cursor:pointer;">신호추적</button>
     <button id="analysisBtn" title="보유+관심 종목 분석" style="width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#D4FF3D;border:none;border-radius:6px;cursor:pointer;padding:0;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
     </button>
@@ -9483,8 +9483,8 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-rules > summary::-webkit-details-marker { display:none; } .an-rules > summary::before { content:'▸ '; color:var(--text-dim); } .an-rules[open] > summary::before { content:'▾ '; }
 .an-rules > summary small { color:var(--text-dim); font-weight:500; }
 .an-rules > summary, .an-lpop > h3 { display:flex; align-items:center; gap:6px; }   /* 제목 오른쪽 '백테스트 표본'(2026-10-16) */
-.an-smpbtn { margin-left:auto; height:22px; padding:0 8px; font-size:11px; font-weight:700; border:1px solid #E87BA4; border-radius:6px; background:transparent; color:#E87BA4; cursor:pointer; white-space:nowrap; }
-.an-smpbtn.on { background:#E87BA4; color:#1E1F22; }
+.an-smpbtn { margin-left:auto; height:22px; padding:0 8px; font-size:11px; font-weight:700; border:1px solid #9A9BA1; border-radius:6px; background:transparent; color:#D6D7DB; cursor:pointer; white-space:nowrap; }
+.an-smpbtn.on { background:#D6D7DB; border-color:#D6D7DB; color:#1E1F22; }
 .an-smp { border-left:2px solid #E87BA4; padding-left:8px; margin:4px 0 10px; } .an-smp[hidden] { display:none; } .an-pink, .an-pink .an-li { color:#E87BA4; }
 .an-rbody { padding:0 10px 10px; font-size:10.5px; line-height:1.6; color:var(--text-dim); }
 .an-rbody h4 { margin:10px 0 3px; font-size:12px; color:var(--text); } .an-rbody h4 small { font-weight:400; color:var(--text-dim); font-size:10.5px; }
@@ -9553,7 +9553,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-ht th { color:var(--text-dim); font-weight:500; } .an-ht .c { text-align:left; } .an-ht .g { border-left:1px solid var(--border); }
 .an-ht .ok { color:var(--an-ok); font-weight:700; } .an-ht .bad { color:var(--an-up); } .an-ht .mut { color:var(--text-dim); }
 .an-htag { font-size:11px; padding:0 7px; border-radius:6px; border:1px solid var(--border); font-weight:700; }
-.an-htag.g0 { color:#0284c7; border-color:#0284c7; } .an-htag.g1, .an-htag.g2, .an-htag.g3 { color:var(--an-up); border-color:var(--an-up); }
+.an-htag.g0 { color:#5FB8E0; border-color:#5FB8E0; } .an-htag.g1, .an-htag.g2, .an-htag.g3 { color:var(--an-up); border-color:var(--an-up); }
 .an-htag.g4, .an-htag.g5 { color:var(--an-green); border-color:var(--an-green); } .an-htag.g6 { color:var(--an-amber); border-color:var(--an-amber); }
 .an-htag.g7 { color:#8b7fd6; border-color:#a99ff0; } .an-htag.g8 { color:#4aa8d8; border-color:#8fd0ef; }
 .an-hflt { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; } .an-hflt button { font:inherit; font-size:11.5px; padding:2px 10px; border-radius:99px;
@@ -9594,12 +9594,12 @@ details.an-gauge ul { padding-bottom:10px; }
 .an-ftab { font:inherit; font-size:11.5px; height:26px; box-sizing:border-box; display:inline-flex; align-items:center; gap:3px; padding:0 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; }
 .an-ftab b { font-weight:700; margin-left:2px; } .an-ftab.on { background:var(--text); color:var(--bg, #111111); border-color:var(--text); }
 /* 탭 색: 매도 짙은 하늘 / 매수 분홍 / 보유 연두 / 매수보류 호박 / 반등대기 연보라 / 하락 연하늘 / 0개 = 점선·흐림 */
-.an-ftab.has.t-sell { color:#0284c7; border-color:#0284c7; } .an-ftab.has.t-buy { color:var(--an-up); border-color:var(--an-up); } .an-ftab.has.t-watch { color:#8b7fd6; border-color:#a99ff0; }
+.an-ftab.has.t-sell { color:#5FB8E0; border-color:#5FB8E0; } .an-ftab.has.t-buy { color:var(--an-up); border-color:var(--an-up); } .an-ftab.has.t-watch { color:#D6D7DB; border-color:#9A9BA1; }
 .an-ftab.has.t-hold { color:var(--an-green); border-color:var(--an-green); } .an-ftab.has.t-caution { color:var(--an-amber); border-color:var(--an-amber); }
 .an-ftab.has.t-wait { color:#8b7fd6; border-color:#a99ff0; } .an-ftab.has.t-waitdn { color:#4aa8d8; border-color:#8fd0ef; }
 .an-ftab.zero { border-style:dashed; opacity:.55; }
-.an-chip.wait { color:#8b7fd6; border-color:#a99ff0; } .an-chip.down { color:#4aa8d8; border-color:#8fd0ef; } .an-chip.sell { color:#0284c7; border-color:#0284c7; }
-.an-whyh.buyb { color:var(--an-up); } .an-whyh.wait { color:#8b7fd6 !important; } .an-whyh.waitdn { color:#4aa8d8 !important; } .an-whyh.sell { color:#0284c7 !important; }
+.an-chip.wait { color:#8b7fd6; border-color:#a99ff0; } .an-chip.down { color:#4aa8d8; border-color:#8fd0ef; } .an-chip.sell { color:#5FB8E0; border-color:#5FB8E0; }
+.an-whyh.buyb { color:var(--an-up); } .an-whyh.wait { color:#8b7fd6 !important; } .an-whyh.waitdn { color:#4aa8d8 !important; } .an-whyh.sell { color:#5FB8E0 !important; }
 .an-crash { background:rgba(2,132,199,.12); border:2px solid #0284c7; color:#0284c7; border-radius:10px; padding:9px 12px; font-weight:800; font-size:13px; margin:8px 0; }
 .an-crash small { display:block; font-weight:500; color:var(--text-dim); margin-top:2px; font-size:11px; }
 .an-idxacc { display:grid; gap:4px; } .an-idx { background:var(--surface); border:1px solid var(--border); border-radius:8px; }
@@ -9611,8 +9611,8 @@ details.an-gauge ul { padding-bottom:10px; }
 .an-lb { font-size:11px; color:var(--text-dim); border:1px solid var(--border); border-radius:6px; padding:0 6px; } .an-lb.full { color:var(--an-amber); border-color:var(--an-amber); }
 .an-ftab.on b { color:inherit; }
 /* 고른 탭 = 그 탭 색으로 채움(반전) */
-.an-ftab.on.t-sell { background:#0284c7; border-color:#0284c7; color:var(--bg); } .an-ftab.on.t-buy { background:var(--an-up); border-color:var(--an-up); color:var(--bg); }
-.an-ftab.on.t-watch { background:#a99ff0; border-color:#a99ff0; color:var(--bg); }
+.an-ftab.on.t-sell { background:#5FB8E0; border-color:#5FB8E0; color:var(--bg); } .an-ftab.on.t-buy { background:var(--an-up); border-color:var(--an-up); color:var(--bg); }
+.an-ftab.on.t-watch { background:#D6D7DB; border-color:#D6D7DB; color:var(--bg); }
 .an-list { margin-top:6px; display:grid; gap:3px; } .an-list .an-det { margin-bottom:0; }
 .an-stock, .an-stock[open] { background:var(--surface) !important; border-left-width:1px !important; }
 .an-sbody { padding:0 11px 6px; } .an-stock > summary { padding:6px 11px; display:flex; flex-wrap:wrap; align-items:center; gap:4px; } .an-stock > summary > b, .an-stock > summary > .an-sl > b { margin-right:2px; } .an-rsir { margin-left:auto; } .an-sbody .an-mrow { margin-bottom:6px; } .an-sbody pre { padding:6px 0 10px; }
