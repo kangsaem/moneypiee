@@ -9677,13 +9677,6 @@ details.an-gauge.bottom.s2 { background:#4fc3f752 !important; border-color:#4fc3
 details.an-gauge.bottom.s3 { background:#0277bd !important; border-color:#4fc3f7; }
 details.an-gauge.s3, details.an-gauge.s3 .an-gh b, details.an-gauge.s3 li, details.an-gauge.s3 li.off, details.an-gauge.s3 li.na, details.an-gauge.s3 summary::before { color:#ffffff !important; }
 details.an-gauge.s3 .an-bar i, details.an-gauge.s3 li.on .an-dot { background:#ffffff !important; }
-/* 2026-11-11 V1 색 정리 B(사용자): 지표 줄 배경색 대신 왼쪽 색 막대(켜진 개수만큼 굵게) + 값 글자색. 전부 켜짐(s3)만 기존 채움 유지 */
-details.an-gauge.risk.s1, details.an-gauge.risk.s2, details.an-gauge.bottom.s1, details.an-gauge.bottom.s2 { background:#3A3B40 !important; }
-details.an-gauge.risk.s1 { box-shadow:inset 3px 0 0 #E87BA4; } details.an-gauge.risk.s1[open] { box-shadow:inset 3px 0 0 #E87BA4, inset 0 1px 0 rgba(255,255,255,.38); } details.an-gauge.risk.s2 { box-shadow:inset 6px 0 0 #E87BA4; } details.an-gauge.risk.s2[open] { box-shadow:inset 6px 0 0 #E87BA4, inset 0 1px 0 rgba(255,255,255,.38); }
-details.an-gauge.bottom.s1 { box-shadow:inset 3px 0 0 #5FB8E0; } details.an-gauge.bottom.s1[open] { box-shadow:inset 3px 0 0 #5FB8E0, inset 0 1px 0 rgba(255,255,255,.38); } details.an-gauge.bottom.s2 { box-shadow:inset 6px 0 0 #5FB8E0; } details.an-gauge.bottom.s2[open] { box-shadow:inset 6px 0 0 #5FB8E0, inset 0 1px 0 rgba(255,255,255,.38); }
-details.an-gauge.risk.s1 .an-gh b, details.an-gauge.risk.s2 .an-gh b { color:#E87BA4 !important; }
-details.an-gauge.bottom.s1 .an-gh b, details.an-gauge.bottom.s2 .an-gh b { color:#5FB8E0 !important; }
-details.an-gauge.bottom.s1 .an-bar i, details.an-gauge.bottom.s2 .an-bar i, details.an-gauge.bottom.s1 li.on .an-dot, details.an-gauge.bottom.s2 li.on .an-dot { background:#5FB8E0 !important; }
 .an-glink { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin-top:8px; padding-top:8px; padding-bottom:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text); }   /* 아래 여백(2026-10-14) */
 .an-gbtn { display:inline-flex; align-items:center; height:26px; padding:0 10px; border:1px solid var(--border); border-radius:6px; background:var(--border); color:var(--text); text-decoration:none; font-size:12px; white-space:nowrap; }   /* PBR·PER 버튼(2026-10-14) — 머니파이 팔레트 --border #3D3E43 */
 .an-glink small { color:var(--text-dim); flex-basis:100%; }
