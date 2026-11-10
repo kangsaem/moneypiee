@@ -2734,7 +2734,8 @@ document.addEventListener('click', (e) => {
   }
 }, true);
 
-let stockLegendSortMode = 'amount';
+let stockLegendSortMode = 'region';   // 처음 보이는 형태 = 지역순(2026-11-11 사용자). 지역순을 못 쓰는 화면은 금액순
+let stockSortPicked = false;            // 사용자가 도넛을 눌러 직접 고른 뒤엔 그 선택 유지
 let stockLegendValueMode = 'pct'; // 전체탭 종목 도넛 하단목록: pct(비중) -> change(당일 등락률) -> amount(평가액) -> pct
 function cycleStockLegendValueMode(){
   stockLegendValueMode = stockLegendValueMode === 'pct' ? 'change' : (stockLegendValueMode === 'change' ? 'amount' : 'pct');
@@ -3019,6 +3020,7 @@ function cycleStockSort(){
   const cycle = stockSortCycleActive || STOCK_SORT_CYCLE_FULL;
   const idx = cycle.indexOf(stockLegendSortMode);
   stockLegendSortMode = cycle[(idx + 1) % cycle.length];
+  stockSortPicked = true;
   render();
 
   if(savedSectorLabel){
@@ -3096,6 +3098,7 @@ function combinedTripleDonutBlock(holdings, rightData, rightType, rightClickable
   }
 
   stockSortCycleActive = rightClickable ? STOCK_SORT_CYCLE_FULL : STOCK_SORT_CYCLE_NO_REGION;
+  if(!stockSortPicked) stockLegendSortMode = stockSortCycleActive.includes('region') ? 'region' : 'amount';
   if(!stockSortCycleActive.includes(stockLegendSortMode)) stockLegendSortMode = 'amount';
   const stockRaw = computeStockDataWithMeta(holdings);
   const stockOrdered = sortStockData(stockRaw, stockLegendSortMode);
@@ -3233,6 +3236,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
 
 function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallbackAccId, compactTotalMode){
   stockSortCycleActive = allowRegion === false ? STOCK_SORT_CYCLE_NO_REGION : STOCK_SORT_CYCLE_FULL;
+  if(!stockSortPicked) stockLegendSortMode = stockSortCycleActive.includes('region') ? 'region' : 'amount';
   if(!stockSortCycleActive.includes(stockLegendSortMode)) stockLegendSortMode = 'amount';
   const rawData = computeStockDataWithMeta(holdings, fallbackAccId);
   const ordered = sortStockData(rawData, stockLegendSortMode);
