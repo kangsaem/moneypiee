@@ -1045,6 +1045,14 @@ function sparklineIntradaySVG(points, marketOpen, marketClose, width, height, ba
     // 실제 마지막 데이터 시각이 예상 마감보다 늦으면 오른쪽 끝을 자동으로 늘림 (지연 데이터 대응)
     const lastPointTs = points[points.length-1].ts;
     effectiveClose = Math.max(marketClose, lastPointTs);
+    // 개장 전(전날) 포인트는 그리지 않음(2026-11-12): 전엔 전부 왼쪽 끝(x=0)에 몰려 세로 막대가 생기고 그 폭 때문에 오늘 선이 납작해짐(미국채·환율)
+    const inside = points.filter(p => p.ts >= marketOpen);
+    if(inside.length >= 2){
+      drawPoints = inside;   // 전날 값과의 차이는 기준선(전일 종가)으로 보임
+    } else {
+      // 야후가 준 장 시간이 데이터와 안 맞음(다음 장 시간 등) → 데이터가 있는 구간을 그대로 그림
+      marketOpen = points[0].ts; effectiveClose = lastPointTs;
+    }
   }
   const span = effectiveClose - marketOpen;
   if(span <= 0 || drawPoints.length < 2){
