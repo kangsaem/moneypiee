@@ -227,11 +227,11 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .tb-row .total-badge{margin-top:0 !important;} .tb-row .total-badge .num{font-size:16px !important;} .tb-row .total-badge .num span{font-size:inherit !important;font-weight:inherit !important;}
   .typeleg{margin-top:4px !important;} .typeleg .legend-item{flex-direction:row !important;padding:1px 8px !important;} .typeleg .legend-pct{display:none !important;}
   .mp-tip{position:fixed;z-index:9999;background:#111;color:#fff;border:1px solid #7A7B81;border-radius:6px;padding:3px 8px;font-size:12px;white-space:nowrap;transform:translate(-50%,-125%);pointer-events:none;}
-  .charts.dn-car > .dn-slide{display:none;position:relative;} .charts.dn-car > .dn-slide.dn-on{display:block;}
-  .dn-slide.dn-in-r{animation:dnInR .42s cubic-bezier(.16,1,.3,1);} .dn-slide.dn-in-l{animation:dnInL .42s cubic-bezier(.16,1,.3,1);}
-  @keyframes dnInR{from{transform:translateX(70%);opacity:0;}to{transform:none;opacity:1;}} @keyframes dnInL{from{transform:translateX(-70%);opacity:0;}to{transform:none;opacity:1;}}
+  .charts.dn-car{overflow-x:hidden;overflow-x:clip;} .charts.dn-car > .dn-slide{display:none;position:relative;touch-action:pan-y;} .charts.dn-car > .dn-slide.dn-on{display:block;}   /* 넘길 때 화면 폭이 늘지 않게 자름 + 가로 끌기는 도넛 넘기기만 */
+  .dn-slide.dn-in-r{animation:dnInR .32s cubic-bezier(.2,.8,.2,1);} .dn-slide.dn-in-l{animation:dnInL .32s cubic-bezier(.2,.8,.2,1);}
+  @keyframes dnInR{from{transform:translateX(36px);opacity:0;}to{transform:none;opacity:1;}} @keyframes dnInL{from{transform:translateX(-36px);opacity:0;}to{transform:none;opacity:1;}}   /* 짧게 들어와 그대로 멈춤(되튐 없음) */
   .dn-arrow{position:absolute;width:36px;height:48px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-dim);cursor:pointer;z-index:3;user-select:none;-webkit-tap-highlight-color:transparent;}
-  .dn-arrow.l{left:-6px;} .dn-arrow.r{right:-6px;} .dn-arrow.off{opacity:.2;pointer-events:none;}
+  .dn-arrow.l{left:0;} .dn-arrow.r{right:0;} .dn-arrow.off{opacity:.2;cursor:default;}   /* 끝 삼각형도 누름은 받아서 아래 도넛이 눌리지 않게 */
   .dn-dots{display:flex;gap:6px;justify-content:center;margin:8px 0 4px;} .dn-dots i{width:6px;height:6px;border-radius:50%;background:#5A5B61;} .dn-dots i.on{background:#D6D7DB;}
   .rg-head{display:flex;align-items:center;gap:6px;width:100%;padding:4px 0 2px;font-size:12px;color:var(--text-dim);cursor:pointer;box-sizing:border-box;} .rg-head b{color:var(--text);font-weight:600;font-size:13px;}
   .rg-head .rg-cap{margin-left:auto;} .rg-head.rg-fold b{color:var(--text-dim);} .rg-head.rg-sep{margin-top:8px;padding-top:10px;border-top:1px dashed var(--text-dim);}
@@ -2820,7 +2820,7 @@ function assetPanelEnhance(){
     e.insertAdjacentHTML('afterbegin', `<div class="dn-arrow l${k === 0 ? ' off' : ''}" data-dn="-1">◀</div><div class="dn-arrow r${k === slides.length - 1 ? ' off' : ''}" data-dn="1">▶</div>`);
     const lg = e.querySelector('.legend'), dots = `<div class="dn-dots">${slides.map((_, j) => `<i class="${j === k ? 'on' : ''}"></i>`).join('')}</div>`;
     if(lg) lg.insertAdjacentHTML('beforebegin', dots); else e.insertAdjacentHTML('beforeend', dots);
-    e.querySelectorAll('.dn-arrow').forEach(a => a.addEventListener('click', ev => { ev.stopPropagation(); show(donutCarIdx + (+a.dataset.dn), +a.dataset.dn); }));
+    e.querySelectorAll('.dn-arrow').forEach(a => a.addEventListener('click', ev => { ev.stopPropagation(); ev.preventDefault(); if(a.classList.contains('off')) return; show(donutCarIdx + (+a.dataset.dn), +a.dataset.dn); }));
   });
   // 도넛 크기가 달라도(종목 도넛이 더 큼) 가운데 높이·삼각형·점 위치를 모든 장에서 같게 맞춤
   slides.forEach(e => { e.style.display = 'block'; });
@@ -3296,7 +3296,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
       const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
       const folded = { [mk.side]: stockRegionFold[mk.side] === true, [other]: stockRegionFold[other] !== false };
       data = data.filter(d => gOf(d) === mk.side).concat(data.filter(d => gOf(d) === other));
-      const cap = { change:'오늘 등락률', pct:'비중', amount:'평가액' }[stockValueModeNow(sortMode)];
+      const cap = { change:'', pct:'비중', amount:'평가액' }[stockValueModeNow(sortMode)];
       rg = { gOf, folded, last: null, head: g => {
         const nm = g === 'domestic' ? '국내' : '해외', live = mk.open && g === mk.side ? '<span class="rg-live">장중</span>' : '';
         return folded[g]
