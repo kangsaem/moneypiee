@@ -224,7 +224,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .total-badge{color:var(--text-dim);font-size:14px;font-weight:500;}
   /* 2026-11-11 자산 탭 정리(사용자): 자산·현금비중 한 줄(같은 글자 크기) · 유형 버튼 낮게(퍼센트는 올리면/길게 누르면) · 휴대폰 도넛 하나씩 · 지역보기 묶음 */
   .tb-row{display:flex;justify-content:center;align-items:baseline;gap:6px 14px;flex-wrap:wrap;}
-  .tb-row .total-badge{margin-top:0 !important;} .tb-row .total-badge .num{font-size:16px !important;} .tb-row .total-badge .num span{font-size:inherit !important;font-weight:inherit !important;}
+  .tb-row .total-badge{margin-top:0 !important;} .tb-row .total-badge[data-cashbadge]{gap:0 !important;}   /* 현금 ↔ % 간격 = 자산 ↔ 금액 간격(6px) */ .tb-row .total-badge .num{font-size:16px !important;} .tb-row .total-badge .num span{font-size:inherit !important;font-weight:inherit !important;}
   .typeleg{margin-top:4px !important;} .typeleg .legend-item{flex-direction:row !important;padding:1px 8px !important;} .typeleg .legend-pct{display:none !important;}
   .mp-tip{position:fixed;z-index:9999;background:#111;color:#fff;border:1px solid #7A7B81;border-radius:6px;padding:3px 8px;font-size:12px;white-space:nowrap;transform:translate(-50%,-125%);pointer-events:none;}
   .charts.dn-car{overflow-x:hidden;overflow-x:clip;} .charts.dn-car > .dn-slide{display:none;position:relative;touch-action:pan-y;} .charts.dn-car > .dn-slide.dn-on{display:block;}   /* 넘길 때 화면 폭이 늘지 않게 자름 + 가로 끌기는 도넛 넘기기만 */
@@ -725,6 +725,7 @@ function applyReloadBtnCooldownVisual(btn){
       liveBtn.style.background = '#555555';
       liveBtn.style.color = '#999999';
       liveBtn.style.cursor = 'default';
+      if(typeof mpSyncRgReload === 'function') mpSyncRgReload();
       if(liveLabel){
         liveLabel.style.display = 'flex';
         if(elapsed < 10000){
@@ -740,6 +741,7 @@ function applyReloadBtnCooldownVisual(btn){
       liveBtn.style.color = '#111';
       liveBtn.style.cursor = 'pointer';
       if(liveLabel) liveLabel.style.display = 'none';
+      if(typeof mpSyncRgReload === 'function') mpSyncRgReload();
       if(reloadBtnCooldownInterval){ clearInterval(reloadBtnCooldownInterval); reloadBtnCooldownInterval = null; }
     }
   }
@@ -2778,9 +2780,23 @@ function mpMarketSide(nowMs){
   if(!prev || !next) return { side: (prev || next || [0, 0, 'domestic'])[2], open: false };
   return { side: now < (prev[1] + next[0]) / 2 ? prev[2] : next[2], open: false };
 }
+// 아래(접힌 줄) 새로고침 버튼 색·누름 가능 여부를 위 버튼과 같게(쿨다운 중 = 회색)
+function mpSyncRgReload(){
+  const rb = document.getElementById('reloadPricesBtn');
+  document.querySelectorAll('.rg-reload').forEach(b => {
+    const off = !rb || rb.disabled;
+    b.style.background = off ? '#555555' : '#D4FF3D'; b.style.color = off ? '#999999' : '#111'; b.style.cursor = off ? 'default' : 'pointer';
+  });
+}
 let stockRegionFold = {};          // 지역보기에서 사용자가 직접 접거나 펼친 묶음(없으면 열린 장만 펼침)
 document.addEventListener('click', e => {
-  if(e.target.closest && e.target.closest('.rg-reload')){ e.stopPropagation(); const rb = document.getElementById('reloadPricesBtn'); if(rb) rb.click(); return; }   // 접힌 줄 오른쪽 새로고침 = 위 새로고침 버튼과 같은 동작
+  const rgb = e.target.closest && e.target.closest('.rg-reload');
+  if(rgb){
+    e.stopPropagation();
+    const rb = document.getElementById('reloadPricesBtn'); if(!rb || rb.disabled) return;
+    rgb.classList.remove('reload-spin'); void rgb.offsetWidth; rgb.classList.add('reload-spin');   // 위 버튼과 같은 회전(문구는 위쪽에만)
+    rb.click(); mpSyncRgReload(); return;
+  }   // 접힌 줄 오른쪽 새로고침 = 위 새로고침 버튼과 같은 동작
   const el = e.target.closest && e.target.closest('[data-region-fold]'); if(!el) return;
   stockRegionFold[el.dataset.regionFold] = el.dataset.regionFolded !== '1';
   renderPreservingOpenChartAccordions();
@@ -2810,6 +2826,7 @@ function assetPanelEnhance(){
     const row = b.parentElement, top = document.getElementById('reloadPricesBtn'), box = row.closest('.chart-box'); if(!box) return;
     b.style.right = '0px'; row.style.paddingRight = '';
     if(!donutCarOn()) return;   // 새로고침 버튼은 휴대폰 보기에서만(2026-11-11 사용자)
+    mpSyncRgReload();
     const rr = row.getBoundingClientRect(), br = box.getBoundingClientRect(), tr = top ? top.getBoundingClientRect() : null;
     if(!rr.width) return;
     const edge = tr && tr.width && tr.right <= br.right + 1 && tr.right >= br.right - 40 ? tr.right : br.right;
