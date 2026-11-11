@@ -1,8 +1,10 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-11 13:30 (v2.10.9) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-11 13:15 (v2.10.10) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.10.10 (2026-11-11) 메모칸 상한 = 10줄(사용자 결정, 60%는 너무 김). fitMemo가 line-height×10+패딩으로 계산.
 
 ## v2.10.9 (2026-11-11) 메모칸 자동 높이
 - #logMemo: 최소 120px, 내용 따라 늘어남, 최대 화면 높이 60%에서 내부 스크롤(폰·PC 동일). fitMemo()가 입력·value 대입·resize·ResizeObserver(숨김→표시)·updDvNo에서 호출.
