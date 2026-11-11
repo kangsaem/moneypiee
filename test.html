@@ -281,7 +281,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .dn-dots{display:flex;gap:6px;justify-content:center;margin:8px 0 4px;} .dn-dots i{width:6px;height:6px;border-radius:50%;background:#5A5B61;} .dn-dots i.on{background:#D6D7DB;}
   .rg-head{display:flex;align-items:center;gap:6px;width:100%;padding:4px 0 2px;font-size:12px;color:var(--text-dim);cursor:pointer;box-sizing:border-box;} .rg-head b{color:var(--text);font-weight:600;font-size:13px;}
   .rg-head .rg-cap{margin-left:auto;} .rg-head.rg-fold b{color:var(--text-dim);} .rg-head.rg-sep{margin-top:8px;padding-top:10px;border-top:1px dashed var(--text-dim);}
-  .rg-head{position:relative;} .rg-reload{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0;font-family:inherit;}
+  .rg-head{position:relative;} .charts.dn-car .rg-reload{display:flex;} .rg-reload{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;height:26px;display:none;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0;font-family:inherit;}
   .rg-live{font-size:10.5px;border:1px solid #D4FF3D;color:#D4FF3D;border-radius:4px;padding:0 5px;line-height:15px;}
   .total-badge .num{color:#F0DA8C;font-size:16px;font-weight:700;margin-left:6px;}  @keyframes dragHintBounceIn{
     0%{ transform:translate(-50%,var(--ty,-50%)) scale(0.3); opacity:0; }
@@ -2855,6 +2855,7 @@ function assetPanelEnhance(){
   panel.querySelectorAll('.rg-head .rg-reload').forEach(b => {
     const row = b.parentElement, top = document.getElementById('reloadPricesBtn'), box = row.closest('.chart-box'); if(!box) return;
     b.style.right = '0px'; row.style.paddingRight = '';
+    if(!donutCarOn()) return;   // 새로고침 버튼은 휴대폰 보기에서만(2026-11-11 사용자)
     const rr = row.getBoundingClientRect(), br = box.getBoundingClientRect(), tr = top ? top.getBoundingClientRect() : null;
     if(!rr.width) return;
     const edge = tr && tr.width && tr.right <= br.right + 1 && tr.right >= br.right - 40 ? tr.right : br.right;
@@ -6222,7 +6223,7 @@ function renderPanel0(){
         ${assetRegionBtnsHtml()}
         <div class="tb-row">
         <span class="total-badge">자산<span class="num">${total.toLocaleString()}원</span></span>
-        <span class="total-badge" data-cashbadge="${cashTotal}" style="position:relative;cursor:pointer;margin-top:1px;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPct)};">현금비중<span class="num" style="font-size:24px;color:${cashRatioColor(cashPct)};">${cashPct.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
+        <span class="total-badge" data-cashbadge="${cashTotal}" style="position:relative;cursor:pointer;margin-top:1px;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPct)};">현금<span class="num" style="font-size:24px;color:${cashRatioColor(cashPct)};">${cashPct.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
         </div>
         <div id="cash-amount-slot"></div>
       </div>
@@ -6332,7 +6333,7 @@ function renderPanel0(){
         ${assetRegionBtnsHtml()}
         <div class="tb-row">
         <span class="total-badge">자산<span class="num">${grandTotal.toLocaleString()}원</span></span>
-        <span class="total-badge" data-cashbadge="${cashTotalAll}" data-cash-domestic="${cashDomesticAll}" data-cash-foreign="${cashForeignAll}" style="position:relative;cursor:pointer;margin-top:1px;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPctAll)};">현금비중<span class="num" style="font-size:24px;color:${cashRatioColor(cashPctAll)};">${cashPctAll.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
+        <span class="total-badge" data-cashbadge="${cashTotalAll}" data-cash-domestic="${cashDomesticAll}" data-cash-foreign="${cashForeignAll}" style="position:relative;cursor:pointer;margin-top:1px;display:inline-flex;align-items:center;gap:6px;color:${cashRatioColor(cashPctAll)};">현금<span class="num" style="font-size:24px;color:${cashRatioColor(cashPctAll)};">${cashPctAll.toFixed(1)}<span style="font-size:12px;font-weight:400;">%</span></span></span>
         </div>
         <div id="cash-amount-slot"></div>
       </div>
