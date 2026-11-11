@@ -2813,8 +2813,6 @@ function assetPanelEnhance(){
     donutCarIdx = Math.max(0, Math.min(slides.length - 1, i));
     slides.forEach((e, k) => { e.classList.remove('dn-in-l', 'dn-in-r'); e.classList.toggle('dn-on', k === donutCarIdx); });
     if(dir) slides[donutCarIdx].classList.add(dir > 0 ? 'dn-in-r' : 'dn-in-l');
-    const cur = slides[donutCarIdx], dn = cur.querySelector('.donut-wrap');   // 삼각형 = 보이는 도넛의 세로 가운데
-    if(dn) cur.querySelectorAll('.dn-arrow').forEach(x => { x.style.top = (dn.offsetTop + dn.offsetHeight / 2 - 24) + 'px'; });
   };
   slides.forEach((e, k) => {
     e.classList.add('dn-slide');
@@ -2823,6 +2821,16 @@ function assetPanelEnhance(){
     const lg = e.querySelector('.legend'), dots = `<div class="dn-dots">${slides.map((_, j) => `<i class="${j === k ? 'on' : ''}"></i>`).join('')}</div>`;
     if(lg) lg.insertAdjacentHTML('beforebegin', dots); else e.insertAdjacentHTML('beforeend', dots);
     e.querySelectorAll('.dn-arrow').forEach(a => a.addEventListener('click', ev => { ev.stopPropagation(); show(donutCarIdx + (+a.dataset.dn), +a.dataset.dn); }));
+  });
+  // 도넛 크기가 달라도(종목 도넛이 더 큼) 가운데 높이·삼각형·점 위치를 모든 장에서 같게 맞춤
+  slides.forEach(e => { e.style.display = 'block'; });
+  const m = slides.map(e => { const dn = e.querySelector('.donut-wrap'); return { e, c: dn.offsetTop + dn.offsetHeight / 2, h: dn.offsetHeight }; });
+  const C = Math.max(...m.map(x => x.c)), Hm = Math.max(...m.map(x => x.h));
+  m.forEach(x => {
+    x.e.style.paddingTop = (C - x.c) + 'px';
+    const dots = x.e.querySelector('.dn-dots'); if(dots) dots.style.marginTop = (8 + (Hm - x.h) / 2) + 'px';
+    x.e.querySelectorAll('.dn-arrow').forEach(a => { a.style.top = (C - 24) + 'px'; });
+    x.e.style.display = '';
   });
   show(donutCarIdx, 0);
   let sx = 0, sy = 0;
