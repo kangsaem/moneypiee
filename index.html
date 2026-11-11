@@ -6151,6 +6151,7 @@ function renderPanel0(){
     document.getElementById('watchSortBtn').addEventListener('click', e => {
       const i = AN_WSORT.findIndex(x => x[0] === anWatchSort());
       const k = AN_WSORT[(i + 1) % AN_WSORT.length][0];
+      anWatchSortMem = k;
       try{ localStorage.setItem('mp-watch-sort', k); }catch(err){}
       e.currentTarget.innerHTML = anWatchSortLabel();
       anWatchFill();
@@ -9505,7 +9506,8 @@ function anWatchMount(){
 //  sig = 신호순(V1과 같음: 매도→매수→관찰→없음, 묶음 안 국장 먼저) · kr/os = 지역순(국장 먼저/해외 먼저, 사이 점선, 묶음 안은 신호순)
 //  up/dn = 등락순(줄 오른쪽 삼각형 등락률: 많이 오른 것부터/많이 내린 것부터, 등락률 없으면 그 아래)
 const AN_WSORT = [['sig', '신호순'], ['kr', '지역순 · 국장'], ['os', '지역순 · 해외'], ['up', '등락순 <b class="up">▲</b>'], ['dn', '등락순 <b class="dn">▼</b>']];
-function anWatchSort(){ let k = ''; try{ k = localStorage.getItem('mp-watch-sort') || ''; }catch(e){} return AN_WSORT.some(x => x[0] === k) ? k : 'sig'; }
+let anWatchSortMem = null;   // 지금 고른 순서(메모리가 기준, 저장은 다음 접속용) — 저장공간이 꽉 차 저장이 실패해도 버튼이 멈추지 않게(2026-11-12)
+function anWatchSort(){ let k = anWatchSortMem || ''; if(!k){ try{ k = localStorage.getItem('mp-watch-sort') || ''; }catch(e){} } return AN_WSORT.some(x => x[0] === k) ? k : 'sig'; }
 function anWatchSortLabel(){ const k = anWatchSort(); return (AN_WSORT.find(x => x[0] === k) || AN_WSORT[0])[1]; }
 function anWatchOrder(rows){
   const k = anWatchSort(), kr = x => anIsKrCode(x.r.code);
