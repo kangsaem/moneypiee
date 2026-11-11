@@ -1493,27 +1493,60 @@ async function load(){
   render();
 }
 
+// 저장 + 확인(2026-11-12): 저장이 실패하거나 저장된 값이 다르면 화면 위에 경고(전엔 조용히 넘어가 새로고침 뒤 사라짐)
+function mpStoreSet(key, json){
+  try{
+    localStorage.setItem(key, json);
+    if(localStorage.getItem(key) !== json) throw new Error('저장된 값이 다름');
+    return true;
+  }catch(e){ mpSaveFail(e); return false; }
+}
+function mpSaveFail(e){
+  let el = document.getElementById('mpSaveFail');
+  if(!el){
+    el = document.createElement('div'); el.id = 'mpSaveFail';
+    el.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:99999;background:#3A2A1E;border:1px solid #D9793D;color:#FFD9BF;border-radius:8px;padding:10px 34px 10px 12px;font-size:13px;line-height:1.45;';
+    document.body.appendChild(el);
+  }
+  const full = e && (e.name === 'QuotaExceededError' || /quota/i.test(String(e.message || e.name)));
+  el.innerHTML = `<b>저장 실패</b> — 방금 바꾼 내용이 이 기기에 저장되지 않았습니다. 관리 탭의 json저장으로 백업해 주세요.<br>원인: ${full ? '브라우저 저장공간이 가득 참' : String((e && (e.message || e.name)) || '알 수 없음').slice(0, 80)} · ${mpStoreUsage().txt}<span style="position:absolute;right:10px;top:6px;cursor:pointer;font-size:16px;" onclick="this.parentElement.remove()">✕</span>`;
+}
+// 이 주소(같은 도메인의 모든 페이지 공용)의 브라우저 저장공간 사용량 — 읽기만 함
+function mpStoreUsage(){
+  const g = { '머니파이': 0, '테스트 사본': 0, '다이빙': 0, '기타': 0 }; let top = ['', 0];
+  try{
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i), v = localStorage[k]; if(typeof v !== 'string') continue;
+      const b = (k.length + v.length) * 2;
+      const c = k.indexOf('test:') === 0 ? '테스트 사본' : /^(scuba|dtmd)/i.test(k) ? '다이빙' : /^(asset-tracker|moneypie|mp-|an-)/.test(k) ? '머니파이' : '기타';
+      g[c] += b; if(b > top[1]) top = [k, b];
+    }
+  }catch(e){}
+  const f = b => b >= 1048576 ? (b / 1048576).toFixed(1) + 'MB' : Math.round(b / 1024) + 'KB';
+  const sum = Object.values(g).reduce((a, b) => a + b, 0);
+  return { sum, txt: `저장공간 ${f(sum)} / 약 5MB (${Object.keys(g).filter(k => g[k]).map(k => k + ' ' + f(g[k])).join(' · ')})` + (top[0] ? ` · 가장 큰 항목 ${top[0]} ${f(top[1])}` : '') };
+}
 async function save(){
   const json = JSON.stringify(state.accounts);
   try{ await window.storage.set('accounts', json, false); }catch(e){}
-  try{ localStorage.setItem(LS_ACCOUNTS_KEY, json); }catch(e){}
+  mpStoreSet(LS_ACCOUNTS_KEY, json);
   await saveWatchlist();
 }
 async function saveWatchlist(){
   if(!state.watchlist) return;
   const json = JSON.stringify(state.watchlist.holdings);
   try{ await window.storage.set('watchlist', json, false); }catch(e){}
-  try{ localStorage.setItem(LS_WATCHLIST_KEY, json); }catch(e){}
+  mpStoreSet(LS_WATCHLIST_KEY, json);
 }
 async function saveSnapshots(){
   const json = JSON.stringify(state.snapshots);
   try{ await window.storage.set('snapshots', json, false); }catch(e){}
-  try{ localStorage.setItem(LS_SNAPSHOTS_KEY, json); }catch(e){}
+  mpStoreSet(LS_SNAPSHOTS_KEY, json);
 }
 async function saveCreditLines(){
   const json = JSON.stringify(state.creditLines);
   try{ await window.storage.set('creditlines', json, false); }catch(e){}
-  try{ localStorage.setItem(LS_CREDITLINES_KEY, json); }catch(e){}
+  mpStoreSet(LS_CREDITLINES_KEY, json);
 }
 
 async function exportData(){
@@ -5948,7 +5981,8 @@ function renderDeleteAccountsPanel(){
     <div style="max-width:460px;">
       ${rows || '<div class="empty">등록된 계좌가 없습니다.</div>'}
     </div>
-    <div style="text-align:center;margin-top:24px;">
+    <div style="text-align:center;margin-top:24px;font-size:11px;color:var(--text-dim);line-height:1.5;">${mpStoreUsage().txt}</div>
+    <div style="text-align:center;margin-top:12px;">
       <button class="reset-link" id="resetBtn" style="color:#D9793D;">전체 데이터 초기화</button>
     </div>
   `;
