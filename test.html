@@ -1491,7 +1491,7 @@ async function load(){
   if(state.accounts.length === 0){
     state.accounts = [{ id: uid(), name: '계좌 1', holdings: [] }];
   }
-  state.activeId = '__analysis__';      // 처음 열린 탭 = V1(2026-10-13, 전엔 전체)
+  state.activeId = '__total__';         // 처음 열린 탭 = 자산(2026-11-11 사용자, 10-13~ V1이었음)
   render();
 }
 

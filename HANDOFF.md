@@ -1391,3 +1391,4 @@
 - 12:50 사용자: 위쪽 '현금비중' 글자 → '현금'(자산 탭·국내/해외 보기) · 접힌 줄 새로고침 버튼은 휴대폰 보기(.charts.dn-car)일 때만 표시. 시험: 터치 390px 표시·위 버튼과 같은 선, PC 390·1280px 숨김, index·test 오류 없음.
 - 13:00 사용자: 위쪽 '현금'과 % 간격 = '자산'과 금액 간격(6px, .tb-row .total-badge[data-cashbadge] gap 0) · 접힌 줄 새로고침 버튼도 위 버튼과 같은 회전(reload-spin 0.6초) + 쿨다운 중 회색·누름 무시(mpSyncRgReload, 위 버튼 쿨다운 tick·assetPanelEnhance에서 맞춤). '시세 갱신됨·n분간 쿨다운' 문구는 위쪽에만.
   시험: 터치 390px 간격 6/6px, 누르면 회전·위 새로고침 1회·회색, 쿨다운 중 다시 눌러도 실행 안 됨, index·test 오류 없음.
+- 13:36 사용자: 접속 첫 탭 = 자산(state.activeId = '__total__', 10-13부터 V1이었음). ?logic 공유 링크로 들어와도 자산 탭 위에 Logic V1 안내창이 뜸. 시험: index·test·?logic 첫 탭 '자산', 오류 없음.
