@@ -281,6 +281,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .dn-dots{display:flex;gap:6px;justify-content:center;margin:8px 0 4px;} .dn-dots i{width:6px;height:6px;border-radius:50%;background:#5A5B61;} .dn-dots i.on{background:#D6D7DB;}
   .rg-head{display:flex;align-items:center;gap:6px;width:100%;padding:4px 0 2px;font-size:12px;color:var(--text-dim);cursor:pointer;box-sizing:border-box;} .rg-head b{color:var(--text);font-weight:600;font-size:13px;}
   .rg-head .rg-cap{margin-left:auto;} .rg-head.rg-fold b{color:var(--text-dim);} .rg-head.rg-sep{margin-top:8px;padding-top:10px;border-top:1px dashed var(--text-dim);}
+  .rg-head{position:relative;} .rg-reload{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0;font-family:inherit;}
   .rg-live{font-size:10.5px;border:1px solid #D4FF3D;color:#D4FF3D;border-radius:4px;padding:0 5px;line-height:15px;}
   .total-badge .num{color:#F0DA8C;font-size:16px;font-weight:700;margin-left:6px;}  @keyframes dragHintBounceIn{
     0%{ transform:translate(-50%,var(--ty,-50%)) scale(0.3); opacity:0; }
@@ -2825,6 +2826,7 @@ function mpMarketSide(nowMs){
 }
 let stockRegionFold = {};          // 지역보기에서 사용자가 직접 접거나 펼친 묶음(없으면 열린 장만 펼침)
 document.addEventListener('click', e => {
+  if(e.target.closest && e.target.closest('.rg-reload')){ e.stopPropagation(); const rb = document.getElementById('reloadPricesBtn'); if(rb) rb.click(); return; }   // 접힌 줄 오른쪽 새로고침 = 위 새로고침 버튼과 같은 동작
   const el = e.target.closest && e.target.closest('[data-region-fold]'); if(!el) return;
   stockRegionFold[el.dataset.regionFold] = el.dataset.regionFolded !== '1';
   renderPreservingOpenChartAccordions();
@@ -2849,6 +2851,17 @@ function assetPanelEnhance(){
   const panel = document.getElementById('panel'); if(!panel) return;
   panel.querySelectorAll('[data-accounttype-filter], [data-subtype-filter]').forEach(el => { const lg = el.closest('.legend'); if(lg) lg.classList.add('typeleg'); });
   panel.querySelectorAll('.typeleg .legend-item').forEach(el => { const n = el.querySelector('.legend-name'), v = el.querySelector('.legend-pct'); if(n && v) el.title = n.textContent.trim() + ' ' + v.textContent.trim(); });
+  // 접힌 줄의 새로고침 버튼: 위쪽 새로고침 버튼과 같은 오른쪽 선에 맞춤(목록이 그 선까지 닿으면 글자와 겹치지 않게 여백)
+  panel.querySelectorAll('.rg-head .rg-reload').forEach(b => {
+    const row = b.parentElement, top = document.getElementById('reloadPricesBtn'), box = row.closest('.chart-box'); if(!box) return;
+    b.style.right = '0px'; row.style.paddingRight = '';
+    const rr = row.getBoundingClientRect(), br = box.getBoundingClientRect(), tr = top ? top.getBoundingClientRect() : null;
+    if(!rr.width) return;
+    const edge = tr && tr.width && tr.right <= br.right + 1 && tr.right >= br.right - 40 ? tr.right : br.right;
+    const gap = Math.max(0, edge - rr.right);
+    b.style.right = (-gap) + 'px';
+    if(gap < 34) row.style.paddingRight = (34 - gap) + 'px';
+  });
   const ch = panel.querySelector('.charts'); if(!ch || ch.classList.contains('dn-car')) return;
   const slides = [...ch.children].filter(e => e.classList.contains('chart-box') && e.querySelector('.donut-wrap'));
   if(slides.length < 2 || !donutCarOn()) return;
@@ -3342,11 +3355,11 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
       const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
       const folded = { [mk.side]: stockRegionFold[mk.side] === true, [other]: stockRegionFold[other] !== false };
       data = data.filter(d => gOf(d) === mk.side).concat(data.filter(d => gOf(d) === other));
-      const cap = { change:'', pct:'비중', amount:'평가액' }[stockValueModeNow(sortMode)];
+      const cap = { change:'등락률', pct:'비중', amount:'평가액' }[stockValueModeNow(sortMode)];
       rg = { gOf, folded, last: null, head: g => {
         const nm = g === 'domestic' ? '국내' : '해외', live = mk.open && g === mk.side ? '<span class="rg-live">장중</span>' : '';
         return folded[g]
-          ? `<div class="rg-head rg-fold${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="1"><span>▸</span><b>${nm} ${cnt[g]}종목</b>${live}<span class="rg-cap">눌러서 펼치기</span></div>`
+          ? `<div class="rg-head rg-fold${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="1"><span>▸</span><b>${nm} ${cnt[g]}종목</b>${live}<span class="rg-cap">눌러서 펼치기</span><button type="button" class="rg-reload" title="시세 새로고침">↻</button></div>`
           : `<div class="rg-head${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="0"><span>▾</span><b>${nm}</b>${live}<span class="rg-cap">${cap}</span></div>`;
       } };
     }
