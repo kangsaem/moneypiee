@@ -227,9 +227,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .tb-row .total-badge{margin-top:0 !important;} .tb-row .total-badge[data-cashbadge]{gap:0 !important;}   /* 현금 ↔ % 간격 = 자산 ↔ 금액 간격(6px) */ .tb-row .total-badge .num{font-size:16px !important;} .tb-row .total-badge .num span{font-size:inherit !important;font-weight:inherit !important;}
   .typeleg{margin-top:4px !important;} .typeleg .legend-item{flex-direction:row !important;padding:1px 8px !important;} .typeleg .legend-pct{display:none !important;}
   .mp-tip{position:fixed;z-index:9999;background:#111;color:#fff;border:1px solid #7A7B81;border-radius:6px;padding:3px 8px;font-size:12px;white-space:nowrap;transform:translate(-50%,-125%);pointer-events:none;}
-  .charts.dn-car{overflow-x:hidden;overflow-x:clip;} .charts.dn-car > .dn-slide{display:none;position:relative;touch-action:pan-y;} .charts.dn-car > .dn-slide.dn-on{display:block;}   /* 넘길 때 화면 폭이 늘지 않게 자름 + 가로 끌기는 도넛 넘기기만 */
-  .dn-slide.dn-in-r{animation:dnInR .6s cubic-bezier(.22,.61,.36,1);} .dn-slide.dn-in-l{animation:dnInL .6s cubic-bezier(.22,.61,.36,1);}   /* 0.6초: 움직임이 보일 만큼 천천히(2026-11-11 사용자) */
-  @keyframes dnInR{from{transform:translateX(56px);opacity:0;}to{transform:none;opacity:1;}} @keyframes dnInL{from{transform:translateX(-56px);opacity:0;}to{transform:none;opacity:1;}}   /* 짧게 들어와 그대로 멈춤(되튐 없음) */
+  .charts.dn-car{display:block !important;overflow:hidden;position:relative;} .dn-track{display:flex;align-items:flex-start;touch-action:pan-y;width:100%;box-sizing:border-box;} .dn-track > .dn-slide{flex:0 0 100%;max-width:100%;min-width:0;box-sizing:border-box;position:relative;margin:0 !important;}   /* 도넛 3장을 옆으로 붙인 띠, 틀 밖은 잘림 */
   .dn-arrow{position:absolute;width:36px;height:48px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-dim);cursor:pointer;z-index:3;user-select:none;-webkit-tap-highlight-color:transparent;}
   .dn-arrow.l{left:0;} .dn-arrow.r{right:0;} .dn-arrow.off{opacity:.2;cursor:default;}   /* 끝 삼각형도 누름은 받아서 아래 도넛이 눌리지 않게 */
   .dn-dots{display:flex;gap:6px;justify-content:center;margin:8px 0 4px;} .dn-dots i{width:6px;height:6px;border-radius:50%;background:#5A5B61;} .dn-dots i.on{background:#D6D7DB;}
@@ -2838,39 +2836,65 @@ function assetPanelEnhance(){
   const slides = [...ch.children].filter(e => e.classList.contains('chart-box') && e.querySelector('.donut-wrap'));
   if(slides.length < 2 || !donutCarOn()) return;
   ch.classList.add('dn-car');
+  // 도넛 3장을 옆으로 이어 붙인 띠(dn-track) — 보이는 건 한 장, 넘기면 옆 장이 같이 밀려 들어옴(2026-11-11 사용자)
+  const track = document.createElement('div'); track.className = 'dn-track';
+  ch.insertBefore(track, slides[0]); slides.forEach(e => track.appendChild(e));
   const st = slides.findIndex(e => e.id === 'stock-sortable-chart');
   if(donutCarIdx == null || donutCarIdx >= slides.length) donutCarIdx = st >= 0 ? st : 0;   // 처음 = 종목 도넛(지역보기)
-  const show = (i, dir) => {
+  const EASE = 'cubic-bezier(.22,.61,.36,1)', DUR = 450;
+  const fitH = anim => { const h = slides[donutCarIdx].offsetHeight; track.style.height = h + 'px'; };   // 띠 높이 = 지금 장 높이(더 긴 옆 장은 틀 밖으로 잘림)
+  const show = (i, anim) => {
     donutCarIdx = Math.max(0, Math.min(slides.length - 1, i));
-    slides.forEach((e, k) => { e.classList.remove('dn-in-l', 'dn-in-r'); e.classList.toggle('dn-on', k === donutCarIdx); });
-    if(dir) slides[donutCarIdx].classList.add(dir > 0 ? 'dn-in-r' : 'dn-in-l');
+    slides.forEach((e, k) => e.classList.toggle('dn-on', k === donutCarIdx));
+    arrows[0].classList.toggle('off', donutCarIdx === 0); arrows[1].classList.toggle('off', donutCarIdx === slides.length - 1);
+    track.style.transition = anim ? `margin-left ${DUR}ms ${EASE}, height ${DUR}ms ${EASE}` : 'none';
+    track.style.marginLeft = `${-donutCarIdx * 100}%`;   // transform 대신 margin: 안쪽 팝업(position:fixed)이 화면 기준 그대로 뜨게
+    fitH(anim);
   };
+  // 좌우 삼각형은 틀에 고정(도넛만 밀려 움직임)
+  ch.insertAdjacentHTML('beforeend', '<div class="dn-arrow l" data-dn="-1">◀</div><div class="dn-arrow r" data-dn="1">▶</div>');
+  const arrows = [ch.querySelector('.dn-arrow.l'), ch.querySelector('.dn-arrow.r')];
+  arrows.forEach(a => a.addEventListener('click', ev => { ev.stopPropagation(); ev.preventDefault(); if(a.classList.contains('off')) return; show(donutCarIdx + (+a.dataset.dn), true); }));
   slides.forEach((e, k) => {
     e.classList.add('dn-slide');
-    const dn = e.querySelector('.donut-wrap');
-    e.insertAdjacentHTML('afterbegin', `<div class="dn-arrow l${k === 0 ? ' off' : ''}" data-dn="-1">◀</div><div class="dn-arrow r${k === slides.length - 1 ? ' off' : ''}" data-dn="1">▶</div>`);
     const lg = e.querySelector('.legend'), dots = `<div class="dn-dots">${slides.map((_, j) => `<i class="${j === k ? 'on' : ''}"></i>`).join('')}</div>`;
     if(lg) lg.insertAdjacentHTML('beforebegin', dots); else e.insertAdjacentHTML('beforeend', dots);
-    e.querySelectorAll('.dn-arrow').forEach(a => a.addEventListener('click', ev => { ev.stopPropagation(); ev.preventDefault(); if(a.classList.contains('off')) return; show(donutCarIdx + (+a.dataset.dn), +a.dataset.dn); }));
   });
   // 도넛 크기가 달라도(종목 도넛이 더 큼) 가운데 높이·삼각형·점 위치를 모든 장에서 같게 맞춤
-  slides.forEach(e => { e.style.display = 'block'; });
-  const m = slides.map(e => { const dn = e.querySelector('.donut-wrap'); return { e, c: dn.offsetTop + dn.offsetHeight / 2, h: dn.offsetHeight }; });
+  const m = slides.map(e => { const dn = e.querySelector('.donut-wrap'), r = dn.getBoundingClientRect(), er = e.getBoundingClientRect(); return { e, c: r.top - er.top + r.height / 2, h: r.height }; });
   const C = Math.max(...m.map(x => x.c)), Hm = Math.max(...m.map(x => x.h));
   m.forEach(x => {
     x.e.style.paddingTop = (C - x.c) + 'px';
     const dots = x.e.querySelector('.dn-dots'); if(dots) dots.style.marginTop = (8 + (Hm - x.h) / 2) + 'px';
-    x.e.querySelectorAll('.dn-arrow').forEach(a => { a.style.top = (C - 24) + 'px'; });
-    x.e.style.display = '';
   });
-  show(donutCarIdx, 0);
-  let sx = 0, sy = 0;
-  ch.addEventListener('touchstart', ev => { const t = ev.touches[0]; sx = t.clientX; sy = t.clientY; }, { passive: true });
-  ch.addEventListener('touchend', ev => {
-    if(!ev.target.closest || !ev.target.closest('.dn-slide')) return;
-    const t = ev.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-    if(Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5){ const d = dx < 0 ? 1 : -1; if(donutCarIdx + d >= 0 && donutCarIdx + d < slides.length) show(donutCarIdx + d, d); }
+  const placeArrows = () => { const off = track.getBoundingClientRect().top - ch.getBoundingClientRect().top; arrows.forEach(a => { a.style.top = (off + C - 24) + 'px'; }); };
+  placeArrows();
+  show(donutCarIdx, false);
+  // 펼치기·정렬 바꾸기 등으로 지금 장 높이가 바뀌면 틀 높이도 따라감
+  try{ new ResizeObserver(() => fitH(false)).observe(slides[donutCarIdx]); slides.forEach(e => new ResizeObserver(() => { if(e === slides[donutCarIdx]) fitH(false); }).observe(e)); }catch(e){}
+  // 손가락 따라 띠가 움직이고, 놓으면 가까운 장으로 붙음(끝에서는 살짝만 끌림)
+  let sx = 0, sy = 0, st0 = 0, mode = 0;   // mode 0 = 아직 모름, 1 = 가로 끌기, -1 = 세로 스크롤
+  ch.addEventListener('touchstart', ev => {
+    if(ev.touches.length !== 1){ mode = -1; return; }   // 삼각형 위에서 시작해도 끌기 가능(그냥 누르면 삼각형 동작)
+    const t = ev.touches[0]; sx = t.clientX; sy = t.clientY; st0 = Date.now(); mode = 0;
   }, { passive: true });
+  ch.addEventListener('touchmove', ev => {
+    if(mode === -1) return;
+    const t = ev.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if(mode === 0){ if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return; mode = Math.abs(dx) > Math.abs(dy) ? 1 : -1; if(mode !== 1) return; }
+    const W = ch.clientWidth || 1, edge = (donutCarIdx === 0 && dx > 0) || (donutCarIdx === slides.length - 1 && dx < 0);
+    track.style.transition = 'none';
+    track.style.marginLeft = `${-donutCarIdx * W + (edge ? dx * 0.3 : dx)}px`;
+  }, { passive: true });
+  const end = ev => {
+    if(mode !== 1){ mode = 0; return; }
+    mode = 0;
+    const t = ev.changedTouches[0], dx = t.clientX - sx, W = ch.clientWidth || 1, fast = Math.abs(dx) / Math.max(1, Date.now() - st0) > 0.45;
+    const d = (Math.abs(dx) > W * 0.22 || (fast && Math.abs(dx) > 30)) ? (dx < 0 ? 1 : -1) : 0;
+    show(donutCarIdx + d, true);
+  };
+  ch.addEventListener('touchend', end, { passive: true });
+  ch.addEventListener('touchcancel', end, { passive: true });
 }
 document.addEventListener('DOMContentLoaded', () => {
   const panel = document.getElementById('panel'); if(!panel) return;
