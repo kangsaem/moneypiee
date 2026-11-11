@@ -228,8 +228,8 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .typeleg{margin-top:4px !important;} .typeleg .legend-item{flex-direction:row !important;padding:1px 8px !important;} .typeleg .legend-pct{display:none !important;}
   .mp-tip{position:fixed;z-index:9999;background:#111;color:#fff;border:1px solid #7A7B81;border-radius:6px;padding:3px 8px;font-size:12px;white-space:nowrap;transform:translate(-50%,-125%);pointer-events:none;}
   .charts.dn-car{overflow-x:hidden;overflow-x:clip;} .charts.dn-car > .dn-slide{display:none;position:relative;touch-action:pan-y;} .charts.dn-car > .dn-slide.dn-on{display:block;}   /* 넘길 때 화면 폭이 늘지 않게 자름 + 가로 끌기는 도넛 넘기기만 */
-  .dn-slide.dn-in-r{animation:dnInR .32s cubic-bezier(.2,.8,.2,1);} .dn-slide.dn-in-l{animation:dnInL .32s cubic-bezier(.2,.8,.2,1);}
-  @keyframes dnInR{from{transform:translateX(36px);opacity:0;}to{transform:none;opacity:1;}} @keyframes dnInL{from{transform:translateX(-36px);opacity:0;}to{transform:none;opacity:1;}}   /* 짧게 들어와 그대로 멈춤(되튐 없음) */
+  .dn-slide.dn-in-r{animation:dnInR .6s cubic-bezier(.22,.61,.36,1);} .dn-slide.dn-in-l{animation:dnInL .6s cubic-bezier(.22,.61,.36,1);}   /* 0.6초: 움직임이 보일 만큼 천천히(2026-11-11 사용자) */
+  @keyframes dnInR{from{transform:translateX(56px);opacity:0;}to{transform:none;opacity:1;}} @keyframes dnInL{from{transform:translateX(-56px);opacity:0;}to{transform:none;opacity:1;}}   /* 짧게 들어와 그대로 멈춤(되튐 없음) */
   .dn-arrow{position:absolute;width:36px;height:48px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-dim);cursor:pointer;z-index:3;user-select:none;-webkit-tap-highlight-color:transparent;}
   .dn-arrow.l{left:0;} .dn-arrow.r{right:0;} .dn-arrow.off{opacity:.2;cursor:default;}   /* 끝 삼각형도 누름은 받아서 아래 도넛이 눌리지 않게 */
   .dn-dots{display:flex;gap:6px;justify-content:center;margin:8px 0 4px;} .dn-dots i{width:6px;height:6px;border-radius:50%;background:#5A5B61;} .dn-dots i.on{background:#D6D7DB;}
