@@ -2887,7 +2887,7 @@ function assetPanelEnhance(){
   ch.insertBefore(track, slides[0]); slides.forEach(e => track.appendChild(e));
   const st = slides.findIndex(e => e.id === 'stock-sortable-chart');
   if(donutCarIdx == null || donutCarIdx >= slides.length) donutCarIdx = st >= 0 ? st : 0;   // 처음 = 종목 도넛(지역보기)
-  const EASE = 'cubic-bezier(.22,.61,.36,1)', DUR = 450;
+  const EASE = 'cubic-bezier(.16,.9,.3,1)', DUR = 380;   // 처음에 더 세게 나가고 끝에서 천천히 멈춤(2026-11-11 사용자 '가속도 더 높게')
   const fitH = anim => { const h = slides[donutCarIdx].offsetHeight; track.style.height = h + 'px'; };   // 띠 높이 = 지금 장 높이(더 긴 옆 장은 틀 밖으로 잘림)
   const show = (i, anim) => {
     donutCarIdx = Math.max(0, Math.min(slides.length - 1, i));
