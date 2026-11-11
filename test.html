@@ -9499,7 +9499,9 @@ function anFillRoot(){
   const oldTabs = root.querySelector('#anFtabs, #anHflt');
   const anchorTop = oldTabs ? oldTabs.getBoundingClientRect().top : null;
   const keepPos = () => { const t = root.querySelector('#anFtabs, #anHflt'); if(anchorTop != null && t) window.scrollBy(0, t.getBoundingClientRect().top - anchorTop); };
-  root.style.minHeight = '100vh';             // 내용이 짧아도 같은 위치를 유지할 수 있게
+  // 다시 그리는 동안만 지금 높이를 붙잡아 화면이 튀지 않게 하고, 다 그린 뒤엔 풀어서 아래 빈 여백이 남지 않게(2026-11-11 사용자, 전엔 100vh 고정)
+  root.style.minHeight = Math.max(root.offsetHeight, 200) + 'px';
+  const release = () => requestAnimationFrame(() => { const y = window.scrollY; root.style.minHeight = ''; if(window.scrollY !== y) window.scrollTo(0, y); });
   // 버튼 줄(히스토리·돋보기): 다시 그리기 전에 원래 자리로 돌려놓고, 결과 화면이면 분류 탭 줄 오른쪽으로 옮김(이벤트는 그대로 유지)
   const bar = document.getElementById('analysisBar'), home = document.getElementById('anBarHome');
   if(bar && home && bar.parentNode !== home) home.appendChild(bar);
@@ -9507,8 +9509,8 @@ function anFillRoot(){
   anUpdateViewBtn();
   if(home) home.style.display = '';
   if(anState.view === 'history'){            // 히스토리 보기: 저장된 신호 기록
-    anHistRender().then(h => { if(anState.view !== 'history') return; root.innerHTML = h; anHistBind(root); placeBar(); keepPos(); })
-      .catch(e => { root.innerHTML = `<div class="an-empty">기록을 표시하지 못했습니다: ${anE(e.message)}</div>`; });
+    anHistRender().then(h => { if(anState.view !== 'history') return; root.innerHTML = h; anHistBind(root); placeBar(); keepPos(); release(); })
+      .catch(e => { root.innerHTML = `<div class="an-empty">기록을 표시하지 못했습니다: ${anE(e.message)}</div>`; release(); });
     return;
   }
   if(!anState.result){
@@ -9516,6 +9518,7 @@ function anFillRoot(){
       ? `<div class="an-empty">분석 중 ${anState.done}/${anState.total}… 처음에는 종목마다 12년치 시세를 받느라 시간이 걸려요.</div>`
       : (anState.loaded ? '<div class="an-empty">오른쪽 위 돋보기 버튼을 누르면 보유 종목과 관심종목 전체를 분석해요.</div>' : '');
     if(!anState.running) anGhPaint();
+    release();
     return;
   }
   if(!anState.html){
@@ -9527,6 +9530,7 @@ function anFillRoot(){
   placeBar();
   anGhPaint();
   keepPos();
+  release();
 }
 
 // 관심 탭 목록(2026-10-14): 마지막 분석 결과에서 관심종목만 V1 형식으로. 접었을 때 RSI 자리 = 삭제 버튼. 분석 결과가 없는 종목은 이름만
