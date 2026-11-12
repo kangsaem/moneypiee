@@ -3257,7 +3257,8 @@ function stockUnifiedPlan(raw, holdings, mode){
   else if(mode === 'region'){
     const part = g => raw.filter(d => stockRegKey(d) === g);
     rs = part('domestic').length > 0 && part('overseas').length > 0;
-    if(rs) ordered = bySector(part(fs.mk.side)).concat(bySector(part(fs.other)));   // 도넛 순서는 항상 장 기준(반대쪽 지역을 봐도 도넛 그림은 그대로, 보이는 지역만 바뀜 — 2026-11-12 사용자)   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
+    if(rs){ const a2 = bySector(part(fs.other)), cs = a2.filter(d => stockSecKey(d) === '현금');   // 뒤쪽 지역의 현금(외화 등)은 맨 끝으로 → 두 현금이 12시에서 맞붙음(2026-11-12 사용자)
+      ordered = bySector(part(fs.mk.side)).concat(a2.filter(d => stockSecKey(d) !== '현금'), cs); }   // 도넛 순서는 항상 장 기준(반대쪽 지역을 봐도 도넛 그림은 그대로, 보이는 지역만 바뀜 — 2026-11-12 사용자)   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
   }
   ordered = ordered.map((d, i) => ({ ...d, rank: d.rank !== undefined ? d.rank : i, rankCount: d.rankCount !== undefined ? d.rankCount : ordered.length }));   // 색 순번을 도넛 순서로 고정(목록 순서가 달라도 같은 색)
   const total = _.sumBy(ordered, 'amount') || 1, n = ordered.length, useBase = mode === 'group' || rs;
@@ -3429,8 +3430,8 @@ function computeStockDataWithMeta(holdings, fallbackAccId){
 }
 
 function sortStockData(data, mode){
-  const cash = data.filter(d => d.label === '현금');
-  const rest = data.filter(d => d.label !== '현금');
+  const cash = data.filter(d => isCashLikeLabel(d.label));   // 현금·원화·외화는 함께 맨 앞(12시)
+  const rest = data.filter(d => !isCashLikeLabel(d.label));
   if(mode === 'name'){
     rest.sort((a,b) => bilingualNameCompare(a.label, b.label));
   } else if(mode === 'group'){
@@ -3842,7 +3843,8 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     const cnt = { domestic: data.filter(d => gOf(d) === 'domestic').length, overseas: data.filter(d => gOf(d) === 'overseas').length };
     if(cnt.domestic && cnt.overseas){
       const fsr = stockRegionFoldState(), mk = { open: fsr.mk.open, side: fsr.first, real: fsr.mk.side }, other = fsr.second, folded = fsr.folded;   // side·other = 목록에서 위·아래 지역
-      data = data.filter(d => gOf(d) === mk.side).concat(data.filter(d => gOf(d) === other));
+      const cf = xs => xs.filter(d => isCashLikeLabel(d.label)).concat(xs.filter(d => !isCashLikeLabel(d.label)));   // 목록에서는 지역마다 현금을 맨 위로
+      data = cf(data.filter(d => gOf(d) === mk.side)).concat(cf(data.filter(d => gOf(d) === other)));
       const cap = { change:'등락률', pct:'비중', amount:'평가액' }[stockValueModeNow(sortMode)];
       rg = { gOf, folded, last: null, head: g => {
         const nm = g === 'domestic' ? '국내' : '해외', live = mk.open && g === mk.real ? '<span class="rg-live">장중</span>' : '';
