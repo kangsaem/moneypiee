@@ -241,7 +241,9 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
     cursor:pointer;
   }
   /* 2026-10-20: 카드 세로 115px 고정 — 코스피·코스닥에 이격도·RSI 줄이 붙는 날은 그래프가 그만큼 줄어듦 */
-  .mkt-card{height:115px;display:flex;flex-direction:column;overflow:hidden;}
+  .mkt-card{height:var(--mkt-h, 115px);display:flex;flex-direction:column;overflow:hidden;}
+  /* 2026-11-12 사용자: 스크롤해도 경제지표 줄은 화면 위에 남음 — 아래(그래프)부터 줄어들다 이름·값·등락률만 남으면 그 상태로 고정 */
+  #marketTicker.mkt-pin{position:fixed;top:0;z-index:900;background:var(--bg);margin:0 !important;box-shadow:-12px 0 0 var(--bg), 12px 0 0 var(--bg), 0 1px 0 var(--border);box-sizing:border-box;}
   .mkt-card > svg{flex:1 1 0;min-height:0;height:auto !important;}
   .mkt-name{font-size:9px;color:var(--text-dim);margin-bottom:1px;line-height:1.4;}
   .mkt-value{font-size:16px;font-weight:700;margin-top:0;line-height:1.25;letter-spacing:-0.3px;white-space:nowrap;}
@@ -2932,6 +2934,37 @@ document.addEventListener('click', e => {
 // ── 휴대폰 화면맞춤(2026-11-12 사용자) ─────────────────────────────────────────
 // 자산 탭 첫 화면은 지표~도넛이 한 화면에 딱 맞고 아래 ▼. ▼를 누르거나 위로 끌면 단계별로 내려감(탭 아래가 맨 위로 → 목록 끝).
 // 손가락을 따라 흘러가는 스크롤 대신 단계 사이를 애니메이션으로 이동. PC와 다른 탭은 예전 그대로.
+(function(){
+  let hold = null, natH = 0, cardH = 115, svgH = 0, minH = 62, raf = 0;
+  const upd = () => {
+    raf = 0;
+    const tk = document.getElementById('marketTicker'); if(!tk) return;
+    if(!hold){ hold = document.createElement('div'); hold.id = 'mktHold'; hold.style.marginBottom = tk.style.marginBottom || '8px'; tk.parentNode.insertBefore(hold, tk); hold.appendChild(tk); tk.style.marginBottom = '0'; }
+    const pinned = tk.classList.contains('mkt-pin');
+    if(!pinned){   // 고정 전의 원래 크기를 재 둠
+      natH = tk.offsetHeight;
+      const c = tk.querySelector('.mkt-card[data-mktkey]'), ch = c && c.querySelector('.mkt-change'), sv = c && c.querySelector(':scope > svg');
+      if(c){ cardH = c.offsetHeight || cardH; if(ch) minH = Math.ceil(ch.offsetTop - c.offsetTop + ch.offsetHeight + 7); if(sv) svgH = sv.getBoundingClientRect().height || svgH; }
+    }
+    const ad = document.getElementById('adfit-bottom'), off = ad && ad.offsetHeight ? ad.offsetHeight : 0;
+    const top = hold.getBoundingClientRect().top - off;
+    if(top < 0 && natH > 0 && tk.querySelector('.mkt-card')){
+      const r = hold.getBoundingClientRect();
+      if(!pinned){ hold.style.height = natH + 'px'; tk.classList.add('mkt-pin'); }
+      tk.style.top = off + 'px'; tk.style.left = r.left + 'px'; tk.style.width = r.width + 'px';
+      tk.style.setProperty('--mkt-h', Math.max(Math.min(minH, cardH), Math.min(cardH, cardH + top)) + 'px');
+      if(svgH) tk.querySelectorAll('.mkt-card > svg').forEach(v => { if(!v.dataset.fz){ v.dataset.fz = '1'; v.style.flex = '0 0 ' + svgH + 'px'; } });   // 그래프는 찌그러지지 않고 아래부터 가려짐
+    } else if(pinned){
+      tk.classList.remove('mkt-pin'); hold.style.height = ''; tk.style.top = tk.style.left = tk.style.width = ''; tk.style.removeProperty('--mkt-h');
+      tk.querySelectorAll('.mkt-card > svg').forEach(v => { delete v.dataset.fz; v.style.flex = ''; });
+    }
+  };
+  const req = () => { if(!raf) raf = requestAnimationFrame(upd); };
+  window.addEventListener('scroll', req, { passive: true });
+  window.addEventListener('resize', req);
+  document.addEventListener('DOMContentLoaded', () => { const tk = document.getElementById('marketTicker'); if(!tk) return;
+    try{ new MutationObserver(req).observe(tk, { childList: true }); }catch(e){} req(); });
+})();
 const MP_SNAP_ON = true;
 const MP_SNAP_DRAG = false;   // 끌 때 단계로 붙는 동작(2026-11-12 사용자: 없앰 — 접힘 줄 누르기 힘듦). ▼ 누름과 첫 화면 맞춤만 남김
 let mpSnapAnim = false;
@@ -3762,6 +3795,10 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
     // 종목 순서와 맞춘 섹터 링(지역순이면 지역별 섹터 비중). 지역순에서는 톤다운(0.7), 섹터순의 지역 링도 톤다운(0.7) — 2026-11-12 사용자
     if(U && spec.name === 'decorative-sector' && U.secRing) return { ...spec, data: U.secRing, preOrdered: true, opacity: stockLegendSortMode === 'region' ? 0.7 : null, arcs: true };
     if(U && spec.name === 'decorative-region' && stockLegendSortMode === 'region' && U.regRing) return { ...spec, data: U.regRing, preOrdered: true, opacity: 1, arcs: true };
+    if(U && spec.name === 'decorative-region'){   // 금액순·섹터순·이름순의 지역 링도 장중인 쪽 = 밝은 색(2026-11-12 사용자)
+      const side = mpMarketSide().side, col = g => g === side ? REGION_LIGHT : REGION_STRONG;
+      return { ...spec, opacity, arcs: true, data: spec.data.map(d => d.label === '국내' ? { ...d, color: col('domestic') } : (d.label === '해외' ? { ...d, color: col('overseas') } : d)) };
+    }
     return { ...spec, opacity, arcs: !!U };
   });
 
