@@ -1,0 +1,59 @@
+// 휴대폰: 화면을 좌우로 쓸면 옆 탭으로(탭 줄 순서) — 2026-11-12 사용자
+// 패널이 손가락을 따라 움직이고, 놓으면 옆 탭이 화면 바깥에서 들어와 붙듯이 멈춤(빠르게 시작해 천천히 멈춤). 짧게 끌면 제자리로.
+// 가로로 넘기는 영역(월별 그래프·계좌 버튼 줄·표 등)은 그 영역이 끝까지 넘어가 있을 때만 탭 이동(아니면 그 영역이 넘어감).
+// 지표 줄·탭 줄·팝업 위에서 시작한 쓸기와 두 손가락은 제외. 계좌 탭·마통 탭에서는 동작 안 함
+(function(){
+  const ORDER = () => ['__history__', '__total__', '__analysis__', WATCHLIST_ID, '__deleteAccounts__'];   // 탭 줄 순서와 같게
+  const EASE_IN = 'cubic-bezier(.4,0,1,1)', EASE_MAG = 'cubic-bezier(.16,.9,.3,1)';
+  let x0 = 0, y0 = 0, t0 = 0, st = 0, sc = null, sl0 = 0, dx = 0, lastX = 0, lastT = 0, vx = 0, busy = false, panel = null;
+  // st: 0 = 안 함, 1 = 방향 판정 전, 2 = 가로로 끄는 중
+  const curIdx = () => { const o = ORDER(); return ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) ? 1 : o.indexOf(state.activeId); };
+  const scan = el => { let s = null; for(let n = el; n && n.nodeType === 1 && n !== document.body; n = n.parentElement){
+    if(n.id === 'marketTicker' || n.id === 'tabs') return { stop: true };
+    const cs = getComputedStyle(n); if(cs.position === 'fixed') return { stop: true };
+    if(!s && /(auto|scroll)/.test(cs.overflowX) && n.scrollWidth > n.clientWidth + 2) s = n; }
+    return { stop: false, sc: s }; };
+  const clip = on => document.documentElement.classList.toggle('mp-swp', on);
+  const setX = (x, dur, ease) => { if(!panel) return; panel.style.transition = dur ? `transform ${dur}ms ${ease}` : 'none'; panel.style.transform = x ? `translateX(${x}px)` : ''; };
+  const done = () => { if(panel){ panel.style.transition = ''; panel.style.transform = ''; panel.style.willChange = ''; } clip(false); busy = false; };
+  document.addEventListener('touchstart', e => {
+    st = 0; if(busy) return;
+    try{ if(e.touches.length !== 1 || !donutCarOn() || curIdx() < 0) return; }catch(err){ return; }
+    const r = scan(e.target); if(r.stop) return;
+    panel = document.getElementById('panel'); if(!panel) return;
+    sc = r.sc; sl0 = sc ? sc.scrollLeft : 0;
+    st = 1; x0 = lastX = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = lastT = Date.now(); dx = 0; vx = 0;
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if(!st) return;
+    if(e.touches.length > 1){ if(st === 2){ setX(0, 200, EASE_MAG); setTimeout(done, 210); } st = 0; return; }
+    const x = e.touches[0].clientX, y = e.touches[0].clientY, now = Date.now();
+    dx = x - x0; const dy = y - y0;
+    if(st === 1){
+      if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if(Math.abs(dy) >= Math.abs(dx) * 0.8){ st = 0; return; }   // 세로 스크롤
+      if(sc){ const max = sc.scrollWidth - sc.clientWidth; if(!((dx < 0 && sl0 >= max - 1) || (dx > 0 && sl0 <= 1))){ st = 0; return; } }   // 가로 영역이 아직 넘어갈 수 있으면 그쪽 우선
+      st = 2; busy = true; clip(true); panel.style.willChange = 'transform';
+    }
+    if(e.cancelable) e.preventDefault();
+    if(now > lastT){ vx = 0.7 * vx + 0.3 * (x - lastX) / (now - lastT); } lastX = x; lastT = now;
+    const nx = curIdx() + (dx < 0 ? 1 : -1), edge = nx < 0 || nx >= ORDER().length;
+    setX(edge ? dx * 0.25 : dx, 0);   // 끝 탭이면 버티듯 조금만
+  }, { passive: false });
+  const end = () => {
+    if(st !== 2){ st = 0; return; } st = 0;
+    const W = window.innerWidth, o = ORDER(), nx = curIdx() + (dx < 0 ? 1 : -1);
+    const go = nx >= 0 && nx < o.length && (Math.abs(dx) > W * 0.22 || (Math.abs(dx) > 30 && Math.abs(vx) > 0.45 && Math.sign(vx) === Math.sign(dx)));
+    if(!go){ setX(0, 260, EASE_MAG); setTimeout(done, 270); return; }
+    const sgn = dx < 0 ? -1 : 1, outMs = Math.max(90, Math.min(180, (W - Math.abs(dx)) / Math.max(0.8, Math.abs(vx))));
+    setX(sgn * W, outMs, EASE_IN);   // 지금 탭은 밀려 나가고
+    setTimeout(() => {
+      try{ switchTab(o[nx]); }catch(err){}
+      panel = document.getElementById('panel');
+      setX(-sgn * W, 0); void (panel && panel.offsetWidth);     // 옆 탭이 반대쪽 화면 바깥에서
+      requestAnimationFrame(() => { setX(0, 340, EASE_MAG); setTimeout(done, 350); });   // 들어와 붙듯이 멈춤
+    }, outMs);
+  };
+  document.addEventListener('touchend', end, { passive: true });
+  document.addEventListener('touchcancel', end, { passive: true });
+})();
