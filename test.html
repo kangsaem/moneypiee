@@ -3058,11 +3058,17 @@ document.addEventListener('click', e => {
     snap.querySelectorAll('.floating-acc').forEach(e => e.remove());
     Object.assign(snap.style, { position: 'absolute', left: panel.offsetLeft + 'px', top: panel.offsetTop + 'px', width: panel.offsetWidth + 'px', height: panel.offsetHeight + 'px', margin: '0', boxSizing: 'border-box', pointerEvents: 'none', zIndex: '2', overflow: 'hidden', willChange: 'transform' });
     panel.parentNode.insertBefore(snap, panel.nextSibling);
+    document.body.style.minHeight = document.documentElement.scrollHeight + 'px';   // 옆 탭이 짧아도 페이지 길이를 유지(스크롤이 컷으로 튀지 않게)
   };
+  // 옆 탭 화면의 실제 아래 끝(페이지 기준): .wrap 안 흐름 요소들의 아래 끝 + 아래 여백
+  const naturalBottom = () => { const w = document.querySelector('.wrap'); if(!w) return 0; let b = 0;
+    [...w.children].forEach(el => { if(el === snap) return; const cs = getComputedStyle(el); if(cs.position === 'absolute' || cs.position === 'fixed' || cs.display === 'none') return;
+      b = Math.max(b, el.getBoundingClientRect().bottom + window.scrollY + (parseFloat(cs.marginBottom) || 0)); });
+    return b + (parseFloat(getComputedStyle(w).paddingBottom) || 0); };
   const showDir = d => {   // 패널에 옆 탭(d) 또는 원래 탭(0)을 그림
     if(d === dir) return;
     const o = ORDER();
-    if(d === 0){ try{ switchTab(orig); }catch(e){} if(snap){ snap.remove(); snap = null; } }
+    if(d === 0){ try{ switchTab(orig); }catch(e){} if(snap){ snap.remove(); snap = null; } document.body.style.minHeight = ''; }
     else { if(!snap) makeSnap(); try{ switchTab(o[oi - d]); }catch(e){} }
     panel = document.getElementById('panel'); if(panel) panel.style.willChange = 'transform';
     dir = d;
@@ -3071,7 +3077,21 @@ document.addEventListener('click', e => {
     if(dir === 0){ mv(panel, dx * 0.25, 0); return; }        // 옆 탭이 없는 끝: 버티듯 조금만
     mv(snap, dx, 0); mv(panel, dx - dir * PW, 0);            // 지금 탭은 손가락을 따라, 옆 탭은 그 바로 옆에 붙어서
   };
-  const finish = () => { if(snap){ snap.remove(); snap = null; } if(panel){ panel.style.transition = ''; panel.style.transform = ''; panel.style.willChange = ''; } clip(false); dir = 0; busy = false; };
+  // 끝: 옆 탭이 더 짧으면 화면이 컷으로 튀지 않게, 잠깐 빈 공간으로 길이를 유지한 채 옆 탭의 끝이 보이는 곳까지 부드럽게 올라감(2026-11-13 사용자)
+  const finish = () => {
+    const hadSnap = !!snap;
+    if(snap){ snap.remove(); snap = null; }
+    if(panel){ panel.style.transition = ''; panel.style.transform = ''; panel.style.willChange = ''; } clip(false); dir = 0;
+    const release = () => { document.body.style.minHeight = ''; busy = false; };
+    if(!hadSnap){ release(); return; }
+    const y0 = window.scrollY, tgt = Math.max(0, Math.round(naturalBottom() - window.innerHeight));
+    if(y0 <= tgt + 1){ release(); return; }
+    const t0 = performance.now(), D = Math.min(560, 260 + (y0 - tgt) * 0.25);
+    const tick = now => { const t = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - t, 3);   // 빠르게 출발해 천천히 멈춤
+      window.scrollTo(0, y0 + (tgt - y0) * e);
+      if(t < 1) requestAnimationFrame(tick); else release(); };
+    requestAnimationFrame(tick);
+  };
   document.addEventListener('touchstart', e => {
     st = 0; if(busy) return;
     try{ if(e.touches.length !== 1 || !donutCarOn() || curIdx() < 0) return; }catch(err){ return; }
