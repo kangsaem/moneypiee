@@ -3107,7 +3107,8 @@ function stockUnifiedPlan(raw, holdings, mode){
     color: secColor[r.sec] || CASH_COLOR, attrs: stockUAttrs('ring', r.sec, r.reg, st('ring', r.sec, r.reg)) })) : null;
   const regRing = rs ? [fs.mk.side, fs.other].flatMap(g => [
     { label: g === 'domestic' ? '원화' : '외화', amount: regCash[g], pct: regCash[g] / total * 100, rank: 0, rankCount: 2 },
-    { label: g === 'domestic' ? '국내' : '해외', amount: regTot[g] - regCash[g], pct: (regTot[g] - regCash[g]) / total * 100, rank: g === 'domestic' ? 0 : 1, rankCount: 2 }
+    { label: g === 'domestic' ? '국내' : '해외', amount: regTot[g] - regCash[g], pct: (regTot[g] - regCash[g]) / total * 100, rank: g === 'domestic' ? 0 : 1, rankCount: 2,
+      color: g === fs.mk.side ? REGION_LIGHT : REGION_STRONG }   // 지역순: 장중인 쪽 = 밝은 색, 아닌 쪽 = 어두운 색(2026-11-12 사용자)
   ]).filter(d => d.amount > 0) : null;
   const r = 74, cx = 80, cy = 80;
   const pieInner = n === 0
