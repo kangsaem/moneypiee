@@ -1,0 +1,79 @@
+// 휴대폰: 화면을 좌우로 쓸면 옆 탭으로(탭 줄 순서) — 2026-11-12 사용자
+// 옆 탭이 지금 탭 바로 옆에 딱 붙어 있다가 같이 끌려 들어옴(사이 빈 공간 없음). 놓으면 붙듯이 멈추고, 짧게 끌면 제자리로.
+// 방법: 끌기 시작하면 지금 탭 화면을 복사해(그림만) 그 자리에 두고, 진짜 패널에는 옆 탭을 그려 바로 옆에 붙여 같이 움직임
+// 가로로 넘기는 영역(월별 그래프·계좌 버튼 줄·표 등)은 그 영역이 끝까지 넘어가 있을 때만 탭 이동. 지표 줄·탭 줄·팝업·두 손가락 제외. 계좌·마통 탭에서는 동작 안 함
+(function(){
+  const ORDER = () => ['__history__', '__total__', '__analysis__', WATCHLIST_ID, '__deleteAccounts__'];   // 탭 줄 순서와 같게
+  const EASE_MAG = 'cubic-bezier(.16,.9,.3,1)';
+  let x0 = 0, y0 = 0, st = 0, sc = null, sl0 = 0, dx = 0, lastX = 0, lastT = 0, vx = 0, busy = false;
+  let panel = null, snap = null, orig = null, oi = -1, dir = 0, PW = 0;
+  // st: 0 = 안 함, 1 = 방향 판정 전, 2 = 가로로 끄는 중 / dir: 패널에 그려진 옆 탭 방향(-1 다음, +1 이전, 0 = 원래 탭)
+  const curIdx = () => { const o = ORDER(); return ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) ? 1 : o.indexOf(state.activeId); };
+  const scan = el => { let s = null; for(let n = el; n && n.nodeType === 1 && n !== document.body; n = n.parentElement){
+    if(n.id === 'marketTicker' || n.id === 'tabs') return { stop: true };
+    const cs = getComputedStyle(n); if(cs.position === 'fixed') return { stop: true };
+    if(!s && /(auto|scroll)/.test(cs.overflowX) && n.scrollWidth > n.clientWidth + 2) s = n; }
+    return { stop: false, sc: s }; };
+  const clip = on => document.documentElement.classList.toggle('mp-swp', on);
+  const mv = (el, x, dur) => { if(!el) return; el.style.transition = dur ? `transform ${dur}ms ${EASE_MAG}` : 'none'; el.style.transform = x ? `translateX(${x}px)` : ''; };
+  const makeSnap = () => {   // 지금 탭 화면 복사(같은 자리에 겹쳐 둠, id는 지움 — 원래 요소를 찾는 코드와 겹치지 않게)
+    snap = panel.cloneNode(true); snap.removeAttribute('id'); snap.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+    snap.querySelectorAll('.floating-acc').forEach(e => e.remove());
+    Object.assign(snap.style, { position: 'absolute', left: panel.offsetLeft + 'px', top: panel.offsetTop + 'px', width: panel.offsetWidth + 'px', height: panel.offsetHeight + 'px', margin: '0', boxSizing: 'border-box', pointerEvents: 'none', zIndex: '2', overflow: 'hidden', willChange: 'transform' });
+    panel.parentNode.insertBefore(snap, panel.nextSibling);
+  };
+  const showDir = d => {   // 패널에 옆 탭(d) 또는 원래 탭(0)을 그림
+    if(d === dir) return;
+    const o = ORDER();
+    if(d === 0){ try{ switchTab(orig); }catch(e){} if(snap){ snap.remove(); snap = null; } }
+    else { if(!snap) makeSnap(); try{ switchTab(o[oi - d]); }catch(e){} }
+    panel = document.getElementById('panel'); if(panel) panel.style.willChange = 'transform';
+    dir = d;
+  };
+  const place = () => {
+    if(dir === 0){ mv(panel, dx * 0.25, 0); return; }        // 옆 탭이 없는 끝: 버티듯 조금만
+    mv(snap, dx, 0); mv(panel, dx - dir * PW, 0);            // 지금 탭은 손가락을 따라, 옆 탭은 그 바로 옆에 붙어서
+  };
+  const finish = () => { if(snap){ snap.remove(); snap = null; } if(panel){ panel.style.transition = ''; panel.style.transform = ''; panel.style.willChange = ''; } clip(false); dir = 0; busy = false; };
+  document.addEventListener('touchstart', e => {
+    st = 0; if(busy) return;
+    try{ if(e.touches.length !== 1 || !donutCarOn() || curIdx() < 0) return; }catch(err){ return; }
+    const r = scan(e.target); if(r.stop) return;
+    panel = document.getElementById('panel'); if(!panel) return;
+    sc = r.sc; sl0 = sc ? sc.scrollLeft : 0;
+    st = 1; x0 = lastX = e.touches[0].clientX; y0 = e.touches[0].clientY; lastT = Date.now(); dx = 0; vx = 0;
+  }, { passive: true });
+  // 옆 탭을 그리면 손가락이 처음 닿은 요소가 문서에서 빠져 이후 터치 이벤트가 document까지 안 올라옴 → 그 요소에도 같은 처리기를 붙임
+  const tgMove = e => { if(!document.contains(e.currentTarget)) onMove(e); }, tgEnd = e => { if(!document.contains(e.currentTarget)) end(); };
+  document.addEventListener('touchstart', e => { const t = e.target; if(t && t.addEventListener && !t._mpSw){ t._mpSw = 1; t.addEventListener('touchmove', tgMove, { passive: false }); t.addEventListener('touchend', tgEnd, { passive: true }); t.addEventListener('touchcancel', tgEnd, { passive: true }); } }, { passive: true, capture: true });
+  document.addEventListener('touchmove', e => onMove(e), { passive: false });
+  function onMove(e){
+    if(!st) return;
+    if(e.touches.length > 1){ if(st === 2){ dx = 0; end(); } st = 0; return; }
+    const x = e.touches[0].clientX, y = e.touches[0].clientY, now = Date.now();
+    dx = x - x0; const dy = y - y0;
+    if(st === 1){
+      if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if(Math.abs(dy) >= Math.abs(dx) * 0.8){ st = 0; return; }   // 세로 스크롤
+      if(sc){ const max = sc.scrollWidth - sc.clientWidth; if(!((dx < 0 && sl0 >= max - 1) || (dx > 0 && sl0 <= 1))){ st = 0; return; } }   // 가로 영역이 아직 넘어갈 수 있으면 그쪽 우선
+      st = 2; busy = true; clip(true); orig = state.activeId; oi = curIdx(); dir = 0; PW = panel.offsetWidth;
+    }
+    if(e.cancelable) e.preventDefault();
+    if(now > lastT){ vx = 0.7 * vx + 0.3 * (x - lastX) / (now - lastT); } lastX = x; lastT = now;
+    const want = dx < 0 ? -1 : 1, ni = oi - want;
+    showDir(dx !== 0 && ni >= 0 && ni < ORDER().length ? want : 0);
+    place();
+  }
+  function end(){
+    if(st !== 2){ st = 0; return; } st = 0;
+    const W = PW || window.innerWidth;
+    const go = dir !== 0 && (Math.abs(dx) > W * 0.22 || (Math.abs(dx) > 30 && Math.abs(vx) > 0.45 && Math.sign(vx) === Math.sign(dx)));
+    const dur = 320;
+    if(go){ mv(snap, dir * W, dur); mv(panel, 0, dur); setTimeout(finish, dur + 10); return; }   // 옆 탭이 들어와 붙음
+    if(dir === 0){ mv(panel, 0, 240); setTimeout(finish, 250); return; }
+    mv(snap, 0, 240); mv(panel, -dir * W, 240);                                                 // 제자리로: 끝나면 원래 탭을 다시 그림
+    setTimeout(() => { try{ switchTab(orig); }catch(e){} panel = document.getElementById('panel'); finish(); }, 250);
+  }
+  document.addEventListener('touchend', end, { passive: true });
+  document.addEventListener('touchcancel', end, { passive: true });
+})();
