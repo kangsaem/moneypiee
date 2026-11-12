@@ -2939,13 +2939,25 @@ document.addEventListener('click', e => {
   const el = e.target.closest && e.target.closest('[data-region-fold]'); if(!el) return;
   if(DONUT_ONE && mpWideList()) return;   // 넓은 화면은 항상 펼침
   const g = el.dataset.regionFold, nowFolded = el.dataset.regionFolded !== '1';
-  stockRegionFold[g] = nowFolded;
   const box = el.closest('#stock-sortable-chart'), body = box && mpFoldBody(box, 'reg', g);
-  if(!DONUT_ONE || !body){ renderPreservingOpenChartAccordions(); return; }
-  box.querySelectorAll('[data-region-fold="' + g + '"]').forEach(h => { h.style.display = ((h.dataset.regionFolded === '1') === nowFolded) ? '' : 'none'; });
-  mpFold(body, !nowFolded); mpDonutSync();
-  try{ assetPanelEnhance(); }catch(e){}
+  if(!DONUT_ONE || !body){ stockRegionFold[g] = nowFolded; renderPreservingOpenChartAccordions(); return; }
+  mpRegionSet(box, g, nowFolded);
 });
+function mpRegionSet(box, g, nowFolded){
+  stockRegionFold[g] = nowFolded;
+  box.querySelectorAll('[data-region-fold="' + g + '"]').forEach(h => { h.style.display = ((h.dataset.regionFolded === '1') === nowFolded) ? '' : 'none'; });
+  mpFold(mpFoldBody(box, 'reg', g), !nowFolded); mpDonutSync();
+  const f = stockRegionFoldState().folded, t = (!f.domestic && !f.overseas) ? '▴ 모두 접기' : '▾ 모두 펴기';
+  box.querySelectorAll('[data-reg-all]').forEach(b => { b.textContent = t; });
+  try{ assetPanelEnhance(); }catch(e){}
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-reg-all]'); if(!b) return;
+  e.stopPropagation();
+  const box = b.closest('#stock-sortable-chart'); if(!box) return;
+  const f = stockRegionFoldState().folded, fold = !f.domestic && !f.overseas;   // 둘 다 펼쳐져 있으면 모두 접기, 아니면 모두 펴기
+  ['domestic', 'overseas'].forEach(g => { if(f[g] !== fold) mpRegionSet(box, g, fold); });
+}, true);
 // 섹터순: 섹터 줄을 누르면 그 섹터 종목이 펼쳐지고 도넛의 그 섹터 구간에 종목 색이 나타남(2026-11-12 사용자)
 document.addEventListener('click', e => {
   const sh = e.target.closest && e.target.closest('[data-sec-fold]'); if(!sh) return;
@@ -3747,8 +3759,11 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
       rg = { gOf, folded, last: null, head: g => {
         const nm = g === 'domestic' ? '국내' : '해외', live = mk.open && g === mk.side ? '<span class="rg-live">장중</span>' : '';
         const off = ' style="display:none"';
-        const hf = (on) => `<div class="rg-head rg-fold${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="1"${on ? '' : off}><span>▸</span><b>${nm} ${cnt[g]}종목</b>${live}<span class="rg-cap">눌러서 펼치기</span><button type="button" class="rg-reload" title="시세 새로고침">↻</button></div>`;
-        const ho = (on) => `<div class="rg-head${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="0"${on ? '' : off}><span>▾</span><b>${nm}</b>${live}<span class="rg-cap">${cap}</span></div>`;
+        // 2026-11-12 사용자: 끝에는 '등락률·비중·평가액' 글자 대신 그 지역의 전체 대비 비중. 첫 지역 줄 가운데에 모두 펴기/접기
+        const rpct = DONUT_ONE ? `<span class="rg-cap sec-pct num" style="font-size:13px;">${_.sumBy(data.filter(d => gOf(d) === g), 'pct').toFixed(1)}<span class="pct-sign">%</span></span>` : null;
+        const allB = (DONUT_ONE && g !== other && !mpWideList()) ? `<span class="sec-all" data-reg-all style="margin-left:auto;">${(!folded.domestic && !folded.overseas) ? '▴ 모두 접기' : '▾ 모두 펴기'}</span>` : '';
+        const hf = (on) => `<div class="rg-head rg-fold${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="1"${on ? '' : off}><span>▸</span><b>${nm} ${cnt[g]}종목</b>${live}${allB}${rpct || '<span class="rg-cap">눌러서 펼치기</span>'}<button type="button" class="rg-reload" title="시세 새로고침">↻</button></div>`;
+        const ho = (on) => `<div class="rg-head${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="0"${on ? '' : off}><span>▾</span><b>${nm}</b>${live}${allB}${rpct || `<span class="rg-cap">${cap}</span>`}</div>`;
         if(DONUT_ONE) return hf(folded[g]) + ho(!folded[g]);   // 두 머리줄을 다 넣어 두고 그 자리에서 바꿈(다시 그리지 않아 펼침 애니메이션이 살아 있음)
         return folded[g] ? hf(true) : ho(true);
       } };
