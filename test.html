@@ -279,7 +279,9 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   /* 월별 탭 개편(2026-11-12): 선 켜고 끄는 범례, 확대·축소 버튼, 제목 없는 촘촘한 막대 */
   .hl-chip{display:inline-flex;align-items:center;gap:4px;margin-right:11px;padding:4px 0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;font-size:12px;}
   .hl-chip i{width:8px;height:8px;border-radius:2px;display:inline-block;} .hl-chip.off{opacity:.38;}
-  .hz-btn{width:26px;height:26px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text);font-size:17px;line-height:1;cursor:pointer;padding:0;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+  /* 2026-11-12 사용자: 계좌명·계좌유형 버튼, 확대·축소 버튼 테두리를 밝게(--border → --accent-dim) */
+  [data-account-filter].btn, #historyAccSelector .btn, #historyAccTypeSelector .btn{border-color:var(--accent-dim);}
+  .hz-btn{width:26px;height:26px;border:1px solid var(--accent-dim);border-radius:6px;background:transparent;color:var(--text);font-size:17px;line-height:1;cursor:pointer;padding:0;font-family:inherit;-webkit-tap-highlight-color:transparent;}
   .tb2-grp{max-width:860px;margin:10px auto 0;} .tb2-row{position:relative;margin-bottom:1px;} .tb2-row.hid{display:none;}
   .tb2-bar{position:relative;height:var(--tbh, 9px);cursor:pointer;} .tb2-bar svg{height:100% !important;border-radius:3px !important;}
   .tb2-lb{position:absolute;left:5px;top:50%;transform:translateY(-50%);z-index:1;font-size:10px;line-height:1;font-weight:600;color:#fff;text-shadow:0 0 3px #000, 0 0 2px #000, 0 0 1px #000;pointer-events:none;}
@@ -6339,7 +6341,7 @@ function subTypeBarBlock(holdingsWithType, selectedTypes){
     if(clickable) typeIdx++;
     const rankBg = rankColor(d.label, i, data.length, 'accountType');
     const btnStyle = clickable
-      ? `cursor:pointer;border:1px solid ${isSelected ? stepBg : 'var(--border)'};border-radius:6px;padding:4px 6px;${isSelected ? `background:${stepBg};` : ''}`
+      ? `cursor:pointer;border:1px solid ${isSelected ? stepBg : 'var(--accent-dim)'};border-radius:6px;padding:4px 6px;${isSelected ? `background:${stepBg};` : ''}`
       : 'padding:4px 6px;';
     const textStyle = isSelected ? `color:${stepText};` : '';
     return `<div class="legend-item" ${clickable ? `data-subtype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? 'var(--bg)' : rankBg};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;${textStyle}">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;${textStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
@@ -6365,7 +6367,7 @@ function accountTypeBarChartBlock(selectedTypes){
     if(clickable) typeIdx++;
     const rankBg = rankColor(d.label, i, data.length, 'accountType');
     const btnStyle = clickable
-      ? `cursor:pointer;border:1px solid ${isSelected ? stepBg : 'var(--border)'};border-radius:6px;padding:4px 6px;${isSelected ? `background:${stepBg};` : ''}`
+      ? `cursor:pointer;border:1px solid ${isSelected ? stepBg : 'var(--accent-dim)'};border-radius:6px;padding:4px 6px;${isSelected ? `background:${stepBg};` : ''}`
       : 'padding:4px 6px;';
     const textStyle = isSelected ? `color:${stepText};` : '';
     return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? 'var(--bg)' : rankBg};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;${textStyle}">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;${textStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
