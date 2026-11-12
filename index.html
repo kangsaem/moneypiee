@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script>/* 광고 스위치(2026-11-12): true로 바꾸면 위쪽 광고 띠가 다시 나옴 */window.MP_AD_ON=false;if(!window.MP_AD_ON)document.documentElement.classList.add('no-ad');</script>
 <meta charset="UTF-8">
 <script>
 // 공유 링크(?logic)로 들어오면 Logic V1 안내창만 보여주는 모드
@@ -60,7 +61,9 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
     font-weight:500;
   }
   .num{font-family:'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-weight:500;}
-  .wrap{max-width:960px;margin:0 auto;padding:76px 10px 32px;}   /* 2026-10-11: 가장자리 여백 반(20→10) */
+  .wrap{max-width:960px;margin:0 auto;padding:76px 10px 32px;}
+  /* 2026-11-12 광고 스위치: MP_AD_ON=false면 위쪽 광고 띠와 그 자리(76px)를 없앰 */
+  .no-ad .wrap{padding-top:12px;} .no-ad #adfit-bottom{display:none !important;}   /* 2026-10-11: 가장자리 여백 반(20→10) */
   #adfit-bottom{
     position:fixed;top:0;left:0;right:0;z-index:999;
     background:var(--bg);border-bottom:1px solid var(--border);
@@ -192,7 +195,13 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
     cursor:pointer;
   }
   /* 2026-10-20: 카드 세로 115px 고정 — 코스피·코스닥에 이격도·RSI 줄이 붙는 날은 그래프가 그만큼 줄어듦 */
-  .mkt-card{height:115px;display:flex;flex-direction:column;overflow:hidden;}
+  .mkt-card{height:var(--mkt-h, 115px);display:flex;flex-direction:column;overflow:hidden;}
+  .mkt-card{transition:background-color .2s, border-color .2s;} #marketTicker.mkt-min .mkt-card{background:var(--surface2);border-color:var(--accent-dim);}   /* 2026-11-12 사용자: 평소엔 원래 어두운 색, 다 줄어들어 고정된 상태에서만 활성 탭 색 */
+  /* 2026-11-12 사용자: 스크롤해도 경제지표 줄은 화면 위에 남음 — 아래(그래프)부터 줄어들다 이름·값·등락률만 남으면 그 상태로 고정 */
+  #marketTicker.mkt-min .mkt-card > .mkt-change ~ *{visibility:hidden;}   /* 다 줄어든 상태: 등락률 줄 아래(그래프·이격도 줄)는 완전히 숨김 — 카드 아래 여백에 그래프 찌꺼기가 보이던 것 */
+  #marketTicker.mkt-pin{position:fixed;top:0;z-index:900;background:transparent;margin:0 !important;box-sizing:border-box;}
+  /* 고정된 카드 뒤에 배경색 그림자(아래로 부드럽게 사라짐) — 누름은 통과(2026-11-12 사용자) */
+  #mktShade{position:fixed;z-index:899;display:none;pointer-events:none;background:linear-gradient(to bottom, var(--bg) 0, var(--bg) calc(100% - 8px), rgba(30,31,34,.8) calc(100% - 8px), rgba(30,31,34,0) 100%);}   /* A안(2026-11-12 사용자): 띠 배경 없음 — 둥근 카드만 떠 있고 틈으로 본문이 지나감. 틈을 누르면 아래 본문이 눌림 */
   .mkt-card > svg{flex:1 1 0;min-height:0;height:auto !important;}
   .mkt-name{font-size:9px;color:var(--text-dim);margin-bottom:1px;line-height:1.4;}
   .mkt-value{font-size:16px;font-weight:700;margin-top:0;line-height:1.25;letter-spacing:-0.3px;white-space:nowrap;}
@@ -221,6 +230,19 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .reset-link{color:var(--text-dim);font-size:13px;text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;margin-top:8px;font-weight:500;}
   .snapshot-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:14px;color:var(--text-dim);}
   .trend-wrap{margin-top:8px;}
+  /* 2026-11-12 사용자: PC에서도 가로 스크롤바 숨김(지표 줄·계좌 버튼 줄·유형 버튼 줄·월별 그래프). PC는 마우스로 끌어서 넘김 */
+  #marketTicker, #accountBtnSelector, #historyAccSelector, #historyAccTypeSelector, .trend-scroll, .typeleg{scrollbar-width:none;-ms-overflow-style:none;}
+  #marketTicker::-webkit-scrollbar, #accountBtnSelector::-webkit-scrollbar, #historyAccSelector::-webkit-scrollbar, #historyAccTypeSelector::-webkit-scrollbar, .trend-scroll::-webkit-scrollbar, .typeleg::-webkit-scrollbar{display:none;}
+  /* 월별 탭 개편(2026-11-12): 선 켜고 끄는 범례, 확대·축소 버튼, 제목 없는 촘촘한 막대 */
+  .hl-chip{display:inline-flex;align-items:center;gap:4px;margin-right:11px;padding:4px 0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;font-size:12px;}
+  .hl-chip i{width:8px;height:8px;border-radius:2px;display:inline-block;} .hl-chip.off{opacity:.38;}
+  /* 2026-11-12 사용자: 계좌명·계좌유형 버튼, 확대·축소 버튼 테두리를 밝게(--border → --accent-dim) */
+  [data-account-filter].btn, #historyAccSelector .btn, #historyAccTypeSelector .btn{border-color:#5A5B61;}
+  .hz-btn{width:26px;height:26px;border:1px solid #5A5B61;border-radius:6px;background:transparent;color:var(--text);font-size:17px;line-height:1;cursor:pointer;padding:0;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+  .tb2-grp{max-width:860px;margin:10px auto 0;} .tb2-row{position:relative;margin-bottom:1px;} .tb2-row.hid{display:none;}
+  .tb2-bar{position:relative;height:var(--tbh, 9px);cursor:pointer;} .tb2-bar svg{height:100% !important;border-radius:3px !important;}
+  .tb2-lb{position:absolute;left:5px;top:50%;transform:translateY(-50%);z-index:1;font-size:10px;line-height:1;font-weight:600;color:#fff;text-shadow:0 0 3px #000, 0 0 2px #000, 0 0 1px #000;pointer-events:none;}
+  #tb2More{margin:10px auto 0;width:56px;height:28px;border-radius:14px;background:rgba(40,41,45,.82);display:none;align-items:center;justify-content:center;color:var(--text-dim);font-size:14px;cursor:pointer;user-select:none;}
   .total-badge{color:var(--text-dim);font-size:14px;font-weight:500;}
   /* 2026-11-11 자산 탭 정리(사용자): 자산·현금비중 한 줄(같은 글자 크기) · 유형 버튼 낮게(퍼센트는 올리면/길게 누르면) · 휴대폰 도넛 하나씩 · 지역보기 묶음 */
   .tb-row{display:flex;justify-content:center;align-items:baseline;gap:6px 14px;flex-wrap:wrap;position:relative;top:2px;}   /* 2px 내려 위(버튼)·아래(계좌 버튼) 여백을 같게(2026-11-11 사용자) */
@@ -233,7 +255,43 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .dn-dots{display:flex;gap:6px;justify-content:center;margin:8px 0 4px;} .dn-dots i{width:6px;height:6px;border-radius:50%;background:#5A5B61;} .dn-dots i.on{background:#D6D7DB;}
   .rg-head{display:flex;align-items:center;gap:6px;width:100%;padding:4px 0 2px;font-size:12px;color:var(--text-dim);cursor:pointer;box-sizing:border-box;} .rg-head b{color:var(--text);font-weight:600;font-size:13px;}
   .rg-head .rg-cap{margin-left:auto;} .rg-head.rg-fold b{color:var(--text-dim);} .rg-head.rg-sep{margin-top:8px;padding-top:10px;border-top:1px dashed var(--text-dim);}
-  .rg-head{position:relative;} .charts.dn-car .rg-reload{display:flex;} .rg-reload{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;height:26px;display:none;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0;font-family:inherit;}
+  /* 2026-11-12 도넛 통일: 밑에 섹터 색, 위에 종목 조각. 접힌 묶음은 종목 조각을 숨겨 섹터 색이 보임 */
+  #mpSnapDn{position:fixed;left:50%;bottom:calc(6px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);width:56px;height:30px;display:none;align-items:center;justify-content:center;font-size:15px;color:var(--text-dim);background:rgba(40,41,45,.82);border-radius:15px;z-index:40;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
+  #mpSnapDn.on{display:flex;}
+  #stock-sortable-chart{grid-column:1/-1;}   /* 도넛이 하나뿐이라 가운데에 */
+  #stock-sortable-chart [data-u]{transition:opacity .22s;}
+  #stock-sortable-chart [data-u="base"]{transition:opacity 0s;}
+  #stock-sortable-chart [data-u="base"][data-hide]{transition:opacity 0s .22s;}
+  #stock-sortable-chart [data-u][data-dim]{opacity:.3 !important;}
+  #stock-sortable-chart [data-u][data-hide]{opacity:0 !important;}
+  .fold-body{display:flex;flex-direction:column;gap:6px;width:100%;transition:max-height .38s cubic-bezier(.16,.9,.3,1), margin-top .38s cubic-bezier(.16,.9,.3,1);}
+  /* 섹터순: 종목은 들여쓰고, 펼친 섹터 아래는 간격을 벌림(2026-11-12 사용자: 섹터와 종목 구분) */
+  .fold-body[data-fold-body^="sec:"]{padding-left:16px;box-sizing:border-box;transition:max-height .38s cubic-bezier(.16,.9,.3,1), margin .38s cubic-bezier(.16,.9,.3,1);}
+  .fold-body[data-fold-body^="sec:"]:not(.closed){margin-bottom:12px;}
+  /* 넓은 PC 화면: 접지 않고 다 펼쳐 두 줄(2단)로 */
+  .sec-grp{display:contents;}
+  .stock-sortable-legend.wide2{display:block;width:100%;max-width:920px;columns:250px 3;column-gap:48px;}   /* 폭에 따라 2단·3단 자동 */
+  .stock-sortable-legend.wide2 .sec-grp{display:block;break-inside:avoid;}   /* 한 섹터(지역) 묶음은 중간에 끊지 않고 통째로 다음 단으로 */
+  @media(min-width:641px){ #stock-sortable-chart .donut-wrap-md{width:247px;height:247px;} #stock-sortable-chart .donut-wrap-lg{width:264px;height:264px;} #stock-sortable-chart .donut-wrap-xl{width:282px;height:282px;} #stock-sortable-chart .donut-wrap-xxl{width:299px;height:299px;} #stock-sortable-chart .stock-donut-center-label{font-size:16px;} }   /* 넓은 화면에서도 도넛은 휴대폰과 같은 크기 */
+  /* 넓은 화면: 도넛은 왼쪽, 목록은 오른쪽에 두 줄(2026-11-12 사용자) */
+  #stock-sortable-chart.side{display:flex;align-items:center;justify-content:center;gap:36px;text-align:left;}
+  #stock-sortable-chart.side > .legend{flex:0 1 268px;min-width:0;margin:0;}
+  #stock-sortable-chart.side > .donut-wrap{flex:0 0 auto;margin:0;}   /* 목록 높이의 위아래 가운데 */
+  #stock-sortable-chart.side > .legend.wide2{flex:1 1 0;min-width:0;max-width:600px;width:auto;margin:0;columns:220px 2;column-gap:44px;}
+  .sec-head.sub{cursor:default;margin:0;padding:2px 0;} .sec-sub{display:flex;flex-direction:column;gap:6px;padding-left:16px;box-sizing:border-box;width:100%;margin-bottom:6px;}
+  .stock-sortable-legend.wide2 .sec-sub{display:block;}
+  .sec-all{flex-shrink:0;font-size:12px;font-weight:600;color:var(--text);border:1px solid var(--accent-dim);border-radius:12px;padding:2px 10px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
+  .sec-all-row{display:flex;justify-content:center;width:100%;}
+  .stock-sortable-legend.wide2 .legend-item, .stock-sortable-legend.wide2 .rg-head{break-inside:avoid;margin-bottom:6px;}
+  .stock-sortable-legend.wide2 .fold-body{display:block;margin-top:0;}
+  .stock-sortable-legend.wide2 .sec-head{margin:4px 0 2px;padding:3px 0;break-inside:avoid;break-after:avoid;}
+  .stock-sortable-legend.wide2 .rg-head{break-after:avoid;} .stock-sortable-legend.wide2 .rg-head.rg-sep{border-top:0;margin-top:0;padding-top:4px;}
+  .fold-body.closed{max-height:0;margin-top:-6px;} .fold-body.closed, .fold-body.anim{overflow:hidden;}
+  .sec-head{display:flex;align-items:center;gap:8px;margin:-7px 0;padding:7px 0;width:100%;box-sizing:border-box;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .sec-head .sec-nm{font-size:13px;color:var(--text);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;opacity:0.7;}
+  .sec-head .sec-ln{flex:1;border-top:1px dashed var(--text-dim);} .sec-head .sec-pct{font-size:14px;color:#FFFFFF;opacity:1;flex-shrink:0;font-weight:700;transition:opacity .2s;}
+  .sec-head.open .sec-pct{color:var(--text);opacity:0.7;font-weight:500;font-size:13px;}   /* 접힘 = 흰색 또렷, 펼침 = 톤다운(2026-11-12 사용자) */
+  .rg-head{position:relative;} .charts.dn-car .rg-reload, .charts.mp-phone .rg-reload{display:flex;} .rg-reload{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;height:26px;display:none;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0;font-family:inherit;}
   .rg-live{font-size:10.5px;border:1px solid #D4FF3D;color:#D4FF3D;border-radius:4px;padding:0 5px;line-height:15px;}
   .total-badge .num{color:#F0DA8C;font-size:16px;font-weight:700;margin-left:6px;}  @keyframes dragHintBounceIn{
     0%{ transform:translate(-50%,var(--ty,-50%)) scale(0.3); opacity:0; }
@@ -2620,8 +2678,22 @@ function holeShadowDefs(hole, cx, cy, gradId){
   return '';
 }
 
-function ringSegmentsSVG(data, type, cx, cy, radius, strokeWidth, ringName, opacity){
+function ringSegmentsSVG(data, type, cx, cy, radius, strokeWidth, ringName, opacity, arcs){
   const total = _.sumBy(data, 'amount') || 1;
+  if(arcs && data.length > 1){
+    // 통일 도넛(2026-11-12): 조각을 채운 호로 그림 — 점선(dasharray) 방식은 0.1% 안팎 조각이 일부 기기에서 12시 방향에 덩어리로 삐져나옴(사용자 화면)
+    const r0 = radius - strokeWidth/2, r1 = radius + strokeWidth/2, op = (opacity !== undefined && opacity !== null) ? ` opacity="${opacity}"` : '';
+    const pt = (r, a) => (cx + r*Math.cos(a*Math.PI/180)).toFixed(2) + ',' + (cy + r*Math.sin(a*Math.PI/180)).toFixed(2);
+    let ang = -90, out = '';
+    data.forEach((d, i) => {
+      const sweep = Math.min(359.99, (d.amount / total) * 360); if(!(sweep > 0)) return;
+      const rank = d.rank !== undefined ? d.rank : i, rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
+      const color = d.color || rankColor(d.label, rank, rankCount, type), end = ang + sweep, lg = sweep > 180 ? 1 : 0;
+      out += `<path d="M${pt(r1, ang)} A${r1},${r1} 0 ${lg} 1 ${pt(r1, end)} L${pt(r0, end)} A${r0},${r0} 0 ${lg} 0 ${pt(r0, ang)} Z" fill="${color}"${op}${d.attrs || ''} transform="translate(${2*cx},0) scale(-1,1)" data-ring="${ringName}" data-slice-idx="${i}"><title>${escapeHTML(d.label)} ${d.pct.toFixed(1)}%</title></path>`;
+      ang = end;
+    });
+    return out;
+  }
   const circumference = 2 * Math.PI * radius;
   let cumulative = 0;
   const opacityAttr = (opacity !== undefined && opacity !== null) ? ` opacity="${opacity}"` : '';
@@ -2634,7 +2706,7 @@ function ringSegmentsSVG(data, type, cx, cy, radius, strokeWidth, ringName, opac
     const gap = circumference - dash;
     const dashoffset = -(cumulative * circumference);
     cumulative += frac;
-    return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}"${opacityAttr} stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${dashoffset.toFixed(2)}" transform="translate(${2*cx},0) scale(-1,1) rotate(-90 ${cx} ${cy})" data-ring="${ringName}" data-slice-idx="${i}"><title>${escapeHTML(d.label)} ${d.pct.toFixed(1)}%</title></circle>`;
+    return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${d.color || color}" stroke-width="${strokeWidth}"${opacityAttr}${d.attrs || ''} stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${dashoffset.toFixed(2)}" transform="translate(${2*cx},0) scale(-1,1) rotate(-90 ${cx} ${cy})" data-ring="${ringName}" data-slice-idx="${i}"><title>${escapeHTML(d.label)} ${d.pct.toFixed(1)}%</title></circle>`;
   }).join('');
 }
 
@@ -2837,9 +2909,323 @@ document.addEventListener('click', e => {
     rb.click(); mpSyncRgReload(); return;
   }   // 접힌 줄 오른쪽 새로고침 = 위 새로고침 버튼과 같은 동작
   const el = e.target.closest && e.target.closest('[data-region-fold]'); if(!el) return;
-  stockRegionFold[el.dataset.regionFold] = el.dataset.regionFolded !== '1';
-  renderPreservingOpenChartAccordions();
+  if(DONUT_ONE && WIDE_ALL_OPEN && mpWideList()) return;
+  const g = el.dataset.regionFold, nowFolded = el.dataset.regionFolded !== '1';
+  const box = el.closest('#stock-sortable-chart'), body = box && mpFoldBody(box, 'reg', g);
+  if(!DONUT_ONE || !body){ stockRegionFold[g] = nowFolded; renderPreservingOpenChartAccordions(); return; }
+  mpRegionSet(box, g, nowFolded);
 });
+function mpRegionSet(box, g, nowFolded){
+  stockRegionFold[g] = nowFolded;
+  box.querySelectorAll('[data-region-fold="' + g + '"]').forEach(h => { h.style.display = ((h.dataset.regionFolded === '1') === nowFolded) ? '' : 'none'; });
+  mpFold(mpFoldBody(box, 'reg', g), !nowFolded); mpDonutSync();
+  const f = stockRegionFoldState().folded, t = (!f.domestic && !f.overseas) ? '▴ 모두 접기' : '▾ 모두 펴기';
+  box.querySelectorAll('[data-reg-all]').forEach(b => { b.textContent = t; });
+  try{ assetPanelEnhance(); }catch(e){}
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-reg-all]'); if(!b) return;
+  e.stopPropagation();
+  const box = b.closest('#stock-sortable-chart'); if(!box) return;
+  const f = stockRegionFoldState().folded, fold = !f.domestic && !f.overseas;   // 둘 다 펼쳐져 있으면 모두 접기, 아니면 모두 펴기
+  ['domestic', 'overseas'].forEach(g => { if(f[g] !== fold) mpRegionSet(box, g, fold); });
+}, true);
+// 섹터순: 섹터 줄을 누르면 그 섹터 종목이 펼쳐지고 도넛의 그 섹터 구간에 종목 색이 나타남(2026-11-12 사용자)
+document.addEventListener('click', e => {
+  const sh = e.target.closest && e.target.closest('[data-sec-fold]'); if(!sh) return;
+  const k = sh.dataset.secFold, box = sh.closest('#stock-sortable-chart'); if(!box || (WIDE_ALL_OPEN && mpWideList())) return;
+  if(k === ETC_KEY){ stockSecEtc.forEach(x => { stockSectorOpen[x] = true; }); renderPreservingOpenChartAccordions(); return; }   // '기타' → 그 안의 섹터들을 펼친 채로 풀어 놓음
+  stockSectorOpen[k] = !stockSectorOpen[k];
+  if(stockSecEtc.has(k) && [...stockSecEtc].every(x => !stockSectorOpen[x])) setTimeout(() => { if([...stockSecEtc].every(x => !stockSectorOpen[x]) && document.getElementById('stock-sortable-chart')) renderPreservingOpenChartAccordions(); }, 440);   // 다 접으면 '기타'로 다시 묶음
+  mpFold(mpFoldBody(box, 'sec', k), !!stockSectorOpen[k]); mpDonutSync(); sh.classList.toggle('open', !!stockSectorOpen[k]);
+  const ab = box.querySelector('[data-sec-all]'); if(ab) ab.textContent = [...box.querySelectorAll('[data-sec-fold]')].every(h => h.dataset.secFold === ETC_KEY ? false : stockSectorOpen[h.dataset.secFold]) ? '▴ 모두 접기' : '▾ 모두 펴기';
+});
+// ── 휴대폰 화면맞춤(2026-11-12 사용자) ─────────────────────────────────────────
+// 자산 탭 첫 화면은 지표~도넛이 한 화면에 딱 맞고 아래 ▼. ▼를 누르거나 위로 끌면 단계별로 내려감(탭 아래가 맨 위로 → 목록 끝).
+// 손가락을 따라 흘러가는 스크롤 대신 단계 사이를 애니메이션으로 이동. PC와 다른 탭은 예전 그대로.
+(function(){
+  let hold = null, natH = 0, cardH = 115, svgH = 0, minH = 62, raf = 0;
+  const upd = () => {
+    raf = 0;
+    const tk = document.getElementById('marketTicker'); if(!tk) return;
+    if(!hold){ hold = document.createElement('div'); hold.id = 'mktHold'; hold.style.marginBottom = tk.style.marginBottom || '8px'; tk.parentNode.insertBefore(hold, tk); hold.appendChild(tk); tk.style.marginBottom = '0'; }
+    const pinned = tk.classList.contains('mkt-pin');
+    if(!pinned){   // 고정 전의 원래 크기를 재 둠
+      natH = tk.offsetHeight;
+      const c = tk.querySelector('.mkt-card[data-mktkey]'), ch = c && c.querySelector('.mkt-change'), sv = c && c.querySelector(':scope > svg');
+      if(c){ cardH = c.offsetHeight || cardH; if(ch) minH = Math.ceil(ch.offsetTop - c.offsetTop + ch.offsetHeight + 7); if(sv) svgH = sv.getBoundingClientRect().height || svgH; }
+    }
+    const ad = document.getElementById('adfit-bottom'), off = ad && ad.offsetHeight ? ad.offsetHeight : 0;
+    const top = hold.getBoundingClientRect().top - off;
+    if(top < 0 && natH > 0 && tk.querySelector('.mkt-card')){
+      const r = hold.getBoundingClientRect();
+      if(!pinned){ hold.style.height = natH + 'px'; tk.classList.add('mkt-pin'); }
+      tk.style.top = off + 'px'; tk.style.left = r.left + 'px'; tk.style.width = r.width + 'px';
+      const hNow = Math.max(Math.min(minH, cardH), Math.min(cardH, cardH + top)), vis = Math.max(0, hNow - minH);
+      tk.style.setProperty('--mkt-h', hNow + 'px');
+      let sh = document.getElementById('mktShade'); if(!sh){ sh = document.createElement('div'); sh.id = 'mktShade'; document.body.appendChild(sh); }
+      sh.style.display = 'block'; sh.style.top = off + 'px'; sh.style.left = '0px'; sh.style.width = '100%'; sh.style.height = (hNow + 2 + 8) + 'px';
+      tk.classList.toggle('mkt-min', vis < 1);
+      tk.querySelectorAll('.mkt-card > svg').forEach(v => { v.style.clipPath = svgH ? `inset(0 0 ${Math.max(0, svgH - vis).toFixed(1)}px 0)` : ''; });   // 그래프는 카드 아래 여백(7px) 안쪽까지만 보이게
+      if(svgH) tk.querySelectorAll('.mkt-card > svg').forEach(v => { if(!v.dataset.fz){ v.dataset.fz = '1'; v.style.flex = '0 0 ' + svgH + 'px'; } });   // 그래프는 찌그러지지 않고 아래부터 가려짐
+    } else if(pinned){
+      tk.classList.remove('mkt-pin', 'mkt-min'); { const sh = document.getElementById('mktShade'); if(sh) sh.style.display = 'none'; } tk.querySelectorAll('.mkt-card > svg').forEach(v => { v.style.clipPath = ''; }); hold.style.height = ''; tk.style.top = tk.style.left = tk.style.width = ''; tk.style.removeProperty('--mkt-h');
+      tk.querySelectorAll('.mkt-card > svg').forEach(v => { delete v.dataset.fz; v.style.flex = ''; });
+    }
+  };
+  const req = () => { if(!raf) raf = requestAnimationFrame(upd); };
+  window.addEventListener('scroll', req, { passive: true });
+  window.addEventListener('resize', req);
+  document.addEventListener('DOMContentLoaded', () => { const tk = document.getElementById('marketTicker'); if(!tk) return;
+    try{ new MutationObserver(req).observe(tk, { childList: true }); }catch(e){} req(); });
+})();
+// 가로 스크롤바를 숨긴 줄: PC에서는 마우스로 잡아 끌어 넘김(끌었으면 그 클릭은 무시)
+(function(){
+  const SEL = '#marketTicker, #accountBtnSelector, #historyAccSelector, #historyAccTypeSelector, .trend-scroll, .typeleg';
+  let el = null, x0 = 0, s0 = 0, moved = false;
+  document.addEventListener('mousedown', e => { if(e.button !== 0) return; const t = e.target.closest && e.target.closest(SEL); if(!t || t.scrollWidth <= t.clientWidth + 1) return; el = t; x0 = e.clientX; s0 = t.scrollLeft; moved = false; });
+  document.addEventListener('mousemove', e => { if(!el) return; const dx = e.clientX - x0; if(!moved && Math.abs(dx) < 5) return; moved = true; el.scrollLeft = s0 - dx; e.preventDefault(); });
+  document.addEventListener('mouseup', () => { if(el && moved){ const stop = ev => { ev.stopPropagation(); ev.preventDefault(); }; document.addEventListener('click', stop, { capture: true, once: true }); setTimeout(() => document.removeEventListener('click', stop, true), 50); } el = null; });
+})();
+// 휴대폰: 화면을 좌우로 쓸면 옆 탭으로(자산 ↔ 월별 ↔ 관심 ↔ V1 ↔ 관리) — 2026-11-12 사용자
+// 가로로 넘기는 영역(지표 줄·계좌 버튼 줄·월별 그래프·표)과 팝업 위에서 시작한 쓸기는 제외. 계좌 탭·마통 탭에서는 동작 안 함
+(function(){
+  let x0 = 0, y0 = 0, t0 = 0, ok = false;
+  const blocked = el => { for(let n = el; n && n.nodeType === 1 && n !== document.body; n = n.parentElement){
+    if(n.id === 'marketTicker' || n.id === 'tabs' || (n.classList && n.classList.contains('trend-wrap'))) return true;
+    const cs = getComputedStyle(n); if(cs.position === 'fixed') return true;
+    if(/(auto|scroll)/.test(cs.overflowX) && n.scrollWidth > n.clientWidth + 2) return true; } return false; };
+  document.addEventListener('touchstart', e => {
+    ok = false; try{ if(e.touches.length !== 1 || !donutCarOn() || blocked(e.target)) return; }catch(err){ return; }
+    ok = true; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, { passive: true });
+  document.addEventListener('touchmove', e => { if(e.touches.length > 1) ok = false; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if(!ok) return; ok = false;
+    const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    if(Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 2 || Date.now() - t0 > 700) return;
+    try{
+      const order = ['__total__', '__history__', '__analysis__', WATCHLIST_ID, '__deleteAccounts__'];   // 탭 줄 순서와 같게
+      const cur = ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) ? 0 : order.indexOf(state.activeId);
+      const nx = cur + (dx < 0 ? 1 : -1); if(cur < 0 || nx < 0 || nx >= order.length) return;
+      switchTab(order[nx]);
+    }catch(err){}
+  }, { passive: true });
+})();
+const MP_SNAP_ON = true;
+const MP_SNAP_DRAG = false;   // 끌 때 단계로 붙는 동작(2026-11-12 사용자: 없앰 — 접힘 줄 누르기 힘듦). ▼ 누름과 첫 화면 맞춤만 남김
+let mpSnapAnim = false;
+function mpSnapActive(){
+  try{ return MP_SNAP_ON && donutCarOn() && ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) && !!document.getElementById('stock-sortable-chart'); }catch(e){ return false; }
+}
+function mpSnapStages(){
+  const H = window.innerHeight, panel = document.getElementById('panel');
+  const end = Math.max(0, Math.round(document.documentElement.scrollHeight - H));
+  const a = [0]; if(end < 8) return a;
+  const y1 = panel ? Math.max(0, Math.round(panel.getBoundingClientRect().top + window.scrollY) - 4) : 0;
+  if(y1 > 8 && y1 < end - 8){ a.push(y1); const step = Math.max(200, H - 90); for(let y = y1 + step; y < end - 60; y += step) a.push(y); }
+  a.push(end); return a;
+}
+function mpSnapBtn(){
+  let b = document.getElementById('mpSnapDn');
+  if(!b){ b = document.createElement('div'); b.id = 'mpSnapDn'; b.textContent = '▼'; b.setAttribute('aria-label', '아래로'); document.body.appendChild(b); b.addEventListener('click', e => { e.stopPropagation(); mpSnapGo(1); }); }
+  return b;
+}
+function mpSnapArrow(){
+  const b = mpSnapBtn(); if(!mpSnapActive()){ b.classList.remove('on'); return; }
+  const st = mpSnapStages(); b.classList.toggle('on', window.scrollY < st[st.length - 1] - 8);
+}
+function mpSnapGo(dir){
+  if(mpSnapAnim) return;
+  const st = mpSnapStages(), cur = window.scrollY;
+  const to = dir > 0 ? st.find(y => y > cur + 8) : st.slice().reverse().find(y => y < cur - 8);
+  if(to == null) return;
+  const t0 = performance.now(), D = 460; mpSnapAnim = true;
+  const tick = now => { const t = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - t, 4);   // 처음에 세게, 끝에서 천천히
+    window.scrollTo(0, cur + (to - cur) * e);
+    if(t < 1) requestAnimationFrame(tick); else { mpSnapAnim = false; mpSnapArrow(); } };
+  requestAnimationFrame(tick);
+}
+// 첫 화면 맞춤: 도넛이 화면 아래 끝(▼ 자리 위)에 딱 맞게 크기·여백을 정하고, 탭 아래가 맨 위에 붙을 만큼 길이를 확보
+function mpSnapLayout(){
+  const on = mpSnapActive(), panel = document.getElementById('panel');
+  const box = document.getElementById('stock-sortable-chart'), dw = box && box.querySelector('.donut-wrap');
+  if(dw){ dw.style.width = dw.style.height = dw.style.marginTop = dw.style.marginBottom = ''; }
+  if(panel && panel.dataset.snapMin){ panel.style.minHeight = ''; delete panel.dataset.snapMin; }
+  if(panel) mpSnapLayout.top = Math.round(panel.getBoundingClientRect().top + window.scrollY);
+  if(!on || !dw || !panel){ mpSnapArrow(); return; }
+  const H = window.innerHeight, ARW = 40, r = dw.getBoundingClientRect(), top = r.top + window.scrollY;
+  const size = r.height;   // 도넛 크기는 그대로(2026-11-12 사용자: 줄이지 말 것). 화면이 낮으면 도넛 아래가 첫 화면을 조금 넘어감
+  const spare = Math.max(0, H - ARW - top - size);
+  dw.style.marginTop = Math.floor(spare / 2) + 'px'; dw.style.marginBottom = (Math.ceil(spare / 2) + ARW) + 'px';
+  const wrap = document.querySelector('.wrap'), pr = panel.getBoundingClientRect();
+  const below = wrap ? Math.max(0, wrap.getBoundingClientRect().bottom - pr.bottom) : 0, need = Math.ceil(H - below + 4);
+  if(pr.height < need){ panel.dataset.snapMin = '1'; panel.style.minHeight = need + 'px'; const h2 = panel.getBoundingClientRect().height; if(h2 > need + 1) panel.style.minHeight = Math.max(0, need - (h2 - need)) + 'px'; }
+  mpSnapArrow();
+}
+(function(){
+  let sx = 0, sy = 0, mode = -1;   // -1 = 관여 안 함, 0 = 방향 판정 전, 1 = 세로 단계 이동
+  // 안에서 따로 스크롤되는 곳(팝업·창)은 건드리지 않음
+  const own = el => { for(let n = el; n && n.nodeType === 1 && n !== document.body; n = n.parentElement){
+    const cs = getComputedStyle(n); if(cs.position === 'fixed') return true;
+    if(/(auto|scroll)/.test(cs.overflowY) && n.scrollHeight > n.clientHeight + 2) return true; } return false; };
+  let fingers = 0, rest = 0, idle = null;
+  // 기본 스크롤이 흘러가 버린 경우(막지 못한 끌기·관성): 멈추면 움직인 방향의 다음 단계로 붙임
+  const settle = () => {
+    if(!MP_SNAP_DRAG || !mpSnapActive() || mpSnapAnim || fingers > 0) return;
+    const st = mpSnapStages(), cur = window.scrollY;
+    if(st.some(y => Math.abs(y - cur) <= 6)){ rest = cur; return; }
+    const dir = cur > rest ? 1 : -1; window.scrollTo(0, cur);
+    const before = window.scrollY; mpSnapGo(dir); setTimeout(() => { if(Math.abs(window.scrollY - before) < 2 && !mpSnapAnim) mpSnapGo(-dir); }, 60);
+  };
+  window.addEventListener('scroll', () => { clearTimeout(idle); if(!mpSnapAnim) idle = setTimeout(settle, 130); else rest = window.scrollY; }, { passive: true });
+  document.addEventListener('touchstart', e => { fingers = e.touches.length; }, { passive: true });
+  ['touchend', 'touchcancel'].forEach(n => document.addEventListener(n, e => { fingers = e.touches.length; clearTimeout(idle); idle = setTimeout(settle, 130); }, { passive: true }));
+  document.addEventListener('touchstart', e => {
+    mode = (MP_SNAP_DRAG && e.touches.length === 1 && mpSnapActive() && !own(e.target)) ? 0 : -1;
+    if(mode === 0){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if(mode === -1) return;
+    const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
+    if(mode === 0){
+      // 첫 움직임에서 바로 판정: 아이폰은 첫 touchmove를 막지 않으면 기본 스크롤이 시작돼 그 뒤로는 못 막음(사용자: 딱딱 안 붙음)
+      if(Math.abs(dx) > Math.abs(dy)){ mode = -1; return; }           // 가로 끌기(지표 카드 넘기기 등)는 그대로
+      if(dy > 0 && window.scrollY <= 0){ mode = -1; return; }         // 맨 위에서 아래로 당기기(새로고침)는 그대로
+      mode = 1;
+    }
+    if(e.cancelable) e.preventDefault(); else mode = -1;
+  }, { passive: false });
+  const end = e => { if(mode === 1){ const dy = e.changedTouches[0].clientY - sy; if(Math.abs(dy) >= 24) mpSnapGo(dy < 0 ? 1 : -1); } mode = -1; };
+  document.addEventListener('touchend', end, { passive: true });
+  document.addEventListener('touchcancel', () => { mode = -1; }, { passive: true });
+  window.addEventListener('scroll', () => { if(!mpSnapAnim) mpSnapArrow(); }, { passive: true });
+  window.addEventListener('resize', () => { try{ mpSnapLayout(); }catch(e){} });
+  window.addEventListener('mp-fold-done', () => { try{ mpSnapArrow(); }catch(e){} });
+  // 탭 위쪽(지표 카드 등)이 늦게 그려져 높이가 바뀌면 첫 화면 맞춤을 다시 계산
+  document.addEventListener('DOMContentLoaded', () => { try{
+    new ResizeObserver(() => { const p = document.getElementById('panel'); if(!p) return;
+      const t = Math.round(p.getBoundingClientRect().top + window.scrollY); if(t !== mpSnapLayout.top){ try{ mpSnapLayout(); }catch(e){} } else mpSnapArrow(); }).observe(document.body);
+  }catch(e){} });
+})();
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-sec-all]'); if(!b) return;
+  e.stopPropagation();
+  const box = b.closest('#stock-sortable-chart'); if(!box) return;
+  if(stockSecEtc.size){   // '기타' 묶음이 있으면 묶임/풀림이 바뀌므로 다시 그림
+    const all = [...new Set([...box.querySelectorAll('[data-sec-fold]')].map(h => h.dataset.secFold).filter(k => k !== ETC_KEY).concat([...stockSecEtc]))], op = !all.every(k => stockSectorOpen[k]);
+    all.forEach(k => { stockSectorOpen[k] = op; }); renderPreservingOpenChartAccordions(); return;
+  }
+  const keys = [...box.querySelectorAll('[data-sec-fold]')].map(h => h.dataset.secFold), open = !keys.every(k => stockSectorOpen[k]);
+  keys.forEach(k => { if(!!stockSectorOpen[k] !== open){ stockSectorOpen[k] = open; mpFold(mpFoldBody(box, 'sec', k), open); } });
+  box.querySelectorAll('[data-sec-fold]').forEach(h => h.classList.toggle('open', open));
+  b.textContent = open ? '▴ 모두 접기' : '▾ 모두 펴기'; mpDonutSync();
+}, true);
+const DONUT_ONE = true;            // 도넛 하나로 통일(2026-11-12). false면 예전처럼 섹터·종목·지역 3개
+let stockSectorOpen = {};          // 섹터순에서 펼친 섹터(처음엔 모두 접힘)
+ const ETC_KEY = '__etc__';        // 섹터순의 '기타'(1% 미만 섹터 묶음) 접힘 키
+let stockSecEtc = new Set();       // 지금 '기타'로 묶인 섹터들(2개 이상일 때만 묶음)
+let stockRegionFlip = false;       // 지역순에서 도넛을 한 번 눌러 반대쪽 지역을 위로 올린 상태(2026-11-12 사용자)
+let stockSecColorNow = {};         // 지금 그린 도넛의 섹터 색(목록 섹터 줄의 색 네모와 같게)
+function mpFoldBody(box, kind, key){ return [...box.querySelectorAll('[data-fold-body]')].find(b => b.dataset.foldBody === kind + ':' + key) || null; }
+function mpFold(body, open){
+  if(!body) return;
+  const h = body.scrollHeight;
+  body.classList.add('anim');
+  if(open){ body.classList.remove('closed'); body.style.maxHeight = '0px'; void body.offsetHeight; body.style.maxHeight = h + 'px'; }
+  else { body.style.maxHeight = h + 'px'; void body.offsetHeight; body.classList.add('closed'); body.style.maxHeight = ''; }
+  clearTimeout(body._ft);
+  body._ft = setTimeout(() => { body.classList.remove('anim'); if(!body.classList.contains('closed')) body.style.maxHeight = ''; try{ window.dispatchEvent(new Event('mp-fold-done')); }catch(e){} }, 420);
+}
+function stockSecKey(d){ return (isCashLikeLabel(d.label) || d.group === '현금') ? '현금' : (d.group || '?'); }
+function stockRegKey(d){ return (d.region || 'domestic') === 'overseas' ? 'overseas' : 'domestic'; }
+// 넓은 PC 화면(터치 아님 + 폭 900px 이상): 접힘 없이 다 펼치고 목록을 두 줄로(2026-11-12 사용자)
+function mpWideList(){ try{ return !donutCarOn() && window.innerWidth >= 900; }catch(e){ return false; } }
+// 중간 폭(641~899px)도 도넛을 왼쪽에 두고 목록 한 줄을 옆에(2026-11-12 사용자: 이 구간에서 도넛이 작아지던 것). 900px↑는 목록 두 줄
+function mpSideOn(){ try{ return !donutCarOn() && window.innerWidth > 640; }catch(e){ return false; } }
+const WIDE_ALL_OPEN = false;   // 넓은 PC에서 접힘 없이 다 펼칠지(2026-11-12 사용자: 아니오 — 휴대폰과 같은 접힘·같은 버튼)
+function stockSecOpen(k){ return (WIDE_ALL_OPEN && mpWideList()) || !!stockSectorOpen[k]; }
+(function(){ let was = null; const lv = () => (mpSideOn() ? 1 : 0) + (mpWideList() ? 1 : 0); window.addEventListener('resize', () => { const w = lv(); if(was !== null && w !== was && document.getElementById('stock-sortable-chart')){ try{ renderPreservingOpenChartAccordions(); }catch(e){} } was = w; }); was = lv(); })();
+function stockRegionFoldState(){
+  const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
+  // first = 목록 위에 펼쳐지는 지역(보통 장중인 쪽, 도넛을 한 번 누르면 반대쪽 — stockRegionFlip). 링 색은 항상 장 기준(mk.side)
+  const first = stockRegionFlip ? other : mk.side, second = first === mk.side ? other : mk.side;
+  if(WIDE_ALL_OPEN && mpWideList()) return { mk, other, first, second, folded: { domestic: false, overseas: false } };
+  return { mk, other, first, second, folded: { [first]: stockRegionFold[first] === true, [second]: stockRegionFold[second] !== false } };
+}
+// 도넛 조각 한 개가 지금 보여야 하는지: u = st(종목 조각) · base(밑의 섹터 색) · ring(섹터 링)
+function stockUState(u, sec, reg, mode, rs, fs){
+  if(mode === 'group'){ const open = sec === '현금' || stockSecOpen(sec); return { hide: u === 'st' ? !open : (u === 'base' ? open : false), dim: false }; }
+  if(mode === 'region' && rs){ const f = !!fs.folded[reg]; return { hide: u === 'st' ? f : (u === 'base' ? !f : false), dim: f && u !== 'st' }; }
+  return { hide: u === 'base', dim: false };
+}
+function stockUAttrs(u, sec, reg, st){ return ` data-u="${u}" data-sec="${escapeHTML(sec)}" data-reg="${reg}"${st.hide ? ' data-hide="1"' : ''}${st.dim ? ' data-dim="1"' : ''}`; }
+function mpDonutSync(){
+  const box = document.getElementById('stock-sortable-chart'); if(!box) return;
+  const mode = box.dataset.umode, rs = box.dataset.urs === '1', fs = stockRegionFoldState();
+  box.querySelectorAll('[data-u]').forEach(el => {
+    const st = stockUState(el.dataset.u, el.dataset.sec, el.dataset.reg, mode, rs, fs);
+    if(st.hide) el.setAttribute('data-hide', '1'); else el.removeAttribute('data-hide');
+    if(st.dim) el.setAttribute('data-dim', '1'); else el.removeAttribute('data-dim');
+  });
+}
+function pieSlicePaths(items, total, r, cx, cy){
+  let angle = -90, out = '';
+  items.forEach(d => {
+    const sweep = (d.amount / total) * 360; if(!(sweep > 0)) return;
+    if(sweep >= 359.9){ out += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.color}"${d.attrs || ''}/>`; angle += sweep; return; }
+    const large = sweep > 180 ? 1 : 0, end = angle + sweep;
+    const x1 = cx + r*Math.cos(angle*Math.PI/180), y1 = cy + r*Math.sin(angle*Math.PI/180);
+    const x2 = cx + r*Math.cos(end*Math.PI/180), y2 = cy + r*Math.sin(end*Math.PI/180);
+    out += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${d.color}"${d.attrs || ''}/>`;
+    angle = end;
+  });
+  return out;
+}
+// 통일 도넛 설계: 종목 순서(도넛·목록 공통), 밑의 섹터 색 층, 섹터 링·지역 링 자료
+function stockUnifiedPlan(raw, holdings, mode){
+  const secW = reorderCashFirst(computeWeights(holdings, 'group')), secColor = {};
+  stockSecColorNow = secColor;
+  secW.forEach((d, i) => { secColor[(isCashLikeLabel(d.label)) ? '현금' : d.label] = rankColor(d.label, d.rank !== undefined ? d.rank : i, d.rankCount !== undefined ? d.rankCount : secW.length, 'group'); });
+  const bySector = xs => { const tot = {}; xs.forEach(d => { const k = stockSecKey(d); tot[k] = (tot[k] || 0) + d.amount; });
+    return xs.slice().sort((a, b) => { const ka = stockSecKey(a), kb = stockSecKey(b);
+      return ((kb === '현금') - (ka === '현금')) || (tot[kb] - tot[ka]) || (ka < kb ? -1 : (ka > kb ? 1 : 0)) || (b.amount - a.amount); }); };
+  let ordered = sortStockData(raw, mode), rs = false;
+  const fs = stockRegionFoldState();
+  stockSecEtc = new Set();
+  if(mode === 'group'){ ordered = bySector(raw);
+    const tot = _.sumBy(raw, 'amount') || 1, st = {}; raw.forEach(d => { const k = stockSecKey(d); st[k] = (st[k] || 0) + d.amount; });
+    const small = Object.keys(st).filter(k => k !== '현금' && st[k] / tot * 100 < 1); if(small.length >= 2) stockSecEtc = new Set(small); }
+  else if(mode === 'region'){
+    const part = g => raw.filter(d => stockRegKey(d) === g);
+    rs = part('domestic').length > 0 && part('overseas').length > 0;
+    if(rs) ordered = bySector(part(fs.mk.side)).concat(bySector(part(fs.other)));   // 도넛 순서는 항상 장 기준(반대쪽 지역을 봐도 도넛 그림은 그대로, 보이는 지역만 바뀜 — 2026-11-12 사용자)   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
+  }
+  ordered = ordered.map((d, i) => ({ ...d, rank: d.rank !== undefined ? d.rank : i, rankCount: d.rankCount !== undefined ? d.rankCount : ordered.length }));   // 색 순번을 도넛 순서로 고정(목록 순서가 달라도 같은 색)
+  const total = _.sumBy(ordered, 'amount') || 1, n = ordered.length, useBase = mode === 'group' || rs;
+  const st = (u, sec, reg) => stockUState(u, sec, reg, mode, rs, fs);
+  const runs = [];
+  if(useBase) ordered.forEach(d => { const sec = stockSecKey(d), reg = stockRegKey(d), k = mode === 'group' ? sec : reg + '|' + sec, l = runs[runs.length - 1];
+    if(l && l.k === k) l.amount += d.amount; else runs.push({ k, amount: d.amount, sec, reg: mode === 'group' ? '' : reg }); });
+  const regTot = { domestic: 0, overseas: 0 }, regCash = { domestic: 0, overseas: 0 };
+  ordered.forEach(d => { const g = stockRegKey(d); regTot[g] += d.amount; if(stockSecKey(d) === '현금') regCash[g] += d.amount; });
+  const baseItems = runs.map(r => ({ amount: r.amount, color: secColor[r.sec] || CASH_COLOR, attrs: stockUAttrs('base', r.sec, r.reg, st('base', r.sec, r.reg)) }));
+  const stItems = ordered.map((d, i) => { const sec = stockSecKey(d), reg = stockRegKey(d);
+    return { amount: d.amount, color: rankColor(d.label, d.rank !== undefined ? d.rank : i, d.rankCount !== undefined ? d.rankCount : n, 'stock'), attrs: ` data-slice-idx="${i}"` + stockUAttrs('st', sec, reg, st('st', sec, reg)) }; });
+  const secRing = useBase ? runs.map(r => ({ label: (rs ? (r.reg === 'domestic' ? '국내 ' : '해외 ') : '') + r.sec, amount: r.amount,
+    pct: rs ? (regTot[r.reg] ? r.amount / regTot[r.reg] * 100 : 0) : r.amount / total * 100,   // 지역순: 그 지역 안에서의 섹터 비중
+    color: secColor[r.sec] || CASH_COLOR, attrs: stockUAttrs('ring', r.sec, r.reg, st('ring', r.sec, r.reg)) })) : null;
+  const regRing = rs ? [fs.mk.side, fs.other].flatMap(g => [
+    { label: g === 'domestic' ? '원화' : '외화', amount: regCash[g], pct: regCash[g] / total * 100, rank: 0, rankCount: 2 },
+    { label: g === 'domestic' ? '국내' : '해외', amount: regTot[g] - regCash[g], pct: (regTot[g] - regCash[g]) / total * 100, rank: g === 'domestic' ? 0 : 1, rankCount: 2,
+      color: g === fs.mk.side ? REGION_LIGHT : REGION_STRONG }   // 지역순: 장중인 쪽 = 밝은 색, 아닌 쪽 = 어두운 색(2026-11-12 사용자)
+  ]).filter(d => d.amount > 0) : null;
+  const r = 74, cx = 80, cy = 80;
+  const pieInner = n === 0
+    ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--text-dim)" stroke-width="1.5" stroke-dasharray="4 4"/>`
+    : `<g transform="translate(160,0) scale(-1,1)">${pieSlicePaths(baseItems, total, r, cx, cy)}${pieSlicePaths(stItems, total, r, cx, cy)}<circle cx="${cx}" cy="${cy}" r="${r*0.55}" fill="var(--surface2)"/></g>`;
+  return { ordered, pieInner, secRing, regRing, rs };
+}
 // 당일 등락률 표시 = 상단 경제지표 카드와 같은 방식(▲/▼ 소수 둘째 자리, % 작게, 상승 #E87BA4 · 하락 #5FB8E0)
 function stockLegendChangeHTML(chg, isCash){
   if(isCash || chg == null || !isFinite(chg)) return '<span style="color:var(--text-dim);font-weight:500;">-</span>';
@@ -2873,6 +3259,8 @@ function assetPanelEnhance(){
     b.style.right = (-gap) + 'px';
     if(gap < 34) row.style.paddingRight = (34 - gap) + 'px';
   });
+  const ch0 = panel.querySelector('.charts'); if(ch0) ch0.classList.toggle('mp-phone', donutCarOn());
+  try{ mpSnapLayout(); }catch(e){}
   const ch = panel.querySelector('.charts'); if(!ch || ch.classList.contains('dn-car')) return;
   const slides = [...ch.children].filter(e => e.classList.contains('chart-box') && e.querySelector('.donut-wrap'));
   if(slides.length < 2 || !donutCarOn()) return;
@@ -2954,8 +3342,8 @@ document.addEventListener('DOMContentLoaded', () => {
   panel.addEventListener('touchend', () => { if(!tip) clearTimeout(timer); }, { passive: true });
 });
 let stockSortCycleActive = null;
-const STOCK_SORT_CYCLE_FULL = ['amount', 'group', 'region', 'name'];
-const STOCK_SORT_CYCLE_NO_REGION = ['amount', 'group', 'name'];
+const STOCK_SORT_CYCLE_FULL = ['region', 'group', 'amount'];   // 2026-11-12 사용자: 지역순→섹터순→금액순→이름순
+const STOCK_SORT_CYCLE_NO_REGION = ['group', 'amount'];   // 이름순 삭제(2026-11-12 사용자)
 const STOCK_SORT_LABEL = { amount:'금액순', group:'섹터순', region:'지역순', name:'이름순' };
 
 function computeStockDataWithMeta(holdings, fallbackAccId){
@@ -3223,6 +3611,12 @@ function cycleStockSort(){
   if(savedRegionPos) pendingRegionAccordionPos = savedRegionPos;
   if(savedLockedRegionPos) pendingRegionAccordionPos = savedLockedRegionPos;
 
+  // 지역순에서 도넛 한 번 = 반대쪽 지역을 위로 펼침(링 색은 그대로, 목록 순서만 바뀜). 한 번 더 누르면 다음 정렬로
+  if(DONUT_ONE && stockLegendSortMode === 'region' && !stockRegionFlip){
+    const bx = document.getElementById('stock-sortable-chart');
+    if(bx && bx.dataset.urs === '1'){ stockRegionFlip = true; stockRegionFold = {}; stockSortPicked = true; render(); return; }
+  }
+  if(DONUT_ONE){ stockRegionFlip = false; stockRegionFold = {}; }
   const cycle = stockSortCycleActive || STOCK_SORT_CYCLE_FULL;
   const idx = cycle.indexOf(stockLegendSortMode);
   stockLegendSortMode = cycle[(idx + 1) % cycle.length];
@@ -3375,13 +3769,13 @@ function decorativeRingsSVG(ringSpecs, cx, cy, pieR, ringW){
       return ringSvg + labelSvg;
     }
     const ordered = spec.preOrdered ? spec.data : reorderCashFirst(spec.data);
-    return ringSegmentsSVG(ordered, spec.type, cx, cy, r, ringW, spec.name, spec.opacity);
+    return ringSegmentsSVG(ordered, spec.type, cx, cy, r, ringW, spec.name, spec.opacity, spec.arcs);
   }).join('');
 }
 
 function stockLegendWithDividers(data, sortMode, compactTotalMode){
   if(data.length === 0) return '<div class="empty">데이터 없음</div>';
-  const legendClass = compactTotalMode ? 'legend stock-sortable-legend' : 'legend';
+  const legendClass = compactTotalMode ? ('legend stock-sortable-legend' + (DONUT_ONE && mpWideList() ? ' wide2' : '')) : 'legend';
   let html = `<div class="${legendClass}">`;
   // 지역보기(2026-11-11 사용자): 열린 장 묶음을 위에 펼치고 다른 쪽은 한 줄로 접음
   let rg = null;
@@ -3389,15 +3783,19 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     const gOf = d => (d.region || 'domestic') === 'domestic' ? 'domestic' : 'overseas';
     const cnt = { domestic: data.filter(d => gOf(d) === 'domestic').length, overseas: data.filter(d => gOf(d) === 'overseas').length };
     if(cnt.domestic && cnt.overseas){
-      const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
-      const folded = { [mk.side]: stockRegionFold[mk.side] === true, [other]: stockRegionFold[other] !== false };
+      const fsr = stockRegionFoldState(), mk = { open: fsr.mk.open, side: fsr.first, real: fsr.mk.side }, other = fsr.second, folded = fsr.folded;   // side·other = 목록에서 위·아래 지역
       data = data.filter(d => gOf(d) === mk.side).concat(data.filter(d => gOf(d) === other));
       const cap = { change:'등락률', pct:'비중', amount:'평가액' }[stockValueModeNow(sortMode)];
       rg = { gOf, folded, last: null, head: g => {
-        const nm = g === 'domestic' ? '국내' : '해외', live = mk.open && g === mk.side ? '<span class="rg-live">장중</span>' : '';
-        return folded[g]
-          ? `<div class="rg-head rg-fold${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="1"><span>▸</span><b>${nm} ${cnt[g]}종목</b>${live}<span class="rg-cap">눌러서 펼치기</span><button type="button" class="rg-reload" title="시세 새로고침">↻</button></div>`
-          : `<div class="rg-head${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="0"><span>▾</span><b>${nm}</b>${live}<span class="rg-cap">${cap}</span></div>`;
+        const nm = g === 'domestic' ? '국내' : '해외', live = mk.open && g === mk.real ? '<span class="rg-live">장중</span>' : '';
+        const off = ' style="display:none"';
+        // 2026-11-12 사용자: 끝에는 '등락률·비중·평가액' 글자 대신 그 지역의 전체 대비 비중. 첫 지역 줄 가운데에 모두 펴기/접기
+        const rpct = DONUT_ONE ? `<span class="rg-cap sec-pct num" style="font-size:13px;">${_.sumBy(data.filter(d => gOf(d) === g), 'pct').toFixed(1)}<span class="pct-sign">%</span></span>` : null;
+        const allB = (DONUT_ONE && g !== other && !(WIDE_ALL_OPEN && mpWideList())) ? `<span class="sec-all" data-reg-all style="margin-left:auto;">${(!folded.domestic && !folded.overseas) ? '▴ 모두 접기' : '▾ 모두 펴기'}</span>` : '';
+        const hf = (on) => `<div class="rg-head rg-fold${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="1"${on ? '' : off}><span>▸</span><b>${nm} ${cnt[g]}종목</b>${live}${allB}${rpct || '<span class="rg-cap">눌러서 펼치기</span>'}<button type="button" class="rg-reload" title="시세 새로고침">↻</button></div>`;
+        const ho = (on) => `<div class="rg-head${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="0"${on ? '' : off}><span>▾</span><b>${nm}</b>${live}${allB}${rpct || `<span class="rg-cap">${cap}</span>`}</div>`;
+        if(DONUT_ONE) return hf(folded[g]) + ho(!folded[g]);   // 두 머리줄을 다 넣어 두고 그 자리에서 바꿈(다시 그리지 않아 펼침 애니메이션이 살아 있음)
+        return folded[g] ? hf(true) : ho(true);
       } };
     }
   }
@@ -3408,11 +3806,27 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
       <div style="flex:1;border-top:1px dashed var(--text-dim);"></div>
     </div>`;
   }
-  if(sortMode === 'group' && data.length > 0){
+  const uniSec = DONUT_ONE && compactTotalMode && sortMode === 'group';   // 섹터순: 섹터마다 접힘 묶음
+  const foldOpen = (kind, key, open) => `<div class="fold-body${open ? '' : ' closed'}" data-fold-body="${kind}:${escapeHTML(key)}">`;
+  let bodyOpen = false, uniLast = null, secAllDone = false, subOpen = false, subLast = null;
+  // 모두 펴기/접기(섹터순, 접힘이 있는 화면에서만): 현금 줄 가운데에 둠(2026-11-12 사용자)
+  const secKeysAll = uniSec ? [...new Set(data.map(stockSecKey))].filter(k => k !== '현금') : [];
+  // '기타'(1% 미만 섹터 묶음)는 그 섹터들이 모두 접혀 있을 때만 한 줄로 보임. 누르면 '기타' 줄은 사라지고 그 섹터들이 펼쳐진 채 나옴. 다 접으면 다시 '기타'로 묶임(2026-11-12 사용자)
+  const etcMerged = uniSec && stockSecEtc.size > 0 && [...stockSecEtc].every(k => !stockSecOpen(k));
+  const secAllBtn = (uniSec && !(WIDE_ALL_OPEN && mpWideList()) && secKeysAll.length > 1) ? `<span class="sec-all" data-sec-all>${secKeysAll.every(k => stockSectorOpen[k]) ? '▴ 모두 접기' : '▾ 모두 펴기'}</span>` : '';
+  const secPct = {}; if(uniSec) data.forEach(d => { const k = stockSecKey(d); secPct[k] = (secPct[k] || 0) + d.pct; });
+  if(sortMode === 'group' && !uniSec && data.length > 0){
     html += sectionHeader(data[0].group);
   }
   data.forEach((d,i) => {
-    if(rg){ const g = rg.gOf(d); if(g !== rg.last){ rg.last = g; html += rg.head(g); } if(rg.folded[g]) return; }
+    if(rg){ const g = rg.gOf(d); if(g !== rg.last){ if(bodyOpen){ html += '</div></div>'; bodyOpen = false; } rg.last = g; if(DONUT_ONE) html += '<div class="sec-grp">'; html += rg.head(g); if(DONUT_ONE){ html += foldOpen('reg', g, !rg.folded[g]); bodyOpen = true; } } if(!DONUT_ONE && rg.folded[g]) return; }
+    if(uniSec){ const k = stockSecKey(d), gk = (etcMerged && stockSecEtc.has(k)) ? ETC_KEY : k;   // 1% 미만 섹터는 '기타' 한 묶음(펼치면 섹터별로 다 풀어서 보임)
+      if(gk !== uniLast){ if(subOpen){ html += '</div>'; subOpen = false; } if(bodyOpen){ html += '</div></div>'; bodyOpen = false; } uniLast = gk; subLast = null;
+        if(gk !== '현금' && secAllBtn && !secAllDone){ html += `<div class="sec-all-row">${secAllBtn}</div>`; secAllDone = true; }   // 현금 줄이 없으면 맨 위에 따로
+        if(gk !== '현금'){ const isEtc = gk === ETC_KEY, pctV = isEtc ? _.sum([...stockSecEtc].map(x => secPct[x] || 0)) : (secPct[k] || 0);
+          html += `<div class="sec-grp"><div class="sec-head${stockSecOpen(gk) ? ' open' : ''}" data-sec-fold="${escapeHTML(gk)}"><span class="swatch" style="background:${isEtc ? '#9A9BA1' : (stockSecColorNow[k] || CASH_COLOR)}"></span><span class="sec-nm">${isEtc ? '기타' : escapeHTML(k)}</span><div class="sec-ln"></div><span class="sec-pct num">${pctV.toFixed(1)}<span class="pct-sign">%</span></span></div>` + foldOpen('sec', gk, stockSecOpen(gk)); bodyOpen = true; } }
+      if(gk === ETC_KEY && k !== subLast){ if(subOpen) html += '</div>'; subLast = k; subOpen = true;
+        html += `<div class="sec-head sub open"><span class="swatch" style="background:${stockSecColorNow[k] || CASH_COLOR}"></span><span class="sec-nm">${escapeHTML(k)}</span><div class="sec-ln"></div><span class="sec-pct num">${(secPct[k] || 0).toFixed(1)}<span class="pct-sign">%</span></span></div><div class="sec-sub">`; } }
     const rank = d.rank !== undefined ? d.rank : i;
     const rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
     const color = rankColor(d.label, rank, rankCount, 'stock');
@@ -3440,11 +3854,12 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     const valueTitle = compactTotalMode ? (vMode === 'amount' ? '평가액 보기' : (vMode === 'change' ? '당일 등락률 보기' : '비율 보기')) : '';
     const valueAttrs = compactTotalMode ? ` data-stock-value-toggle title="${valueTitle}"` : '';
     const valueModeClass = compactTotalMode ? (vMode === 'amount' ? 'stock-value-amount' : 'stock-value-pct') : '';
-    html += `<div class="legend-item"><span class="swatch" style="background:${color}"></span><span class="legend-name"${clickAttrs}>${escapeHTML(d.label)}</span><span class="legend-pct num ${valueModeClass}"${valueAttrs} style="${pctStyle}">${valueText}</span></div>`;
+    const allBtnHere = (uniSec && secAllBtn && !secAllDone && stockSecKey(d) === '현금') ? (secAllDone = true, secAllBtn) : '';
+    html += `<div class="legend-item"><span class="swatch" style="background:${color}"></span><span class="legend-name"${clickAttrs}>${escapeHTML(d.label)}</span>${allBtnHere}<span class="legend-pct num ${valueModeClass}"${valueAttrs} style="${pctStyle}">${valueText}</span></div>`;
     if(i < data.length - 1){
       const next = data[i+1];
       let showDivider = false;
-      if(sortMode === 'group' && d.group !== next.group) showDivider = true;
+      if(sortMode === 'group' && !uniSec && d.group !== next.group) showDivider = true;
       if(sortMode === 'region' && !rg && (d.region||'domestic') !== (next.region||'domestic')) showDivider = true;
       if(showDivider){
         if(sortMode === 'group'){
@@ -3455,6 +3870,8 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
       }
     }
   });
+  if(subOpen) html += '</div>';
+  if(bodyOpen) html += (DONUT_ONE && (rg || uniSec)) ? '</div></div>' : '</div>';
   html += '</div>';
   return html;
 }
@@ -3464,7 +3881,8 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
   if(!stockSortPicked) stockLegendSortMode = stockSortCycleActive.includes('region') ? 'region' : 'amount';
   if(!stockSortCycleActive.includes(stockLegendSortMode)) stockLegendSortMode = 'amount';
   const rawData = computeStockDataWithMeta(holdings, fallbackAccId);
-  const ordered = sortStockData(rawData, stockLegendSortMode);
+  const U = (DONUT_ONE && compactTotalMode) ? stockUnifiedPlan(rawData, holdings, stockLegendSortMode) : null;
+  const ordered = U ? U.ordered : sortStockData(rawData, stockLegendSortMode);
   const centerLabel = STOCK_SORT_LABEL[stockLegendSortMode];
   // 외부링은 기본 투명도 0.5, 현재 정렬기준과 일치하는 링(섹터순->섹터링, 국내해외순->지역링)만 1.0
   const rings = (extraRingSpecs || []).map(spec => {
@@ -3472,7 +3890,14 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
     let opacity = 0.7;
     if(stockLegendSortMode === 'group' && spec.name === 'decorative-sector') opacity = 1;
     if(stockLegendSortMode === 'region' && spec.name === 'decorative-region') opacity = 1;
-    return { ...spec, opacity };
+    // 종목 순서와 맞춘 섹터 링(지역순이면 지역별 섹터 비중). 지역순에서는 톤다운(0.7), 섹터순의 지역 링도 톤다운(0.7) — 2026-11-12 사용자
+    if(U && spec.name === 'decorative-sector' && U.secRing) return { ...spec, data: U.secRing, preOrdered: true, opacity: stockLegendSortMode === 'region' ? 0.7 : null, arcs: true };
+    if(U && spec.name === 'decorative-region' && stockLegendSortMode === 'region' && U.regRing) return { ...spec, data: U.regRing, preOrdered: true, opacity: 1, arcs: true };
+    if(U && spec.name === 'decorative-region'){   // 금액순·섹터순·이름순의 지역 링도 장중인 쪽 = 밝은 색(2026-11-12 사용자)
+      const side = mpMarketSide().side, col = g => g === side ? REGION_LIGHT : REGION_STRONG;
+      return { ...spec, opacity, arcs: true, data: spec.data.map(d => d.label === '국내' ? { ...d, color: col('domestic') } : (d.label === '해외' ? { ...d, color: col('overseas') } : d)) };
+    }
+    return { ...spec, opacity, arcs: !!U };
   });
 
   // 파이(종목) 자체 반지름은 다른 단독 도넛과 완전히 동일(size=160 기준 r=74)하게 유지하고,
@@ -3481,14 +3906,14 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
   const hasPartialLabel = rings.some(r => r.partial && r.partial.amountLabel);
   const outerSize = 2 * (pieR + rings.length * ringW + (hasPartialLabel ? 14 : 6));
   const cx = outerSize/2, cy = outerSize/2;
-  const pieInner = donutSVG(ordered, 160, 'stock').replace(/^<div class="donut-wrap">/, '').replace(/<\/div>$/, '');
+  const pieInner = U ? U.pieInner : donutSVG(ordered, 160, 'stock').replace(/^<div class="donut-wrap">/, '').replace(/<\/div>$/, '');
   // 계좌유형링을 삭제해서 링 개수가 전반적으로 1개씩 줄어든 만큼, 크기 기준도 한 단계씩 낮춰서
   // (=한 단계씩 큰 사이즈를 써서) 도넛이 예전과 비슷한 크기로 보이도록 보정한다.
   // 파이(원) 자체는 항상 동일한 크기(pieR=74)를 유지하고, 링 개수만큼 캔버스만 정확히 넓어진다.
   // (원-CSS박스 크기는 1:1로 대응: 0개=160px, 1개=172px, 2개=184px, 3개=196px, 4개=208px)
   const sizeClass = rings.length >= 4 ? 'donut-wrap-xxl' : (rings.length >= 3 ? 'donut-wrap-xl' : (rings.length >= 2 ? 'donut-wrap-lg' : 'donut-wrap-md'));
 
-  return `<div class="chart-box" id="stock-sortable-chart">
+  return `<div class="chart-box${U && mpSideOn() ? ' side' : ''}" id="stock-sortable-chart" data-umode="${stockLegendSortMode}" data-urs="${U && U.rs ? 1 : 0}">
     <div class="donut-wrap ${sizeClass}" style="position:relative;cursor:pointer;" data-donut-cycle>
       <svg width="100%" height="100%" viewBox="0 0 ${outerSize} ${outerSize}" style="display:block;">
         <g transform="translate(${cx-80},${cy-80})">
@@ -4719,12 +5144,20 @@ function holdingsTable(holdings, accId, editable, showRegion, alignMode, mergeDu
   return `<div>${rows}</div>`;
 }
 
-function lineChartSVG(points, extraSeries, width, height, labelMode, responsive){
+function lineChartSVG(points, extraSeries, width, height, labelMode, responsive, opts){
   if(points.length === 0) return '<div class="empty">저장된 월별 자산이 없습니다.</div>';
   labelMode = labelMode || 'normal';
+  opts = opts || {};
   const padX = 30, topPad = 66, bottomPad = 34;
-  const maxVal = Math.max(...points.map(p=>p.value), 1);
-  const minVal = Math.min(0, ...points.map(p=>p.value));
+  let denseMax = 1; (opts.dense || []).forEach(sr => sr.pts.forEach(p => { if(p[1] > denseMax) denseMax = p[1]; }));   // 지수선(일별)도 세로 범위에 넣음
+  let maxVal = Math.max(...points.map(p=>p.value), 1, denseMax);
+  let minVal = Math.min(0, ...points.map(p=>p.value));
+  // 2026-11-12 사용자: 자산선과 지수선만 볼 때는 0부터가 아니라 선들이 실제로 움직인 범위(가장 벌어진 곳 기준)로 아래위를 확대
+  if((opts.dense || []).length > 0 && !(extraSeries || []).length){
+    let lo = Math.min(...points.map(p=>p.value)), hi = maxVal;
+    opts.dense.forEach(sr => sr.pts.forEach(p => { if(p[1] < lo) lo = p[1]; }));
+    if(hi > lo){ const pad = (hi - lo) * 0.06; minVal = lo - pad; maxVal = hi + pad; }
+  }
   const xStep = points.length > 1 ? (width - padX*2) / (points.length - 1) : 0;
   const scaleY = v => height - bottomPad - ((v - minVal) / (maxVal - minVal || 1)) * (height - topPad - bottomPad);
   const coords = points.map((p,i) => [padX + i*xStep, scaleY(p.value)]);
@@ -4857,7 +5290,12 @@ function lineChartSVG(points, extraSeries, width, height, labelMode, responsive)
     legend += `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:14px;"><span style="width:8px;height:8px;border-radius:2px;background:${s.color};display:inline-block;"></span>${escapeHTML(s.name)}</span>`;
   });
 
-  const legendHtml = `<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-dim);margin-bottom:4px;"><span>${legend}</span><span>단위: 만원</span></div>`;
+  // 지수선(2026-11-12): 월말 종가 점 + 그 사이 일별 궤적. x는 '몇 번째 달'(소수) 단위
+  (opts.dense || []).forEach(sr => {
+    const dp = sr.pts.map((p,i) => (i ? 'L' : 'M') + (padX + p[0]*xStep).toFixed(1) + ',' + scaleY(p[1]).toFixed(1)).join(' ');
+    extraPaths += `<path d="${dp}" fill="none" stroke="${sr.color}" stroke-width="1.4" stroke-linejoin="round" opacity="0.95"/>` + sr.ends.map(p => `<circle cx="${(padX + p[0]*xStep).toFixed(1)}" cy="${scaleY(p[1]).toFixed(1)}" r="2.3" fill="${sr.color}"/>`).join('');
+  });
+  const legendHtml = `<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-dim);margin-bottom:4px;"><span>${opts.legendHtml != null ? opts.legendHtml : legend}</span><span style="flex-shrink:0;">단위: 만원</span></div>`;
 
   const svgWidthAttr = responsive ? '100%' : width;
   const overlayDiv = responsive ? `<div style="position:absolute;inset:0;pointer-events:none;">${htmlOverlayParts.join('')}</div>` : '';
@@ -5329,6 +5767,17 @@ function trendBarsHTML(snapshots, groupKey, type, title, compact, idPrefix){
   const rowGap = compact ? 1 : 3;
   const ordered = snapshots.slice().reverse();
   const seriesArr = [];
+  if(HIST_NEW){
+    // 2026-11-12 사용자: 제목 없음, 막대는 왼쪽 끝까지, 날짜 글자는 매년 1월 줄에만(막대 위에 겹쳐 표시). 굵기·보이는 줄 수는 historyBarsFit이 화면에 맞춤
+    const rows2 = ordered.map((s,i) => {
+      const byKey = reorderCashFirst(computeWeights(_.flatMap(s.accounts, a => a.holdings), groupKey));
+      seriesArr.push({ byKey, monthLabel: fullMonthLabel(s.label) });
+      const rowId = `${idPrefix}-${i}`, jan = normalizeLabel(s.label).slice(4,6) === '01';
+      return `<div class="tb2-row" data-age="${i}"><div class="tb2-bar" data-trendrow="${rowId}">${stackedBarSVG(byKey, 600, 13, type)}${jan ? `<span class="tb2-lb num">${escapeHTML(shortMonthLabel(s.label))}</span>` : ''}</div><div id="trend-slot-${rowId}"></div></div>`;
+    }).join('');
+    trendSeriesData[idPrefix] = seriesArr;
+    return `<div class="tb2-grp">${rows2}</div>`;
+  }
   const rows = ordered.map((s,i) => {
     const holdings = _.flatMap(s.accounts, a => a.holdings);
     const byKeyRaw = computeWeights(holdings, groupKey);
@@ -5379,8 +5828,8 @@ function renderTabs(){
   html += `<div class="tab-br"></div>`;      // 계좌 탭 줄 / 나머지 탭 줄 나눔(2026-10-13)
   html += `<div class="tab total ${isAsset?'active':''}" data-tab="__total__">자산</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
-  html += `<div class="tab ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}" style="color:rgba(212,255,61,0.8);">관심</div>`;
   html += `<div class="tab ${state.activeId==='__analysis__'?'active':''}" data-tab="__analysis__" style="color:#D4FF3D;">V1</div>`;
+  html += `<div class="tab ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}" style="color:rgba(212,255,61,0.8);">관심</div>`;
   html += `<div class="tab warn200" id="warn200Tab" title="200일선 붕괴 사례"><svg width="18" height="16" viewBox="0 0 18 16" aria-hidden="true"><path d="M9 1.5 17 15H1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 6v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="12.6" r="1" fill="currentColor"/></svg></div>`;
   html += `<div class="tab mng ${state.activeId==='__deleteAccounts__'?'active':''}" data-tab="__deleteAccounts__">관리</div>`;
   try{                                                     // 다시 그리기 전에 로고·백업 칩을 보관 자리로(안 그러면 탭과 같이 지워짐)
@@ -5654,6 +6103,70 @@ function buildAccountTypeFilteredSnapshots(snapshots, accountTypes){
   }).filter(Boolean);
 }
 
+// ── 월별 탭 개편(2026-11-12 사용자) ─────────────────────────────────────────────
+// 지수선: 코스피·나스닥·S&P 일별 종가를 하루 한 번 받아 기기에 저장. 선택 기간 첫 달의 자산 금액에 시작점을 맞춰 같은 축에 그림(입출금이 있으면 자산선과 직접 비교는 어긋남 — 사용자 인지)
+const HIST_NEW = true;
+const HIDX = [ { key:'kospi', sym:'^KS11', name:'코스피', color:'#F2A65A' }, { key:'ndx', sym:'^IXIC', name:'나스닥', color:'#E87BA4' }, { key:'spx', sym:'^GSPC', name:'S&P', color:'#5FB8E0' } ];   // 색 = 200일선 붕괴 사례 페이지의 지수 색(crash200.js XC)
+const HIDX_KEY = 'moneypie:idxhist', HLINE_KEY = 'moneypie:histlines';
+let hidxData = null, hidxBusy = false, hidxFailAt = 0;
+let historyLineOff = (() => { try{ const v = JSON.parse(localStorage.getItem(HLINE_KEY) || 'null'); if(v && typeof v === 'object') return v; }catch(e){} return { '국내': true, '해외': true, 'S&P': true }; })();   // 처음엔 자산·코스피·나스닥만(마통은 자료 있으면 표시)
+let historyZoom = 1, historyBarsAll = false;
+async function hidxEnsure(fromYm){
+  if(!fromYm || fromYm.length < 6) return;
+  if(!hidxData){ try{ hidxData = JSON.parse(localStorage.getItem(HIDX_KEY) || 'null'); }catch(e){} }
+  const p1 = Math.floor(Date.UTC(+fromYm.slice(0,4), +fromYm.slice(4,6) - 1, 1) / 1000) - 12*86400, today = new Date().toLocaleDateString('sv');
+  if(hidxData && hidxData.day === today && hidxData.from <= p1) return;
+  if(hidxBusy || Date.now() - hidxFailAt < 5*60000) return;
+  hidxBusy = true;
+  try{
+    const p2 = Math.floor(Date.now()/1000) + 86400, out = { day: today, from: p1, idx: {} };
+    await Promise.all(HIDX.map(async cfg => {
+      const res = await fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(cfg.sym)}?period1=${p1}&period2=${p2}&interval=1d&_=${Date.now()}`, 15000);
+      if(!res || !res.ok) throw new Error('지수 ' + cfg.key);
+      const j = await res.json(), r = j && j.chart && j.chart.result && j.chart.result[0];
+      if(!r || !r.timestamp) throw new Error('지수 자료 없음');
+      const off = (r.meta && r.meta.gmtoffset) || 0, cl = ((r.indicators.quote || [])[0] || {}).close || [], d = [], c = [];
+      r.timestamp.forEach((t, i) => { if(cl[i] == null) return; const ds = new Date((t + off) * 1000).toISOString().slice(0, 10);
+        if(d.length && d[d.length-1] === ds){ c[c.length-1] = +cl[i].toFixed(2); return; } d.push(ds); c.push(+cl[i].toFixed(2)); });
+      out.idx[cfg.key] = { d, c };
+    }));
+    hidxData = out; try{ localStorage.setItem(HIDX_KEY, JSON.stringify(out)); }catch(e){}
+    if(state.activeId === '__history__' && !historyListMode) render();
+  }catch(e){ hidxFailAt = Date.now(); }
+  finally{ hidxBusy = false; }
+}
+// labels = 화면에 그리는 달(YYYYMM)들. 각 달의 마지막 개장일 종가를 점으로, 그 사이 일별 종가를 궤적으로. base = 첫 달 자산
+function hidxDense(cfg, labels, base){
+  const sr = hidxData && hidxData.idx && hidxData.idx[cfg.key]; if(!sr || !sr.d || !sr.d.length || !(base > 0) || labels.length < 2) return null;
+  const endIdx = ym => { const lim = ym.slice(0,4) + '-' + ym.slice(4,6) + '-31'; let lo = 0, hi = sr.d.length - 1, r = -1; while(lo <= hi){ const m = (lo + hi) >> 1; if(sr.d[m] <= lim){ r = m; lo = m + 1; } else hi = m - 1; } return r; };
+  const e = labels.map(endIdx); if(e[0] < 0) return null;
+  const b = sr.c[e[0]]; if(!(b > 0)) return null;
+  const pts = [[0, base]], ends = [[0, base]];
+  for(let i = 1; i < e.length; i++){
+    const a = e[i-1], z = e[i];
+    if(z <= a){ const v = pts[pts.length-1][1]; pts.push([i, v]); ends.push([i, v]); continue; }
+    for(let k = a + 1; k <= z; k++) pts.push([(i - 1) + (k - a) / (z - a), sr.c[k] / b * base]);
+    ends.push([i, sr.c[z] / b * base]);
+  }
+  return { name: cfg.name, color: cfg.color, pts, ends };
+}
+// 막대: 화면 아래 끝까지 스크롤 없이 다 보이게 굵기를 정함(4~13px). 4px로도 다 안 들어가면 최근 달부터 들어가는 만큼만 보이고 ▼로 전체
+function historyBarsFit(){
+  const panel = document.getElementById('panel'); if(!panel) return;
+  const grps = [...panel.querySelectorAll('.tb2-grp')]; if(!grps.length) return;
+  const n = grps[0].querySelectorAll('.tb2-row').length; if(!n) return;
+  const top = grps[0].getBoundingClientRect().top + window.scrollY;
+  let avail = window.innerHeight - top - 46; if(avail < 150) avail = 3 * Math.min(n, 12) * 8 + 20;   // 화면이 낮으면(가로보기 등) 12줄 기준
+  const per = (avail - 20) / 3;
+  let bar = Math.floor(per / n) - 1, show = n; const trunc = bar < 4;
+  if(trunc && !historyBarsAll) show = Math.max(3, Math.floor(per / 5));
+  bar = Math.max(4, Math.min(13, bar));
+  panel.style.setProperty('--tbh', bar + 'px');
+  grps.forEach(g => g.querySelectorAll('.tb2-row').forEach(r => r.classList.toggle('hid', +r.dataset.age >= show)));
+  const mb = document.getElementById('tb2More'); if(mb){ mb.style.display = trunc ? 'flex' : 'none'; mb.textContent = historyBarsAll ? '▲' : '▼'; }
+}
+window.addEventListener('resize', () => { try{ if(state.activeId === '__history__' && !historyListMode){ if(historyLandNow() !== historyLandNow.was) render(); else historyBarsFit(); } }catch(e){} });
+function historyLandNow(){ try{ donutCarOn(); return !!mpTouchDev && window.innerWidth > window.innerHeight && window.innerHeight <= 540; }catch(e){ return false; } }   // 휴대폰 가로보기
 function renderHistoryPanel(){
   const panel = document.getElementById('panel');
   const sorted = state.snapshots;
@@ -5702,7 +6215,7 @@ function renderHistoryPanel(){
   const rangeOptions = [['ytd','올해'],['3','최근 3개월'],['6','최근 6개월'],['12','최근 12개월'],['24','최근 24개월'],['all','전체']];
   const rangeSelector = `
     <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:10px;">
-      <div>${snapBtnHtml()}</div>${historyListBtnHtml()}<div style="display:flex;justify-content:flex-end;">
+      <div>${snapBtnHtml()}</div><div style="display:flex;align-items:center;gap:6px;">${HIST_NEW ? '<button type="button" class="hz-btn" data-hzoom="-1" title="그래프 축소">−</button>' : ''}${historyListBtnHtml()}${HIST_NEW ? '<button type="button" class="hz-btn" data-hzoom="1" title="그래프 확대">+</button>' : ''}</div><div style="display:flex;justify-content:flex-end;">
       <select id="rangeSelect" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;font-family:inherit;">
         ${rangeOptions.map(([v,l]) => `<option value="${v}" ${v===range?'selected':''}>${l}</option>`).join('')}
       </select></div>
@@ -5714,10 +6227,30 @@ function renderHistoryPanel(){
   const overseasAllZero = overseasPoints.every(p => Math.abs(p.value) < 1);
   const showRegionLines = !domesticAllZero && !overseasAllZero;
   const lineSeries = [];
-  if(hasCreditData) lineSeries.push({ points: creditUsedPoints, color: CREDIT_USED_COLOR, name: '마통', showLabel: false, area: true });
+  const lineOn = nm => !HIST_NEW || !historyLineOff[nm];
+  if(hasCreditData && lineOn('마통')) lineSeries.push({ points: creditUsedPoints, color: CREDIT_USED_COLOR, name: '마통', showLabel: false, area: true });
   if(showRegionLines){
-    lineSeries.push({ points: domesticPoints, color: '#C7C8CD', name: '국내' });
-    lineSeries.push({ points: overseasPoints, color: '#9A9BA1', name: '해외' });
+    if(lineOn('국내')) lineSeries.push({ points: domesticPoints, color: '#C7C8CD', name: '국내' });
+    if(lineOn('해외')) lineSeries.push({ points: overseasPoints, color: '#9A9BA1', name: '해외' });
+  }
+  // 범례 = 선 켜고 끄는 버튼(끈 선은 흐리게). 지수선은 자료가 오면 그려짐
+  const hlChip = (nm, color) => `<span class="hl-chip${historyLineOff[nm] ? ' off' : ''}" data-hline="${nm}"><i style="background:${color}"></i>${nm}</span>`;
+  const chartOpts = {};
+  let chartW = 860, chartH = 205, chartResp = rk === 'all' || rk === '3' || rk === '6';
+  let chartLm = rk === '24' ? 'shrink' : (rk === 'all' ? 'sparse' : ((rk === '6' || rk === '12') ? 'small' : 'normal'));
+  if(HIST_NEW){
+    chartOpts.legendHtml = (hasCreditData ? hlChip('마통', CREDIT_USED_COLOR) : '') + (showRegionLines ? hlChip('국내', '#C7C8CD') + hlChip('해외', '#9A9BA1') : '') + HIDX.map(c => hlChip(c.name, c.color)).join('');
+    const labels = filtered.map(s => normalizeLabel(s.label));
+    if(sorted.length) hidxEnsure(normalizeLabel(sorted[0].label));   // 먼저 호출: 저장해 둔 지수 자료를 여기서 읽어 옴(새로고침 뒤 첫 화면에 지수선이 안 보이던 것 — 2026-11-12)
+    chartOpts.dense = points.length > 1 ? HIDX.filter(c => !historyLineOff[c.name]).map(c => hidxDense(c, labels, points[0].value)).filter(Boolean) : [];
+    const contW = Math.max(280, (panel.clientWidth || 360) - 26), land = historyLandNow(); historyLandNow.was = land;
+    const byStep = w => { const st = (w - 60) / Math.max(1, points.length - 1); return st >= 62 ? 'normal' : (st >= 50 ? 'small' : (st >= 34 ? 'shrink' : 'sparse')); };
+    if(land){ chartH = Math.max(205, window.innerHeight - 84); if(historyZoom === 1){ chartW = contW; chartResp = false; chartLm = byStep(contW); } }   // 가로보기: 그래프가 화면 높이·폭에 꽉 차게
+    if(historyZoom !== 1){   // 확대·축소: 그래프 폭을 배율만큼(화면 폭보다 좁아지지는 않음). 글자 밀도는 점 간격에 맞춤
+      const baseW = (chartResp || land) ? contW : 860;
+      const minZ = contW / baseW; if(historyZoom < minZ) historyZoom = minZ;
+      chartW = Math.round(Math.max(contW, baseW * historyZoom)); chartResp = false; chartLm = byStep(chartW);
+    }
   }
 
   panel.innerHTML = `
@@ -5725,14 +6258,34 @@ function renderHistoryPanel(){
     ${rangeSelector}
     <div style="position:relative;">
       <div id="total-memo-slot"></div>
-      <div class="trend-wrap">${lineChartSVG(points, lineSeries, 860, 205, rk === '24' ? 'shrink' : (rk === 'all' ? 'sparse' : ((rk === '6' || rk === '12') ? 'small' : 'normal')), rk === 'all' || rk === '3' || rk === '6')}</div>
+      <div class="trend-wrap">${lineChartSVG(points, lineSeries, chartW, chartH, chartLm, chartResp, chartOpts)}</div>
     </div>
     ${trendBarsHTML(filtered, 'group', 'group', '섹터', rk === 'all' || rk === '24', 'group')}
     ${trendBarsHTML(filtered, regionLabelFor, 'region', '지역', rk === 'all' || rk === '24', 'region')}
     ${trendBarsHTML(filtered, 'name', 'stock', '종목', rk === 'all' || rk === '24', 'stock')}
+    ${HIST_NEW ? '<div id="tb2More">▼</div>' : ''}
   `;
   const trendScrollEl = panel.querySelector('.trend-scroll');
   if(trendScrollEl) trendScrollEl.scrollLeft = trendScrollEl.scrollWidth;
+  if(HIST_NEW){
+    panel.querySelectorAll('[data-hline]').forEach(el => el.addEventListener('click', () => {
+      const nm = el.dataset.hline; historyLineOff[nm] = !historyLineOff[nm];
+      try{ localStorage.setItem(HLINE_KEY, JSON.stringify(historyLineOff)); }catch(e){}
+      render();
+    }));
+    const zoomBy = f => { historyZoom = Math.max(0.3, Math.min(5, historyZoom * f)); if(Math.abs(historyZoom - 1) < 0.06) historyZoom = 1; render(); };
+    panel.querySelectorAll('[data-hzoom]').forEach(b => b.addEventListener('click', () => zoomBy(b.dataset.hzoom === '1' ? 1.3 : 1 / 1.3)));
+    // 두 손가락으로 벌리기·오므리기 = 확대·축소(손을 떼면 반영)
+    const tw = panel.querySelector('.trend-wrap');
+    if(tw){ let d0 = 0, d1 = 0; const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+      tw.addEventListener('touchstart', ev => { if(ev.touches.length === 2){ d0 = d1 = dist(ev.touches); } }, { passive: true });
+      tw.addEventListener('touchmove', ev => { if(ev.touches.length === 2 && d0){ d1 = dist(ev.touches); if(ev.cancelable) ev.preventDefault(); } }, { passive: false });
+      tw.addEventListener('touchend', ev => { if(d0 && ev.touches.length < 2){ const f = d1 / d0; d0 = 0; if(Math.abs(f - 1) > 0.08) zoomBy(f); } }, { passive: true });
+      tw.addEventListener('gesturestart', ev => ev.preventDefault()); }
+    const mb = document.getElementById('tb2More'); if(mb) mb.addEventListener('click', () => { historyBarsAll = !historyBarsAll; historyBarsFit(); });
+    historyBarsFit(); requestAnimationFrame(historyBarsFit);
+    if(historyLandNow() && tw){ try{ window.scrollTo(0, tw.getBoundingClientRect().top + window.scrollY - 74); }catch(e){} }
+  }
   document.querySelectorAll('[data-history-acc]').forEach(btn => {
     btn.addEventListener('click', () => {
       const selectorEl = document.getElementById('historyAccSelector');
@@ -5816,7 +6369,7 @@ function subTypeBarBlock(holdingsWithType, selectedTypes){
     if(clickable) typeIdx++;
     const rankBg = rankColor(d.label, i, data.length, 'accountType');
     const btnStyle = clickable
-      ? `cursor:pointer;border:1px solid ${isSelected ? stepBg : 'var(--border)'};border-radius:6px;padding:4px 6px;${isSelected ? `background:${stepBg};` : ''}`
+      ? `cursor:pointer;border:1px solid ${isSelected ? stepBg : '#5A5B61'};border-radius:6px;padding:4px 6px;${isSelected ? `background:${stepBg};` : ''}`
       : 'padding:4px 6px;';
     const textStyle = isSelected ? `color:${stepText};` : '';
     return `<div class="legend-item" ${clickable ? `data-subtype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? 'var(--bg)' : rankBg};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;${textStyle}">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;${textStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
@@ -5842,7 +6395,7 @@ function accountTypeBarChartBlock(selectedTypes){
     if(clickable) typeIdx++;
     const rankBg = rankColor(d.label, i, data.length, 'accountType');
     const btnStyle = clickable
-      ? `cursor:pointer;border:1px solid ${isSelected ? stepBg : 'var(--border)'};border-radius:6px;padding:4px 6px;${isSelected ? `background:${stepBg};` : ''}`
+      ? `cursor:pointer;border:1px solid ${isSelected ? stepBg : '#5A5B61'};border-radius:6px;padding:4px 6px;${isSelected ? `background:${stepBg};` : ''}`
       : 'padding:4px 6px;';
     const textStyle = isSelected ? `color:${stepText};` : '';
     return `<div class="legend-item" ${clickable ? `data-accounttype-filter="${escapeHTML(d.label)}"` : ''} style="flex-direction:column;align-items:center;gap:2px;min-width:0;${btnStyle}"><span style="display:flex;align-items:center;gap:4px;"><span class="swatch" style="background:${isSelected ? 'var(--bg)' : rankBg};width:8px;height:8px;flex-shrink:0;"></span><span class="legend-name" style="font-size:12.5px;white-space:nowrap;${textStyle}">${escapeHTML(d.label)}</span></span><span class="legend-pct num" style="font-size:12.5px;white-space:nowrap;${textStyle}">${d.pct.toFixed(1)}<span class="pct-sign">%</span></span></div>`;
@@ -6269,11 +6822,11 @@ function renderPanel0(){
       ${subTypeBarHtml}
       <div class="charts">
         ${(sectorAccordionShowRegionBar = false, '')}
-        ${sectorChartBlock(holdings)}
+        ${DONUT_ONE ? '' : sectorChartBlock(holdings)}
         ${stockChartBlockSortable(holdings, false, [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' }
         ], undefined, true)}
-        ${noFilterActive ? '' : lockedRegionDonutBlock(region, total === 0 ? [] : holdingsInScopeAllRegions)}
+        ${(DONUT_ONE || noFilterActive) ? '' : lockedRegionDonutBlock(region, total === 0 ? [] : holdingsInScopeAllRegions)}
       </div>
     `;
     initAccountBtnScrollAlignment();
@@ -6384,7 +6937,7 @@ function renderPanel0(){
             ${accountTypeBarChartBlock(selectedTypesFromAccountFilter(totalAccountFilterSel, eligibleAccountIdsTotal))}
           </div>
         </div>
-        ${sectorChartBlock(scopedHoldings)}
+        ${DONUT_ONE ? '' : sectorChartBlock(scopedHoldings)}
         ${stockChartBlockSortable(scopedHoldings, true, [
           { data: computeWeights(scopedHoldings, 'group'), type: 'group', name: 'decorative-sector' },
           { data: regionQuadRingData(scopedHoldings), type: 'region', name: 'decorative-region', preOrdered: true },
@@ -6398,7 +6951,7 @@ function renderPanel0(){
             amountLabel: `${Math.floor(totalCreditUsed/10000).toLocaleString()}`
           }, name: 'decorative-credit' }] : [])
         ], undefined, true)}
-        ${regionChartBlock(scopedHoldings)}
+        ${DONUT_ONE ? '' : regionChartBlock(scopedHoldings)}
       </div>
     `;
     initAccountBtnScrollAlignment();
@@ -6484,12 +7037,12 @@ function renderPanel0(){
     <div id="holdingsTableScroll" style="overflow-x:auto;">${holdingsTable(acc.holdings, acc.id, true, true, false, false, accountTableSortMode)}</div>
     ${acc.id === WATCHLIST_ID ? '' : `<div class="charts">
       ${(sectorAccordionShowRegionBar = true, '')}
-      ${sectorChartBlock(acc.holdings)}
+      ${DONUT_ONE ? '' : sectorChartBlock(acc.holdings)}
       ${stockChartBlockSortable(acc.holdings, true, [
         { data: computeWeights(acc.holdings, 'group'), type: 'group', name: 'decorative-sector' },
         { data: regionQuadRingData(acc.holdings), type: 'region', name: 'decorative-region', preOrdered: true }
       ], acc.id, true)}
-      ${regionChartBlock(acc.holdings)}
+      ${DONUT_ONE ? '' : regionChartBlock(acc.holdings)}
     </div>`}
   `;
 
@@ -10340,12 +10893,14 @@ function checkNoticeHtml(){
 })();
 </script>
 
-<div id="adfit-bottom">
-  <ins class="kakao_ad_area" style="display:none;"
-       data-ad-unit="DAN-mgWowulkqYj3kO2r"
-       data-ad-width="320"
-       data-ad-height="50"></ins>
-  <script type="text/javascript" src="//t1.kakaocdn.net/kas/static/ba.min.js" async></script>
-</div>
+<script>
+/* 위쪽 광고(카카오 애드핏). MP_AD_ON=true일 때만 넣음 — 코드는 보관(2026-11-12 사용자: 스위치로 끔) */
+if(window.MP_AD_ON){ (function(){
+  var d = document.createElement('div'); d.id = 'adfit-bottom';
+  d.innerHTML = '<ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-mgWowulkqYj3kO2r" data-ad-width="320" data-ad-height="50"></ins>';
+  document.body.appendChild(d);
+  var sc = document.createElement('script'); sc.async = true; sc.src = '//t1.kakaocdn.net/kas/static/ba.min.js'; d.appendChild(sc);
+})(); }
+</script>
 </body>
 </html>
