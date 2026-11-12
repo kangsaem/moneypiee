@@ -3306,6 +3306,8 @@ function stockUnifiedPlan(raw, holdings, mode){
     if(rs){ const a2 = bySector(part(fs.other)), cs = a2.filter(d => stockSecKey(d) === '현금');   // 뒤쪽 지역의 현금(외화 등)은 맨 끝으로 → 두 현금이 12시에서 맞붙음(2026-11-12 사용자)
       ordered = bySector(part(fs.mk.side)).concat(a2.filter(d => stockSecKey(d) !== '현금'), cs); }   // 도넛 순서는 항상 장 기준(반대쪽 지역을 봐도 도넛 그림은 그대로, 보이는 지역만 바뀜 — 2026-11-12 사용자)   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
   }
+  // 섹터순·금액순: 외화 조각은 맨 끝으로 → 원화(12시 한쪽)·외화(12시 다른 쪽)가 12시에서 맞붙고, 바깥 지역 링(원화·국내·해외·외화 순)과도 맞음(2026-11-12 사용자)
+  if(!rs && ordered.some(d => d.label === '외화')) ordered = ordered.filter(d => d.label !== '외화').concat(ordered.filter(d => d.label === '외화'));
   ordered = ordered.map((d, i) => ({ ...d, rank: d.rank !== undefined ? d.rank : i, rankCount: d.rankCount !== undefined ? d.rankCount : ordered.length }));   // 색 순번을 도넛 순서로 고정(목록 순서가 달라도 같은 색)
   const total = _.sumBy(ordered, 'amount') || 1, n = ordered.length, useBase = mode === 'group' || rs;
   const st = (u, sec, reg) => stockUState(u, sec, reg, mode, rs, fs);
@@ -4039,7 +4041,7 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
       </svg>
       ${centerLabel ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><span class="stock-donut-center-label" style="color:var(--text-dim);font-weight:700;text-align:center;">${centerLabel}</span></div>` : ''}
     </div>
-    ${stockLegendWithDividers(ordered, stockLegendSortMode, !!compactTotalMode)}
+    ${stockLegendWithDividers(U ? ordered.filter(d => isCashLikeLabel(d.label)).concat(ordered.filter(d => !isCashLikeLabel(d.label))) : ordered, stockLegendSortMode, !!compactTotalMode)}
   </div>`;
 }
 
