@@ -6262,8 +6262,8 @@ function renderHistoryPanel(){
   if(HIST_NEW){
     chartOpts.legendHtml = (hasCreditData ? hlChip('마통', CREDIT_USED_COLOR) : '') + (showRegionLines ? hlChip('국내', '#C7C8CD') + hlChip('해외', '#9A9BA1') : '') + HIDX.map(c => hlChip(c.name, c.color)).join('');
     const labels = filtered.map(s => normalizeLabel(s.label));
+    if(sorted.length) hidxEnsure(normalizeLabel(sorted[0].label));   // 먼저 호출: 저장해 둔 지수 자료를 여기서 읽어 옴(새로고침 뒤 첫 화면에 지수선이 안 보이던 것 — 2026-11-12)
     chartOpts.dense = points.length > 1 ? HIDX.filter(c => !historyLineOff[c.name]).map(c => hidxDense(c, labels, points[0].value)).filter(Boolean) : [];
-    if(sorted.length) hidxEnsure(normalizeLabel(sorted[0].label));
     const contW = Math.max(280, (panel.clientWidth || 360) - 26), land = historyLandNow(); historyLandNow.was = land;
     const byStep = w => { const st = (w - 60) / Math.max(1, points.length - 1); return st >= 62 ? 'normal' : (st >= 50 ? 'small' : (st >= 34 ? 'shrink' : 'sparse')); };
     if(land){ chartH = Math.max(205, window.innerHeight - 84); if(historyZoom === 1){ chartW = contW; chartResp = false; chartLm = byStep(contW); } }   // 가로보기: 그래프가 화면 높이·폭에 꽉 차게
