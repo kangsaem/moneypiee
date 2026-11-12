@@ -3012,7 +3012,7 @@ document.addEventListener('click', e => {
     }catch(err){}
   }, { passive: true });
 })();
-const MP_SNAP_ON = true;
+const MP_SNAP_ON = false;   // ▼ 버튼·화면맞춤 전체 끔(2026-11-12 사용자). 코드는 보관
 const MP_SNAP_FIT = false;    // 도넛 위아래 여백으로 첫 화면을 꽉 채우는 맞춤
 const MP_SNAP_DRAG = false;   // 끌 때 단계로 붙는 동작(2026-11-12 사용자: 없앰 — 접힘 줄 누르기 힘듦). ▼ 누름과 첫 화면 맞춤만 남김
 let mpSnapAnim = false;
