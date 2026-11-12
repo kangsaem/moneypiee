@@ -1446,3 +1446,4 @@
 - 12:55 사용자(test.html만, patch13): 넓은 화면(`mpWideList()`)은 도넛 왼쪽 + 목록 오른쪽 2단(`#stock-sortable-chart.side`, flex). 도넛은 스크롤해도 따라옴(sticky, top 84px = 고정된 지표 줄 아래).
 - 12:58 사용자: 넓은 화면의 도넛 = 목록 높이의 위아래 가운데(align-items:center, 따라오기(sticky) 뺌). test.html만.
 - 13:05 사용자(test.html만, patch14): 지역순 — 첫 지역 줄 가운데에 '모두 펴기/모두 접기'(`[data-reg-all]`, 둘 다 펼쳐져 있으면 접기), 지역 줄 끝에는 '등락률·비중·평가액/눌러서 펼치기' 글자 대신 그 지역의 전체 대비 비중(%). 숫자 눌러 등락률→비중→평가액 바꾸는 동작은 그대로(글자 안내만 없음). `mpRegionSet(box,g,folded)`로 접기 공통화.
+- 13:10 사용자(test.html만, patch15): 넓은 PC도 휴대폰과 같은 접힘(지역순 = 열린 장만 펼침, 섹터순 = 모두 접힘)·같은 '모두 펴기/접기' 버튼(`WIDE_ALL_OPEN=false`). 배치(도넛 왼쪽 + 목록 2단)는 그대로.

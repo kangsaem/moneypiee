@@ -313,8 +313,8 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .sec-all-row{display:flex;justify-content:center;width:100%;}
   .stock-sortable-legend.wide2 .legend-item, .stock-sortable-legend.wide2 .rg-head{break-inside:avoid;margin-bottom:6px;}
   .stock-sortable-legend.wide2 .fold-body{display:block;margin-top:0;}
-  .stock-sortable-legend.wide2 .sec-head{margin:10px 0 4px;padding:2px 0;cursor:default;break-inside:avoid;break-after:avoid;}
-  .stock-sortable-legend.wide2 .rg-head{cursor:default;break-after:avoid;} .stock-sortable-legend.wide2 .rg-head.rg-sep{border-top:0;margin-top:0;padding-top:4px;}
+  .stock-sortable-legend.wide2 .sec-head{margin:4px 0 2px;padding:3px 0;break-inside:avoid;break-after:avoid;}
+  .stock-sortable-legend.wide2 .rg-head{break-after:avoid;} .stock-sortable-legend.wide2 .rg-head.rg-sep{border-top:0;margin-top:0;padding-top:4px;}
   .fold-body.closed{max-height:0;margin-top:-6px;} .fold-body.closed, .fold-body.anim{overflow:hidden;}
   .sec-head{display:flex;align-items:center;gap:8px;margin:-7px 0;padding:7px 0;width:100%;box-sizing:border-box;cursor:pointer;-webkit-tap-highlight-color:transparent;}
   .sec-head .sec-nm{font-size:13px;color:var(--text);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;opacity:0.7;}
@@ -2937,7 +2937,7 @@ document.addEventListener('click', e => {
     rb.click(); mpSyncRgReload(); return;
   }   // 접힌 줄 오른쪽 새로고침 = 위 새로고침 버튼과 같은 동작
   const el = e.target.closest && e.target.closest('[data-region-fold]'); if(!el) return;
-  if(DONUT_ONE && mpWideList()) return;   // 넓은 화면은 항상 펼침
+  if(DONUT_ONE && WIDE_ALL_OPEN && mpWideList()) return;
   const g = el.dataset.regionFold, nowFolded = el.dataset.regionFolded !== '1';
   const box = el.closest('#stock-sortable-chart'), body = box && mpFoldBody(box, 'reg', g);
   if(!DONUT_ONE || !body){ stockRegionFold[g] = nowFolded; renderPreservingOpenChartAccordions(); return; }
@@ -2961,7 +2961,7 @@ document.addEventListener('click', e => {
 // 섹터순: 섹터 줄을 누르면 그 섹터 종목이 펼쳐지고 도넛의 그 섹터 구간에 종목 색이 나타남(2026-11-12 사용자)
 document.addEventListener('click', e => {
   const sh = e.target.closest && e.target.closest('[data-sec-fold]'); if(!sh) return;
-  const k = sh.dataset.secFold, box = sh.closest('#stock-sortable-chart'); if(!box || mpWideList()) return;
+  const k = sh.dataset.secFold, box = sh.closest('#stock-sortable-chart'); if(!box || (WIDE_ALL_OPEN && mpWideList())) return;
   stockSectorOpen[k] = !stockSectorOpen[k];
   mpFold(mpFoldBody(box, 'sec', k), !!stockSectorOpen[k]); mpDonutSync();
   const ab = box.querySelector('[data-sec-all]'); if(ab) ab.textContent = [...box.querySelectorAll('[data-sec-fold]')].every(h => stockSectorOpen[h.dataset.secFold]) ? '▴ 모두 접기' : '▾ 모두 펴기';
@@ -3126,11 +3126,12 @@ function stockSecKey(d){ return (isCashLikeLabel(d.label) || d.group === '현금
 function stockRegKey(d){ return (d.region || 'domestic') === 'overseas' ? 'overseas' : 'domestic'; }
 // 넓은 PC 화면(터치 아님 + 폭 900px 이상): 접힘 없이 다 펼치고 목록을 두 줄로(2026-11-12 사용자)
 function mpWideList(){ try{ return !donutCarOn() && window.innerWidth >= 900; }catch(e){ return false; } }
-function stockSecOpen(k){ return mpWideList() || !!stockSectorOpen[k]; }
+const WIDE_ALL_OPEN = false;   // 넓은 PC에서 접힘 없이 다 펼칠지(2026-11-12 사용자: 아니오 — 휴대폰과 같은 접힘·같은 버튼)
+function stockSecOpen(k){ return (WIDE_ALL_OPEN && mpWideList()) || !!stockSectorOpen[k]; }
 (function(){ let was = null; window.addEventListener('resize', () => { const w = mpWideList(); if(was !== null && w !== was && document.getElementById('stock-sortable-chart')){ try{ renderPreservingOpenChartAccordions(); }catch(e){} } was = w; }); was = mpWideList(); })();
 function stockRegionFoldState(){
   const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
-  if(mpWideList()) return { mk, other, folded: { domestic: false, overseas: false } };
+  if(WIDE_ALL_OPEN && mpWideList()) return { mk, other, folded: { domestic: false, overseas: false } };
   return { mk, other, folded: { [mk.side]: stockRegionFold[mk.side] === true, [other]: stockRegionFold[other] !== false } };
 }
 // 도넛 조각 한 개가 지금 보여야 하는지: u = st(종목 조각) · base(밑의 섹터 색) · ring(섹터 링)
@@ -3761,7 +3762,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
         const off = ' style="display:none"';
         // 2026-11-12 사용자: 끝에는 '등락률·비중·평가액' 글자 대신 그 지역의 전체 대비 비중. 첫 지역 줄 가운데에 모두 펴기/접기
         const rpct = DONUT_ONE ? `<span class="rg-cap sec-pct num" style="font-size:13px;">${_.sumBy(data.filter(d => gOf(d) === g), 'pct').toFixed(1)}<span class="pct-sign">%</span></span>` : null;
-        const allB = (DONUT_ONE && g !== other && !mpWideList()) ? `<span class="sec-all" data-reg-all style="margin-left:auto;">${(!folded.domestic && !folded.overseas) ? '▴ 모두 접기' : '▾ 모두 펴기'}</span>` : '';
+        const allB = (DONUT_ONE && g !== other && !(WIDE_ALL_OPEN && mpWideList())) ? `<span class="sec-all" data-reg-all style="margin-left:auto;">${(!folded.domestic && !folded.overseas) ? '▴ 모두 접기' : '▾ 모두 펴기'}</span>` : '';
         const hf = (on) => `<div class="rg-head rg-fold${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="1"${on ? '' : off}><span>▸</span><b>${nm} ${cnt[g]}종목</b>${live}${allB}${rpct || '<span class="rg-cap">눌러서 펼치기</span>'}<button type="button" class="rg-reload" title="시세 새로고침">↻</button></div>`;
         const ho = (on) => `<div class="rg-head${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="0"${on ? '' : off}><span>▾</span><b>${nm}</b>${live}${allB}${rpct || `<span class="rg-cap">${cap}</span>`}</div>`;
         if(DONUT_ONE) return hf(folded[g]) + ho(!folded[g]);   // 두 머리줄을 다 넣어 두고 그 자리에서 바꿈(다시 그리지 않아 펼침 애니메이션이 살아 있음)
@@ -3781,7 +3782,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
   let bodyOpen = false, uniLast = null, secAllDone = false;
   // 모두 펴기/접기(섹터순, 접힘이 있는 화면에서만): 현금 줄 가운데에 둠(2026-11-12 사용자)
   const secKeysAll = uniSec ? [...new Set(data.map(stockSecKey))].filter(k => k !== '현금') : [];
-  const secAllBtn = (uniSec && !mpWideList() && secKeysAll.length > 1) ? `<span class="sec-all" data-sec-all>${secKeysAll.every(k => stockSectorOpen[k]) ? '▴ 모두 접기' : '▾ 모두 펴기'}</span>` : '';
+  const secAllBtn = (uniSec && !(WIDE_ALL_OPEN && mpWideList()) && secKeysAll.length > 1) ? `<span class="sec-all" data-sec-all>${secKeysAll.every(k => stockSectorOpen[k]) ? '▴ 모두 접기' : '▾ 모두 펴기'}</span>` : '';
   const secPct = {}; if(uniSec) data.forEach(d => { const k = stockSecKey(d); secPct[k] = (secPct[k] || 0) + d.pct; });
   if(sortMode === 'group' && !uniSec && data.length > 0){
     html += sectionHeader(data[0].group);
