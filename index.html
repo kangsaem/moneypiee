@@ -3040,8 +3040,9 @@ document.addEventListener('click', e => {
     if(!hadSnap){ release(); return; }
     const y0 = window.scrollY, tgt = Math.max(0, Math.round(naturalBottom() - window.innerHeight));
     if(y0 <= tgt + 1){ release(); return; }
-    const t0 = performance.now(), D = Math.min(560, 260 + (y0 - tgt) * 0.25);
-    const tick = now => { const t = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - t, 3);   // 빠르게 출발해 천천히 멈춤
+    const t0 = performance.now(), D = Math.min(720, 380 + (y0 - tgt) * 0.3);
+    // 처음 천천히 → 가운데 아주 빠르게 → 도착할 때 천천히(베지어 S곡선, 2026-11-13 사용자)
+    const tick = now => { const t = Math.min(1, (now - t0) / D), e = t < 0.5 ? 16 * Math.pow(t, 5) : 1 - Math.pow(-2 * t + 2, 5) / 2;
       window.scrollTo(0, y0 + (tgt - y0) * e);
       if(t < 1) requestAnimationFrame(tick); else release(); };
     requestAnimationFrame(tick);
