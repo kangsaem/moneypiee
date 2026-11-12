@@ -333,7 +333,8 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .fold-body.closed{max-height:0;margin-top:-6px;} .fold-body.closed, .fold-body.anim{overflow:hidden;}
   .sec-head{display:flex;align-items:center;gap:8px;margin:-7px 0;padding:7px 0;width:100%;box-sizing:border-box;cursor:pointer;-webkit-tap-highlight-color:transparent;}
   .sec-head .sec-nm{font-size:13px;color:var(--text);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;opacity:0.7;}
-  .sec-head .sec-ln{flex:1;border-top:1px dashed var(--text-dim);} .sec-head .sec-pct{font-size:13px;color:var(--text);opacity:0.7;flex-shrink:0;font-weight:500;}
+  .sec-head .sec-ln{flex:1;border-top:1px dashed var(--text-dim);} .sec-head .sec-pct{font-size:14px;color:#FFFFFF;opacity:1;flex-shrink:0;font-weight:700;transition:opacity .2s;}
+  .sec-head.open .sec-pct{color:var(--text);opacity:0.7;font-weight:500;font-size:13px;}   /* 접힘 = 흰색 또렷, 펼침 = 톤다운(2026-11-12 사용자) */
   .rg-head{position:relative;} .charts.dn-car .rg-reload, .charts.mp-phone .rg-reload{display:flex;} .rg-reload{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;height:26px;display:none;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0;font-family:inherit;}
   .rg-live{font-size:10.5px;border:1px solid #D4FF3D;color:#D4FF3D;border-radius:4px;padding:0 5px;line-height:15px;}
   .total-badge .num{color:#F0DA8C;font-size:16px;font-weight:700;margin-left:6px;}  @keyframes dragHintBounceIn{
@@ -2978,7 +2979,7 @@ document.addEventListener('click', e => {
   const sh = e.target.closest && e.target.closest('[data-sec-fold]'); if(!sh) return;
   const k = sh.dataset.secFold, box = sh.closest('#stock-sortable-chart'); if(!box || (WIDE_ALL_OPEN && mpWideList())) return;
   stockSectorOpen[k] = !stockSectorOpen[k];
-  mpFold(mpFoldBody(box, 'sec', k), !!stockSectorOpen[k]); mpDonutSync();
+  mpFold(mpFoldBody(box, 'sec', k), !!stockSectorOpen[k]); mpDonutSync(); sh.classList.toggle('open', !!stockSectorOpen[k]);
   const ab = box.querySelector('[data-sec-all]'); if(ab) ab.textContent = [...box.querySelectorAll('[data-sec-fold]')].every(h => stockSectorOpen[h.dataset.secFold]) ? '▴ 모두 접기' : '▾ 모두 펴기';
 });
 // ── 휴대폰 화면맞춤(2026-11-12 사용자) ─────────────────────────────────────────
@@ -3130,10 +3131,12 @@ document.addEventListener('click', e => {
   const box = b.closest('#stock-sortable-chart'); if(!box) return;
   const keys = [...box.querySelectorAll('[data-sec-fold]')].map(h => h.dataset.secFold), open = !keys.every(k => stockSectorOpen[k]);
   keys.forEach(k => { if(!!stockSectorOpen[k] !== open){ stockSectorOpen[k] = open; mpFold(mpFoldBody(box, 'sec', k), open); } });
+  box.querySelectorAll('[data-sec-fold]').forEach(h => h.classList.toggle('open', open));
   b.textContent = open ? '▴ 모두 접기' : '▾ 모두 펴기'; mpDonutSync();
 }, true);
 const DONUT_ONE = true;            // 도넛 하나로 통일(2026-11-12). false면 예전처럼 섹터·종목·지역 3개
 let stockSectorOpen = {};          // 섹터순에서 펼친 섹터(처음엔 모두 접힘)
+let stockRegionFlip = false;       // 지역순에서 도넛을 한 번 눌러 반대쪽 지역을 위로 올린 상태(2026-11-12 사용자)
 let stockSecColorNow = {};         // 지금 그린 도넛의 섹터 색(목록 섹터 줄의 색 네모와 같게)
 function mpFoldBody(box, kind, key){ return [...box.querySelectorAll('[data-fold-body]')].find(b => b.dataset.foldBody === kind + ':' + key) || null; }
 function mpFold(body, open){
@@ -3156,8 +3159,10 @@ function stockSecOpen(k){ return (WIDE_ALL_OPEN && mpWideList()) || !!stockSecto
 (function(){ let was = null; const lv = () => (mpSideOn() ? 1 : 0) + (mpWideList() ? 1 : 0); window.addEventListener('resize', () => { const w = lv(); if(was !== null && w !== was && document.getElementById('stock-sortable-chart')){ try{ renderPreservingOpenChartAccordions(); }catch(e){} } was = w; }); was = lv(); })();
 function stockRegionFoldState(){
   const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
-  if(WIDE_ALL_OPEN && mpWideList()) return { mk, other, folded: { domestic: false, overseas: false } };
-  return { mk, other, folded: { [mk.side]: stockRegionFold[mk.side] === true, [other]: stockRegionFold[other] !== false } };
+  // first = 목록 위에 펼쳐지는 지역(보통 장중인 쪽, 도넛을 한 번 누르면 반대쪽 — stockRegionFlip). 링 색은 항상 장 기준(mk.side)
+  const first = stockRegionFlip ? other : mk.side, second = first === mk.side ? other : mk.side;
+  if(WIDE_ALL_OPEN && mpWideList()) return { mk, other, first, second, folded: { domestic: false, overseas: false } };
+  return { mk, other, first, second, folded: { [first]: stockRegionFold[first] === true, [second]: stockRegionFold[second] !== false } };
 }
 // 도넛 조각 한 개가 지금 보여야 하는지: u = st(종목 조각) · base(밑의 섹터 색) · ring(섹터 링)
 function stockUState(u, sec, reg, mode, rs, fs){
@@ -3202,7 +3207,7 @@ function stockUnifiedPlan(raw, holdings, mode){
   else if(mode === 'region'){
     const part = g => raw.filter(d => stockRegKey(d) === g);
     rs = part('domestic').length > 0 && part('overseas').length > 0;
-    if(rs) ordered = bySector(part(fs.mk.side)).concat(bySector(part(fs.other)));   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
+    if(rs) ordered = bySector(part(fs.first)).concat(bySector(part(fs.second)));   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
   }
   const total = _.sumBy(ordered, 'amount') || 1, n = ordered.length, useBase = mode === 'group' || rs;
   const st = (u, sec, reg) => stockUState(u, sec, reg, mode, rs, fs);
@@ -3217,7 +3222,7 @@ function stockUnifiedPlan(raw, holdings, mode){
   const secRing = useBase ? runs.map(r => ({ label: (rs ? (r.reg === 'domestic' ? '국내 ' : '해외 ') : '') + r.sec, amount: r.amount,
     pct: rs ? (regTot[r.reg] ? r.amount / regTot[r.reg] * 100 : 0) : r.amount / total * 100,   // 지역순: 그 지역 안에서의 섹터 비중
     color: secColor[r.sec] || CASH_COLOR, attrs: stockUAttrs('ring', r.sec, r.reg, st('ring', r.sec, r.reg)) })) : null;
-  const regRing = rs ? [fs.mk.side, fs.other].flatMap(g => [
+  const regRing = rs ? [fs.first, fs.second].flatMap(g => [
     { label: g === 'domestic' ? '원화' : '외화', amount: regCash[g], pct: regCash[g] / total * 100, rank: 0, rankCount: 2 },
     { label: g === 'domestic' ? '국내' : '해외', amount: regTot[g] - regCash[g], pct: (regTot[g] - regCash[g]) / total * 100, rank: g === 'domestic' ? 0 : 1, rankCount: 2,
       color: g === fs.mk.side ? REGION_LIGHT : REGION_STRONG }   // 지역순: 장중인 쪽 = 밝은 색, 아닌 쪽 = 어두운 색(2026-11-12 사용자)
@@ -3613,6 +3618,12 @@ function cycleStockSort(){
   if(savedRegionPos) pendingRegionAccordionPos = savedRegionPos;
   if(savedLockedRegionPos) pendingRegionAccordionPos = savedLockedRegionPos;
 
+  // 지역순에서 도넛 한 번 = 반대쪽 지역을 위로 펼침(링 색은 그대로, 목록 순서만 바뀜). 한 번 더 누르면 다음 정렬로
+  if(DONUT_ONE && stockLegendSortMode === 'region' && !stockRegionFlip){
+    const bx = document.getElementById('stock-sortable-chart');
+    if(bx && bx.dataset.urs === '1'){ stockRegionFlip = true; stockRegionFold = {}; stockSortPicked = true; render(); return; }
+  }
+  if(DONUT_ONE){ stockRegionFlip = false; stockRegionFold = {}; }
   const cycle = stockSortCycleActive || STOCK_SORT_CYCLE_FULL;
   const idx = cycle.indexOf(stockLegendSortMode);
   stockLegendSortMode = cycle[(idx + 1) % cycle.length];
@@ -3779,11 +3790,11 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     const gOf = d => (d.region || 'domestic') === 'domestic' ? 'domestic' : 'overseas';
     const cnt = { domestic: data.filter(d => gOf(d) === 'domestic').length, overseas: data.filter(d => gOf(d) === 'overseas').length };
     if(cnt.domestic && cnt.overseas){
-      const { mk, other, folded } = stockRegionFoldState();
+      const fsr = stockRegionFoldState(), mk = { open: fsr.mk.open, side: fsr.first, real: fsr.mk.side }, other = fsr.second, folded = fsr.folded;   // side·other = 목록에서 위·아래 지역
       data = data.filter(d => gOf(d) === mk.side).concat(data.filter(d => gOf(d) === other));
       const cap = { change:'등락률', pct:'비중', amount:'평가액' }[stockValueModeNow(sortMode)];
       rg = { gOf, folded, last: null, head: g => {
-        const nm = g === 'domestic' ? '국내' : '해외', live = mk.open && g === mk.side ? '<span class="rg-live">장중</span>' : '';
+        const nm = g === 'domestic' ? '국내' : '해외', live = mk.open && g === mk.real ? '<span class="rg-live">장중</span>' : '';
         const off = ' style="display:none"';
         // 2026-11-12 사용자: 끝에는 '등락률·비중·평가액' 글자 대신 그 지역의 전체 대비 비중. 첫 지역 줄 가운데에 모두 펴기/접기
         const rpct = DONUT_ONE ? `<span class="rg-cap sec-pct num" style="font-size:13px;">${_.sumBy(data.filter(d => gOf(d) === g), 'pct').toFixed(1)}<span class="pct-sign">%</span></span>` : null;
@@ -3816,7 +3827,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     if(rg){ const g = rg.gOf(d); if(g !== rg.last){ if(bodyOpen){ html += '</div></div>'; bodyOpen = false; } rg.last = g; if(DONUT_ONE) html += '<div class="sec-grp">'; html += rg.head(g); if(DONUT_ONE){ html += foldOpen('reg', g, !rg.folded[g]); bodyOpen = true; } } if(!DONUT_ONE && rg.folded[g]) return; }
     if(uniSec){ const k = stockSecKey(d); if(k !== uniLast){ if(bodyOpen){ html += '</div></div>'; bodyOpen = false; } uniLast = k;
       if(k !== '현금' && secAllBtn && !secAllDone){ html += `<div class="sec-all-row">${secAllBtn}</div>`; secAllDone = true; }   // 현금 줄이 없으면 맨 위에 따로
-      if(k !== '현금'){ html += `<div class="sec-grp"><div class="sec-head" data-sec-fold="${escapeHTML(k)}"><span class="swatch" style="background:${stockSecColorNow[k] || CASH_COLOR}"></span><span class="sec-nm">${escapeHTML(k)}</span><div class="sec-ln"></div><span class="sec-pct num">${(secPct[k] || 0).toFixed(1)}<span class="pct-sign">%</span></span></div>` + foldOpen('sec', k, stockSecOpen(k)); bodyOpen = true; } } }
+      if(k !== '현금'){ html += `<div class="sec-grp"><div class="sec-head${stockSecOpen(k) ? ' open' : ''}" data-sec-fold="${escapeHTML(k)}"><span class="swatch" style="background:${stockSecColorNow[k] || CASH_COLOR}"></span><span class="sec-nm">${escapeHTML(k)}</span><div class="sec-ln"></div><span class="sec-pct num">${(secPct[k] || 0).toFixed(1)}<span class="pct-sign">%</span></span></div>` + foldOpen('sec', k, stockSecOpen(k)); bodyOpen = true; } } }
     const rank = d.rank !== undefined ? d.rank : i;
     const rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
     const color = rankColor(d.label, rank, rankCount, 'stock');
