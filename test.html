@@ -5944,6 +5944,7 @@ function trendBarsHTML(snapshots, groupKey, type, title, compact, idPrefix){
 }
 
 let accTabsFolded = true;
+let mpAccFold = null;   // renderTabs가 채움: 계좌 줄 펼치기(false)·접기(true)
 let tabLogoEl = null, tabBkEl = null;                    // 로고·제목(h1)·백업 칩 노드(옮겨 다님)                                 // 계좌 탭 줄: 열 때마다 접힘으로 시작(2026-10-31)
 function renderTabs(){
   const tabs = document.getElementById('tabs');
@@ -5956,7 +5957,7 @@ function renderTabs(){
   if(accFold){
     const onAcc = state.accounts.some(a => a.id === state.activeId) || state.activeId === '__creditLines__';
     html += `<div class="tab-logo" id="tabLogoSlot"></div>`;   // 접혔을 때 = 왼쪽 로고·제목(+백업 칩), 오른쪽 끝 '계좌 n ▾'(2026-11-01)
-    html += `<div class="tab acc acc-unfold${onAcc ? ' active' : ''}" id="tabUnfold" title="계좌 ${state.accounts.length}개 펼치기">계좌</div>`;   // 2026-11-01: '계좌' 탭, 관리 탭 바로 위·같은 폭(tabUnfoldAlign)
+    // 2026-11-13 사용자: 위로 튀어나온 '계좌' 탭은 없앰 — 관리 탭을 누르면 계좌가 펼쳐짐   // 2026-11-01: '계좌' 탭, 관리 탭 바로 위·같은 폭(tabUnfoldAlign)
   } else {
   html += state.accounts.map(a => `
     <div class="tab acc ${a.id===state.activeId?'active':''}" data-tab="${a.id}" title="${escapeHTML(a.name)}">${escapeHTML(a.name)}</div>
@@ -6051,12 +6052,23 @@ function renderTabs(){
   };
   if(tFold) tFold.addEventListener('click', e => { e.stopPropagation(); foldAnim(); });
   if(tUn) tUn.addEventListener('click', () => setFold(false));
+  mpAccFold = v => { if(v) foldAnim(); else setFold(false); };   // 관리 탭에서 계좌 펼치기·접기
   tabFillFit();
   warnTabPaint();
   document.getElementById('warn200Tab').addEventListener('click', e => anK200Open(e, AN_200PAGE.kospi));
 
   tabs.querySelectorAll('[data-tab]').forEach(el => {
-    el.addEventListener('click', () => switchTab(el.dataset.tab));
+    el.addEventListener('click', () => {
+      const id = el.dataset.tab;
+      if(id === '__deleteAccounts__'){   // 관리 탭: 들어오면 계좌 펼침, 관리 탭에서 다시 누르면 접고 펴기
+        const was = state.activeId === id, folded = accTabsFolded;
+        if(!was) switchTab(id);
+        if(folded || !was){ if(accTabsFolded && mpAccFold) mpAccFold(false); }
+        else if(mpAccFold) mpAccFold(true);
+        return;
+      }
+      switchTab(id);
+    });
   });
 }
 // 마통 오른쪽 '+': 마통과 같은 줄에 못 들어가면 숨김
