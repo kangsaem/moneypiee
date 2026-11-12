@@ -161,6 +161,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .tabs .tab.acc-unfold{margin-left:auto;}   /* '계좌' 탭: 다른 탭과 같은 폭, 관리 탭 바로 위(오른쪽 끝 맞춤은 tabUnfoldAlign) */   /* 계좌 탭 줄 오른쪽 빈칸 = 계좌 추가 */
   .tab.active{background:var(--surface2);border-color:var(--accent-dim);}
   .tab.total{color:var(--accent);}
+  .tabs .tab[data-tab]{color:var(--text-dim);}   /* 2026-11-12 사용자: 탭 제목은 모두 관리 탭과 같은 회색(⚠는 그대로) */
   .tab-add{
     padding:10px 14px;
     background:transparent;
@@ -3051,8 +3052,8 @@ document.addEventListener('click', e => {
     const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
     if(Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 2 || Date.now() - t0 > 700) return;
     try{
-      const order = ['__total__', '__history__', '__analysis__', WATCHLIST_ID, '__deleteAccounts__'];   // 탭 줄 순서와 같게
-      const cur = ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) ? 0 : order.indexOf(state.activeId);
+      const order = ['__history__', '__total__', '__analysis__', WATCHLIST_ID, '__deleteAccounts__'];   // 탭 줄 순서와 같게
+      const cur = ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) ? 1 : order.indexOf(state.activeId);
       const nx = cur + (dx < 0 ? 1 : -1); if(cur < 0 || nx < 0 || nx >= order.length) return;
       switchTab(order[nx]);
     }catch(err){}
@@ -5874,10 +5875,10 @@ function renderTabs(){
   html += `<div class="tab-fill" id="tabFill"><span class="tf-add" title="계좌 추가">+</span><span class="tf-fold" id="tabFold" title="계좌 탭 접기">▴</span></div>`;
   }   // 회색 '+'(2026-10-20), 다음 줄로 밀리면 숨김(tabFillFit)   // 마통 오른쪽 빈칸 = 계좌 추가(2026-10-20)
   html += `<div class="tab-br"></div>`;      // 계좌 탭 줄 / 나머지 탭 줄 나눔(2026-10-13)
-  html += `<div class="tab total ${isAsset?'active':''}" data-tab="__total__">자산</div>`;
   html += `<div class="tab total ${state.activeId==='__history__'?'active':''}" data-tab="__history__">월별</div>`;
-  html += `<div class="tab ${state.activeId==='__analysis__'?'active':''}" data-tab="__analysis__" style="color:#D4FF3D;">V1</div>`;
-  html += `<div class="tab ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}" style="color:rgba(212,255,61,0.8);">관심</div>`;
+  html += `<div class="tab total ${isAsset?'active':''}" data-tab="__total__">자산</div>`;
+  html += `<div class="tab ${state.activeId==='__analysis__'?'active':''}" data-tab="__analysis__">V1</div>`;
+  html += `<div class="tab ${state.activeId===WATCHLIST_ID?'active':''}" data-tab="${WATCHLIST_ID}">관심</div>`;
   html += `<div class="tab warn200" id="warn200Tab" title="200일선 붕괴 사례"><svg width="18" height="16" viewBox="0 0 18 16" aria-hidden="true"><path d="M9 1.5 17 15H1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 6v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="12.6" r="1" fill="currentColor"/></svg></div>`;
   html += `<div class="tab mng ${state.activeId==='__deleteAccounts__'?'active':''}" data-tab="__deleteAccounts__">관리</div>`;
   try{                                                     // 다시 그리기 전에 로고·백업 칩을 보관 자리로(안 그러면 탭과 같이 지워짐)
