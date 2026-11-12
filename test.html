@@ -295,6 +295,15 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   #stock-sortable-chart [data-u][data-dim]{opacity:.3 !important;}
   #stock-sortable-chart [data-u][data-hide]{opacity:0 !important;}
   .fold-body{display:flex;flex-direction:column;gap:6px;width:100%;transition:max-height .38s cubic-bezier(.16,.9,.3,1), margin-top .38s cubic-bezier(.16,.9,.3,1);}
+  /* 섹터순: 종목은 들여쓰고, 펼친 섹터 아래는 간격을 벌림(2026-11-12 사용자: 섹터와 종목 구분) */
+  .fold-body[data-fold-body^="sec:"]{padding-left:16px;box-sizing:border-box;transition:max-height .38s cubic-bezier(.16,.9,.3,1), margin .38s cubic-bezier(.16,.9,.3,1);}
+  .fold-body[data-fold-body^="sec:"]:not(.closed){margin-bottom:12px;}
+  /* 넓은 PC 화면: 접지 않고 다 펼쳐 두 줄(2단)로 */
+  .stock-sortable-legend.wide2{display:block;width:620px;max-width:100%;column-count:2;column-gap:56px;}
+  .stock-sortable-legend.wide2 .legend-item, .stock-sortable-legend.wide2 .rg-head{break-inside:avoid;margin-bottom:6px;}
+  .stock-sortable-legend.wide2 .fold-body{display:block;margin-top:0;}
+  .stock-sortable-legend.wide2 .sec-head{margin:10px 0 4px;padding:2px 0;cursor:default;break-inside:avoid;break-after:avoid;}
+  .stock-sortable-legend.wide2 .rg-head{cursor:default;break-after:avoid;} .stock-sortable-legend.wide2 .rg-head.rg-sep{border-top:0;margin-top:0;padding-top:4px;}
   .fold-body.closed{max-height:0;margin-top:-6px;} .fold-body.closed, .fold-body.anim{overflow:hidden;}
   .sec-head{display:flex;align-items:center;gap:8px;margin:-7px 0;padding:7px 0;width:100%;box-sizing:border-box;cursor:pointer;-webkit-tap-highlight-color:transparent;}
   .sec-head .sec-nm{font-size:13px;color:var(--text);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;opacity:0.7;}
@@ -2917,6 +2926,7 @@ document.addEventListener('click', e => {
     rb.click(); mpSyncRgReload(); return;
   }   // 접힌 줄 오른쪽 새로고침 = 위 새로고침 버튼과 같은 동작
   const el = e.target.closest && e.target.closest('[data-region-fold]'); if(!el) return;
+  if(DONUT_ONE && mpWideList()) return;   // 넓은 화면은 항상 펼침
   const g = el.dataset.regionFold, nowFolded = el.dataset.regionFolded !== '1';
   stockRegionFold[g] = nowFolded;
   const box = el.closest('#stock-sortable-chart'), body = box && mpFoldBody(box, 'reg', g);
@@ -2928,7 +2938,7 @@ document.addEventListener('click', e => {
 // 섹터순: 섹터 줄을 누르면 그 섹터 종목이 펼쳐지고 도넛의 그 섹터 구간에 종목 색이 나타남(2026-11-12 사용자)
 document.addEventListener('click', e => {
   const sh = e.target.closest && e.target.closest('[data-sec-fold]'); if(!sh) return;
-  const k = sh.dataset.secFold, box = sh.closest('#stock-sortable-chart'); if(!box) return;
+  const k = sh.dataset.secFold, box = sh.closest('#stock-sortable-chart'); if(!box || mpWideList()) return;
   stockSectorOpen[k] = !stockSectorOpen[k];
   mpFold(mpFoldBody(box, 'sec', k), !!stockSectorOpen[k]); mpDonutSync();
 });
@@ -3080,13 +3090,18 @@ function mpFold(body, open){
 }
 function stockSecKey(d){ return (isCashLikeLabel(d.label) || d.group === '현금') ? '현금' : (d.group || '?'); }
 function stockRegKey(d){ return (d.region || 'domestic') === 'overseas' ? 'overseas' : 'domestic'; }
+// 넓은 PC 화면(터치 아님 + 폭 900px 이상): 접힘 없이 다 펼치고 목록을 두 줄로(2026-11-12 사용자)
+function mpWideList(){ try{ return !donutCarOn() && window.innerWidth >= 900; }catch(e){ return false; } }
+function stockSecOpen(k){ return mpWideList() || !!stockSectorOpen[k]; }
+(function(){ let was = null; window.addEventListener('resize', () => { const w = mpWideList(); if(was !== null && w !== was && document.getElementById('stock-sortable-chart')){ try{ renderPreservingOpenChartAccordions(); }catch(e){} } was = w; }); was = mpWideList(); })();
 function stockRegionFoldState(){
   const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
+  if(mpWideList()) return { mk, other, folded: { domestic: false, overseas: false } };
   return { mk, other, folded: { [mk.side]: stockRegionFold[mk.side] === true, [other]: stockRegionFold[other] !== false } };
 }
 // 도넛 조각 한 개가 지금 보여야 하는지: u = st(종목 조각) · base(밑의 섹터 색) · ring(섹터 링)
 function stockUState(u, sec, reg, mode, rs, fs){
-  if(mode === 'group'){ const open = sec === '현금' || !!stockSectorOpen[sec]; return { hide: u === 'st' ? !open : (u === 'base' ? open : false), dim: false }; }
+  if(mode === 'group'){ const open = sec === '현금' || stockSecOpen(sec); return { hide: u === 'st' ? !open : (u === 'base' ? open : false), dim: false }; }
   if(mode === 'region' && rs){ const f = !!fs.folded[reg]; return { hide: u === 'st' ? f : (u === 'base' ? !f : false), dim: f && u !== 'st' }; }
   return { hide: u === 'base', dim: false };
 }
@@ -3696,7 +3711,7 @@ function decorativeRingsSVG(ringSpecs, cx, cy, pieR, ringW){
 
 function stockLegendWithDividers(data, sortMode, compactTotalMode){
   if(data.length === 0) return '<div class="empty">데이터 없음</div>';
-  const legendClass = compactTotalMode ? 'legend stock-sortable-legend' : 'legend';
+  const legendClass = compactTotalMode ? ('legend stock-sortable-legend' + (DONUT_ONE && mpWideList() ? ' wide2' : '')) : 'legend';
   let html = `<div class="${legendClass}">`;
   // 지역보기(2026-11-11 사용자): 열린 장 묶음을 위에 펼치고 다른 쪽은 한 줄로 접음
   let rg = null;
@@ -3734,7 +3749,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
   data.forEach((d,i) => {
     if(rg){ const g = rg.gOf(d); if(g !== rg.last){ if(bodyOpen){ html += '</div>'; bodyOpen = false; } rg.last = g; html += rg.head(g); if(DONUT_ONE){ html += foldOpen('reg', g, !rg.folded[g]); bodyOpen = true; } } if(!DONUT_ONE && rg.folded[g]) return; }
     if(uniSec){ const k = stockSecKey(d); if(k !== uniLast){ if(bodyOpen){ html += '</div>'; bodyOpen = false; } uniLast = k;
-      if(k !== '현금'){ html += `<div class="sec-head" data-sec-fold="${escapeHTML(k)}"><span class="swatch" style="background:${stockSecColorNow[k] || CASH_COLOR}"></span><span class="sec-nm">${escapeHTML(k)}</span><div class="sec-ln"></div><span class="sec-pct num">${(secPct[k] || 0).toFixed(1)}<span class="pct-sign">%</span></span></div>` + foldOpen('sec', k, !!stockSectorOpen[k]); bodyOpen = true; } } }
+      if(k !== '현금'){ html += `<div class="sec-head" data-sec-fold="${escapeHTML(k)}"><span class="swatch" style="background:${stockSecColorNow[k] || CASH_COLOR}"></span><span class="sec-nm">${escapeHTML(k)}</span><div class="sec-ln"></div><span class="sec-pct num">${(secPct[k] || 0).toFixed(1)}<span class="pct-sign">%</span></span></div>` + foldOpen('sec', k, stockSecOpen(k)); bodyOpen = true; } } }
     const rank = d.rank !== undefined ? d.rank : i;
     const rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
     const color = rankColor(d.label, rank, rankCount, 'stock');
