@@ -244,7 +244,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .mkt-card{height:var(--mkt-h, 115px);display:flex;flex-direction:column;overflow:hidden;}
   /* 2026-11-12 사용자: 스크롤해도 경제지표 줄은 화면 위에 남음 — 아래(그래프)부터 줄어들다 이름·값·등락률만 남으면 그 상태로 고정 */
   #marketTicker.mkt-min .mkt-card > .mkt-change ~ *{visibility:hidden;}   /* 다 줄어든 상태: 등락률 줄 아래(그래프·이격도 줄)는 완전히 숨김 — 카드 아래 여백에 그래프 찌꺼기가 보이던 것 */
-  #marketTicker.mkt-pin{position:fixed;top:0;z-index:900;background:var(--bg);margin:0 !important;box-shadow:-12px 0 0 var(--bg), 12px 0 0 var(--bg), 0 1px 0 var(--border);box-sizing:border-box;}
+  #marketTicker.mkt-pin{position:fixed;top:0;z-index:900;background:transparent;margin:0 !important;box-sizing:border-box;pointer-events:none;} #marketTicker.mkt-pin .mkt-card{pointer-events:auto;}   /* A안(2026-11-12 사용자): 띠 배경 없음 — 둥근 카드만 떠 있고 틈으로 본문이 지나감. 틈을 누르면 아래 본문이 눌림 */
   .mkt-card > svg{flex:1 1 0;min-height:0;height:auto !important;}
   .mkt-name{font-size:9px;color:var(--text-dim);margin-bottom:1px;line-height:1.4;}
   .mkt-value{font-size:16px;font-weight:700;margin-top:0;line-height:1.25;letter-spacing:-0.3px;white-space:nowrap;}
