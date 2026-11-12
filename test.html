@@ -304,9 +304,10 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .sec-grp{display:contents;}
   .stock-sortable-legend.wide2{display:block;width:100%;max-width:920px;columns:250px 3;column-gap:48px;}   /* 폭에 따라 2단·3단 자동 */
   .stock-sortable-legend.wide2 .sec-grp{display:block;break-inside:avoid;}   /* 한 섹터(지역) 묶음은 중간에 끊지 않고 통째로 다음 단으로 */
-  @media(min-width:900px){ #stock-sortable-chart .donut-wrap-md{width:247px;height:247px;} #stock-sortable-chart .donut-wrap-lg{width:264px;height:264px;} #stock-sortable-chart .donut-wrap-xl{width:282px;height:282px;} #stock-sortable-chart .donut-wrap-xxl{width:299px;height:299px;} #stock-sortable-chart .stock-donut-center-label{font-size:16px;} }   /* 넓은 화면에서도 도넛은 휴대폰과 같은 크기 */
+  @media(min-width:641px){ #stock-sortable-chart .donut-wrap-md{width:247px;height:247px;} #stock-sortable-chart .donut-wrap-lg{width:264px;height:264px;} #stock-sortable-chart .donut-wrap-xl{width:282px;height:282px;} #stock-sortable-chart .donut-wrap-xxl{width:299px;height:299px;} #stock-sortable-chart .stock-donut-center-label{font-size:16px;} }   /* 넓은 화면에서도 도넛은 휴대폰과 같은 크기 */
   /* 넓은 화면: 도넛은 왼쪽, 목록은 오른쪽에 두 줄(2026-11-12 사용자) */
-  #stock-sortable-chart.side{display:flex;align-items:center;justify-content:center;gap:44px;text-align:left;}
+  #stock-sortable-chart.side{display:flex;align-items:center;justify-content:center;gap:36px;text-align:left;}
+  #stock-sortable-chart.side > .legend{flex:0 1 268px;min-width:0;margin:0;}
   #stock-sortable-chart.side > .donut-wrap{flex:0 0 auto;margin:0;}   /* 목록 높이의 위아래 가운데 */
   #stock-sortable-chart.side > .legend.wide2{flex:1 1 0;min-width:0;max-width:600px;width:auto;margin:0;columns:220px 2;column-gap:44px;}
   .sec-all{flex-shrink:0;font-size:12px;font-weight:600;color:var(--text);border:1px solid var(--accent-dim);border-radius:12px;padding:2px 10px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
@@ -3126,9 +3127,11 @@ function stockSecKey(d){ return (isCashLikeLabel(d.label) || d.group === '현금
 function stockRegKey(d){ return (d.region || 'domestic') === 'overseas' ? 'overseas' : 'domestic'; }
 // 넓은 PC 화면(터치 아님 + 폭 900px 이상): 접힘 없이 다 펼치고 목록을 두 줄로(2026-11-12 사용자)
 function mpWideList(){ try{ return !donutCarOn() && window.innerWidth >= 900; }catch(e){ return false; } }
+// 중간 폭(641~899px)도 도넛을 왼쪽에 두고 목록 한 줄을 옆에(2026-11-12 사용자: 이 구간에서 도넛이 작아지던 것). 900px↑는 목록 두 줄
+function mpSideOn(){ try{ return !donutCarOn() && window.innerWidth > 640; }catch(e){ return false; } }
 const WIDE_ALL_OPEN = false;   // 넓은 PC에서 접힘 없이 다 펼칠지(2026-11-12 사용자: 아니오 — 휴대폰과 같은 접힘·같은 버튼)
 function stockSecOpen(k){ return (WIDE_ALL_OPEN && mpWideList()) || !!stockSectorOpen[k]; }
-(function(){ let was = null; window.addEventListener('resize', () => { const w = mpWideList(); if(was !== null && w !== was && document.getElementById('stock-sortable-chart')){ try{ renderPreservingOpenChartAccordions(); }catch(e){} } was = w; }); was = mpWideList(); })();
+(function(){ let was = null; const lv = () => (mpSideOn() ? 1 : 0) + (mpWideList() ? 1 : 0); window.addEventListener('resize', () => { const w = lv(); if(was !== null && w !== was && document.getElementById('stock-sortable-chart')){ try{ renderPreservingOpenChartAccordions(); }catch(e){} } was = w; }); was = lv(); })();
 function stockRegionFoldState(){
   const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
   if(WIDE_ALL_OPEN && mpWideList()) return { mk, other, folded: { domestic: false, overseas: false } };
@@ -3877,7 +3880,7 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
   // (원-CSS박스 크기는 1:1로 대응: 0개=160px, 1개=172px, 2개=184px, 3개=196px, 4개=208px)
   const sizeClass = rings.length >= 4 ? 'donut-wrap-xxl' : (rings.length >= 3 ? 'donut-wrap-xl' : (rings.length >= 2 ? 'donut-wrap-lg' : 'donut-wrap-md'));
 
-  return `<div class="chart-box${U && mpWideList() ? ' side' : ''}" id="stock-sortable-chart" data-umode="${stockLegendSortMode}" data-urs="${U && U.rs ? 1 : 0}">
+  return `<div class="chart-box${U && mpSideOn() ? ' side' : ''}" id="stock-sortable-chart" data-umode="${stockLegendSortMode}" data-urs="${U && U.rs ? 1 : 0}">
     <div class="donut-wrap ${sizeClass}" style="position:relative;cursor:pointer;" data-donut-cycle>
       <svg width="100%" height="100%" viewBox="0 0 ${outerSize} ${outerSize}" style="display:block;">
         <g transform="translate(${cx-80},${cy-80})">
