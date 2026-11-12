@@ -3143,6 +3143,7 @@ function stockRegKey(d){ return (d.region || 'domestic') === 'overseas' ? 'overs
 // 넓은 PC 화면(터치 아님 + 폭 900px 이상): 접힘 없이 다 펼치고 목록을 두 줄로(2026-11-12 사용자)
 function mpWideList(){ try{ return !donutCarOn() && window.innerWidth >= 900; }catch(e){ return false; } }
 // 중간 폭(641~899px)도 도넛을 왼쪽에 두고 목록 한 줄을 옆에(2026-11-12 사용자: 이 구간에서 도넛이 작아지던 것). 900px↑는 목록 두 줄
+function mpOneCol(){ try{ return donutCarOn() || window.innerWidth <= 640; }catch(e){ return false; } }   // 도넛 위·목록 아래 한 줄 보기
 function mpSideOn(){ try{ return !donutCarOn() && window.innerWidth > 640; }catch(e){ return false; } }
 const WIDE_ALL_OPEN = false;   // 넓은 PC에서 접힘 없이 다 펼칠지(2026-11-12 사용자: 아니오 — 휴대폰과 같은 접힘·같은 버튼)
 function stockSecOpen(k){ return (WIDE_ALL_OPEN && mpWideList()) || !!stockSectorOpen[k]; }
@@ -3251,7 +3252,7 @@ function assetPanelEnhance(){
   panel.querySelectorAll('.rg-head .rg-reload').forEach(b => {
     const row = b.parentElement, top = document.getElementById('reloadPricesBtn'), box = row.closest('.chart-box'); if(!box) return;
     b.style.right = '0px'; row.style.paddingRight = '';
-    if(!donutCarOn()) return;   // 새로고침 버튼은 휴대폰 보기에서만(2026-11-11 사용자)
+    if(!mpOneCol()) return;   // 새로고침 버튼은 한 줄 보기(휴대폰, 또는 PC 좁은 창)에서만(2026-11-12 사용자: PC 한 줄 보기에도)
     mpSyncRgReload();
     const rr = row.getBoundingClientRect(), br = box.getBoundingClientRect(), tr = top ? top.getBoundingClientRect() : null;
     if(!rr.width) return;
@@ -3260,7 +3261,7 @@ function assetPanelEnhance(){
     b.style.right = (-gap) + 'px';
     if(gap < 34) row.style.paddingRight = (34 - gap) + 'px';
   });
-  const ch0 = panel.querySelector('.charts'); if(ch0) ch0.classList.toggle('mp-phone', donutCarOn());
+  const ch0 = panel.querySelector('.charts'); if(ch0) ch0.classList.toggle('mp-phone', mpOneCol());
   try{ mpSnapLayout(); }catch(e){}
   const ch = panel.querySelector('.charts'); if(!ch || ch.classList.contains('dn-car')) return;
   const slides = [...ch.children].filter(e => e.classList.contains('chart-box') && e.querySelector('.donut-wrap'));
