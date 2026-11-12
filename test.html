@@ -3207,8 +3207,9 @@ function stockUnifiedPlan(raw, holdings, mode){
   else if(mode === 'region'){
     const part = g => raw.filter(d => stockRegKey(d) === g);
     rs = part('domestic').length > 0 && part('overseas').length > 0;
-    if(rs) ordered = bySector(part(fs.first)).concat(bySector(part(fs.second)));   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
+    if(rs) ordered = bySector(part(fs.mk.side)).concat(bySector(part(fs.other)));   // 도넛 순서는 항상 장 기준(반대쪽 지역을 봐도 도넛 그림은 그대로, 보이는 지역만 바뀜 — 2026-11-12 사용자)   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
   }
+  ordered = ordered.map((d, i) => ({ ...d, rank: d.rank !== undefined ? d.rank : i, rankCount: d.rankCount !== undefined ? d.rankCount : ordered.length }));   // 색 순번을 도넛 순서로 고정(목록 순서가 달라도 같은 색)
   const total = _.sumBy(ordered, 'amount') || 1, n = ordered.length, useBase = mode === 'group' || rs;
   const st = (u, sec, reg) => stockUState(u, sec, reg, mode, rs, fs);
   const runs = [];
@@ -3222,7 +3223,7 @@ function stockUnifiedPlan(raw, holdings, mode){
   const secRing = useBase ? runs.map(r => ({ label: (rs ? (r.reg === 'domestic' ? '국내 ' : '해외 ') : '') + r.sec, amount: r.amount,
     pct: rs ? (regTot[r.reg] ? r.amount / regTot[r.reg] * 100 : 0) : r.amount / total * 100,   // 지역순: 그 지역 안에서의 섹터 비중
     color: secColor[r.sec] || CASH_COLOR, attrs: stockUAttrs('ring', r.sec, r.reg, st('ring', r.sec, r.reg)) })) : null;
-  const regRing = rs ? [fs.first, fs.second].flatMap(g => [
+  const regRing = rs ? [fs.mk.side, fs.other].flatMap(g => [
     { label: g === 'domestic' ? '원화' : '외화', amount: regCash[g], pct: regCash[g] / total * 100, rank: 0, rankCount: 2 },
     { label: g === 'domestic' ? '국내' : '해외', amount: regTot[g] - regCash[g], pct: (regTot[g] - regCash[g]) / total * 100, rank: g === 'domestic' ? 0 : 1, rankCount: 2,
       color: g === fs.mk.side ? REGION_LIGHT : REGION_STRONG }   // 지역순: 장중인 쪽 = 밝은 색, 아닌 쪽 = 어두운 색(2026-11-12 사용자)
