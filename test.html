@@ -306,8 +306,8 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .stock-sortable-legend.wide2 .sec-grp{display:block;break-inside:avoid;}   /* 한 섹터(지역) 묶음은 중간에 끊지 않고 통째로 다음 단으로 */
   @media(min-width:900px){ #stock-sortable-chart .donut-wrap-md{width:247px;height:247px;} #stock-sortable-chart .donut-wrap-lg{width:264px;height:264px;} #stock-sortable-chart .donut-wrap-xl{width:282px;height:282px;} #stock-sortable-chart .donut-wrap-xxl{width:299px;height:299px;} #stock-sortable-chart .stock-donut-center-label{font-size:16px;} }   /* 넓은 화면에서도 도넛은 휴대폰과 같은 크기 */
   /* 넓은 화면: 도넛은 왼쪽, 목록은 오른쪽에 두 줄(2026-11-12 사용자) */
-  #stock-sortable-chart.side{display:flex;align-items:flex-start;justify-content:center;gap:44px;text-align:left;}
-  #stock-sortable-chart.side > .donut-wrap{flex:0 0 auto;margin:0;position:sticky;top:84px;}
+  #stock-sortable-chart.side{display:flex;align-items:center;justify-content:center;gap:44px;text-align:left;}
+  #stock-sortable-chart.side > .donut-wrap{flex:0 0 auto;margin:0;}   /* 목록 높이의 위아래 가운데 */
   #stock-sortable-chart.side > .legend.wide2{flex:1 1 0;min-width:0;max-width:600px;width:auto;margin:0;columns:220px 2;column-gap:44px;}
   .sec-all{flex-shrink:0;font-size:12px;font-weight:600;color:var(--text);border:1px solid var(--accent-dim);border-radius:12px;padding:2px 10px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
   .sec-all-row{display:flex;justify-content:center;width:100%;}
