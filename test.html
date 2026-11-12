@@ -3303,7 +3303,7 @@ function stockUnifiedPlan(raw, holdings, mode){
   else if(mode === 'region'){
     const part = g => raw.filter(d => stockRegKey(d) === g);
     rs = part('domestic').length > 0 && part('overseas').length > 0;
-    if(rs) ordered = bySector(part(fs.mk.side)).concat(bySector(part(fs.other)));   // 도넛 순서는 항상 장 기준(반대쪽 지역을 봐도 도넛 그림은 그대로, 보이는 지역만 바뀜 — 2026-11-12 사용자)   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
+    if(rs) ordered = bySector(part('domestic')).concat(bySector(part('overseas')));   // 도넛은 장 시간과 상관없이 항상 국내 → 해외(12시부터 반시계: 외화·원화·국내·해외 → 원화-국내, 해외-외화가 붙음). 목록에서 위에 오는 지역만 장 기준(2026-11-13 사용자)   // 도넛 순서는 항상 장 기준(반대쪽 지역을 봐도 도넛 그림은 그대로, 보이는 지역만 바뀜 — 2026-11-12 사용자)   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
   }
   // 현금은 모든 정렬에서 12시부터 시계 반대 방향으로 외화 → 원화, 그다음 나머지(2026-11-12 사용자)
   { const cash = ordered.filter(d => stockSecKey(d) === '현금');
