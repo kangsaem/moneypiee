@@ -3350,8 +3350,8 @@ document.addEventListener('DOMContentLoaded', () => {
   panel.addEventListener('touchend', () => { if(!tip) clearTimeout(timer); }, { passive: true });
 });
 let stockSortCycleActive = null;
-const STOCK_SORT_CYCLE_FULL = ['region', 'group', 'amount', 'name'];   // 2026-11-12 사용자: 지역순→섹터순→금액순→이름순
-const STOCK_SORT_CYCLE_NO_REGION = ['group', 'amount', 'name'];
+const STOCK_SORT_CYCLE_FULL = ['region', 'group', 'amount'];   // 2026-11-12 사용자: 지역순→섹터순→금액순→이름순
+const STOCK_SORT_CYCLE_NO_REGION = ['group', 'amount'];   // 이름순 삭제(2026-11-12 사용자)
 const STOCK_SORT_LABEL = { amount:'금액순', group:'섹터순', region:'지역순', name:'이름순' };
 
 function computeStockDataWithMeta(holdings, fallbackAccId){
