@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script>/* 광고 스위치(2026-11-12): true로 바꾸면 위쪽 광고 띠가 다시 나옴 */window.MP_AD_ON=false;if(!window.MP_AD_ON)document.documentElement.classList.add('no-ad');</script>
 <meta charset="UTF-8">
 <!--TEST:BEGIN-->
 <meta name="robots" content="noindex, nofollow">
@@ -106,7 +107,9 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
     font-weight:500;
   }
   .num{font-family:'Inter', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-weight:500;}
-  .wrap{max-width:960px;margin:0 auto;padding:76px 10px 32px;}   /* 2026-10-11: 가장자리 여백 반(20→10) */
+  .wrap{max-width:960px;margin:0 auto;padding:76px 10px 32px;}
+  /* 2026-11-12 광고 스위치: MP_AD_ON=false면 위쪽 광고 띠와 그 자리(76px)를 없앰 */
+  .no-ad .wrap{padding-top:12px;} .no-ad #adfit-bottom{display:none !important;}   /* 2026-10-11: 가장자리 여백 반(20→10) */
   #adfit-bottom{
     position:fixed;top:0;left:0;right:0;z-index:999;
     background:var(--bg);border-bottom:1px solid var(--border);
@@ -279,7 +282,21 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .dn-dots{display:flex;gap:6px;justify-content:center;margin:8px 0 4px;} .dn-dots i{width:6px;height:6px;border-radius:50%;background:#5A5B61;} .dn-dots i.on{background:#D6D7DB;}
   .rg-head{display:flex;align-items:center;gap:6px;width:100%;padding:4px 0 2px;font-size:12px;color:var(--text-dim);cursor:pointer;box-sizing:border-box;} .rg-head b{color:var(--text);font-weight:600;font-size:13px;}
   .rg-head .rg-cap{margin-left:auto;} .rg-head.rg-fold b{color:var(--text-dim);} .rg-head.rg-sep{margin-top:8px;padding-top:10px;border-top:1px dashed var(--text-dim);}
-  .rg-head{position:relative;} .charts.dn-car .rg-reload{display:flex;} .rg-reload{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;height:26px;display:none;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0;font-family:inherit;}
+  /* 2026-11-12 도넛 통일: 밑에 섹터 색, 위에 종목 조각. 접힌 묶음은 종목 조각을 숨겨 섹터 색이 보임 */
+  #mpSnapDn{position:fixed;left:50%;bottom:calc(6px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);width:56px;height:30px;display:none;align-items:center;justify-content:center;font-size:15px;color:var(--text-dim);background:rgba(40,41,45,.82);border-radius:15px;z-index:40;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
+  #mpSnapDn.on{display:flex;}
+  #stock-sortable-chart{grid-column:1/-1;}   /* 도넛이 하나뿐이라 가운데에 */
+  #stock-sortable-chart [data-u]{transition:opacity .22s;}
+  #stock-sortable-chart [data-u="base"]{transition:opacity 0s;}
+  #stock-sortable-chart [data-u="base"][data-hide]{transition:opacity 0s .22s;}
+  #stock-sortable-chart [data-u][data-dim]{opacity:.3 !important;}
+  #stock-sortable-chart [data-u][data-hide]{opacity:0 !important;}
+  .fold-body{display:flex;flex-direction:column;gap:6px;width:100%;transition:max-height .38s cubic-bezier(.16,.9,.3,1), margin-top .38s cubic-bezier(.16,.9,.3,1);}
+  .fold-body.closed{max-height:0;margin-top:-6px;} .fold-body.closed, .fold-body.anim{overflow:hidden;}
+  .sec-head{display:flex;align-items:center;gap:8px;margin:8px 0 4px;width:100%;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .sec-head .sec-nm{font-size:13px;color:var(--text);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;opacity:0.7;}
+  .sec-head .sec-ln{flex:1;border-top:1px dashed var(--text-dim);} .sec-head .sec-pct{font-size:13px;color:var(--text);opacity:0.7;flex-shrink:0;font-weight:500;}
+  .rg-head{position:relative;} .charts.dn-car .rg-reload, .charts.mp-phone .rg-reload{display:flex;} .rg-reload{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;height:26px;display:none;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0;font-family:inherit;}
   .rg-live{font-size:10.5px;border:1px solid #D4FF3D;color:#D4FF3D;border-radius:4px;padding:0 5px;line-height:15px;}
   .total-badge .num{color:#F0DA8C;font-size:16px;font-weight:700;margin-left:6px;}  @keyframes dragHintBounceIn{
     0%{ transform:translate(-50%,var(--ty,-50%)) scale(0.3); opacity:0; }
@@ -2680,7 +2697,7 @@ function ringSegmentsSVG(data, type, cx, cy, radius, strokeWidth, ringName, opac
     const gap = circumference - dash;
     const dashoffset = -(cumulative * circumference);
     cumulative += frac;
-    return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}"${opacityAttr} stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${dashoffset.toFixed(2)}" transform="translate(${2*cx},0) scale(-1,1) rotate(-90 ${cx} ${cy})" data-ring="${ringName}" data-slice-idx="${i}"><title>${escapeHTML(d.label)} ${d.pct.toFixed(1)}%</title></circle>`;
+    return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${d.color || color}" stroke-width="${strokeWidth}"${opacityAttr}${d.attrs || ''} stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${dashoffset.toFixed(2)}" transform="translate(${2*cx},0) scale(-1,1) rotate(-90 ${cx} ${cy})" data-ring="${ringName}" data-slice-idx="${i}"><title>${escapeHTML(d.label)} ${d.pct.toFixed(1)}%</title></circle>`;
   }).join('');
 }
 
@@ -2883,9 +2900,195 @@ document.addEventListener('click', e => {
     rb.click(); mpSyncRgReload(); return;
   }   // 접힌 줄 오른쪽 새로고침 = 위 새로고침 버튼과 같은 동작
   const el = e.target.closest && e.target.closest('[data-region-fold]'); if(!el) return;
-  stockRegionFold[el.dataset.regionFold] = el.dataset.regionFolded !== '1';
-  renderPreservingOpenChartAccordions();
+  const g = el.dataset.regionFold, nowFolded = el.dataset.regionFolded !== '1';
+  stockRegionFold[g] = nowFolded;
+  const box = el.closest('#stock-sortable-chart'), body = box && mpFoldBody(box, 'reg', g);
+  if(!DONUT_ONE || !body){ renderPreservingOpenChartAccordions(); return; }
+  box.querySelectorAll('[data-region-fold="' + g + '"]').forEach(h => { h.style.display = ((h.dataset.regionFolded === '1') === nowFolded) ? '' : 'none'; });
+  mpFold(body, !nowFolded); mpDonutSync();
+  try{ assetPanelEnhance(); }catch(e){}
 });
+// 섹터순: 섹터 줄을 누르면 그 섹터 종목이 펼쳐지고 도넛의 그 섹터 구간에 종목 색이 나타남(2026-11-12 사용자)
+document.addEventListener('click', e => {
+  const sh = e.target.closest && e.target.closest('[data-sec-fold]'); if(!sh) return;
+  const k = sh.dataset.secFold, box = sh.closest('#stock-sortable-chart'); if(!box) return;
+  stockSectorOpen[k] = !stockSectorOpen[k];
+  mpFold(mpFoldBody(box, 'sec', k), !!stockSectorOpen[k]); mpDonutSync();
+});
+// ── 휴대폰 화면맞춤(2026-11-12 사용자) ─────────────────────────────────────────
+// 자산 탭 첫 화면은 지표~도넛이 한 화면에 딱 맞고 아래 ▼. ▼를 누르거나 위로 끌면 단계별로 내려감(탭 아래가 맨 위로 → 목록 끝).
+// 손가락을 따라 흘러가는 스크롤 대신 단계 사이를 애니메이션으로 이동. PC와 다른 탭은 예전 그대로.
+const MP_SNAP_ON = true;
+let mpSnapAnim = false;
+function mpSnapActive(){
+  try{ return MP_SNAP_ON && donutCarOn() && ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) && !!document.getElementById('stock-sortable-chart'); }catch(e){ return false; }
+}
+function mpSnapStages(){
+  const H = window.innerHeight, panel = document.getElementById('panel');
+  const end = Math.max(0, Math.round(document.documentElement.scrollHeight - H));
+  const a = [0]; if(end < 8) return a;
+  const y1 = panel ? Math.max(0, Math.round(panel.getBoundingClientRect().top + window.scrollY) - 4) : 0;
+  if(y1 > 8 && y1 < end - 8){ a.push(y1); const step = Math.max(200, H - 90); for(let y = y1 + step; y < end - 60; y += step) a.push(y); }
+  a.push(end); return a;
+}
+function mpSnapBtn(){
+  let b = document.getElementById('mpSnapDn');
+  if(!b){ b = document.createElement('div'); b.id = 'mpSnapDn'; b.textContent = '▼'; b.setAttribute('aria-label', '아래로'); document.body.appendChild(b); b.addEventListener('click', e => { e.stopPropagation(); mpSnapGo(1); }); }
+  return b;
+}
+function mpSnapArrow(){
+  const b = mpSnapBtn(); if(!mpSnapActive()){ b.classList.remove('on'); return; }
+  const st = mpSnapStages(); b.classList.toggle('on', window.scrollY < st[st.length - 1] - 8);
+}
+function mpSnapGo(dir){
+  if(mpSnapAnim) return;
+  const st = mpSnapStages(), cur = window.scrollY;
+  const to = dir > 0 ? st.find(y => y > cur + 8) : st.slice().reverse().find(y => y < cur - 8);
+  if(to == null) return;
+  const t0 = performance.now(), D = 460; mpSnapAnim = true;
+  const tick = now => { const t = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - t, 4);   // 처음에 세게, 끝에서 천천히
+    window.scrollTo(0, cur + (to - cur) * e);
+    if(t < 1) requestAnimationFrame(tick); else { mpSnapAnim = false; mpSnapArrow(); } };
+  requestAnimationFrame(tick);
+}
+// 첫 화면 맞춤: 도넛이 화면 아래 끝(▼ 자리 위)에 딱 맞게 크기·여백을 정하고, 탭 아래가 맨 위에 붙을 만큼 길이를 확보
+function mpSnapLayout(){
+  const on = mpSnapActive(), panel = document.getElementById('panel');
+  const box = document.getElementById('stock-sortable-chart'), dw = box && box.querySelector('.donut-wrap');
+  if(dw){ dw.style.width = dw.style.height = dw.style.marginTop = dw.style.marginBottom = ''; }
+  if(panel && panel.dataset.snapMin){ panel.style.minHeight = ''; delete panel.dataset.snapMin; }
+  if(panel) mpSnapLayout.top = Math.round(panel.getBoundingClientRect().top + window.scrollY);
+  if(!on || !dw || !panel){ mpSnapArrow(); return; }
+  const H = window.innerHeight, ARW = 40, r = dw.getBoundingClientRect(), top = r.top + window.scrollY;
+  const size = Math.round(Math.max(150, Math.min(H - top - ARW, r.height * 1.25, (box.clientWidth || 300) - 24)));
+  const spare = Math.max(0, H - ARW - top - size);
+  dw.style.width = dw.style.height = size + 'px';
+  dw.style.marginTop = Math.floor(spare / 2) + 'px'; dw.style.marginBottom = (Math.ceil(spare / 2) + ARW) + 'px';
+  const wrap = document.querySelector('.wrap'), pr = panel.getBoundingClientRect();
+  const below = wrap ? Math.max(0, wrap.getBoundingClientRect().bottom - pr.bottom) : 0, need = Math.ceil(H - below + 4);
+  if(pr.height < need){ panel.dataset.snapMin = '1'; panel.style.minHeight = need + 'px'; const h2 = panel.getBoundingClientRect().height; if(h2 > need + 1) panel.style.minHeight = Math.max(0, need - (h2 - need)) + 'px'; }
+  mpSnapArrow();
+}
+(function(){
+  let sx = 0, sy = 0, mode = -1;   // -1 = 관여 안 함, 0 = 방향 판정 전, 1 = 세로 단계 이동
+  // 안에서 따로 스크롤되는 곳(팝업·창)은 건드리지 않음
+  const own = el => { for(let n = el; n && n.nodeType === 1 && n !== document.body; n = n.parentElement){
+    const cs = getComputedStyle(n); if(cs.position === 'fixed') return true;
+    if(/(auto|scroll)/.test(cs.overflowY) && n.scrollHeight > n.clientHeight + 2) return true; } return false; };
+  document.addEventListener('touchstart', e => {
+    mode = (e.touches.length === 1 && mpSnapActive() && !own(e.target)) ? 0 : -1;
+    if(mode === 0){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if(mode === -1) return;
+    const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
+    if(mode === 0){
+      if(Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
+      if(Math.abs(dy) <= Math.abs(dx)){ mode = -1; return; }          // 가로 끌기(지표 카드 넘기기 등)는 그대로
+      if(dy > 0 && window.scrollY <= 0){ mode = -1; return; }         // 맨 위에서 아래로 당기기(새로고침)는 그대로
+      mode = 1;
+    }
+    if(e.cancelable) e.preventDefault(); else mode = -1;
+  }, { passive: false });
+  const end = e => { if(mode === 1){ const dy = e.changedTouches[0].clientY - sy; if(Math.abs(dy) >= 24) mpSnapGo(dy < 0 ? 1 : -1); } mode = -1; };
+  document.addEventListener('touchend', end, { passive: true });
+  document.addEventListener('touchcancel', () => { mode = -1; }, { passive: true });
+  window.addEventListener('scroll', () => { if(!mpSnapAnim) mpSnapArrow(); }, { passive: true });
+  window.addEventListener('resize', () => { try{ mpSnapLayout(); }catch(e){} });
+  window.addEventListener('mp-fold-done', () => { try{ mpSnapArrow(); }catch(e){} });
+  // 탭 위쪽(지표 카드 등)이 늦게 그려져 높이가 바뀌면 첫 화면 맞춤을 다시 계산
+  document.addEventListener('DOMContentLoaded', () => { try{
+    new ResizeObserver(() => { const p = document.getElementById('panel'); if(!p) return;
+      const t = Math.round(p.getBoundingClientRect().top + window.scrollY); if(t !== mpSnapLayout.top){ try{ mpSnapLayout(); }catch(e){} } else mpSnapArrow(); }).observe(document.body);
+  }catch(e){} });
+})();
+const DONUT_ONE = true;            // 도넛 하나로 통일(2026-11-12). false면 예전처럼 섹터·종목·지역 3개
+let stockSectorOpen = {};          // 섹터순에서 펼친 섹터(처음엔 모두 접힘)
+let stockSecColorNow = {};         // 지금 그린 도넛의 섹터 색(목록 섹터 줄의 색 네모와 같게)
+function mpFoldBody(box, kind, key){ return [...box.querySelectorAll('[data-fold-body]')].find(b => b.dataset.foldBody === kind + ':' + key) || null; }
+function mpFold(body, open){
+  if(!body) return;
+  const h = body.scrollHeight;
+  body.classList.add('anim');
+  if(open){ body.classList.remove('closed'); body.style.maxHeight = '0px'; void body.offsetHeight; body.style.maxHeight = h + 'px'; }
+  else { body.style.maxHeight = h + 'px'; void body.offsetHeight; body.classList.add('closed'); body.style.maxHeight = ''; }
+  clearTimeout(body._ft);
+  body._ft = setTimeout(() => { body.classList.remove('anim'); if(!body.classList.contains('closed')) body.style.maxHeight = ''; try{ window.dispatchEvent(new Event('mp-fold-done')); }catch(e){} }, 420);
+}
+function stockSecKey(d){ return (isCashLikeLabel(d.label) || d.group === '현금') ? '현금' : (d.group || '?'); }
+function stockRegKey(d){ return (d.region || 'domestic') === 'overseas' ? 'overseas' : 'domestic'; }
+function stockRegionFoldState(){
+  const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
+  return { mk, other, folded: { [mk.side]: stockRegionFold[mk.side] === true, [other]: stockRegionFold[other] !== false } };
+}
+// 도넛 조각 한 개가 지금 보여야 하는지: u = st(종목 조각) · base(밑의 섹터 색) · ring(섹터 링)
+function stockUState(u, sec, reg, mode, rs, fs){
+  if(mode === 'group'){ const open = sec === '현금' || !!stockSectorOpen[sec]; return { hide: u === 'st' ? !open : (u === 'base' ? open : false), dim: false }; }
+  if(mode === 'region' && rs){ const f = !!fs.folded[reg]; return { hide: u === 'st' ? f : (u === 'base' ? !f : false), dim: f && u !== 'st' }; }
+  return { hide: u === 'base', dim: false };
+}
+function stockUAttrs(u, sec, reg, st){ return ` data-u="${u}" data-sec="${escapeHTML(sec)}" data-reg="${reg}"${st.hide ? ' data-hide="1"' : ''}${st.dim ? ' data-dim="1"' : ''}`; }
+function mpDonutSync(){
+  const box = document.getElementById('stock-sortable-chart'); if(!box) return;
+  const mode = box.dataset.umode, rs = box.dataset.urs === '1', fs = stockRegionFoldState();
+  box.querySelectorAll('[data-u]').forEach(el => {
+    const st = stockUState(el.dataset.u, el.dataset.sec, el.dataset.reg, mode, rs, fs);
+    if(st.hide) el.setAttribute('data-hide', '1'); else el.removeAttribute('data-hide');
+    if(st.dim) el.setAttribute('data-dim', '1'); else el.removeAttribute('data-dim');
+  });
+}
+function pieSlicePaths(items, total, r, cx, cy){
+  let angle = -90, out = '';
+  items.forEach(d => {
+    const sweep = (d.amount / total) * 360; if(!(sweep > 0)) return;
+    if(sweep >= 359.9){ out += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.color}"${d.attrs || ''}/>`; angle += sweep; return; }
+    const large = sweep > 180 ? 1 : 0, end = angle + sweep;
+    const x1 = cx + r*Math.cos(angle*Math.PI/180), y1 = cy + r*Math.sin(angle*Math.PI/180);
+    const x2 = cx + r*Math.cos(end*Math.PI/180), y2 = cy + r*Math.sin(end*Math.PI/180);
+    out += `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${d.color}"${d.attrs || ''}/>`;
+    angle = end;
+  });
+  return out;
+}
+// 통일 도넛 설계: 종목 순서(도넛·목록 공통), 밑의 섹터 색 층, 섹터 링·지역 링 자료
+function stockUnifiedPlan(raw, holdings, mode){
+  const secW = reorderCashFirst(computeWeights(holdings, 'group')), secColor = {};
+  stockSecColorNow = secColor;
+  secW.forEach((d, i) => { secColor[(isCashLikeLabel(d.label)) ? '현금' : d.label] = rankColor(d.label, d.rank !== undefined ? d.rank : i, d.rankCount !== undefined ? d.rankCount : secW.length, 'group'); });
+  const bySector = xs => { const tot = {}; xs.forEach(d => { const k = stockSecKey(d); tot[k] = (tot[k] || 0) + d.amount; });
+    return xs.slice().sort((a, b) => { const ka = stockSecKey(a), kb = stockSecKey(b);
+      return ((kb === '현금') - (ka === '현금')) || (tot[kb] - tot[ka]) || (ka < kb ? -1 : (ka > kb ? 1 : 0)) || (b.amount - a.amount); }); };
+  let ordered = sortStockData(raw, mode), rs = false;
+  const fs = stockRegionFoldState();
+  if(mode === 'group') ordered = bySector(raw);
+  else if(mode === 'region'){
+    const part = g => raw.filter(d => stockRegKey(d) === g);
+    rs = part('domestic').length > 0 && part('overseas').length > 0;
+    if(rs) ordered = bySector(part(fs.mk.side)).concat(bySector(part(fs.other)));   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
+  }
+  const total = _.sumBy(ordered, 'amount') || 1, n = ordered.length, useBase = mode === 'group' || rs;
+  const st = (u, sec, reg) => stockUState(u, sec, reg, mode, rs, fs);
+  const runs = [];
+  if(useBase) ordered.forEach(d => { const sec = stockSecKey(d), reg = stockRegKey(d), k = mode === 'group' ? sec : reg + '|' + sec, l = runs[runs.length - 1];
+    if(l && l.k === k) l.amount += d.amount; else runs.push({ k, amount: d.amount, sec, reg: mode === 'group' ? '' : reg }); });
+  const regTot = { domestic: 0, overseas: 0 }, regCash = { domestic: 0, overseas: 0 };
+  ordered.forEach(d => { const g = stockRegKey(d); regTot[g] += d.amount; if(stockSecKey(d) === '현금') regCash[g] += d.amount; });
+  const baseItems = runs.map(r => ({ amount: r.amount, color: secColor[r.sec] || CASH_COLOR, attrs: stockUAttrs('base', r.sec, r.reg, st('base', r.sec, r.reg)) }));
+  const stItems = ordered.map((d, i) => { const sec = stockSecKey(d), reg = stockRegKey(d);
+    return { amount: d.amount, color: rankColor(d.label, d.rank !== undefined ? d.rank : i, d.rankCount !== undefined ? d.rankCount : n, 'stock'), attrs: ` data-slice-idx="${i}"` + stockUAttrs('st', sec, reg, st('st', sec, reg)) }; });
+  const secRing = useBase ? runs.map(r => ({ label: (rs ? (r.reg === 'domestic' ? '국내 ' : '해외 ') : '') + r.sec, amount: r.amount,
+    pct: rs ? (regTot[r.reg] ? r.amount / regTot[r.reg] * 100 : 0) : r.amount / total * 100,   // 지역순: 그 지역 안에서의 섹터 비중
+    color: secColor[r.sec] || CASH_COLOR, attrs: stockUAttrs('ring', r.sec, r.reg, st('ring', r.sec, r.reg)) })) : null;
+  const regRing = rs ? [fs.mk.side, fs.other].flatMap(g => [
+    { label: g === 'domestic' ? '원화' : '외화', amount: regCash[g], pct: regCash[g] / total * 100, rank: 0, rankCount: 2 },
+    { label: g === 'domestic' ? '국내' : '해외', amount: regTot[g] - regCash[g], pct: (regTot[g] - regCash[g]) / total * 100, rank: g === 'domestic' ? 0 : 1, rankCount: 2 }
+  ]).filter(d => d.amount > 0) : null;
+  const r = 74, cx = 80, cy = 80;
+  const pieInner = n === 0
+    ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--text-dim)" stroke-width="1.5" stroke-dasharray="4 4"/>`
+    : `<g transform="translate(160,0) scale(-1,1)">${pieSlicePaths(baseItems, total, r, cx, cy)}${pieSlicePaths(stItems, total, r, cx, cy)}<circle cx="${cx}" cy="${cy}" r="${r*0.55}" fill="var(--surface2)"/></g>`;
+  return { ordered, pieInner, secRing, regRing, rs };
+}
 // 당일 등락률 표시 = 상단 경제지표 카드와 같은 방식(▲/▼ 소수 둘째 자리, % 작게, 상승 #E87BA4 · 하락 #5FB8E0)
 function stockLegendChangeHTML(chg, isCash){
   if(isCash || chg == null || !isFinite(chg)) return '<span style="color:var(--text-dim);font-weight:500;">-</span>';
@@ -2919,6 +3122,8 @@ function assetPanelEnhance(){
     b.style.right = (-gap) + 'px';
     if(gap < 34) row.style.paddingRight = (34 - gap) + 'px';
   });
+  const ch0 = panel.querySelector('.charts'); if(ch0) ch0.classList.toggle('mp-phone', donutCarOn());
+  try{ mpSnapLayout(); }catch(e){}
   const ch = panel.querySelector('.charts'); if(!ch || ch.classList.contains('dn-car')) return;
   const slides = [...ch.children].filter(e => e.classList.contains('chart-box') && e.querySelector('.donut-wrap'));
   if(slides.length < 2 || !donutCarOn()) return;
@@ -3000,8 +3205,8 @@ document.addEventListener('DOMContentLoaded', () => {
   panel.addEventListener('touchend', () => { if(!tip) clearTimeout(timer); }, { passive: true });
 });
 let stockSortCycleActive = null;
-const STOCK_SORT_CYCLE_FULL = ['amount', 'group', 'region', 'name'];
-const STOCK_SORT_CYCLE_NO_REGION = ['amount', 'group', 'name'];
+const STOCK_SORT_CYCLE_FULL = ['region', 'group', 'amount', 'name'];   // 2026-11-12 사용자: 지역순→섹터순→금액순→이름순
+const STOCK_SORT_CYCLE_NO_REGION = ['group', 'amount', 'name'];
 const STOCK_SORT_LABEL = { amount:'금액순', group:'섹터순', region:'지역순', name:'이름순' };
 
 function computeStockDataWithMeta(holdings, fallbackAccId){
@@ -3435,15 +3640,16 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     const gOf = d => (d.region || 'domestic') === 'domestic' ? 'domestic' : 'overseas';
     const cnt = { domestic: data.filter(d => gOf(d) === 'domestic').length, overseas: data.filter(d => gOf(d) === 'overseas').length };
     if(cnt.domestic && cnt.overseas){
-      const mk = mpMarketSide(), other = mk.side === 'domestic' ? 'overseas' : 'domestic';
-      const folded = { [mk.side]: stockRegionFold[mk.side] === true, [other]: stockRegionFold[other] !== false };
+      const { mk, other, folded } = stockRegionFoldState();
       data = data.filter(d => gOf(d) === mk.side).concat(data.filter(d => gOf(d) === other));
       const cap = { change:'등락률', pct:'비중', amount:'평가액' }[stockValueModeNow(sortMode)];
       rg = { gOf, folded, last: null, head: g => {
         const nm = g === 'domestic' ? '국내' : '해외', live = mk.open && g === mk.side ? '<span class="rg-live">장중</span>' : '';
-        return folded[g]
-          ? `<div class="rg-head rg-fold${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="1"><span>▸</span><b>${nm} ${cnt[g]}종목</b>${live}<span class="rg-cap">눌러서 펼치기</span><button type="button" class="rg-reload" title="시세 새로고침">↻</button></div>`
-          : `<div class="rg-head${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="0"><span>▾</span><b>${nm}</b>${live}<span class="rg-cap">${cap}</span></div>`;
+        const off = ' style="display:none"';
+        const hf = (on) => `<div class="rg-head rg-fold${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="1"${on ? '' : off}><span>▸</span><b>${nm} ${cnt[g]}종목</b>${live}<span class="rg-cap">눌러서 펼치기</span><button type="button" class="rg-reload" title="시세 새로고침">↻</button></div>`;
+        const ho = (on) => `<div class="rg-head${g === other ? ' rg-sep' : ''}" data-region-fold="${g}" data-region-folded="0"${on ? '' : off}><span>▾</span><b>${nm}</b>${live}<span class="rg-cap">${cap}</span></div>`;
+        if(DONUT_ONE) return hf(folded[g]) + ho(!folded[g]);   // 두 머리줄을 다 넣어 두고 그 자리에서 바꿈(다시 그리지 않아 펼침 애니메이션이 살아 있음)
+        return folded[g] ? hf(true) : ho(true);
       } };
     }
   }
@@ -3454,11 +3660,17 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
       <div style="flex:1;border-top:1px dashed var(--text-dim);"></div>
     </div>`;
   }
-  if(sortMode === 'group' && data.length > 0){
+  const uniSec = DONUT_ONE && compactTotalMode && sortMode === 'group';   // 섹터순: 섹터마다 접힘 묶음
+  const foldOpen = (kind, key, open) => `<div class="fold-body${open ? '' : ' closed'}" data-fold-body="${kind}:${escapeHTML(key)}">`;
+  let bodyOpen = false, uniLast = null;
+  const secPct = {}; if(uniSec) data.forEach(d => { const k = stockSecKey(d); secPct[k] = (secPct[k] || 0) + d.pct; });
+  if(sortMode === 'group' && !uniSec && data.length > 0){
     html += sectionHeader(data[0].group);
   }
   data.forEach((d,i) => {
-    if(rg){ const g = rg.gOf(d); if(g !== rg.last){ rg.last = g; html += rg.head(g); } if(rg.folded[g]) return; }
+    if(rg){ const g = rg.gOf(d); if(g !== rg.last){ if(bodyOpen){ html += '</div>'; bodyOpen = false; } rg.last = g; html += rg.head(g); if(DONUT_ONE){ html += foldOpen('reg', g, !rg.folded[g]); bodyOpen = true; } } if(!DONUT_ONE && rg.folded[g]) return; }
+    if(uniSec){ const k = stockSecKey(d); if(k !== uniLast){ if(bodyOpen){ html += '</div>'; bodyOpen = false; } uniLast = k;
+      if(k !== '현금'){ html += `<div class="sec-head" data-sec-fold="${escapeHTML(k)}"><span class="swatch" style="background:${stockSecColorNow[k] || CASH_COLOR}"></span><span class="sec-nm">${escapeHTML(k)}</span><div class="sec-ln"></div><span class="sec-pct num">${(secPct[k] || 0).toFixed(1)}<span class="pct-sign">%</span></span></div>` + foldOpen('sec', k, !!stockSectorOpen[k]); bodyOpen = true; } } }
     const rank = d.rank !== undefined ? d.rank : i;
     const rankCount = d.rankCount !== undefined ? d.rankCount : data.length;
     const color = rankColor(d.label, rank, rankCount, 'stock');
@@ -3490,7 +3702,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     if(i < data.length - 1){
       const next = data[i+1];
       let showDivider = false;
-      if(sortMode === 'group' && d.group !== next.group) showDivider = true;
+      if(sortMode === 'group' && !uniSec && d.group !== next.group) showDivider = true;
       if(sortMode === 'region' && !rg && (d.region||'domestic') !== (next.region||'domestic')) showDivider = true;
       if(showDivider){
         if(sortMode === 'group'){
@@ -3501,6 +3713,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
       }
     }
   });
+  if(bodyOpen) html += '</div>';
   html += '</div>';
   return html;
 }
@@ -3510,7 +3723,8 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
   if(!stockSortPicked) stockLegendSortMode = stockSortCycleActive.includes('region') ? 'region' : 'amount';
   if(!stockSortCycleActive.includes(stockLegendSortMode)) stockLegendSortMode = 'amount';
   const rawData = computeStockDataWithMeta(holdings, fallbackAccId);
-  const ordered = sortStockData(rawData, stockLegendSortMode);
+  const U = (DONUT_ONE && compactTotalMode) ? stockUnifiedPlan(rawData, holdings, stockLegendSortMode) : null;
+  const ordered = U ? U.ordered : sortStockData(rawData, stockLegendSortMode);
   const centerLabel = STOCK_SORT_LABEL[stockLegendSortMode];
   // 외부링은 기본 투명도 0.5, 현재 정렬기준과 일치하는 링(섹터순->섹터링, 국내해외순->지역링)만 1.0
   const rings = (extraRingSpecs || []).map(spec => {
@@ -3518,6 +3732,11 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
     let opacity = 0.7;
     if(stockLegendSortMode === 'group' && spec.name === 'decorative-sector') opacity = 1;
     if(stockLegendSortMode === 'region' && spec.name === 'decorative-region') opacity = 1;
+    if(U && spec.name === 'decorative-sector' && U.secRing) return { ...spec, data: U.secRing, preOrdered: true, opacity: null };   // 종목 순서와 맞춘 섹터 링(지역순이면 지역별 섹터 비중)
+    if(U && spec.name === 'decorative-region'){
+      if(stockLegendSortMode === 'group') opacity = 0;                                  // 섹터순에서는 지역 링 숨김(자리는 유지해 도넛 크기가 안 변함)
+      else if(U.regRing) return { ...spec, data: U.regRing, preOrdered: true, opacity: 1 };
+    }
     return { ...spec, opacity };
   });
 
@@ -3527,14 +3746,14 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
   const hasPartialLabel = rings.some(r => r.partial && r.partial.amountLabel);
   const outerSize = 2 * (pieR + rings.length * ringW + (hasPartialLabel ? 14 : 6));
   const cx = outerSize/2, cy = outerSize/2;
-  const pieInner = donutSVG(ordered, 160, 'stock').replace(/^<div class="donut-wrap">/, '').replace(/<\/div>$/, '');
+  const pieInner = U ? U.pieInner : donutSVG(ordered, 160, 'stock').replace(/^<div class="donut-wrap">/, '').replace(/<\/div>$/, '');
   // 계좌유형링을 삭제해서 링 개수가 전반적으로 1개씩 줄어든 만큼, 크기 기준도 한 단계씩 낮춰서
   // (=한 단계씩 큰 사이즈를 써서) 도넛이 예전과 비슷한 크기로 보이도록 보정한다.
   // 파이(원) 자체는 항상 동일한 크기(pieR=74)를 유지하고, 링 개수만큼 캔버스만 정확히 넓어진다.
   // (원-CSS박스 크기는 1:1로 대응: 0개=160px, 1개=172px, 2개=184px, 3개=196px, 4개=208px)
   const sizeClass = rings.length >= 4 ? 'donut-wrap-xxl' : (rings.length >= 3 ? 'donut-wrap-xl' : (rings.length >= 2 ? 'donut-wrap-lg' : 'donut-wrap-md'));
 
-  return `<div class="chart-box" id="stock-sortable-chart">
+  return `<div class="chart-box" id="stock-sortable-chart" data-umode="${stockLegendSortMode}" data-urs="${U && U.rs ? 1 : 0}">
     <div class="donut-wrap ${sizeClass}" style="position:relative;cursor:pointer;" data-donut-cycle>
       <svg width="100%" height="100%" viewBox="0 0 ${outerSize} ${outerSize}" style="display:block;">
         <g transform="translate(${cx-80},${cy-80})">
@@ -6315,11 +6534,11 @@ function renderPanel0(){
       ${subTypeBarHtml}
       <div class="charts">
         ${(sectorAccordionShowRegionBar = false, '')}
-        ${sectorChartBlock(holdings)}
+        ${DONUT_ONE ? '' : sectorChartBlock(holdings)}
         ${stockChartBlockSortable(holdings, false, [
           { data: computeWeights(holdings, 'group'), type: 'group', name: 'decorative-sector' }
         ], undefined, true)}
-        ${noFilterActive ? '' : lockedRegionDonutBlock(region, total === 0 ? [] : holdingsInScopeAllRegions)}
+        ${(DONUT_ONE || noFilterActive) ? '' : lockedRegionDonutBlock(region, total === 0 ? [] : holdingsInScopeAllRegions)}
       </div>
     `;
     initAccountBtnScrollAlignment();
@@ -6430,7 +6649,7 @@ function renderPanel0(){
             ${accountTypeBarChartBlock(selectedTypesFromAccountFilter(totalAccountFilterSel, eligibleAccountIdsTotal))}
           </div>
         </div>
-        ${sectorChartBlock(scopedHoldings)}
+        ${DONUT_ONE ? '' : sectorChartBlock(scopedHoldings)}
         ${stockChartBlockSortable(scopedHoldings, true, [
           { data: computeWeights(scopedHoldings, 'group'), type: 'group', name: 'decorative-sector' },
           { data: regionQuadRingData(scopedHoldings), type: 'region', name: 'decorative-region', preOrdered: true },
@@ -6444,7 +6663,7 @@ function renderPanel0(){
             amountLabel: `${Math.floor(totalCreditUsed/10000).toLocaleString()}`
           }, name: 'decorative-credit' }] : [])
         ], undefined, true)}
-        ${regionChartBlock(scopedHoldings)}
+        ${DONUT_ONE ? '' : regionChartBlock(scopedHoldings)}
       </div>
     `;
     initAccountBtnScrollAlignment();
@@ -6530,12 +6749,12 @@ function renderPanel0(){
     <div id="holdingsTableScroll" style="overflow-x:auto;">${holdingsTable(acc.holdings, acc.id, true, true, false, false, accountTableSortMode)}</div>
     ${acc.id === WATCHLIST_ID ? '' : `<div class="charts">
       ${(sectorAccordionShowRegionBar = true, '')}
-      ${sectorChartBlock(acc.holdings)}
+      ${DONUT_ONE ? '' : sectorChartBlock(acc.holdings)}
       ${stockChartBlockSortable(acc.holdings, true, [
         { data: computeWeights(acc.holdings, 'group'), type: 'group', name: 'decorative-sector' },
         { data: regionQuadRingData(acc.holdings), type: 'region', name: 'decorative-region', preOrdered: true }
       ], acc.id, true)}
-      ${regionChartBlock(acc.holdings)}
+      ${DONUT_ONE ? '' : regionChartBlock(acc.holdings)}
     </div>`}
   `;
 
@@ -10386,12 +10605,14 @@ function checkNoticeHtml(){
 })();
 </script>
 
-<!--TEST:OFF<div id="adfit-bottom">
-  <ins class="kakao_ad_area" style="display:none;"
-       data-ad-unit="DAN-mgWowulkqYj3kO2r"
-       data-ad-width="320"
-       data-ad-height="50"></ins>
-  <script type="text/javascript" src="//t1.kakaocdn.net/kas/static/ba.min.js" async></script>
-</div>TEST:OFF-->
+<!--TEST:OFF<script>
+/* 위쪽 광고(카카오 애드핏). MP_AD_ON=true일 때만 넣음 — 코드는 보관(2026-11-12 사용자: 스위치로 끔) */
+if(window.MP_AD_ON){ (function(){
+  var d = document.createElement('div'); d.id = 'adfit-bottom';
+  d.innerHTML = '<ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-mgWowulkqYj3kO2r" data-ad-width="320" data-ad-height="50"></ins>';
+  document.body.appendChild(d);
+  var sc = document.createElement('script'); sc.async = true; sc.src = '//t1.kakaocdn.net/kas/static/ba.min.js'; d.appendChild(sc);
+})(); }
+</script>TEST:OFF-->
 </body>
 </html>
