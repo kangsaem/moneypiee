@@ -6292,7 +6292,7 @@ function renderHistoryPanel(){
     if(tw){ let d0 = 0, z0 = 1, zNow = 1, mid = 0, ox = 0, W0 = 1, svg = null, raf = 0;
       const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
       const sc = () => tw.querySelector('.trend-scroll');
-      const paint = () => { raf = 0; if(!svg || !histSize) return; svg.style.transform = `scaleX(${(histSize(zNow).w / W0).toFixed(4)})`; };
+      const paint = () => { raf = 0; if(!svg || !histSize) return; const r = histSize(zNow).w / histSize(z0).w; svg.style.transform = `scaleX(${(zNow < z0 ? Math.min(1, r) : Math.max(1, r)).toFixed(4)})`; };   // 지금 배율로 그린 폭 대비(화면 폭과 계산 폭이 달라도 끝에서 늘어나지 않게), 오므릴 땐 1 이하·벌릴 땐 1 이상만
       tw.addEventListener('touchstart', ev => { if(ev.touches.length !== 2) return; const el = sc(); svg = el && el.querySelector('svg'); if(!svg) return;
         d0 = dist(ev.touches); z0 = zNow = historyZoom; mid = (ev.touches[0].clientX + ev.touches[1].clientX) / 2;
         const r = svg.getBoundingClientRect(); W0 = Math.max(1, r.width); ox = mid - r.left;
@@ -6302,7 +6302,7 @@ function renderHistoryPanel(){
         if(!raf) raf = requestAnimationFrame(paint); }, { passive: false });
       const onEnd = ev => { if(!d0 || ev.touches.length >= 2) return; d0 = 0; if(raf){ cancelAnimationFrame(raf); raf = 0; }
         // 더 줄이거나 늘릴 수 없어 폭이 그대로면 아무것도 안 함(다시 그리면 가로 위치가 끝으로 튀었음 — 2026-11-12 사용자)
-        if(!histSize || Math.abs(histSize(zNow).w - W0) < 2){ if(svg){ svg.style.transform = ''; svg.style.willChange = ''; } return; }
+        if(!histSize || Math.abs(histSize(zNow).w - histSize(z0).w) < 2){ if(svg){ svg.style.transform = ''; svg.style.willChange = ''; } return; }
         const frac = ox / W0, el = sc(), left = el ? el.getBoundingClientRect().left : 0;
         historyZoom = zNow; render();
         const el2 = document.querySelector('#panel .trend-scroll'), s2 = el2 && el2.querySelector('svg');
