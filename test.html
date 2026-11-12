@@ -2980,9 +2980,11 @@ document.addEventListener('click', e => {
 document.addEventListener('click', e => {
   const sh = e.target.closest && e.target.closest('[data-sec-fold]'); if(!sh) return;
   const k = sh.dataset.secFold, box = sh.closest('#stock-sortable-chart'); if(!box || (WIDE_ALL_OPEN && mpWideList())) return;
+  if(k === ETC_KEY){ stockSecEtc.forEach(x => { stockSectorOpen[x] = true; }); renderPreservingOpenChartAccordions(); return; }   // '기타' → 그 안의 섹터들을 펼친 채로 풀어 놓음
   stockSectorOpen[k] = !stockSectorOpen[k];
+  if(stockSecEtc.has(k) && [...stockSecEtc].every(x => !stockSectorOpen[x])) setTimeout(() => { if([...stockSecEtc].every(x => !stockSectorOpen[x]) && document.getElementById('stock-sortable-chart')) renderPreservingOpenChartAccordions(); }, 440);   // 다 접으면 '기타'로 다시 묶음
   mpFold(mpFoldBody(box, 'sec', k), !!stockSectorOpen[k]); mpDonutSync(); sh.classList.toggle('open', !!stockSectorOpen[k]);
-  const ab = box.querySelector('[data-sec-all]'); if(ab) ab.textContent = [...box.querySelectorAll('[data-sec-fold]')].every(h => stockSectorOpen[h.dataset.secFold]) ? '▴ 모두 접기' : '▾ 모두 펴기';
+  const ab = box.querySelector('[data-sec-all]'); if(ab) ab.textContent = [...box.querySelectorAll('[data-sec-fold]')].every(h => h.dataset.secFold === ETC_KEY ? false : stockSectorOpen[h.dataset.secFold]) ? '▴ 모두 접기' : '▾ 모두 펴기';
 });
 // ── 휴대폰 화면맞춤(2026-11-12 사용자) ─────────────────────────────────────────
 // 자산 탭 첫 화면은 지표~도넛이 한 화면에 딱 맞고 아래 ▼. ▼를 누르거나 위로 끌면 단계별로 내려감(탭 아래가 맨 위로 → 목록 끝).
@@ -3131,6 +3133,10 @@ document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-sec-all]'); if(!b) return;
   e.stopPropagation();
   const box = b.closest('#stock-sortable-chart'); if(!box) return;
+  if(stockSecEtc.size){   // '기타' 묶음이 있으면 묶임/풀림이 바뀌므로 다시 그림
+    const all = [...new Set([...box.querySelectorAll('[data-sec-fold]')].map(h => h.dataset.secFold).filter(k => k !== ETC_KEY).concat([...stockSecEtc]))], op = !all.every(k => stockSectorOpen[k]);
+    all.forEach(k => { stockSectorOpen[k] = op; }); renderPreservingOpenChartAccordions(); return;
+  }
   const keys = [...box.querySelectorAll('[data-sec-fold]')].map(h => h.dataset.secFold), open = !keys.every(k => stockSectorOpen[k]);
   keys.forEach(k => { if(!!stockSectorOpen[k] !== open){ stockSectorOpen[k] = open; mpFold(mpFoldBody(box, 'sec', k), open); } });
   box.querySelectorAll('[data-sec-fold]').forEach(h => h.classList.toggle('open', open));
@@ -3170,7 +3176,7 @@ function stockRegionFoldState(){
 }
 // 도넛 조각 한 개가 지금 보여야 하는지: u = st(종목 조각) · base(밑의 섹터 색) · ring(섹터 링)
 function stockUState(u, sec, reg, mode, rs, fs){
-  if(mode === 'group'){ const open = sec === '현금' || stockSecOpen(stockSecEtc.has(sec) ? ETC_KEY : sec); return { hide: u === 'st' ? !open : (u === 'base' ? open : false), dim: false }; }
+  if(mode === 'group'){ const open = sec === '현금' || stockSecOpen(sec); return { hide: u === 'st' ? !open : (u === 'base' ? open : false), dim: false }; }
   if(mode === 'region' && rs){ const f = !!fs.folded[reg]; return { hide: u === 'st' ? f : (u === 'base' ? !f : false), dim: f && u !== 'st' }; }
   return { hide: u === 'base', dim: false };
 }
@@ -3825,7 +3831,9 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
   const foldOpen = (kind, key, open) => `<div class="fold-body${open ? '' : ' closed'}" data-fold-body="${kind}:${escapeHTML(key)}">`;
   let bodyOpen = false, uniLast = null, secAllDone = false, subOpen = false, subLast = null;
   // 모두 펴기/접기(섹터순, 접힘이 있는 화면에서만): 현금 줄 가운데에 둠(2026-11-12 사용자)
-  const secKeysAll = uniSec ? [...new Set(data.map(d => { const k = stockSecKey(d); return stockSecEtc.has(k) ? ETC_KEY : k; }))].filter(k => k !== '현금') : [];
+  const secKeysAll = uniSec ? [...new Set(data.map(stockSecKey))].filter(k => k !== '현금') : [];
+  // '기타'(1% 미만 섹터 묶음)는 그 섹터들이 모두 접혀 있을 때만 한 줄로 보임. 누르면 '기타' 줄은 사라지고 그 섹터들이 펼쳐진 채 나옴. 다 접으면 다시 '기타'로 묶임(2026-11-12 사용자)
+  const etcMerged = uniSec && stockSecEtc.size > 0 && [...stockSecEtc].every(k => !stockSecOpen(k));
   const secAllBtn = (uniSec && !(WIDE_ALL_OPEN && mpWideList()) && secKeysAll.length > 1) ? `<span class="sec-all" data-sec-all>${secKeysAll.every(k => stockSectorOpen[k]) ? '▴ 모두 접기' : '▾ 모두 펴기'}</span>` : '';
   const secPct = {}; if(uniSec) data.forEach(d => { const k = stockSecKey(d); secPct[k] = (secPct[k] || 0) + d.pct; });
   if(sortMode === 'group' && !uniSec && data.length > 0){
@@ -3833,7 +3841,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
   }
   data.forEach((d,i) => {
     if(rg){ const g = rg.gOf(d); if(g !== rg.last){ if(bodyOpen){ html += '</div></div>'; bodyOpen = false; } rg.last = g; if(DONUT_ONE) html += '<div class="sec-grp">'; html += rg.head(g); if(DONUT_ONE){ html += foldOpen('reg', g, !rg.folded[g]); bodyOpen = true; } } if(!DONUT_ONE && rg.folded[g]) return; }
-    if(uniSec){ const k = stockSecKey(d), gk = stockSecEtc.has(k) ? ETC_KEY : k;   // 1% 미만 섹터는 '기타' 한 묶음(펼치면 섹터별로 다 풀어서 보임)
+    if(uniSec){ const k = stockSecKey(d), gk = (etcMerged && stockSecEtc.has(k)) ? ETC_KEY : k;   // 1% 미만 섹터는 '기타' 한 묶음(펼치면 섹터별로 다 풀어서 보임)
       if(gk !== uniLast){ if(subOpen){ html += '</div>'; subOpen = false; } if(bodyOpen){ html += '</div></div>'; bodyOpen = false; } uniLast = gk; subLast = null;
         if(gk !== '현금' && secAllBtn && !secAllDone){ html += `<div class="sec-all-row">${secAllBtn}</div>`; secAllDone = true; }   // 현금 줄이 없으면 맨 위에 따로
         if(gk !== '현금'){ const isEtc = gk === ETC_KEY, pctV = isEtc ? _.sum([...stockSecEtc].map(x => secPct[x] || 0)) : (secPct[k] || 0);
