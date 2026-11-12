@@ -293,7 +293,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   #stock-sortable-chart [data-u][data-hide]{opacity:0 !important;}
   .fold-body{display:flex;flex-direction:column;gap:6px;width:100%;transition:max-height .38s cubic-bezier(.16,.9,.3,1), margin-top .38s cubic-bezier(.16,.9,.3,1);}
   .fold-body.closed{max-height:0;margin-top:-6px;} .fold-body.closed, .fold-body.anim{overflow:hidden;}
-  .sec-head{display:flex;align-items:center;gap:8px;margin:8px 0 4px;width:100%;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .sec-head{display:flex;align-items:center;gap:8px;margin:-7px 0;padding:7px 0;width:100%;box-sizing:border-box;cursor:pointer;-webkit-tap-highlight-color:transparent;}
   .sec-head .sec-nm{font-size:13px;color:var(--text);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;opacity:0.7;}
   .sec-head .sec-ln{flex:1;border-top:1px dashed var(--text-dim);} .sec-head .sec-pct{font-size:13px;color:var(--text);opacity:0.7;flex-shrink:0;font-weight:500;}
   .rg-head{position:relative;} .charts.dn-car .rg-reload, .charts.mp-phone .rg-reload{display:flex;} .rg-reload{position:absolute;top:50%;right:0;transform:translateY(-50%);width:26px;height:26px;display:none;align-items:center;justify-content:center;background:#D4FF3D;color:#111;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;padding:0;font-family:inherit;}
@@ -2933,6 +2933,7 @@ document.addEventListener('click', e => {
 // 자산 탭 첫 화면은 지표~도넛이 한 화면에 딱 맞고 아래 ▼. ▼를 누르거나 위로 끌면 단계별로 내려감(탭 아래가 맨 위로 → 목록 끝).
 // 손가락을 따라 흘러가는 스크롤 대신 단계 사이를 애니메이션으로 이동. PC와 다른 탭은 예전 그대로.
 const MP_SNAP_ON = true;
+const MP_SNAP_DRAG = false;   // 끌 때 단계로 붙는 동작(2026-11-12 사용자: 없앰 — 접힘 줄 누르기 힘듦). ▼ 누름과 첫 화면 맞춤만 남김
 let mpSnapAnim = false;
 function mpSnapActive(){
   try{ return MP_SNAP_ON && donutCarOn() && ['__total__', '__domestic__', '__overseas__'].includes(state.activeId) && !!document.getElementById('stock-sortable-chart'); }catch(e){ return false; }
@@ -2991,7 +2992,7 @@ function mpSnapLayout(){
   let fingers = 0, rest = 0, idle = null;
   // 기본 스크롤이 흘러가 버린 경우(막지 못한 끌기·관성): 멈추면 움직인 방향의 다음 단계로 붙임
   const settle = () => {
-    if(!mpSnapActive() || mpSnapAnim || fingers > 0) return;
+    if(!MP_SNAP_DRAG || !mpSnapActive() || mpSnapAnim || fingers > 0) return;
     const st = mpSnapStages(), cur = window.scrollY;
     if(st.some(y => Math.abs(y - cur) <= 6)){ rest = cur; return; }
     const dir = cur > rest ? 1 : -1; window.scrollTo(0, cur);
@@ -3001,7 +3002,7 @@ function mpSnapLayout(){
   document.addEventListener('touchstart', e => { fingers = e.touches.length; }, { passive: true });
   ['touchend', 'touchcancel'].forEach(n => document.addEventListener(n, e => { fingers = e.touches.length; clearTimeout(idle); idle = setTimeout(settle, 130); }, { passive: true }));
   document.addEventListener('touchstart', e => {
-    mode = (e.touches.length === 1 && mpSnapActive() && !own(e.target)) ? 0 : -1;
+    mode = (MP_SNAP_DRAG && e.touches.length === 1 && mpSnapActive() && !own(e.target)) ? 0 : -1;
     if(mode === 0){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
   }, { passive: true });
   document.addEventListener('touchmove', e => {
