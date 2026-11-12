@@ -3303,11 +3303,11 @@ function stockUnifiedPlan(raw, holdings, mode){
   else if(mode === 'region'){
     const part = g => raw.filter(d => stockRegKey(d) === g);
     rs = part('domestic').length > 0 && part('overseas').length > 0;
-    if(rs){ const a2 = bySector(part(fs.other)), cs = a2.filter(d => stockSecKey(d) === '현금');   // 뒤쪽 지역의 현금(외화 등)은 맨 끝으로 → 두 현금이 12시에서 맞붙음(2026-11-12 사용자)
-      ordered = bySector(part(fs.mk.side)).concat(a2.filter(d => stockSecKey(d) !== '현금'), cs); }   // 도넛 순서는 항상 장 기준(반대쪽 지역을 봐도 도넛 그림은 그대로, 보이는 지역만 바뀜 — 2026-11-12 사용자)   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
+    if(rs) ordered = bySector(part(fs.mk.side)).concat(bySector(part(fs.other)));   // 도넛 순서는 항상 장 기준(반대쪽 지역을 봐도 도넛 그림은 그대로, 보이는 지역만 바뀜 — 2026-11-12 사용자)   // 지역 안에서 섹터끼리 모음(지역별 섹터 링과 순서를 맞춤)
   }
-  // 섹터순·금액순: 외화 조각은 맨 끝으로 → 원화(12시 한쪽)·외화(12시 다른 쪽)가 12시에서 맞붙고, 바깥 지역 링(원화·국내·해외·외화 순)과도 맞음(2026-11-12 사용자)
-  if(!rs && ordered.some(d => d.label === '외화')) ordered = ordered.filter(d => d.label !== '외화').concat(ordered.filter(d => d.label === '외화'));
+  // 현금은 모든 정렬에서 12시부터 시계 반대 방향으로 외화 → 원화, 그다음 나머지(2026-11-12 사용자)
+  { const cash = ordered.filter(d => stockSecKey(d) === '현금');
+    if(cash.length){ const rk = d => stockRegKey(d) === 'overseas' ? 0 : 1; cash.sort((a, b) => rk(a) - rk(b)); ordered = cash.concat(ordered.filter(d => stockSecKey(d) !== '현금')); } }
   ordered = ordered.map((d, i) => ({ ...d, rank: d.rank !== undefined ? d.rank : i, rankCount: d.rankCount !== undefined ? d.rankCount : ordered.length }));   // 색 순번을 도넛 순서로 고정(목록 순서가 달라도 같은 색)
   const total = _.sumBy(ordered, 'amount') || 1, n = ordered.length, useBase = mode === 'group' || rs;
   const st = (u, sec, reg) => stockUState(u, sec, reg, mode, rs, fs);
@@ -3322,11 +3322,11 @@ function stockUnifiedPlan(raw, holdings, mode){
   const secRing = useBase ? runs.map(r => ({ label: (rs ? (r.reg === 'domestic' ? '국내 ' : '해외 ') : '') + r.sec, amount: r.amount,
     pct: rs ? (regTot[r.reg] ? r.amount / regTot[r.reg] * 100 : 0) : r.amount / total * 100,   // 지역순: 그 지역 안에서의 섹터 비중
     color: secColor[r.sec] || CASH_COLOR, attrs: stockUAttrs('ring', r.sec, r.reg, st('ring', r.sec, r.reg)) })) : null;
-  const regRing = rs ? [fs.mk.side, fs.other].flatMap(g => [
-    { label: g === 'domestic' ? '원화' : '외화', amount: regCash[g], pct: regCash[g] / total * 100, rank: 0, rankCount: 2 },
-    { label: g === 'domestic' ? '국내' : '해외', amount: regTot[g] - regCash[g], pct: (regTot[g] - regCash[g]) / total * 100, rank: g === 'domestic' ? 0 : 1, rankCount: 2,
-      color: g === fs.mk.side ? REGION_LIGHT : REGION_STRONG }   // 지역순: 장중인 쪽 = 밝은 색, 아닌 쪽 = 어두운 색(2026-11-12 사용자)
-  ]).filter(d => d.amount > 0) : null;
+  // 지역 링 = 도넛 순서 그대로(외화·원화·앞 지역·뒤 지역). 지역순: 장중인 쪽 = 밝은 색, 아닌 쪽 = 어두운 색(2026-11-12 사용자)
+  const regRing = rs ? (() => { const out = [];
+    ordered.forEach(d => { const g = stockRegKey(d), c = stockSecKey(d) === '현금', k = g + (c ? 'c' : 's'), l = out[out.length - 1]; if(l && l.k === k) l.amount += d.amount; else out.push({ k, g, c, amount: d.amount }); });
+    return out.filter(o => o.amount > 0).map(o => ({ label: o.c ? (o.g === 'domestic' ? '원화' : '외화') : (o.g === 'domestic' ? '국내' : '해외'), amount: o.amount, pct: o.amount / total * 100,
+      rank: o.c ? 0 : (o.g === 'domestic' ? 0 : 1), rankCount: 2, ...(o.c ? {} : { color: o.g === fs.mk.side ? REGION_LIGHT : REGION_STRONG }) })); })() : null;
   const r = 74, cx = 80, cy = 80;
   const pieInner = n === 0
     ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--text-dim)" stroke-width="1.5" stroke-dasharray="4 4"/>`
@@ -4013,7 +4013,8 @@ function stockChartBlockSortable(holdings, allowRegion, extraRingSpecs, fallback
     if(U && spec.name === 'decorative-region' && stockLegendSortMode === 'region' && U.regRing) return { ...spec, data: U.regRing, preOrdered: true, opacity: 1, arcs: true };
     if(U && spec.name === 'decorative-region'){   // 금액순·섹터순·이름순의 지역 링도 장중인 쪽 = 밝은 색(2026-11-12 사용자)
       const side = mpMarketSide().side, col = g => g === side ? REGION_LIGHT : REGION_STRONG;
-      return { ...spec, opacity, arcs: true, data: spec.data.map(d => d.label === '국내' ? { ...d, color: col('domestic') } : (d.label === '해외' ? { ...d, color: col('overseas') } : d)) };
+      const dd = spec.data.map(d => d.label === '국내' ? { ...d, color: col('domestic') } : (d.label === '해외' ? { ...d, color: col('overseas') } : d));
+      return { ...spec, opacity, arcs: true, data: dd.filter(d => d.label === '외화').concat(dd.filter(d => d.label !== '외화')) };   // 외화를 맨 앞으로 → 도넛의 현금(12시부터 외화·원화)과 맞음
     }
     return { ...spec, opacity, arcs: !!U };
   });
