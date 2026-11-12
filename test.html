@@ -6303,8 +6303,8 @@ function renderHistoryPanel(){
   }
 
   panel.innerHTML = `
-    ${accountSelector}
     ${rangeSelector}
+    ${accountSelector}
     <div style="position:relative;">
       <div id="total-memo-slot"></div>
       <div class="trend-wrap">${lineChartSVG(points, lineSeries, chartW, chartH, chartLm, chartResp, chartOpts)}</div>
