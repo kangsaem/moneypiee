@@ -2992,7 +2992,7 @@ document.addEventListener('click', e => {
 document.addEventListener('click', e => {
   const sh = e.target.closest && e.target.closest('[data-sec-fold]'); if(!sh) return;
   const k = sh.dataset.secFold, box = sh.closest('#stock-sortable-chart'); if(!box || (WIDE_ALL_OPEN && mpWideList())) return;
-  if(k === ETC_KEY){ stockSecEtc.forEach(x => { stockSectorOpen[x] = true; }); renderPreservingOpenChartAccordions(); return; }   // '기타' → 그 안의 섹터들을 펼친 채로 풀어 놓음
+  if(k === ETC_KEY){ stockSecEtc.forEach(x => { stockSectorOpen[x] = true; }); mpRenderThenOpen([...stockSecEtc]); return; }   // '기타' → 그 안의 섹터들을 펼친 채로 풀어 놓음
   stockSectorOpen[k] = !stockSectorOpen[k];
   if(stockSecEtc.has(k) && [...stockSecEtc].every(x => !stockSectorOpen[x])) setTimeout(() => { if([...stockSecEtc].every(x => !stockSectorOpen[x]) && document.getElementById('stock-sortable-chart')) renderPreservingOpenChartAccordions(); }, 440);   // 다 접으면 '기타'로 다시 묶음
   mpFold(mpFoldBody(box, 'sec', k), !!stockSectorOpen[k]); mpDonutSync(); sh.classList.toggle('open', !!stockSectorOpen[k]);
@@ -3008,21 +3008,27 @@ document.addEventListener('click', e => {
     const tk = document.getElementById('marketTicker'); if(!tk) return;
     if(!hold){ hold = document.createElement('div'); hold.id = 'mktHold'; hold.style.marginBottom = tk.style.marginBottom || '8px'; tk.parentNode.insertBefore(hold, tk); hold.appendChild(tk); tk.style.marginBottom = '0'; }
     const pinned = tk.classList.contains('mkt-pin');
-    if(!pinned){   // 고정 전의 원래 크기를 재 둠
-      natH = tk.offsetHeight;
+    // 휴대폰: 맨 위에서도 늘 화면에 고정된 층(작아졌을 때와 같은 방식)으로 그림 — 아이폰 사파리가 페이지 맨 위 가장자리의 스크롤 내용을 흐리게 처리해 큰 지표가 흐려 보였음(2026-11-13 사용자 단서: 작아진 지표는 또렷, 살짝 밀어올리면 또렷)
+    const always = (() => { try{ return mktLoopActive(); }catch(e){ return false; } })();
+    const adT = document.getElementById('adfit-bottom'), offT = adT && adT.offsetHeight ? adT.offsetHeight : 0;
+    const fullNow = !pinned || (hold && hold.getBoundingClientRect().top - offT >= 0);
+    if(fullNow){   // 다 펼쳐진 크기일 때 원래 크기를 재 둠(고정 중이면 카드 높이가 줄어 있을 수 있어 원래 카드 높이로 환산)
       const c = tk.querySelector('.mkt-card[data-mktkey]'), ch = c && c.querySelector('.mkt-change'), sv = c && c.querySelector(':scope > svg');
-      if(c){ cardH = c.offsetHeight || cardH; if(ch) minH = Math.ceil(ch.getBoundingClientRect().bottom - c.getBoundingClientRect().top + 7); /* 화면 위치로 잼: 카드에 transform이 붙으면 아이폰에서 offsetTop 기준이 카드로 바뀌어 등락률이 잘렸음(2026-11-13) */ if(sv) svgH = sv.getBoundingClientRect().height || svgH; }
+      if(c && !pinned){ cardH = c.offsetHeight || cardH; if(sv) svgH = sv.getBoundingClientRect().height || svgH; }
+      if(c && ch) minH = Math.ceil(ch.getBoundingClientRect().bottom - c.getBoundingClientRect().top + 7);   /* 화면 위치로 잼(아이폰 offsetTop 기준 차이로 등락률이 잘렸음) */
+      natH = pinned && c ? tk.offsetHeight - c.offsetHeight + cardH : tk.offsetHeight;
+      if(pinned && hold) hold.style.height = natH + 'px';
     }
     const ad = document.getElementById('adfit-bottom'), off = ad && ad.offsetHeight ? ad.offsetHeight : 0;
     const top = hold.getBoundingClientRect().top - off;
-    if(top < 0 && natH > 0 && tk.querySelector('.mkt-card')){
+    if((top < 0 || always) && natH > 0 && tk.querySelector('.mkt-card')){
       const r = hold.getBoundingClientRect();
       if(!pinned){ hold.style.height = natH + 'px'; tk.classList.add('mkt-pin'); }
-      tk.style.top = off + 'px'; tk.style.left = r.left + 'px'; tk.style.width = r.width + 'px';
+      tk.style.top = (off + Math.max(0, top)) + 'px'; tk.style.left = r.left + 'px'; tk.style.width = r.width + 'px';
       const hNow = Math.max(Math.min(minH, cardH), Math.min(cardH, cardH + top)), vis = Math.max(0, hNow - minH);
       tk.style.setProperty('--mkt-h', hNow + 'px');
       let sh = document.getElementById('mktShade'); if(!sh){ sh = document.createElement('div'); sh.id = 'mktShade'; document.body.appendChild(sh); }
-      sh.style.display = 'block'; sh.style.top = off + 'px'; sh.style.left = '0px'; sh.style.width = '100%'; sh.style.height = (hNow + 2 + 8) + 'px';
+      sh.style.display = 'block'; sh.style.top = off + 'px'; sh.style.left = '0px'; sh.style.width = '100%'; sh.style.height = (Math.max(0, top) + hNow + 2 + 8) + 'px';
       tk.classList.toggle('mkt-min', vis < 1);
       tk.querySelectorAll('.mkt-card > svg').forEach(v => { v.style.clipPath = svgH ? `inset(0 0 ${Math.max(0, svgH - vis).toFixed(1)}px 0)` : ''; });   // 그래프는 카드 아래 여백(7px) 안쪽까지만 보이게
       if(svgH) tk.querySelectorAll('.mkt-card > svg').forEach(v => { if(!v.dataset.fz){ v.dataset.fz = '1'; v.style.flex = '0 0 ' + svgH + 'px'; } });   // 그래프는 찌그러지지 않고 아래부터 가려짐
@@ -3243,13 +3249,24 @@ function mpSnapLayout(){
       const t = Math.round(p.getBoundingClientRect().top + window.scrollY); if(t !== mpSnapLayout.top){ try{ mpSnapLayout(); }catch(e){} } else mpSnapArrow(); }).observe(document.body);
   }catch(e){} });
 })();
+// 다시 그려야 하는 펼침('기타' 풀기 등)도 각 섹터의 펼침 애니메이션이 보이게: 접힌 채로 그린 뒤 펼침(2026-11-13 사용자)
+let mpFoldPending = null;
+function mpRenderThenOpen(keys){
+  mpFoldPending = new Set(keys.map(k => 'sec:' + k));
+  try{ renderPreservingOpenChartAccordions(); } finally { const pend = mpFoldPending; mpFoldPending = null;
+    const box = document.getElementById('stock-sortable-chart'); if(box) pend.forEach(pk => { const b = mpFoldBody(box, 'sec', pk.slice(4)); if(b) mpFold(b, true); }); }
+}
 document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-sec-all]'); if(!b) return;
   e.stopPropagation();
   const box = b.closest('#stock-sortable-chart'); if(!box) return;
   if(stockSecEtc.size){   // '기타' 묶음이 있으면 묶임/풀림이 바뀌므로 다시 그림
     const all = [...new Set([...box.querySelectorAll('[data-sec-fold]')].map(h => h.dataset.secFold).filter(k => k !== ETC_KEY).concat([...stockSecEtc]))], op = !all.every(k => stockSectorOpen[k]);
-    all.forEach(k => { stockSectorOpen[k] = op; }); renderPreservingOpenChartAccordions(); return;
+    all.forEach(k => { stockSectorOpen[k] = op; });
+    if(op){ mpRenderThenOpen(all); return; }                     // 모두 펴기: '기타'를 풀어 그린 뒤 섹터마다 펼침 애니메이션
+    box.querySelectorAll('[data-fold-body^="sec:"]').forEach(bd => { if(!bd.classList.contains('closed')) mpFold(bd, false); });   // 모두 접기: 섹터마다 접힘 애니메이션 뒤
+    box.querySelectorAll('[data-sec-fold]').forEach(h => h.classList.remove('open')); b.textContent = '▾ 모두 펴기'; mpDonutSync();
+    setTimeout(() => { if(document.getElementById('stock-sortable-chart')) renderPreservingOpenChartAccordions(); }, 430); return;   // '기타'로 다시 묶음
   }
   const keys = [...box.querySelectorAll('[data-sec-fold]')].map(h => h.dataset.secFold), open = !keys.every(k => stockSectorOpen[k]);
   keys.forEach(k => { if(!!stockSectorOpen[k] !== open){ stockSectorOpen[k] = open; mpFold(mpFoldBody(box, 'sec', k), open); } });
@@ -3947,7 +3964,7 @@ function stockLegendWithDividers(data, sortMode, compactTotalMode){
     </div>`;
   }
   const uniSec = DONUT_ONE && compactTotalMode && sortMode === 'group';   // 섹터순: 섹터마다 접힘 묶음
-  const foldOpen = (kind, key, open) => `<div class="fold-body${open ? '' : ' closed'}" data-fold-body="${kind}:${escapeHTML(key)}">`;
+  const foldOpen = (kind, key, open) => `<div class="fold-body${(open && !(mpFoldPending && mpFoldPending.has(kind + ':' + key))) ? '' : ' closed'}" data-fold-body="${kind}:${escapeHTML(key)}">`;   // 다시 그린 뒤 펼침 애니메이션할 것은 접힌 채로 그림
   let bodyOpen = false, uniLast = null, secAllDone = false, subOpen = false, subLast = null;
   // 모두 펴기/접기(섹터순, 접힘이 있는 화면에서만): 현금 줄 가운데에 둠(2026-11-12 사용자)
   const secKeysAll = uniSec ? [...new Set(data.map(stockSecKey))].filter(k => k !== '현금') : [];
