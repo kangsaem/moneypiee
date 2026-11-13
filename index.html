@@ -232,7 +232,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .reset-link{color:var(--text-dim);font-size:13px;text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;margin-top:8px;font-weight:500;}
   .snapshot-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:14px;color:var(--text-dim);}
   .trend-wrap{margin-top:8px;}
-  .mp-swp .wrap{overflow-x:hidden;overflow-x:clip;} .mp-swp .wrap > .panel{border-top-color:transparent;border-top-left-radius:0;border-top-right-radius:0;}   /* 쓸기 중 움직이는 탭(지금·옆)은 위 테두리 없음(2026-11-12 사용자) */   /* 탭 쓸기 애니메이션 중 가로로 삐져나간 패널 숨김 */
+  .mp-swp, .mp-swp body{overflow-x:clip;} .mp-swp .wrap{position:relative;overflow-x:hidden;overflow-x:clip;}   /* 쓸기 중 옆으로 나간 탭이 페이지 폭을 늘리지 않게 — .wrap을 기준 상자로 해야 복사본(절대 위치)까지 잘림. 안 그러면 아이폰이 늘어난 폭에 맞춰 화면을 축소함(2026-11-13) */ .mp-swp .wrap > .panel{border-top-color:transparent;border-top-left-radius:0;border-top-right-radius:0;}   /* 쓸기 중 움직이는 탭(지금·옆)은 위 테두리 없음(2026-11-12 사용자) */   /* 탭 쓸기 애니메이션 중 가로로 삐져나간 패널 숨김 */
   /* 2026-11-12 사용자: PC에서도 가로 스크롤바 숨김(지표 줄·계좌 버튼 줄·유형 버튼 줄·월별 그래프). PC는 마우스로 끌어서 넘김 */
   #marketTicker, #accountBtnSelector, #historyAccSelector, #historyAccTypeSelector, .trend-scroll, .typeleg{scrollbar-width:none;-ms-overflow-style:none;}
   #marketTicker::-webkit-scrollbar, #accountBtnSelector::-webkit-scrollbar, #historyAccSelector::-webkit-scrollbar, #historyAccTypeSelector::-webkit-scrollbar, .trend-scroll::-webkit-scrollbar, .typeleg::-webkit-scrollbar{display:none;}
