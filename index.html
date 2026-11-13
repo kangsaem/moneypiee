@@ -2056,6 +2056,7 @@ function saveAddAccountModal(){
   state.accounts.push(acc);
   state.activeId = acc.id;
   closeAddAccountModal();
+  accTabsFolded = false;   // 계좌를 추가하면 계좌 줄을 펼쳐 전체가 보이게(2026-11-13 사용자)
   save(); render();
 }
 let editAccountNameContext = null;
