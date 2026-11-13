@@ -3329,7 +3329,7 @@ async function fitOne(f,quiet){const t=L();let dives,dev='',fmt='FIT',nFree=0;
   const minOf=u=>{const d=loc(u);return d.getUTCHours()*60+d.getUTCMinutes()+d.getUTCSeconds()/60;};
   const PL=tr('u_locL'),WT=tr('u_water');
   for(const d of dives){const g=d.gps||d.gps0;d.place=d.place||(g?await placeName(g.lat,g.lon):null);}
-  /* sec0 = 입수 시각(현지 자정부터 초, 원본 그대로). 화면·계산은 시:분(time·si)을 쓰고, sec0는 보관용(내보내기 때 floor(sec0/60)이 지금 입수 분과 같을 때만 초로 사용 — 시간 휠로 고치면 무시) 11/13 */
+  /* sec0 = 입수 시각(현지 자정부터 초, 원본 그대로). 화면·계산은 시:분(time·si)을 쓰고, sec0는 보관용(내보내기 때 sec0가 지금 입수 시각과 ±1.5분 안일 때만 사용 — 둘째 다이빙부터는 수면휴식 분 반올림으로 화면 시각이 ±1분 어긋날 수 있음. 시간 휠로 크게 고치면 무시) 11/13 */
   const imp=dives.map(d=>({s:minOf(d.startUTC),sec0:Math.round(minOf(d.startUTC)*60)%86400,dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true,
     memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.(fit|uddf|xml|json)$/i,''))+' ('+fmt+')',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps0?('GPS '+(tr('u_entry'))+' '+d.gps0.lat.toFixed(5)+', '+d.gps0.lon.toFixed(5)):'',d.gps?('GPS '+(tr('u_exit'))+' '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
   // 같은 날 기존 다이빙 펼치기
