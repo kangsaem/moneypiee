@@ -1,8 +1,12 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-11 13:15 (v2.10.10) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-13 10:30 (v2.10.11) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.10.11 (2026-11-13) 시작 화면에서도 광고 보이게
+- 애드핏 매체 심사 보류('광고 설치 후 심사 가능') 원인 추정: 시작 화면(#splash, 화면 전체·z100)이 #adTop을 가리고 html.spl이 본문 visibility:hidden. → html.spl #adTop을 fixed 맨 위(z101, visibility:visible), 시작 화면 위 여백 +58px. 광고 코드는 1개 그대로. 시작 화면 닫히면 원래 자리로.
+- 사용자: 휴대폰 세로로 열어 광고 요청 발생시킨 뒤 재심사 요청.
 
 ## v2.10.10 (2026-11-11) 메모칸 상한 = 10줄(사용자 결정, 60%는 너무 김). fitMemo가 line-height×10+패딩으로 계산.
 
