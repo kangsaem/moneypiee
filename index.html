@@ -286,6 +286,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .sec-all{flex-shrink:0;font-size:12px;font-weight:600;color:var(--text);border:1px solid var(--accent-dim);border-radius:12px;padding:2px 10px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
   .sec-all.mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;}   /* 첫 줄 가운데(지역·섹터 같은 자리) */
   .stock-sortable-legend .legend-item, .stock-sortable-legend .sec-head{position:relative;}
+  .stock-sortable-legend, .stock-sortable-legend *{overflow-anchor:none;}   /* 펼침 중 브라우저가 다른 줄을 기준으로 화면을 옮기지 않게 */
   .sec-all-row{display:flex;justify-content:center;width:100%;margin-bottom:4px;} .stock-sortable-legend.wide2 .sec-all-row{column-span:all;margin-bottom:8px;}
   .stock-sortable-legend.wide2 .legend-item, .stock-sortable-legend.wide2 .rg-head{break-inside:avoid;margin-bottom:6px;}
   .stock-sortable-legend.wide2 .fold-body{display:block;margin-top:0;}
@@ -2979,7 +2980,15 @@ document.addEventListener('click', e => {
   if(!DONUT_ONE || !body){ stockRegionFold[g] = nowFolded; renderPreservingOpenChartAccordions(); return; }
   mpRegionSet(box, g, nowFolded);
 });
+// 펴고 접는 동안 누른 지역 줄이 화면에서 제자리에 있게 붙잡음(브라우저의 스크롤 고정 기능이 다른 줄을 기준으로 잡아 화면이 튀는 것 방지 — 2026-11-13 사용자: 국내 펼 때 해외가 맨 위로 튐)
+function mpHoldRow(getEl, ms){
+  const e0 = getEl(); if(!e0) return; const t0 = e0.getBoundingClientRect().top, until = performance.now() + (ms || 460);
+  const tick = () => { const e = getEl(); if(e){ const d = e.getBoundingClientRect().top - t0; if(Math.abs(d) > 0.5) window.scrollBy(0, d); } if(performance.now() < until) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
 function mpRegionSet(box, g, nowFolded){
+  const visHead = () => [...box.querySelectorAll('[data-region-fold="' + g + '"]')].find(h => h.style.display !== 'none');
+  mpHoldRow(visHead);
   stockRegionFold[g] = nowFolded;
   box.querySelectorAll('[data-region-fold="' + g + '"]').forEach(h => { h.style.display = ((h.dataset.regionFolded === '1') === nowFolded) ? '' : 'none'; });
   mpFold(mpFoldBody(box, 'reg', g), !nowFolded); mpDonutSync();
