@@ -1,13 +1,17 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-13 21:25 (v2.10.15) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-13 21:35 (v2.10.16) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.10.16 (2026-11-13) 원본 시간대(off0) 보관
+- 다이빙마다 off0 = 원본 localOff(현지-UTC 초). 원본에 없으면 비움 → 그때 sec0는 기기 시간대 추정값. 시간대 없는 UDDF는 현지 시각만 있으므로 utc0·off0 모두 비움(파서에 tzOk 추가).
+- 시험: Suunto JSON 4개 off0 7200/3600/18000/10800, UDDF +09:00 → utc0·off0=32400, UDDF 시간대 없음 → 둘 다 비움. 오류 없음.
 
 ## v2.10.15 (2026-11-13) 입수 UTC(utc0) 보관
 - 다이빙마다 utc0 = 입수 시각 UTC 유닉스 초(FIT·UDDF·JSON 원본 startUTC). sec0와 같은 경로로 저장·백업(JSON/ZIP)에 포함. 시간대 = sec0와 utc0 차로 계산 가능. 기존 로그는 다시 불러와야 채워짐.
 - 시험: 폴더 2회 불러오기 → 4개 모두 sec0·utc0, 메모 유지(예 utc0 1778841649 = 05-15 10:40:49Z, sec0 13:40:49 → UTC+3).
-- TEMP-OVERWRITE(v2.10.14) 롤백은 아직 — 22:05 예정, 롤백 버전은 v2.10.16.
+- TEMP-OVERWRITE(v2.10.14) 롤백은 아직 — 22:05 예정, 롤백 버전은 v2.10.17.
 
 ## v2.10.14 (2026-11-13 21:10) 임시: 폴더·여러 파일 불러오기도 기존 FIT 다이빙 덮어쓰기
 - fitBulk의 'if(hit&&hit.fit)old++' → 항상 fresh(겹치면 ovm). 수심·sec0 교체, 메모·사진·라벨 유지. 코드 표시 /*TEMP-OVERWRITE*/.
