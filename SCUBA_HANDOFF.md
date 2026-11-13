@@ -1,8 +1,12 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-13 21:15 (v2.10.13) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-13 21:10 (v2.10.14) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.10.14 (2026-11-13 21:10) 임시: 폴더·여러 파일 불러오기도 기존 FIT 다이빙 덮어쓰기
+- fitBulk의 'if(hit&&hit.fit)old++' → 항상 fresh(겹치면 ovm). 수심·sec0 교체, 메모·사진·라벨 유지. 코드 표시 /*TEMP-OVERWRITE*/.
+- 사용자 요청: 약 1시간 뒤(22:10쯤) 롤백 = 원래 건너뛰기로 되돌림(v2.10.15). 롤백 전이면 반드시 되돌릴 것.
 
 ## v2.10.13 (2026-11-13) [FIT] 버튼 = 폴더 고르기 복구(사용자 A안)
 - fitDir(webkitdirectory) 입력·DIRSUP·onchange 복구(v2.10.4에서 파일로 바꾸고 v2.10.8에 삭제했던 것). 폴더 안 FIT·UDDF·XML·JSON(하위 폴더 포함)만 → fitBulk. ZIP만 있으면 압축 풀기 안내.

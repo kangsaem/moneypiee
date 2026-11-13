@@ -280,7 +280,7 @@ html.spl body>*:not(#splash){visibility:hidden}/* 시작 화면에서도 광고(
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.10.13';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.10.14';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <script>/* v2.6.1 언어를 앱 코드보다 먼저 정함(규칙은 여기 한 곳): ① 주소 #ko·#en·#ja·#de·#es·#zh·#tw·#it·#fr(·-log) ② 사용자가 고른 언어(scuba_lang) ③ 기기 언어(navigator.languages, 번체 zh-TW·HK·MO·Hant = tw(번체·대만식, v2.9.0)) ④ 영어. 검색 로봇·자동화 브라우저 = 한국어.
@@ -3294,7 +3294,7 @@ async function fitBulk(files){const w=FW(),P=fitPop();let srcs=[],nF=0;const t0=
         const grp={};for(const d of ds){const off=d.localOff!=null?d.localOff:-new Date(d.startUTC*1000).getTimezoneOffset()*60,l=new Date((d.startUTC+off)*1000),date=l.getUTCFullYear()+'-'+pad(l.getUTCMonth()+1)+'-'+pad(l.getUTCDate());
           const sm=l.getUTCHours()*60+l.getUTCMinutes()+l.getUTCSeconds()/60,dur=d.pts[d.pts.length-1].t/60;(grp[date]=grp[date]||{ds:[],fresh:0}).ds.push(d);
           let hit=null;for(const x of all.filter(x=>x.date===date)){const rows=rowsOf(x);(x.state.dives||[]).forEach((q,k)=>{const r=rows[k];if(!r||r.st==null)return;if(r.st<sm+dur&&sm<r.st+r.N/60)hit=hit||{fit:q.fit||isFitMemo(diveMemo(x,k))};});}
-          if(hit&&hit.fit)old++;else{grp[date].fresh++;if(hit)ovm++;}}
+          /*TEMP-OVERWRITE 11/13 사용자: 1시간 뒤 롤백(원래: if(hit&&hit.fit)old++;else{…})*/{grp[date].fresh++;if(hit)ovm++;}}
         for(const g of Object.values(grp))if(g.fresh)dv.push({name:s0.name,pre:true,dives:g.ds,dev:R.dev,fmt:R.fmt,t:g.ds[0].startUTC,n:g.fresh});}catch(e){}}
     const nNew=dv.reduce((a,b)=>a+b.n,0);
     const fl=nFree?'<br>'+w.free(nFree):'';
