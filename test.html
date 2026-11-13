@@ -3129,6 +3129,7 @@ document.addEventListener('click', e => {
     const hadSnap = !!snap;
     if(snap){ snap.remove(); snap = null; }
     if(panel){ panel.style.transition = ''; panel.style.transform = ''; panel.style.willChange = ''; } clip(false); dir = 0;
+    mpSwiping = false; try{ mpAccAfterMove(); }catch(e){}   // 쓸어서 관리 탭에 왔으면 계좌 펼침, 다른 탭이면 접음
     const release = () => { document.body.style.minHeight = ''; busy = false; };
     if(!hadSnap){ release(); return; }
     const y0 = window.scrollY, tgt = Math.max(0, Math.round(naturalBottom() - window.innerHeight));
@@ -3161,7 +3162,7 @@ document.addEventListener('click', e => {
       if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
       if(Math.abs(dy) >= Math.abs(dx) * 0.8){ st = 0; return; }   // 세로 스크롤
       if(sc){ const max = sc.scrollWidth - sc.clientWidth; if(!((dx < 0 && sl0 >= max - 1) || (dx > 0 && sl0 <= 1))){ st = 0; return; } }   // 가로 영역이 아직 넘어갈 수 있으면 그쪽 우선
-      st = 2; busy = true; clip(true); orig = state.activeId; oi = curIdx(); dir = 0; PW = panel.offsetWidth;
+      st = 2; busy = true; mpSwiping = true; clip(true); orig = state.activeId; oi = curIdx(); dir = 0; PW = panel.offsetWidth;
     }
     if(e.cancelable) e.preventDefault();
     if(now > lastT){ vx = 0.7 * vx + 0.3 * (x - lastX) / (now - lastT); } lastX = x; lastT = now;
@@ -6258,7 +6259,15 @@ function warnTabPaint(){
   t.classList.toggle('calm', ok === true);
   t.title = ok === true ? '200일선 붕괴 사례 · 코스피·S&P500·나스닥 모두 200일선 위' : '200일선 붕괴 사례';
 }
+// 계좌 줄: 관리 탭에 들어가면 펼치고, 다른 큰 탭(월별·자산·V1·관심)으로 가면 접음(2026-11-13 사용자). 쓸기 중에는 끝난 뒤에 처리
+const MP_MAIN_TABS = () => ['__history__', '__total__', '__domestic__', '__overseas__', '__analysis__', WATCHLIST_ID];
+let mpSwiping = false;
+function mpAccAfterMove(){
+  if(state.activeId === '__deleteAccounts__'){ if(accTabsFolded && mpAccFold) mpAccFold(false); }
+  else if(MP_MAIN_TABS().includes(state.activeId) && !accTabsFolded && mpAccFold) mpAccFold(true);
+}
 function switchTab(id){
+  if(!mpSwiping && MP_MAIN_TABS().includes(id)) accTabsFolded = true;
   if(id !== state.activeId && id === '__total__' && !['__domestic__', '__overseas__'].includes(state.activeId)) assetRgOn = { domestic: true, overseas: true };   // 자산 탭에 새로 들어오면 둘 다 켜짐
   state.activeId = id;
   if(state.activeId === '__history__') historyListMode = false;   // 월별 탭에 들어오면 그래프부터
