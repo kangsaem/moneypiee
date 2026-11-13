@@ -1,8 +1,17 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-13 21:35 (v2.10.16) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-13 22:05 (v2.10.17) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.10.17 (2026-11-13) GPS 좌표로 현지 시간대 보정(사용자 A안)
+- 배경: 사용자 Amazfit Balance 2 FIT가 필리핀(보홀, UTC+8) 다이빙도 localOff=+9(한국)로 기록 → 현지 시각 1시간 늦게 표시.
+- tzlookup.js(tz-lookup 6.1.25, CC0, 72KB) 저장소 루트에 추가, 불러올 때만 로드(tzLib). dtmd_sync.sh FILES에 추가.
+- tzFix(ds): GPS(gps0||gps) → IANA 시간대(Etc/… 제외) → Intl로 그 시각 UTC 차(서머타임 반영) → localOff 교체, 원래 시계 값은 offW. GPS 없는 다이빙은 ±2일 안 가장 가까운 GPS 다이빙 시간대 빌림. 시간대 없는 UDDF는 현지 시각 → 진짜 UTC로 바꿈.
+- 저장: off0(쓴 시간대), offW(시계 원래), tz0(이름). 기존 시계 시각으로 저장된 다이빙도 같은 다이빙으로 인식(fitOne ov에 sW, fitBulk hit에 smW) → 교체, 메모·사진 유지.
+- 한계: 보정으로 날짜가 바뀌는(자정 근처) 다이빙은 기존 로그와 못 맞춰 중복될 수 있음. 라이브러리 로드 실패 시 보정 없이 기존 동작.
+- 시험: 마닐라·도쿄·로마(서머타임 +2)·시간대 없는 UDDF·GPS 없음(이웃 빌림) 단위 시험, KST로 바꾼 Suunto JSON 재불러오기 → 19:40 → 13:40 교체·메모 유지·중복 없음.
+- TEMP-OVERWRITE 롤백: 22:30 예약.
 
 ## v2.10.16 (2026-11-13) 원본 시간대(off0) 보관
 - 다이빙마다 off0 = 원본 localOff(현지-UTC 초). 원본에 없으면 비움 → 그때 sec0는 기기 시간대 추정값. 시간대 없는 UDDF는 현지 시각만 있으므로 utc0·off0 모두 비움(파서에 tzOk 추가).

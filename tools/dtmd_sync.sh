@@ -7,7 +7,7 @@ set -euo pipefail
 DST="${1:?DTMD 저장소 경로를 주세요}"
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$SRC"
-FILES=(scuba.html dtmd.html plan.html dive.html sample-jack.jpg scuba-splash.mp4 og-scuba3.jpg)
+FILES=(scuba.html dtmd.html plan.html dive.html tzlookup.js sample-jack.jpg scuba-splash.mp4 og-scuba3.jpg)
 FILES+=(dtmd-*.html dtmd*.webmanifest dtmd-*.png)
 DIRS=(tut dtmd-launch)
 for f in "${FILES[@]}"; do cp -p "$f" "$DST/"; done

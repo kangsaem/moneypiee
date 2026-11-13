@@ -280,7 +280,7 @@ html.spl body>*:not(#splash){visibility:hidden}/* 시작 화면에서도 광고(
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400">Don’t Touch Maximum Depth</div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">DTMD 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.10.16';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.10.17';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <script>/* v2.6.1 언어를 앱 코드보다 먼저 정함(규칙은 여기 한 곳): ① 주소 #ko·#en·#ja·#de·#es·#zh·#tw·#it·#fr(·-log) ② 사용자가 고른 언어(scuba_lang) ③ 기기 언어(navigator.languages, 번체 zh-TW·HK·MO·Hant = tw(번체·대만식, v2.9.0)) ④ 영어. 검색 로봇·자동화 브라우저 = 한국어.
@@ -2911,7 +2911,7 @@ let FTHOME=null;setTimeout(()=>{try{relayout();}catch(e){}},0);
 try{window.matchMedia('(min-width:780px)').addEventListener('change',()=>relayout());window.matchMedia('(min-width:1170px)').addEventListener('change',()=>relayout());}catch(e){}
 // 플래너 ↔ 로그북 전환: 로그북을 열면 플래너 작업을 따로 보관하고 가장 최근 로그를 엶, 닫으면 플래너 작업으로 돌아감. 다이빙 탭 줄은 뒤집히며 바뀜
 let LASTO=false,PLAN=null,LOGST=null,FIRSTIN=false,WSPUN=false,PRESEL=null;
-const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[],fit:d.fit||undefined,sec0:d.sec0!=null?d.sec0:undefined,utc0:d.utc0!=null?d.utc0:undefined,off0:d.off0!=null?d.off0:undefined,cfg:d.cfg||undefined,pln:d.pln||undefined}))),cur:S.cur,start:S.start,T,mode:S.mode});
+const snapS=()=>({keys:Object.fromEntries(KEYS.map(k=>[k,S[k]])),dives:S.dives.map(d=>JSON.parse(JSON.stringify({pts:d.pts,si:d.si,lab:d.lab||null,memo:d.memo||'',ph:d.ph||[],fit:d.fit||undefined,sec0:d.sec0!=null?d.sec0:undefined,utc0:d.utc0!=null?d.utc0:undefined,off0:d.off0!=null?d.off0:undefined,offW:d.offW!=null?d.offW:undefined,tz0:d.tz0||undefined,cfg:d.cfg||undefined,pln:d.pln||undefined}))),cur:S.cur,start:S.start,T,mode:S.mode});
 const putS=P=>{KEYS.forEach(k=>{if(k in P.keys)S[k]=P.keys[k];});S.dives=P.dives.map(d=>Object.assign(newDive(),d));S.cur=Math.min(P.cur,S.dives.length-1);S.start=P.start;T=P.T;if(P.mode)S.mode=P.mode;};
 /* 플래너→로그북으로 넘어갈 때 그 로그가 있으면: 다이빙 길이와 상관없이 약 0.65초에 처음부터 끝까지 빠르게 그림(플립이 끝날 때 다 그려짐). 재생 버튼·그래프를 건드리면 멈춤 */
 /* 탭 카드 내용을 잠시 예전 모습으로 고정(복사본 위에 덮고 진짜는 숨김) */let TFZ=null;function TABFREEZE(tc){TABTHAW();if(!tc)return;const cl=tc.cloneNode(true);cl.removeAttribute('id');cl.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));cl.classList.add('tabGhost');cl.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;margin:0;pointer-events:none;z-index:2';
@@ -2969,7 +2969,7 @@ const diveMemo=(x,i)=>{const d=x.state&&x.state.dives&&x.state.dives[i];return (
   a.forEach(x=>{if(x.src==='fit'&&x.state&&x.state.dives)x.state.dives.forEach((d,i)=>{if(!d.fit&&isFitMemo(diveMemo(x,i)))d.fit=true;});});
   [...new Set(a.map(x=>x.date))].forEach(dt=>{a=mergeDayArr(a,dt).a;});if(store(a)){localStorage.setItem('scuba_merge_v1','1');localStorage.setItem('scuba_merge_v2','1');}}catch(e){}})();
 function curMemoSync(){const el=$('logMemo'),d=S.dives[S.cur];if(d&&document.activeElement!==el)el.value=d.memo||'';renderPh();}
-function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,10):undefined,fit:d.fit||undefined,sec0:d.sec0!=null?d.sec0:undefined,utc0:d.utc0!=null?d.utc0:undefined,off0:d.off0!=null?d.off0:undefined,cfg:d.cfg?Object.assign({},d.cfg):undefined,pln:d.pln||undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
+function snapState(){const st={dives:S.dives.map(d=>({pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:(d.memo||'').trim(),ph:(d.ph&&d.ph.length)?d.ph.slice(0,10):undefined,fit:d.fit||undefined,sec0:d.sec0!=null?d.sec0:undefined,utc0:d.utc0!=null?d.utc0:undefined,off0:d.off0!=null?d.off0:undefined,offW:d.offW!=null?d.offW:undefined,tz0:d.tz0||undefined,cfg:d.cfg?Object.assign({},d.cfg):undefined,pln:d.pln||undefined}))};KEYS.forEach(k=>st[k]=S[k]);return st;}
 // ===== 같은 날짜 안의 저장 안 한 작업 보관 =====
 // 다른 로그를 열기 전에 지금 작업(그래프·메모·사진·덧붙인 다이빙)을 날짜별로 보관, 같은 날 다시 열면 그대로 복원. 날짜가 바뀌면 버림
 let DR={date:null,m:{}},SDATE=null;
@@ -2986,7 +2986,7 @@ function applyLog(id,quiet,di){const x=load().find(v=>v.id===id);if(!x)return;if
   if(DR.m[id]){CUR=id;putS(DR.m[id].s);S.mode='none';S.cur=Math.min(di||0,S.dives.length-1);refreshAll();return;}
   S.mode='none';
   KEYS.forEach(k=>{if(k in st)S[k]=st[k];});
-  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,10):[],fit:d.fit||undefined,sec0:d.sec0!=null?d.sec0:undefined,utc0:d.utc0!=null?d.utc0:undefined,off0:d.off0!=null?d.off0:undefined,cfg:d.cfg?Object.assign({},d.cfg):Object.fromEntries(KEYS.filter(k=>k in st).map(k=>[k,st[k]])),pln:d.pln||undefined}));S.cur=Math.min(di||0,S.dives.length-1);
+  S.dives=st.dives.map((d,i)=>Object.assign(newDive(),{pts:d.pts.map(q=>({t:q.t,d:q.d})),si:d.si,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,10):[],fit:d.fit||undefined,sec0:d.sec0!=null?d.sec0:undefined,utc0:d.utc0!=null?d.utc0:undefined,off0:d.off0!=null?d.off0:undefined,offW:d.offW!=null?d.offW:undefined,tz0:d.tz0||undefined,cfg:d.cfg?Object.assign({},d.cfg):Object.fromEntries(KEYS.filter(k=>k in st).map(k=>[k,st[k]])),pln:d.pln||undefined}));S.cur=Math.min(di||0,S.dives.length-1);
   const tm=tmin(x.time);if(tm!=null){T=Math.floor(tm/10)*10%1440;S.start=tm;}else S.start=null;
   CUR=id;$('logMemo').value=S.dives[S.cur].memo||'';renderPh();
   if(typeof renderTabs==='function')renderTabs();syncForm();recompute();if(typeof modeChanged==='function')modeChanged();
@@ -3286,14 +3286,18 @@ async function fitBulk(files){const w=FW(),P=fitPop();let srcs=[],nF=0;const t0=
       else srcs.push({name:f.name,file:f});}
     nF=srcs.length;const dv=[],all=load();let old=0,ovm=0,nDF=0,nFree=0;
     /* 같은 다이빙이 여러 형식으로 같이 들어오면(Suunto 앱은 같은 이름의 .json과 .fit을 함께 내보냄) 하나만: JSON > FIT > UDDF 순서로 먼저 읽고, 시간이 절반 넘게 겹치는 다이빙은 건너뜀 */
-    const PRI=n=>/\.json$/i.test(n)?0:/\.fit$/i.test(n)?1:2;srcs.sort((p,q)=>PRI(p.name)-PRI(q.name));const seenIv=[];
+    const PRI=n=>/\.json$/i.test(n)?0:/\.fit$/i.test(n)?1:2;srcs.sort((p,q)=>PRI(p.name)-PRI(q.name));const seenIv=[],RD=[];
     for(let i=0;i<srcs.length;i++){if(i%5===0){P.set(w.ttl,w.read(i,srcs.length));await new Promise(r=>setTimeout(r,0));}const s0=srcs[i];
       try{const buf=s0.buf||await s0.file.arrayBuffer();const R=readDives(s0.name,buf);let ds=R.dives;ds.forEach(d=>{d.pts=trimSurface(d.pts);});ds=ds.filter(d=>d.pts.length>1&&d.maxD>0.5);{const fr=ds.filter(isFreeDive).length;if(fr){nFree+=fr;ds=ds.filter(d=>!isFreeDive(d));}}
         ds=ds.filter(d=>{const a=d.startUTC,e=a+d.pts[d.pts.length-1].t;if(seenIv.some(([c,f])=>Math.min(e,f)-Math.max(a,c)>0.5*Math.min(e-a,f-c)))return false;seenIv.push([a,e]);return true;});if(!ds.length)continue;nDF+=ds.length;
+        RD.push({s0,R,ds});}catch(e){}}
+    /* 모든 파일을 읽은 뒤 시간대 보정(GPS 없는 다이빙이 다른 파일의 GPS 다이빙 시간대를 빌릴 수 있게) */
+    await tzFix(RD.flatMap(r=>r.ds));
+    for(const {s0,R,ds} of RD){try{
         /* 한 파일에 여러 날 다이빙(UDDF)이 있으면 날짜별 묶음으로 나눔 — fitOne은 한 날짜씩 처리 */
         const grp={};for(const d of ds){const off=d.localOff!=null?d.localOff:-new Date(d.startUTC*1000).getTimezoneOffset()*60,l=new Date((d.startUTC+off)*1000),date=l.getUTCFullYear()+'-'+pad(l.getUTCMonth()+1)+'-'+pad(l.getUTCDate());
           const sm=l.getUTCHours()*60+l.getUTCMinutes()+l.getUTCSeconds()/60,dur=d.pts[d.pts.length-1].t/60;(grp[date]=grp[date]||{ds:[],fresh:0}).ds.push(d);
-          let hit=null;for(const x of all.filter(x=>x.date===date)){const rows=rowsOf(x);(x.state.dives||[]).forEach((q,k)=>{const r=rows[k];if(!r||r.st==null)return;if(r.st<sm+dur&&sm<r.st+r.N/60)hit=hit||{fit:q.fit||isFitMemo(diveMemo(x,k))};});}
+          const smW=(d.tz&&Number.isFinite(d.offW)&&d.offW!==d.localOff)?sm+(d.offW-d.localOff)/60:null;let hit=null;for(const x of all.filter(x=>x.date===date)){const rows=rowsOf(x);(x.state.dives||[]).forEach((q,k)=>{const r=rows[k];if(!r||r.st==null)return;if((r.st<sm+dur&&sm<r.st+r.N/60)||(smW!=null&&r.st<smW+dur&&smW<r.st+r.N/60))hit=hit||{fit:q.fit||isFitMemo(diveMemo(x,k))};});}
           /*TEMP-OVERWRITE 11/13 사용자: 1시간 뒤 롤백(원래: if(hit&&hit.fit)old++;else{…})*/{grp[date].fresh++;if(hit)ovm++;}}
         for(const g of Object.values(grp))if(g.fresh)dv.push({name:s0.name,pre:true,dives:g.ds,dev:R.dev,fmt:R.fmt,t:g.ds[0].startUTC,n:g.fresh});}catch(e){}}
     const nNew=dv.reduce((a,b)=>a+b.n,0);
@@ -3318,11 +3322,25 @@ $('fitIn').onchange=async()=>{const fs=[...$('fitIn').files].sort((a,b)=>a.name.
   if(fs.length===1&&/\.fit$/i.test(fs[0].name)){await fitOne(fs[0]);return;}fitBulk(fs);return;let ok=0,bad=0;FITQ={n:0,rep:0};for(const f of fs){const r=await fitOne(f,true);if(r)ok++;else bad++;}
   const q=FITQ;FITQ=null;msg(LX({de:`${ok} FIT-Dateien importiert (${q.n} TG, ${q.rep} aktualisiert)${bad?` · ${bad} fehlgeschlagen`:''}`,it:`${ok} file FIT importati (${q.n} immersioni, ${q.rep} aggiornate)${bad?` · ${bad} non riusciti`:''}`,fr:`${ok} fichier(s) FIT importé(s) (${q.n} plongées, ${q.rep} mises à jour)${bad?` · ${bad} échec(s)`:''}`,es:`${ok} archivos FIT importados (${q.n} inmersiones, ${q.rep} actualizadas)${bad?` · ${bad} con error`:''}`,zh:`已导入 FIT ${ok} 个（潜水 ${q.n} · 更新 ${q.rep}）${bad?` · 失败 ${bad}`:''}`,tw:`已匯入 FIT ${ok} 個（潛水 ${q.n} · 更新 ${q.rep}）${bad?` · 失敗 ${bad}`:''}`,en:`${ok} FIT files imported (${q.n} dives, ${q.rep} updated)${bad?` · ${bad} failed`:''}`,ja:`FIT ${ok}件 読み込み(ダイブ${q.n}・更新${q.rep})${bad?` · 失敗${bad}`:''}`,ko:`FIT ${ok}개 불러옴(다이빙 ${q.n} · 갱신 ${q.rep})${bad?` · 실패 ${bad}`:''}`}),!!bad);};
 let FITQ=null;
+/* GPS 좌표 → 현지 시간대(시계 시간대가 틀린 기록 보정: 예 Amazfit FIT가 필리핀 다이빙을 한국 시각 +9로 기록). 11/13 사용자 A안
+   tz-lookup(CC0, tzlookup.js ~72KB)을 불러올 때만 읽음. 좌표 → IANA 이름 → Intl로 그 시각의 UTC 차(서머타임 반영).
+   GPS 없는 다이빙은 앞뒤 2일 안의 가장 가까운 GPS 다이빙 시간대를 빌림. 바다 한가운데(Etc/…)는 쓰지 않음. 시계 원래 값은 offW로 보관 */
+let TZL=null;function tzLib(){if(window.tzlookup)return Promise.resolve(window.tzlookup);if(TZL)return TZL;
+  TZL=new Promise(ok=>{const e=document.createElement('script');e.src='tzlookup.js?v='+APP_VER;e.onload=()=>ok(window.tzlookup||null);e.onerror=()=>{TZL=null;ok(null);};document.head.appendChild(e);});return TZL;}
+function tzOffAt(tz,u){try{const p={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'}).formatToParts(new Date(Math.floor(u)*1000)).forEach(x=>p[x.type]=+x.value);
+  return Date.UTC(p.year,p.month-1,p.day,p.hour%24,p.minute,p.second)/1000-Math.floor(u);}catch(e){return null;}}
+async function tzFix(ds){const ok=ds.filter(d=>Number.isFinite(d.startUTC));if(!ok.length)return;const f=await tzLib();if(!f)return;
+  ok.forEach(d=>{const g=d.gps0||d.gps;if(!g)return;try{const z=f(g.lat,g.lon);if(z&&!/^Etc\//.test(z))d.tz=z;}catch(e){}});
+  ok.forEach(d=>{if(d.tz)return;let b=null,bd=2*86400;ok.forEach(e=>{if(e.tz&&!e.tzB){const dd=Math.abs(e.startUTC-d.startUTC);if(dd<=bd){bd=dd;b=e;}}});if(b){d.tz=b.tz;d.tzB=1;}});
+  ok.forEach(d=>{if(!d.tz)return;
+    if(d.tzOk===false){/* 시간대 없는 UDDF: startUTC 자리에 현지 시각 → 진짜 UTC로 */const o1=tzOffAt(d.tz,d.startUTC);if(o1==null){d.tz=null;return;}const o=tzOffAt(d.tz,d.startUTC-o1);const oo=o!=null?o:o1;d.startUTC-=oo;d.localOff=oo;d.tzOk=true;return;}
+    const o=tzOffAt(d.tz,d.startUTC);if(o==null){d.tz=null;return;}d.offW=d.localOff;d.localOff=o;});}
+window.__tzFix=tzFix;/* 시험용 */
 async function fitOne(f,quiet){const t=L();let dives,dev='',fmt='FIT',nFree=0;
   /* f.pre = 일괄 불러오기에서 이미 읽고 거른 같은 날 다이빙 묶음 */
   if(f.pre){dives=f.dives;dev=f.dev||'';fmt=f.fmt||'FIT';}
   else{try{const r=readDives(f.name,await f.arrayBuffer());dev=r.dev;dives=r.dives;fmt=r.fmt;}catch(e){msg(t.fitErr,true);return;}
-    dives.forEach(d=>{d.pts=trimSurface(d.pts);});dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);nFree=dives.filter(isFreeDive).length;dives=dives.filter(d=>!isFreeDive(d));}
+    dives.forEach(d=>{d.pts=trimSurface(d.pts);});dives=dives.filter(d=>d.pts.length>1&&d.maxD>0.5);nFree=dives.filter(isFreeDive).length;dives=dives.filter(d=>!isFreeDive(d));await tzFix(dives);}
   if(!dives.length){msg(nFree?(tr('u_freeNo')):t.fitNo,true);return;}
   const off=dives[0].localOff!=null?dives[0].localOff:-new Date(dives[0].startUTC*1000).getTimezoneOffset()*60;
   const loc=u=>new Date((u+off)*1000);const l0=loc(dives[0].startUTC);const date=l0.getUTCFullYear()+'-'+pad(l0.getUTCMonth()+1)+'-'+pad(l0.getUTCDate());
@@ -3330,19 +3348,19 @@ async function fitOne(f,quiet){const t=L();let dives,dev='',fmt='FIT',nFree=0;
   const PL=tr('u_locL'),WT=tr('u_water');
   for(const d of dives){const g=d.gps||d.gps0;d.place=d.place||(g?await placeName(g.lat,g.lon):null);}
   /* sec0 = 입수 시각(현지 자정부터 초, 원본 그대로). utc0 = 입수 시각 UTC(유닉스 초, 원본 그대로; utc0와 sec0로 시간대 계산 가능). off0 = 원본의 현지-UTC 차(초, localOff). 원본에 없으면 비움(FIT·JSON: sec0는 기기 시간대로 추정한 값. 시간대 없는 UDDF: 현지 시각만 있어 utc0도 비움). 화면·계산은 시:분(time·si)을 쓰고, sec0는 보관용(내보내기 때 sec0가 지금 입수 시각과 ±1.5분 안일 때만 사용 — 둘째 다이빙부터는 수면휴식 분 반올림으로 화면 시각이 ±1분 어긋날 수 있음. 시간 휠로 크게 고치면 무시) 11/13 */
-  const imp=dives.map(d=>({s:minOf(d.startUTC),sec0:Math.round(minOf(d.startUTC)*60)%86400,utc0:(d.tzOk!==false&&Number.isFinite(d.startUTC))?Math.round(d.startUTC):undefined,off0:(d.tzOk!==false&&Number.isFinite(d.localOff))?Math.round(d.localOff):undefined,dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true,
+  const imp=dives.map(d=>({s:minOf(d.startUTC),sec0:Math.round(minOf(d.startUTC)*60)%86400,utc0:(d.tzOk!==false&&Number.isFinite(d.startUTC))?Math.round(d.startUTC):undefined,off0:(d.tzOk!==false&&Number.isFinite(d.localOff))?Math.round(d.localOff):undefined,offW:Number.isFinite(d.offW)?Math.round(d.offW):undefined,tz0:d.tz||undefined,sW:(d.tz&&Number.isFinite(d.offW)&&d.offW!==d.localOff)?(((d.startUTC+d.offW)%86400+86400)%86400)/60:undefined,dur:d.pts[d.pts.length-1].t/60,pts:d.pts,lab:null,fit:true,
     memo:[d.place?PL+d.place:'',(dev||f.name.replace(/\.(fit|uddf|xml|json)$/i,''))+' ('+fmt+')',d.tMin!=null?WT+(d.tMin===d.tMax?d.tMin:d.tMin+'~'+d.tMax)+'°C':'',d.gps0?('GPS '+(tr('u_entry'))+' '+d.gps0.lat.toFixed(5)+', '+d.gps0.lon.toFixed(5)):'',d.gps?('GPS '+(tr('u_exit'))+' '+d.gps.lat.toFixed(5)+', '+d.gps.lon.toFixed(5)):''].filter(Boolean).join('\n')}));
   // 같은 날 기존 다이빙 펼치기
   const all=load(),same=all.filter(x=>x.date===date).sort((p,q)=>(p.time||'').localeCompare(q.time||''));const old=[];let base=null;
-  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,10):[],fit:d.fit||isFitMemo(diveMemo(x,i)),sec0:d.sec0,utc0:d.utc0,off0:d.off0,cfg:d.cfg||Object.fromEntries(KEYS.filter(k=>k in x.state).map(k=>[k,x.state[k]]))});});if(!base)base=x;});
-  const ov=(o,n)=>o.s<n.s+n.dur&&n.s<o.s+o.dur;
+  same.forEach(x=>{const rows=rowsOf(x);(x.state.dives||[]).forEach((d,i)=>{const r=rows[i];if(!r||r.st==null)return;old.push({s:r.st,dur:r.N/60,pts:d.pts,lab:d.lab||null,memo:diveMemo(x,i),ph:Array.isArray(d.ph)?d.ph.slice(0,10):[],fit:d.fit||isFitMemo(diveMemo(x,i)),sec0:d.sec0,utc0:d.utc0,off0:d.off0,offW:d.offW,tz0:d.tz0,cfg:d.cfg||Object.fromEntries(KEYS.filter(k=>k in x.state).map(k=>[k,x.state[k]]))});});if(!base)base=x;});
+  const ov0=(o,n)=>o.s<n.s+n.dur&&n.s<o.s+o.dur,ov=(o,n)=>ov0(o,n)||(n.sW!=null&&ov0(o,{s:n.sW,dur:n.dur}));/* 시간대 보정 전(시계 시각)으로 저장된 기존 다이빙도 같은 다이빙으로 봄 */
   // 기존 다이빙과 겹치면 수심 기록만 FIT로 바꾸고 메모·사진·라벨 위치는 기존 것 유지. 기존 메모에 GPS 줄이 없을 때만 FIT의 GPS 줄을 덧붙임
   imp.forEach(n=>{const o=old.find(o=>ov(o,n));if(!o)return;const om=(o.memo||'').trim();
     if(om){const gl=window.__locPts?(n.memo||'').split('\n').filter(l=>/^\s*GPS\b/i.test(l)):[];const hasG=/^\s*GPS\b/im.test(om);n.memo=hasG||!gl.length?om:om+'\n'+gl.join('\n');}
     n.ph=o.ph||[];n.lab=o.lab||null;});
   const keepOld=old.filter(o=>!imp.some(n=>ov(o,n)));const replaced=old.length-keepOld.length;
   const seq=keepOld.concat(imp).sort((p,q)=>p.s-q.s);
-  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',ph:(d.ph&&d.ph.length)?d.ph.slice(0,10):undefined,fit:d.fit?true:undefined,sec0:d.sec0!=null?d.sec0:undefined,utc0:d.utc0!=null?d.utc0:undefined,off0:d.off0!=null?d.off0:undefined,cfg:d.cfg||undefined,si:i?Math.max(1,Math.round(d.s-(seq[i-1].s+seq[i-1].dur))):60}))};
+  const st={dives:seq.map((d,i)=>({pts:d.pts,lab:d.lab,memo:d.memo||'',ph:(d.ph&&d.ph.length)?d.ph.slice(0,10):undefined,fit:d.fit?true:undefined,sec0:d.sec0!=null?d.sec0:undefined,utc0:d.utc0!=null?d.utc0:undefined,off0:d.off0!=null?d.off0:undefined,offW:d.offW!=null?d.offW:undefined,tz0:d.tz0||undefined,cfg:d.cfg||undefined,si:i?Math.max(1,Math.round(d.s-(seq[i-1].s+seq[i-1].dur))):60}))};
   KEYS.forEach(k=>st[k]=(base&&base.state&&k in base.state)?base.state[k]:S[k]);
   const rest=all.filter(x=>x.date!==date);if(rest.length>=MAX){msg(t.full,true);return;}
   const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
