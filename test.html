@@ -9371,7 +9371,7 @@ function anLegend(ch){
   }
   const pg200 = ch.k200 === true ? 'kospi200.html' : ch.k200;   // 지수 차트 범례 '200일 ›' → 그 지수 붕괴 사례(코스피·S&P500·나스닥, 코스닥 없음 · 2026-10-14)
   if(ch.ma200) p.push(pg200 ? `<a class="an-lgi an-lgk" href="${pg200}" title="200일선 붕괴 사례" onclick="return anK200Open(event, '${pg200}')">${sw('ma200')}200일 ›</a>` : `<span class="an-lgi">${sw('ma200')}200일</span>`);
-  if(ch.proj && Object.values(ch.proj).some(v => v)) p.push('<span class="an-lgn">점선 = 가격 유지 가정</span>');
+  // '점선 = 가격 유지 가정'은 기간 버튼(5년) 오른쪽으로 옮김(anChartTabs, 2026-11-13 사용자)
   return `<div class="an-lg">${p.join('')}</div>`;
 }
 
@@ -9527,7 +9527,7 @@ function anIndexChart(v, noHead){
   return `<div class="an-box">
     ${noHead ? '' : `<div class="an-ih"><span class="an-in">${anE(v.name)}</span><b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span><span class="an-ip">최근 ${AN.CHART_DAYS}거래일</span></div>`}
     <div class="an-mrow" style="margin-bottom:2px;">${tags}</div>
-    ${v.key ? `<div class="an-ichwrap" data-an-ichart="${v.key}">${anChartTabs(anState.idxPer[v.key] || '6m')}${anSvgChart(v.chart)}</div>` : anSvgChart(v.chart)}${cashLine}
+    ${v.key ? `<div class="an-ichwrap" data-an-ichart="${v.key}">${anChartTabs(anState.idxPer[v.key] || '6m', v.chart)}${anSvgChart(v.chart)}</div>` : anSvgChart(v.chart)}${cashLine}
   </div>`;
 }
 // 지수 차트 기간(2026-10-14): 지수마다 따로(다른 지수·종목과 공유 안 함). 6개월 = 분석 때 만든 차트, 그 밖엔 저장된 12년 일봉에서 다시 그림
@@ -9554,7 +9554,7 @@ async function anDrawIdxChart(slot){
   const per = anState.idxPer[v.key] || '6m';
   let ch = v.chart;
   try{ ch = await anIndexChartFor(v, per); }catch(e){}
-  slot.innerHTML = anChartTabs(per) + anSvgChart(ch);
+  slot.innerHTML = anChartTabs(per, ch) + anSvgChart(ch);
 }
 
 // 공지 파일(#noticeModal)을 그 자리에서 팝업으로(다시 보지 않기 없음, ✓·바깥 누르면 닫힘)
@@ -10070,8 +10070,9 @@ async function anChartFor(r, per){
   anChartCache.set(ck, ch);
   return ch;
 }
-function anChartTabs(per){
-  return `<div class="an-cper">${AN_CHART_PER.map(([k, nm]) => `<button type="button" data-cper="${k}"${k === per ? ' class="on"' : ''}>${nm}</button>`).join('')}</div>`;
+function anChartTabs(per, ch){
+  const note = (ch && ch.proj && Object.values(ch.proj).some(v => v)) ? '<span class="an-cpn">점선 = 가격 유지 가정</span>' : '';
+  return `<div class="an-cper">${AN_CHART_PER.map(([k, nm]) => `<button type="button" data-cper="${k}"${k === per ? ' class="on"' : ''}>${nm}</button>`).join('')}${note}</div>`;
 }
 // 이 종목의 신호추적(실전 기록) → 차트 위 표시. 기록이 없는 기간엔 아무것도 없음(백테스트 재계산 신호는 쓰지 않음)
 let anTrackCache = null;                      // { at: 분석 시각, by: Map(code → 추적 목록) }
@@ -10148,7 +10149,7 @@ async function anDrawChartSlot(slot){
   try{ ch = Object.assign({}, ch, { marks: anSigMarks(ch, await anTracksFor(r)), gaps: anChartGaps(ch, anTrackCache && anTrackCache.gaps && anTrackCache.gaps[r.code]) }); }catch(e){}
   try{ const vb = await anChartVol(r, ch); if(vb) ch = Object.assign({}, ch, vb); }catch(e){}
   ch = Object.assign({}, ch, { showChg: true });       // 현재가(종가) 점 아래 등락률(종목 차트만)
-  slot.innerHTML = anChartTabs(per) + anSvgChart(ch);
+  slot.innerHTML = anChartTabs(per, ch) + anSvgChart(ch);
 }
 
 function anBindRoot(root){
@@ -10577,6 +10578,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .an-warn { background:var(--an-warnbg); border-radius:8px; padding:10px 12px; margin-top:14px; }
 .an-chwrap { padding:0 10px 6px; }
 .an-cper { display:flex; gap:3px; margin:2px 0 4px; } .an-cper button { font:inherit; font-size:11px; height:22px; padding:0 8px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--text-dim); cursor:pointer; }
+.an-cpn { align-self:center; margin-left:8px; font-size:10px; color:var(--text-dim); white-space:nowrap; }
 .an-cper button.on { background:var(--surface); color:var(--text); border-color:#C9C9C9; }
 .an-code { color:var(--text-dim); font-size:11px; }
 .an-rsi { font-size:11px; padding:1px 6px; border-radius:6px; background:var(--border); }
