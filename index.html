@@ -196,7 +196,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
     cursor:pointer;
   }
   /* 2026-10-20: 카드 세로 115px 고정 — 코스피·코스닥에 이격도·RSI 줄이 붙는 날은 그래프가 그만큼 줄어듦 */
-  #marketTicker > .mkt-card{transform:translate3d(var(--mkt-frac, 0px),0,0);will-change:transform;}   /* 흐름의 소수 px(떨림 없이) */
+  #marketTicker > .mkt-card{transform:translateX(var(--mkt-frac, 0px));}   /* 흐름의 소수 px(떨림 없이). 3D·will-change는 아이폰에서 글자가 흐려져 뺌(2026-11-13) */
   .mkt-card{height:var(--mkt-h, 115px);display:flex;flex-direction:column;overflow:hidden;}
   .mkt-card{transition:background-color .2s, border-color .2s;} #marketTicker.mkt-min .mkt-card{background:var(--surface2);border-color:var(--accent-dim);}   /* 2026-11-12 사용자: 평소엔 원래 어두운 색, 다 줄어들어 고정된 상태에서만 활성 탭 색 */
   /* 2026-11-12 사용자: 스크롤해도 경제지표 줄은 화면 위에 남음 — 아래(그래프)부터 줄어들다 이름·값·등락률만 남으면 그 상태로 고정 */
@@ -1183,7 +1183,8 @@ function renderMarketTicker(){
 // 같은 카드 묶음 3벌을 붙여 두고 가운데 묶음 근처를 유지(벗어나면 한 묶음 폭만큼 몰래 되돌림). 손으로 끌거나 누르면 10초 멈춘 뒤 다시 흐름
 const MKT_LOOP = true, MKT_LOOP_SPEED = 24, MKT_LOOP_PAUSE = 10000;   // 16→24(2026-11-13 사용자 '조금만 더 빠르게')   // px/초, 멈춤 ms
 let mktLoopPauseUntil = 0, mktLoopTouch = false, mktLoopPos = -1, mktLoopSet = -1, mktLoopUserAt = 0;
-function mktLoopFrac(el, f){ const v = f > 0.01 ? (-f).toFixed(2) + 'px' : '0px'; if(el._mf !== v){ el._mf = v; el.style.setProperty('--mkt-frac', v); } }
+function mktLoopFrac(el, f){ const dpr = window.devicePixelRatio || 1; f = Math.round(f * dpr) / dpr;   // 화면 픽셀 칸에 맞춰 옮겨야 글자가 또렷함
+  const v = f > 0.01 ? (-f).toFixed(3) + 'px' : '0px'; if(el._mf !== v){ el._mf = v; el.style.setProperty('--mkt-frac', v); } }
 function mktLoopActive(){ try{ return MKT_LOOP && donutCarOn(); }catch(e){ return false; } }
 function mktLoopPause(){ mktLoopPauseUntil = Date.now() + MKT_LOOP_PAUSE; }
 function mktLoopSetW(el){ const cs = el.querySelectorAll(':scope > .mkt-card'), n = MARKET_SYMBOLS.length; return cs.length >= 2 * n ? cs[n].offsetLeft - cs[0].offsetLeft : 0; }
