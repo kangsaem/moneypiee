@@ -3002,7 +3002,7 @@ document.addEventListener('click', e => {
     if(!pinned){   // 고정 전의 원래 크기를 재 둠
       natH = tk.offsetHeight;
       const c = tk.querySelector('.mkt-card[data-mktkey]'), ch = c && c.querySelector('.mkt-change'), sv = c && c.querySelector(':scope > svg');
-      if(c){ cardH = c.offsetHeight || cardH; if(ch) minH = Math.ceil(ch.offsetTop - c.offsetTop + ch.offsetHeight + 7); if(sv) svgH = sv.getBoundingClientRect().height || svgH; }
+      if(c){ cardH = c.offsetHeight || cardH; if(ch) minH = Math.ceil(ch.getBoundingClientRect().bottom - c.getBoundingClientRect().top + 7); /* 화면 위치로 잼: 카드에 transform이 붙으면 아이폰에서 offsetTop 기준이 카드로 바뀌어 등락률이 잘렸음(2026-11-13) */ if(sv) svgH = sv.getBoundingClientRect().height || svgH; }
     }
     const ad = document.getElementById('adfit-bottom'), off = ad && ad.offsetHeight ? ad.offsetHeight : 0;
     const top = hold.getBoundingClientRect().top - off;
