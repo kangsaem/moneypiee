@@ -10025,7 +10025,7 @@ async function anChartFor(r, per){
   return ch;
 }
 function anChartTabs(per, ch){
-  const note = (ch && ch.proj && Object.values(ch.proj).some(v => v)) ? '<span class="an-cpn">점선 = 가격 유지 가정</span>' : '';
+  const note = '';   // '점선 = 가격 유지 가정' 안내는 삭제(2026-11-13 사용자). 점선 자체는 그대로
   return `<div class="an-cper">${AN_CHART_PER.map(([k, nm]) => `<button type="button" data-cper="${k}"${k === per ? ' class="on"' : ''}>${nm}</button>`).join('')}${note}</div>`;
 }
 // 이 종목의 신호추적(실전 기록) → 차트 위 표시. 기록이 없는 기간엔 아무것도 없음(백테스트 재계산 신호는 쓰지 않음)
