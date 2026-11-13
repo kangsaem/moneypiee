@@ -1176,7 +1176,7 @@ function renderMarketTicker(){
     const line = mktIndicatorLine(key);
     if(card && line) card.insertAdjacentHTML('beforeend', line);
   });
-  if(mktLoopActive()){ const one = el.innerHTML; el.innerHTML = one + one + one; el.scrollLeft = sl0; mktLoopWrap(true); }   // 휴대폰: 같은 카드 묶음 3벌(끝없이 이어지게)
+  if(mktLoopActive() && el.scrollWidth > el.clientWidth + 2){ const one = el.innerHTML; el.innerHTML = one + one + one; el.scrollLeft = sl0; mktLoopWrap(true); }   // 카드가 한 줄에 다 안 들어가면(휴대폰·PC) 같은 묶음 3벌로 끝없이 이어지게
   el.querySelectorAll('.mkt-card[data-mktkey]').forEach(card => {
     card.addEventListener('click', () => { mktLoopPause(); cycleMarketRange(card.dataset.mktkey); });
   });
@@ -1193,7 +1193,7 @@ function mktLoopCommit(){
 }
 function mktLoopFrac(el, f){ const dpr = window.devicePixelRatio || 1; f = Math.round(f * dpr) / dpr;   // 화면 픽셀 칸에 맞춰 옮겨야 글자가 또렷함
   const v = f > 0.01 ? (-f).toFixed(3) + 'px' : '0px'; if(el._mf !== v){ el._mf = v; el.style.setProperty('--mkt-frac', v); } }
-function mktLoopActive(){ try{ return MKT_LOOP && donutCarOn(); }catch(e){ return false; } }
+function mktLoopActive(){ return MKT_LOOP; }   // 2026-11-13 사용자: PC도 흐름(카드가 다 들어가는 넓은 화면이면 3벌로 안 만들어 저절로 멈춤)
 function mktLoopPause(){ mktLoopCommit(); mktLoopPauseUntil = Date.now() + MKT_LOOP_PAUSE; }
 function mktLoopSetW(el){ const cs = el.querySelectorAll(':scope > .mkt-card'), n = MARKET_SYMBOLS.length; return cs.length >= 2 * n ? cs[n].offsetLeft - cs[0].offsetLeft : 0; }
 function mktLoopWrap(force){
@@ -1221,6 +1221,9 @@ function mktLoopWrap(force){
   document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById('marketTicker'); if(!el) return;
     el.addEventListener('touchstart', () => { mktLoopTouch = true; mktLoopPause(); }, { passive: true });
+    el.addEventListener('mousedown', () => { mktLoopPause(); mktLoopUserAt = Date.now(); });    // PC: 마우스로 잡거나 누르면 10초 멈춤
+    el.addEventListener('wheel', () => { mktLoopPause(); mktLoopUserAt = Date.now(); }, { passive: true });
+    let rz = 0; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { try{ renderMarketTicker(); }catch(e){} }, 200); });   // 창 폭이 바뀌면 3벌 여부 다시 판단
     const up = () => { mktLoopTouch = false; mktLoopPause(); mktLoopUserAt = Date.now(); };
     el.addEventListener('touchend', up, { passive: true }); el.addEventListener('touchcancel', up, { passive: true });
     let idle = 0;
@@ -3009,7 +3012,7 @@ document.addEventListener('click', e => {
     if(!hold){ hold = document.createElement('div'); hold.id = 'mktHold'; hold.style.marginBottom = tk.style.marginBottom || '8px'; tk.parentNode.insertBefore(hold, tk); hold.appendChild(tk); tk.style.marginBottom = '0'; }
     const pinned = tk.classList.contains('mkt-pin');
     // 휴대폰: 맨 위에서도 늘 화면에 고정된 층(작아졌을 때와 같은 방식)으로 그림 — 아이폰 사파리가 페이지 맨 위 가장자리의 스크롤 내용을 흐리게 처리해 큰 지표가 흐려 보였음(2026-11-13 사용자 단서: 작아진 지표는 또렷, 살짝 밀어올리면 또렷)
-    const always = (() => { try{ return mktLoopActive(); }catch(e){ return false; } })();
+    const always = (() => { try{ return donutCarOn(); }catch(e){ return false; } })();   // 늘 고정 층은 휴대폰만(아이폰 흐림 대책)
     const adT = document.getElementById('adfit-bottom'), offT = adT && adT.offsetHeight ? adT.offsetHeight : 0;
     const fullNow = !pinned || (hold && hold.getBoundingClientRect().top - offT >= 0);
     if(fullNow){   // 다 펼쳐진 크기일 때 원래 크기를 재 둠(고정 중이면 카드 높이가 줄어 있을 수 있어 원래 카드 높이로 환산)
