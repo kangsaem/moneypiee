@@ -3306,7 +3306,9 @@ let mpFoldPending = null;
 function mpRenderThenOpen(keys){
   mpFoldPending = new Set(keys.map(k => 'sec:' + k));
   try{ renderPreservingOpenChartAccordions(); } finally { const pend = mpFoldPending; mpFoldPending = null;
-    const box = document.getElementById('stock-sortable-chart'); if(box) pend.forEach(pk => { const b = mpFoldBody(box, 'sec', pk.slice(4)); if(b) mpFold(b, true); }); }
+    const box = document.getElementById('stock-sortable-chart');
+    if(box){ void box.offsetWidth; mpDonutSync();   // 도넛 종목 색은 컷이 아니라 디졸브(투명도 전환)로 들어옴(2026-11-13 사용자)
+      pend.forEach(pk => { const b = mpFoldBody(box, 'sec', pk.slice(4)); if(b) mpFold(b, true); }); } }
 }
 document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-sec-all]'); if(!b) return;
@@ -3360,7 +3362,7 @@ function stockRegionFoldState(){
 }
 // 도넛 조각 한 개가 지금 보여야 하는지: u = st(종목 조각) · base(밑의 섹터 색) · ring(섹터 링)
 function stockUState(u, sec, reg, mode, rs, fs){
-  if(mode === 'group'){ const open = sec === '현금' || stockSecOpen(sec); return { hide: u === 'st' ? !open : (u === 'base' ? open : false), dim: false }; }
+  if(mode === 'group'){ const open = sec === '현금' || (stockSecOpen(sec) && !(mpFoldPending && mpFoldPending.has('sec:' + sec))); /* 다시 그린 뒤 펼칠 섹터는 일단 숨겨 그림(디졸브로 들어오게) */ return { hide: u === 'st' ? !open : (u === 'base' ? open : false), dim: false }; }
   if(mode === 'region' && rs){ const f = !!fs.folded[reg]; return { hide: u === 'st' ? f : (u === 'base' ? !f : false), dim: f && u !== 'st' }; }
   return { hide: u === 'base', dim: false };
 }
