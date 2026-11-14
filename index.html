@@ -241,6 +241,12 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .hl-chip i{width:8px;height:8px;border-radius:2px;display:inline-block;} .hl-chip.off{opacity:.38;}
   /* 2026-11-12 사용자: 계좌명·계좌유형 버튼, 확대·축소 버튼 테두리를 밝게(--border → --accent-dim) */
   [data-account-filter].btn, #historyAccSelector .btn, #historyAccTypeSelector .btn{border-color:#5A5B61;}
+  /* 2026-11-14 사용자: 자산·월별 탭의 계좌명·계좌유형 버튼 규격 통일 — 높이 26px, 글자 12px 굵게, 좌우 여백 10px, 간격 6px, 유형 버튼 색 네모 없음 */
+  [data-account-filter].btn, #historyAccSelector .btn, #historyAccTypeSelector .btn{height:26px !important;padding:0 10px !important;font-size:12px !important;font-weight:600 !important;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
+  #accountBtnSelector, #historyAccSelector, #historyAccTypeSelector, .typeleg{gap:6px !important;}
+  .typeleg .legend-item{height:26px;box-sizing:border-box;padding:0 10px !important;align-items:center;justify-content:center;}
+  .typeleg .legend-item .swatch{display:none !important;}
+  .typeleg .legend-item, .typeleg .legend-item *{font-size:12px !important;font-weight:600 !important;line-height:1;}
   .hz-btn{width:26px;height:26px;border:1px solid #5A5B61;border-radius:6px;background:transparent;color:var(--text);font-size:17px;line-height:1;cursor:pointer;padding:0;font-family:inherit;-webkit-tap-highlight-color:transparent;}
   .tb2-grp{max-width:860px;margin:10px auto 0;} .tb2-row{position:relative;margin-bottom:1px;} .tb2-row.hid{display:none;}
   .tb2-bar{position:relative;height:var(--tbh, 9px);cursor:pointer;} .tb2-bar svg{height:100% !important;border-radius:3px !important;}
@@ -250,7 +256,7 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   /* 2026-11-11 자산 탭 정리(사용자): 자산·현금비중 한 줄(같은 글자 크기) · 유형 버튼 낮게(퍼센트는 올리면/길게 누르면) · 휴대폰 도넛 하나씩 · 지역보기 묶음 */
   .tb-row{display:flex;justify-content:center;align-items:baseline;gap:6px 14px;flex-wrap:wrap;position:relative;top:2px;}   /* 2px 내려 위(버튼)·아래(계좌 버튼) 여백을 같게(2026-11-11 사용자) */
   .tb-row .total-badge{margin-top:0 !important;} .tb-row .total-badge[data-cashbadge]{gap:0 !important;}   /* 현금 ↔ % 간격 = 자산 ↔ 금액 간격(6px) */ .tb-row .total-badge .num{font-size:16px !important;} .tb-row .total-badge .num span{font-size:inherit !important;font-weight:inherit !important;}
-  .typeleg{margin-top:4px !important;} .typeleg .legend-item{flex-direction:row !important;padding:1px 8px !important;} .typeleg .legend-pct{display:none !important;}
+  .typeleg{margin-top:4px !important;} .typeleg .legend-item{flex-direction:row !important;padding:0 10px !important;min-width:52px !important;}   /* 2026-11-14 규격 통일(월별 유형 버튼과 같게) */ .typeleg .legend-pct{display:none !important;}
   .mp-tip{position:fixed;z-index:9999;background:#111;color:#fff;border:1px solid #7A7B81;border-radius:6px;padding:3px 8px;font-size:12px;white-space:nowrap;transform:translate(-50%,-125%);pointer-events:none;}
   .charts.dn-car{display:block !important;overflow:hidden;position:relative;} .dn-track{display:flex;align-items:flex-start;touch-action:pan-y;width:100%;box-sizing:border-box;} .dn-track > .dn-slide{flex:0 0 100%;max-width:100%;min-width:0;box-sizing:border-box;position:relative;margin:0 !important;}   /* 도넛 3장을 옆으로 붙인 띠, 틀 밖은 잘림 */
   .dn-arrow{position:absolute;width:36px;height:48px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-dim);cursor:pointer;z-index:3;user-select:none;-webkit-tap-highlight-color:transparent;}
