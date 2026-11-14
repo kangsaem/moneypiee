@@ -3091,8 +3091,12 @@ document.addEventListener('click', e => {
       let sh = document.getElementById('mktShade'); if(!sh){ sh = document.createElement('div'); sh.id = 'mktShade'; document.body.appendChild(sh); }
       sh.style.display = 'block'; sh.style.top = off + 'px'; sh.style.left = '0px'; sh.style.width = '100%'; sh.style.height = (Math.max(0, top) + hNow + 2 + 8) + 'px';
       tk.classList.toggle('mkt-min', vis < 1);
-      tk.querySelectorAll('.mkt-card > svg').forEach(v => { v.style.clipPath = svgH ? `inset(0 0 ${Math.max(0, svgH - vis).toFixed(1)}px 0)` : ''; });   // 그래프는 카드 아래 여백(7px) 안쪽까지만 보이게
-      if(svgH) tk.querySelectorAll('.mkt-card > svg').forEach(v => { if(!v.dataset.fz){ v.dataset.fz = '1'; v.style.flex = '0 0 ' + svgH + 'px'; } });   // 그래프는 찌그러지지 않고 아래부터 가려짐
+      // 다 펼쳐진 크기(맨 위)에서는 그래프를 고정·자르지 않고 원래 배치 그대로 — 코스피·코스닥 카드의 맨 아래 '이격·RSI' 줄이 밀려 잘리던 것(2026-11-14 사용자)
+      if(hNow >= cardH){ tk.querySelectorAll('.mkt-card > svg').forEach(v => { v.style.clipPath = ''; if(v.dataset.fz){ delete v.dataset.fz; v.style.flex = ''; } }); }
+      else {
+        tk.querySelectorAll('.mkt-card > svg').forEach(v => { v.style.clipPath = svgH ? `inset(0 0 ${Math.max(0, svgH - vis).toFixed(1)}px 0)` : ''; });   // 그래프는 카드 아래 여백(7px) 안쪽까지만 보이게
+        if(svgH) tk.querySelectorAll('.mkt-card > svg').forEach(v => { if(!v.dataset.fz){ v.dataset.fz = '1'; v.style.flex = '0 0 ' + svgH + 'px'; } });
+      }   // 그래프는 찌그러지지 않고 아래부터 가려짐
     } else if(pinned){
       tk.classList.remove('mkt-pin', 'mkt-min'); { const sh = document.getElementById('mktShade'); if(sh) sh.style.display = 'none'; } tk.querySelectorAll('.mkt-card > svg').forEach(v => { v.style.clipPath = ''; }); hold.style.height = ''; tk.style.top = tk.style.left = tk.style.width = ''; tk.style.removeProperty('--mkt-h');
       tk.querySelectorAll('.mkt-card > svg').forEach(v => { delete v.dataset.fz; v.style.flex = ''; });
