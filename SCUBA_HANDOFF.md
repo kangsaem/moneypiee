@@ -1,8 +1,13 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-15 09:40 (v2.10.22) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-15 11:45 (v2.10.23) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.10.23 (2026-11-15) 아이폰 사파리 위쪽 흐림 대책
+- 원인(머니파이 11/13 확인): iOS 26 사파리는 화면 맨 위 가장자리의 스크롤 내용을 그라데이션으로 흐리게 함, position:fixed 층은 제외.
+- 휴대폰 브라우저(pointer:coarse, 폭<780, display-mode:browser)에서 body::before 고정 띠(#284656)를 상태바+16px로, .wrap 위 여백 상태바+20px. 올라간 내용은 띠 아래로 깔끔히 사라짐. 홈 화면 앱(standalone)·PC·가로는 그대로.
+- 실제 아이폰 확인 대기. 덜 되면 띠 높이(16px) 조정 또는 머니파이식 제목 줄 고정 검토.
 
 ## v2.10.22 (2026-11-15) 상단 광고 제거(사용자 요청)
 - scuba.html의 #adTop(애드핏 DAN-blDFwvjdoelHWCGb + ba.min.js) 통째로 삭제 → scuba.kangyonz.com(DAN-F3MZMbNZPoka4ze1)에서도 빠짐. #adTop 관련 CSS는 남겨 둠(요소 없으면 무해).
