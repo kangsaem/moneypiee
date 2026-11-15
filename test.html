@@ -3156,7 +3156,7 @@ document.addEventListener('click', e => {
     if(d === dir) return;
     const o = ORDER();
     if(d === 0){ try{ switchTab(orig); }catch(e){} if(snap){ snap.remove(); snap = null; } document.body.style.minHeight = ''; }
-    else { if(!snap) makeSnap(); try{ switchTab(o[oi - d]); }catch(e){} }
+    else { if(!snap) makeSnap(); try{ switchTab(o[(oi - d + o.length) % o.length]); }catch(e){} }   // 끝에서는 반대쪽 끝으로 이어짐(관리 ↔ 월별, 2026-11-15 사용자)
     panel = document.getElementById('panel'); if(panel) panel.style.willChange = 'transform';
     dir = d;
   };
@@ -3206,8 +3206,8 @@ document.addEventListener('click', e => {
     }
     if(e.cancelable) e.preventDefault();
     if(now > lastT){ vx = 0.7 * vx + 0.3 * (x - lastX) / (now - lastT); } lastX = x; lastT = now;
-    const want = dx < 0 ? -1 : 1, ni = oi - want;
-    showDir(dx !== 0 && ni >= 0 && ni < ORDER().length ? want : 0);
+    const want = dx < 0 ? -1 : 1;
+    showDir(dx !== 0 ? want : 0);   // 탭이 둥글게 이어져 끝이 없음
     place();
   }
   function end(){
