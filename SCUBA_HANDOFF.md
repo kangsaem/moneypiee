@@ -1,8 +1,12 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-14 19:00 (v2.10.21) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-15 09:40 (v2.10.22) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.10.22 (2026-11-15) 상단 광고 제거(사용자 요청)
+- scuba.html의 #adTop(애드핏 DAN-blDFwvjdoelHWCGb + ba.min.js) 통째로 삭제 → scuba.kangyonz.com(DAN-F3MZMbNZPoka4ze1)에서도 빠짐. #adTop 관련 CSS는 남겨 둠(요소 없으면 무해).
+- 되살릴 때 코드: <div id="adTop"><ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-blDFwvjdoelHWCGb" data-ad-width="320" data-ad-height="50"></ins><script type="text/javascript" src="//t1.kakaocdn.net/kas/static/ba.min.js" async></script></div> (.wrap 맨 앞) + 시작 화면 노출 CSS(html.spl #adTop fixed z101, html.spl #splash padding-top +58px)도 같이 지움. dtmd_sync.sh는 있으면 단위 교체, 없으면 그대로.
 
 ## v2.10.21 (2026-11-14) [FIT] 버튼을 맨 오른쪽으로
 - 날짜 보기(fitBtn2): ◀달력 ⏮ 날짜 ⏭ FIT. 달력(fitBtn): ⏮ ◀ 연/월 ▶ ⏭ FIT. 사용자 요청.

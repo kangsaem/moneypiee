@@ -29,8 +29,8 @@ import sys,re,glob,os
 d=sys.argv[1]
 app=open(os.path.join(d,'scuba.html'),encoding='utf-8').read()
 # 카카오 애드핏: 광고 단위는 도메인별 → 복제본(scuba.kangyonz.com)은 사용자가 받은 단위로(11/09)
-assert app.count('data-ad-unit="DAN-blDFwvjdoelHWCGb"')==1, '원본 광고 단위가 바뀜 — dtmd_sync.sh 확인'
-app=app.replace('data-ad-unit="DAN-blDFwvjdoelHWCGb"','data-ad-unit="DAN-F3MZMbNZPoka4ze1"')
+# 11/15 상단 광고(#adTop) 제거됨. 다시 넣으면 원본 단위를 DTMD 단위로 바꿈
+if 'data-ad-unit="DAN-blDFwvjdoelHWCGb"' in app: app=app.replace('data-ad-unit="DAN-blDFwvjdoelHWCGb"','data-ad-unit="DAN-F3MZMbNZPoka4ze1"')
 open(os.path.join(d,'index.html'),'w',encoding='utf-8').write(app)
 open(os.path.join(d,'scuba.html'),'w',encoding='utf-8').write('<!DOCTYPE html>\n<html lang="ko"><head><meta charset="utf-8"><title>DTMD</title>\n<link rel="canonical" href="https://www.moneypie.kr/scuba">\n<script>location.replace(\'/\'+location.hash);</script></head>\n<body style="font-family:sans-serif;padding:20px"><a href="/">DTMD</a></body></html>\n')
 for f in glob.glob(os.path.join(d,'dtmd*.webmanifest')):
