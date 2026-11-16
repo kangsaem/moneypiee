@@ -474,12 +474,16 @@ function gVixStrip(full, n, x, half, vy, vh, pl, xr){
   if(c && c.d && c.d.length) use(c);
   if(c && c.at === today) return;
   try{
-    const res = await fetchViaProxy('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?range=max&interval=1d', 20000);
+    const res = await fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?period1=631152000&period2=${Math.floor(Date.now() / 1000)}&interval=1d`, 20000);   // range=max는 야후가 월봉으로 바꿔 줌 → 기간 지정(1990~)
     const r = (await res.json())?.chart?.result?.[0], ts = r?.timestamp || [], q = r?.indicators?.quote?.[0]?.close || [];
     const d = [], cl = [];
     ts.forEach((t, i) => { const v = q[i]; if(v == null || !isFinite(v)) return; const k = new Date((t + (r.meta?.gmtoffset || 0)) * 1000).toISOString().slice(0, 10); if(d.length && d[d.length - 1] === k){ cl[cl.length - 1] = Math.round(v * 100) / 100; return; } d.push(k); cl.push(Math.round(v * 100) / 100); });
-    if(d.length > 1000){ const v = { d, c: cl, at: today }; try{ localStorage.setItem(K, JSON.stringify(v)); }catch(e){} use(v); }
-  }catch(e){}
+    if(d.length > 1000){ const v = { d, c: cl, at: today }; try{ localStorage.setItem(K, JSON.stringify(v)); }catch(e){} use(v); return; }
+    throw new Error('VIX 일봉 부족 ' + d.length);
+  }catch(e){
+    console.warn('VIX', e);
+    if(!VIX) try{ const b = await gIdbGet('bars3:idx:vixL'); if(b && b.dates && b.dates.length > 100) use({ d: b.dates, c: b.close }); }catch(e2){}   // 받기 실패: 머니파이 V1이 이 기기에 저장한 VIX 6년치
+  }
 })();
 (function(){                                                   // 띠에 마우스를 대거나 누르면 기간·최고값
   let tip = null;
