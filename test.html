@@ -8686,7 +8686,9 @@ function anKs(b){
   const win = s.slice(-250);
   let mi = 0;
   win.forEach((v, i) => { if(v < win[mi]) mi = i; });
+  const m200 = anRoll(s, 200)[n-1];
   return { close: s[n-1], disp: dd ? dd.cur : null, disp_max: dd ? dd.max : null, disp_min: dd ? dd.min : null,
+           disp200: m200 ? s[n-1] / m200 * 100 : null,                // 200일선 이격도(위험 '장기 과열', 2026-11-16)
            rsi: anRsi(s)[n-1], from_high: (s[n-1] / Math.max(...win) - 1) * 100, days_since_low: win.length - 1 - mi };
 }
 
@@ -8771,7 +8773,17 @@ async function anMarketSnapshot(isUS){
 // 기록이 없는 날은 최근 1년만 지금 기준으로 다시 셈('G': 시장 4항목 + 지금 종목들의 그날 RSI·일봉 배열, 신용잔고는 과거 자료가 없어 빠짐). 1년보다 오래된 날은 표시 안 함
 // 3개 이상인 날을 차트 뒤에 칠함(개수가 많을수록 진하게), VIX 25↑는 차트 아래 띠. 글자는 없고 마우스를 대거나 누르면 내용
 let anZones = null, anZoneBase = null, anMlog = null, anCreditHist = null;   // anCreditHist = 리포트가 내보낸 날짜별 신용잔고 상위 10% 여부 {d, r, on}
-const anMlogP = (async () => { try{ anMlog = (await anDB.get('mlog1')) || {}; }catch(e){ anMlog = {}; } return anMlog; })();
+const anMlogP = (async () => {
+  try{ anMlog = (await anDB.get('mlog1')) || {}; }catch(e){ anMlog = {}; }
+  try{                                                          // v2(2026-11-16): 위험 3번째 항목 VIX 25↑ → 200일 이격 150↑. 다시 계산한 날(G·C)은 지우고 다음 분석 때 새로 만듦,
+    if((await anDB.get('mlogv')) !== 2){                        // 그날 판정(L)은 3번째 비트를 지우고 시장 계산이 생기면 채움(e[9] = 2 표시)
+      Object.keys(anMlog).forEach(d => { const e = anMlog[d]; if(!Array.isArray(e)) return; if(e[4] !== 'L'){ delete anMlog[d]; return; }
+        e[2] &= ~4; let c = 0; for(let m = e[2]; m; m >>= 1) c += m & 1; e[0] = c; e[9] = 0; });
+      await anDB.set('mlog1', anMlog); await anDB.set('mlogv', 2);
+    }
+  }catch(e){}
+  return anMlog;
+})();
 function anZoneStock(bars){   // 종목 하나의 최근 300일: RSI 35↓ / 일봉 역배열(5선 ≤ 10선) — '1'·'0'·'-'(자료 없음)
   const c = bars.close, n = c.length, k0 = Math.max(0, n - 420), rs = anRsi(c), s5 = anRoll(c, 5), l10 = anRoll(c, 10);
   let low = '', bear = '';
@@ -8802,6 +8814,7 @@ async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 �
   const cnt = m => { let c = 0; for(; m; m >>= 1) c += m & 1; return c; };
   const mask = it => it.reduce((m, x, k) => m | (x[2] ? 1 << k : 0), 0);
   const pf = s => { const m = /^(\d+)%$/.exec(s || ''); return m ? +m[1] : null; };
+  b.d.forEach((d, i) => { const e = anMlog[d]; if(e && e[4] === 'L' && e[9] === 0){ e[2] = (e[2] & ~4) | (b.rm[i] & 4); e[0] = cnt(e[2]); e[9] = 2; } });   // 옮긴 그날 판정에 200일 이격 채움
   const last = b.d[b.d.length - 1], rm = mask(msig.risk.items), bm = mask(msig.bottom.items);
   const kt = anKstNow(), fin = d => kt.date > d || (kt.date === d && kt.hm >= 2000);   /* 국장 일봉 확정(20:00 KST) 뒤 첫 값으로 확정, 그 뒤로는 덮어쓰지 않음 */
   if(!(anMlog[last] && anMlog[last][7])) anMlog[last] = [cnt(rm), cnt(bm), rm, bm, 'L', pf((msig.bottom.items[4] || [])[1]), pf((msig.risk.items[4] || [])[1]), fin(last) ? 1 : 0];
@@ -8825,11 +8838,11 @@ async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 �
 }
 const AN_ZONE_A = { 3: 0.14, 4: 0.30, 5: 0.50 }, AN_ZONE_RA = { 2: 0.10, 3: 0.24, 4: 0.45 };   // 바닥 3·4·5개 / 위험 2·3·4개 이상 진하기(2026-11-16 위험만 2개부터)
 function anMarketZones(kb, vb, yb){
-  const d = kb.dates, c = kb.close, n = c.length, ma = anRoll(c, 50), rs = anRsi(c);
+  const d = kb.dates, c = kb.close, n = c.length, ma = anRoll(c, 50), ma200 = anRoll(c, 200), rs = anRsi(c);
   const vd = vb.dates, vc = vb.close, yd = yb ? yb.dates : [], yc = yb ? yb.close : [];
   const at = (ds, x) => { let lo = 0, hi = ds.length - 1, r = -1; while(lo <= hi){ const m = (lo + hi) >> 1; if(ds[m] <= x){ r = m; lo = m + 1; } else hi = m - 1; } return r; };
   const r1 = v => anOk(v) ? Math.round(v * 10) / 10 : null, r2 = v => anOk(v) ? Math.round(v * 100) / 100 : null;
-  const z = { d: [], r: [], b: [], rm: [], bm: [], disp: [], rsi: [], fh: [], vx: [], vp: [], yc: [] };
+  const z = { d: [], r: [], b: [], rm: [], bm: [], disp: [], d200: [], rsi: [], fh: [], vx: [], vp: [], yc: [] };
   for(let i = Math.max(0, n - 1400); i < n; i++){
     if(ma[i] == null) continue;
     const disp = c[i] / ma[i] * 100, rr = rs[i];
@@ -8838,22 +8851,23 @@ function anMarketZones(kb, vb, yb){
     const fh = (c[i] / hi - 1) * 100, dsl = i - li;
     const vi = at(vd, d[i]), vx = vi >= 0 ? vc[vi] : null, vp = vi >= 10 ? (vc[vi] / vc[vi - 10] - 1) * 100 : null;
     const yi = at(yd, d[i]), y10 = yi >= 10 ? yc[yi] - yc[yi - 10] : null;
-    const R = [disp >= 120, anOk(rr) && rr >= 70, vx != null && (vx >= 25 || (vp != null && vp >= 30)), y10 != null && y10 >= 0.3];
+    const d200 = ma200[i] ? c[i] / ma200[i] * 100 : null;
+    const R = [disp >= 120, anOk(rr) && rr >= 70, d200 != null && d200 >= 150, y10 != null && y10 >= 0.3];   // 3번째: 200일 이격 150↑(전엔 VIX 25↑·급등)
     const B = [disp <= 90, anOk(rr) && rr <= 35, fh <= -20 && dsl >= 20, vx != null && vx >= 30];
     z.d.push(d[i]); z.r.push(R.filter(Boolean).length); z.b.push(B.filter(Boolean).length);
     z.rm.push(R.reduce((m, v, k) => m | (v ? 1 << k : 0), 0)); z.bm.push(B.reduce((m, v, k) => m | (v ? 1 << k : 0), 0));
-    z.disp.push(r1(disp)); z.rsi.push(r1(rr)); z.fh.push(r1(fh)); z.vx.push(r1(vx)); z.vp.push(r1(vp)); z.yc.push(r2(y10));
+    z.disp.push(r1(disp)); z.d200.push(r1(d200)); z.rsi.push(r1(rr)); z.fh.push(r1(fh)); z.vx.push(r1(vx)); z.vp.push(r1(vp)); z.yc.push(r2(y10));
   }
   const vs = Math.max(0, vd.length - 1500); z.vd = vd.slice(vs); z.vc = vc.slice(vs).map(r1); z.at = Date.now();
   return z;
 }
 function anZoneAt(ds, full){ let lo = 0, hi = ds.length - 1, r = -1; while(lo <= hi){ const m = (lo + hi) >> 1; if(ds[m] <= full){ r = m; lo = m + 1; } else hi = m - 1; } return r; }
-const AN_ZR = ['코스피 이격도 120↑', '코스피 RSI 70↑', 'VIX 25↑·급등', '미국채10년 +0.3%p↑', '내 종목 70%↑ 역배열', '신용잔고 비율 상위'], AN_ZB = ['코스피 이격도 90↓', '코스피 RSI 35↓', '고점 -20%↓·신저점 없음', 'VIX 30↑', '내 종목 30%↑ RSI 35↓'];
+const AN_ZR = ['코스피 이격도 120↑', '코스피 RSI 70↑', '200일 이격 150↑', '미국채10년 +0.3%p↑', '내 종목 70%↑ 역배열', '신용잔고 비율 상위'], AN_ZB = ['코스피 이격도 90↓', '코스피 RSI 35↓', '고점 -20%↓·신저점 없음', 'VIX 30↑', '내 종목 30%↑ RSI 35↓'];
 function anZoneTip(kind, i0, i1, ids){   // 구간 설명: 기간 + 가장 많이 켜진 날의 항목과 값
   const z = anZones, arr = kind === 'r' ? z.r : z.b; let pk = ids[0];
   ids.forEach(k => { if(arr[k] > arr[pk]) pk = k; });
   const m = kind === 'r' ? z.rm[pk] : z.bm[pk], names = kind === 'r' ? AN_ZR : AN_ZB, on = names.filter((_, k) => m & (1 << k));
-  const val = `이격 ${z.disp[pk] ?? '-'} · RSI ${z.rsi[pk] ?? '-'} · VIX ${z.vx[pk] ?? '-'}` + (kind === 'r' ? ` · 금리10일 ${z.yc[pk] != null ? (z.yc[pk] >= 0 ? '+' : '') + z.yc[pk] + '%p' : '-'} · 내 종목 역배열 ${z.br && z.br[pk] != null ? z.br[pk] + '%' : '-'}` : ` · 고점대비 ${z.fh[pk] ?? '-'}% · 내 종목 RSI35↓ ${z.wk && z.wk[pk] != null ? z.wk[pk] + '%' : '-'}`);
+  const val = `이격 ${z.disp[pk] ?? '-'} · RSI ${z.rsi[pk] ?? '-'} · ` + (kind === 'r' ? `200일 이격 ${z.d200 && z.d200[pk] != null ? z.d200[pk] : '-'}` : `VIX ${z.vx[pk] ?? '-'}`) + (kind === 'r' ? ` · 금리10일 ${z.yc[pk] != null ? (z.yc[pk] >= 0 ? '+' : '') + z.yc[pk] + '%p' : '-'} · 내 종목 역배열 ${z.br && z.br[pk] != null ? z.br[pk] + '%' : '-'}` : ` · 고점대비 ${z.fh[pk] ?? '-'}% · 내 종목 RSI35↓ ${z.wk && z.wk[pk] != null ? z.wk[pk] + '%' : '-'}`);
   const sc = z.src ? z.src[pk] : '', src = sc === 'L' ? (z.fin && z.fin[pk] ? '그날 마감 뒤 판정 기록' : '그날 판정 기록 · 마감 전 값(다음 분석 때 마감 기준으로 확정)')
     : (sc === 'C' ? '마감 뒤 값이 없어 그날 종가로 다시 계산' : '기록이 없어 지금 기준으로 다시 계산') + (kind === 'r' && !(z.cr && z.cr[pk]) ? '(신용잔고 제외)' : '');
   return `${kind === 'r' ? '시장 위험' : '시장 바닥'} 지표 최대 ${arr[pk]}개 · ${i0} ~ ${i1}\n${on.join(', ')}\n${anShort(z.d[pk])}: ${val}\n${src}`;
@@ -8920,8 +8934,8 @@ function anMarketSignals(snap, results){
   const risk = [
     ['코스피 50일 이격도 120 이상', ks ? anF(ks.disp, 1) : '-', ks ? ks.disp >= 120 : null],
     ['코스피 RSI 70 이상', ks ? anF(ks.rsi, 0) : '-', ks ? ks.rsi >= 70 : null],
-    ['VIX 25 이상 또는 10일간 30% 이상 급등', vix ? anF(vix.last, 1) : '-',
-      vix ? (vix.last >= 25 || (vix.pct10 != null && vix.pct10 >= 30)) : null],
+    ['코스피 200일 이격도 150 이상(장기 과열)', ks && ks.disp200 != null ? anF(ks.disp200, 1) : '-',   // 전엔 VIX 25↑·급등 — 검증(risk_study)에서 VIX는 바닥 쪽으로 작동해 바꿈(2026-11-16)
+      ks && ks.disp200 != null ? ks.disp200 >= 150 : null],
     ['미국 10년물 금리 10일간 0.3%p 이상 상승', y10 && y10.chg10 != null ? anS(y10.chg10, 2) + '%p' : '-',
       y10 && y10.chg10 != null ? y10.chg10 >= 0.3 : null],
     ['내 종목 70% 이상이 일봉 역배열', bear != null ? pc(bear) : '-', bear != null ? bear >= 0.7 : null],
