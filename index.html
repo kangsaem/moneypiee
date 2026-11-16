@@ -3161,8 +3161,10 @@ document.addEventListener('click', e => {
     requestAnimationFrame(tick);
   };
   document.addEventListener('touchstart', e => {
+    if(st === 2){ if(e.touches.length > 1){ dx = 0; vx = 0; end(); } return; }   // 쓸던 중 두 번째 손가락(줌) → 원래 탭으로 되돌리며 끝냄. 전엔 여기서 st를 먼저 지워 마무리가 안 돼 복사본이 남았음(2026-11-17)
     st = 0; if(busy) return;
     try{ if(e.touches.length !== 1 || !donutCarOn() || curIdx() < 0) return; }catch(err){ return; }
+    const vv = window.visualViewport; if(vv && vv.scale > 1.01) return;   // 확대해 둔 상태의 좌우 이동은 화면 둘러보기 → 탭 이동 안 함(2026-11-17)
     const r = scan(e.target); if(r.stop) return;
     panel = document.getElementById('panel'); if(!panel) return;
     sc = r.sc; sl0 = sc ? sc.scrollLeft : 0;
