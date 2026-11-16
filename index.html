@@ -8888,7 +8888,7 @@ function anMarketSignals(snap, results){
   const risk = [
     ['코스피 50일 이격도 120 이상', ks ? anF(ks.disp, 1) : '-', ks ? ks.disp >= 120 : null],
     ['코스피 RSI 70 이상', ks ? anF(ks.rsi, 0) : '-', ks ? ks.rsi >= 70 : null],
-    ['코스피 200일 이격도 150 이상(장기 과열)', ks && ks.disp200 != null ? anF(ks.disp200, 1) : '-',   // 전엔 VIX 25↑·급등 — 검증(risk_study)에서 VIX는 바닥 쪽으로 작동해 바꿈(2026-11-16)
+    ['코스피 200일 이격도 150 이상', ks && ks.disp200 != null ? anF(ks.disp200, 1) : '-',   // 전엔 VIX 25↑·급등 — 검증(risk_study)에서 VIX는 바닥 쪽으로 작동해 바꿈(2026-11-16)
       ks && ks.disp200 != null ? ks.disp200 >= 150 : null],
     ['미국 10년물 금리 10일간 0.3%p 이상 상승', y10 && y10.chg10 != null ? anS(y10.chg10, 2) + '%p' : '-',
       y10 && y10.chg10 != null ? y10.chg10 >= 0.3 : null],
@@ -9738,7 +9738,8 @@ function anEuphoria(btn){
 }
 function anGauge(msig, key, title){
   const g = msig[key];
-  const rows = g.items.map(([lb, val, st]) => `<li class="${st ? 'on' : st == null ? 'na' : 'off'}"><span class="an-dot"></span><span class="an-gt">${anE(lb)}</span><b>${anE(val)}</b></li>`).join('');
+  const ord = key === 'risk' ? [1, 0].concat(g.items.map((_, k) => k).slice(2)) : g.items.map((_, k) => k);   // 위험은 RSI를 맨 위로(보이는 순서만, 저장 비트 순서는 그대로 — 2026-11-16)
+  const rows = ord.map(k => g.items[k]).filter(Boolean).map(([lb, val, st]) => `<li class="${st ? 'on' : st == null ? 'na' : 'off'}"><span class="an-dot"></span><span class="an-gt">${anE(lb)}</span><b>${anE(val)}</b></li>`).join('');
   const pct = g.total ? Math.floor(100 * g.score / g.total) : 0;
   const left = key === 'bottom' && g.cls !== 'lv0'      // 바닥 신호가 켜졌을 때만: 밸류에이션은 직접 확인
     ? `<a class="an-gbtn" href="${AN.PBR_LINK}" target="_blank" rel="noopener">코스피 PBR 확인 →</a>`
