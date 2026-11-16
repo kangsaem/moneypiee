@@ -8857,8 +8857,8 @@ function anZoneSvg(dates, n, x, pt, PH, vy, vh, pl, xr){
     if(a || b){
       const ids = []; for(let q = j; q <= e; q++) if(day(q) >= 0) ids.push(day(q));
       const x0 = X0(j), w = Math.max(1.2, X1(e) - x0), both = a && b, hh = both ? PH / 2 : PH;
-      if(a) back += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${pt}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" fill="rgba(95,184,224,${AN_ZONE_A[a]})" data-zt="${anE(anZoneTip('r', dates[j], dates[e], ids))}"/>`;
-      if(b) back += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${(pt + (both ? PH / 2 : 0)).toFixed(1)}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" fill="rgba(232,123,164,${AN_ZONE_A[b]})" data-zt="${anE(anZoneTip('b', dates[j], dates[e], ids))}"/>`;
+      if(a) back += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${pt}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" fill="rgba(232,123,164,${AN_ZONE_A[a]})" data-zt="${anE(anZoneTip('r', dates[j], dates[e], ids))}"/>`;
+      if(b) back += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${(pt + (both ? PH / 2 : 0)).toFixed(1)}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" fill="rgba(95,184,224,${AN_ZONE_A[b]})" data-zt="${anE(anZoneTip('b', dates[j], dates[e], ids))}"/>`;
     }
     j = e + 1;
   }
@@ -9553,7 +9553,7 @@ function anSvgChart(ch){
     const proj = ch.proj || {}, fdates = ch.fdates || [];
     const F = Object.values(proj).some(v => v) ? fdates.length : 0, N = n + F;
     const W = 660, PH = 170, RH = ch.rsi ? 54 : 0, gap = RH ? 10 : 0, pl = 4, pt = 4, pb = 16;
-    const ZON = !!(anZones && (ch.zone || 'ma200' in ch)), VH = ZON ? 8 : 0, vgap = ZON ? 4 : 0;   // 지수 차트: 위험·바닥 구간 + VIX 띠
+    const ZON = !!(anZones && (ch.zone || 'ma200' in ch)), VH = ZON ? 8 : 0, vgap = ZON ? 4 : 0;   // 지수·종목 차트: 위험(분홍)·바닥(하늘) 구간 + VIX 띠
     const H = pt + PH + gap + RH + vgap + VH + pb, xr = W - 2, tx = xr - 4;
     const vals = [close[n-1]];
     keys.forEach(k => (ch[k] || []).forEach(v => { if(v != null) vals.push(v); }));
@@ -10321,7 +10321,7 @@ async function anDrawChartSlot(slot){
   try{ ch = await anChartFor(r, per); }catch(e){}
   try{ ch = Object.assign({}, ch, { marks: anSigMarks(ch, await anTracksFor(r)), gaps: anChartGaps(ch, anTrackCache && anTrackCache.gaps && anTrackCache.gaps[r.code]) }); }catch(e){}
   try{ const vb = await anChartVol(r, ch); if(vb) ch = Object.assign({}, ch, vb); }catch(e){}
-  ch = Object.assign({}, ch, { showChg: true });       // 현재가(종가) 점 아래 등락률(종목 차트만)
+  ch = Object.assign({}, ch, { showChg: true, zone: true });       // 현재가(종가) 점 아래 등락률(종목 차트만) · 위험·바닥·VIX 구간(2026-11-16)
   slot.innerHTML = anChartTabs(per, ch) + anSvgChart(ch);
 }
 
