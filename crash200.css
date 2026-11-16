@@ -179,12 +179,12 @@ tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
 .gch .an-ch-w60{stroke:#C084FC}
 .gch .an-ch-w5,.gch .an-ch-w10,.gch .an-ch-w60{opacity:.6}
 .gch .g-gray{fill:#000;opacity:.5}
-.gch .g-blue{fill:#5FB8E0;opacity:.3}
+.gch .g-blue{fill:#A3E635;opacity:.3}   /* 안정 40거래일 = 연두(2026-11-16, 전엔 하늘색) */
 .gch .g-up{stroke:#FF3B30;stroke-dasharray:3 3;opacity:.9}   /* 200일선 돌파 = 모두 빨간 점선(2026-10-14) */
 .gch .g-low{stroke:#FF3B30;stroke-dasharray:3 3}
 .gch .g-lowmk{fill:#FF3B30;font-size:10px}
 .cgrid[hidden]{display:none!important}
-.note .gn-r{color:#FF3B30;font-weight:600} .note .gn-b{color:#5FB8E0;font-weight:600}
+.note .gn-r{color:#FF3B30;font-weight:600} .note .gn-b{color:#A3E635;font-weight:600}
 /* 2026-10-14 14:05 */
 .chipv.day,.chipv.day.up{color:#1E1F22}                       /* 하락 칩: 하늘색 채움 유지, 글자·삼각형 = 어두운 배경색 */
 .dbtn,.case .ch2 .issue{color:var(--text)}                     /* 세부내용 버튼·이슈 = 날짜와 같은 글자색 */
@@ -266,3 +266,7 @@ details.acc[open]{box-shadow:inset 0 1px 0 rgba(255,255,255,.38)}
 /* 통계 제목 바 = 밝은 회색(2026-10-21, 맨 위 현재 지수 제목 바와 같은 색) */
 .stat200>summary{background:#C9C9C9;color:#1E1F22;border-radius:8px 8px 0 0} .stat200:not([open])>summary{border-radius:8px}
 .stat200>summary .st{color:#1E1F22} .stat200>summary .meta{color:#4A4B50} .stat200>summary::after{border-color:#1E1F22}
+/* 2026-11-16 VIX 띠(V1과 같은 색) */
+.note .gn-v1{color:rgba(242,166,90,.6);font-weight:600} .note .gn-v2{color:#F2A65A;font-weight:600}
+.gch .g-vix{cursor:pointer}
+.g-tip{position:fixed;z-index:9999;display:none;transform:translate(-50%,calc(-100% - 10px));max-width:240px;padding:6px 9px;border-radius:8px;background:#2A2B30;border:1px solid #3A3B40;color:#E6E6E6;font-size:12px;line-height:1.45;white-space:pre-line;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.4)}

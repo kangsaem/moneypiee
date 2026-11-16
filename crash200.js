@@ -373,7 +373,7 @@ function renderSummary(cases){
   host.innerHTML = `<b>요약</b>${top}<details class="nmore"><summary>자세히</summary>${old ? old.outerHTML : ''}</details>`;
 }
 // 그래프 표시 설명(요약 맨 위, 2026-10-14)
-const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">하늘색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라)';
+const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">연두색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라) · 아래 띠 = VIX <b class="gn-v1">25 이상</b>·<b class="gn-v2">30 이상</b>(V1과 같음, 대거나 누르면 기간·최고값)';
 function renderNotes(cases){
   const li = [G_NOTE];
   li.push(`200일선 안정 = 200일선 위 ${HOLD_DAYS}거래일 유지(그 첫날까지 거래일 수, 아래 줄은 이탈 전날 지수 대비 안정 첫날 지수). 이후 바닥까지 = 이탈일 종가 → 안정 전까지 최저 종가`);
@@ -438,7 +438,7 @@ const G_LINES = ['w5', 'w10', 'w60'];
 function gChartData(D, C, a, b, o){
   o = o || {};
   const cut = x => x.slice(a, b + 1), ma = gRoll(C, 200);
-  const ch = { dates: cut(D).map(s => `${s.slice(2, 4)}.${s.slice(5, 7)}.${s.slice(8, 10)}`), close: cut(C), ma200: cut(ma),
+  const ch = { full: cut(D), dates: cut(D).map(s => `${s.slice(2, 4)}.${s.slice(5, 7)}.${s.slice(8, 10)}`), close: cut(C), ma200: cut(ma),
                w5: cut(gWeekMa(D, C, 5)), w10: cut(gWeekMa(D, C, 10)), w60: cut(gWeekMa(D, C, 60)) };
   const from = o.brk != null ? Math.max(a, o.brk) : a;
   ch.ups = [];
@@ -451,12 +451,52 @@ function gChartData(D, C, a, b, o){
   ch.gray = gr.map(r => [Math.max(r[0], a) - a, Math.min(r[1], b) - a]).filter(r => r[1] >= r[0]);
   return ch;
 }
+// VIX 띠(V1 지수 차트와 같은 색: 25↑ 옅은 주황 0.40, 30↑ 진한 주황 0.85). 야후 ^VIX 1990년~ 일봉, 하루 한 번 받아 이 기기에 저장
+let VIX = null;
+function gVixStrip(full, n, x, half, vy, vh, pl, xr){
+  const at = d => { let lo = 0, hi = VIX.d.length - 1, r = -1; while(lo <= hi){ const m = (lo + hi) >> 1; if(VIX.d[m] <= d){ r = m; lo = m + 1; } else hi = m - 1; } return r; };
+  const vi = full.slice(0, n).map(at), val = j => vi[j] >= 0 ? VIX.c[vi[j]] : null, lv = j => { const v = val(j); return v == null ? 0 : v >= 30 ? 2 : v >= 25 ? 1 : 0; };
+  let s = `<rect class="an-ch-bg" x="0" y="${vy}" width="${xr}" height="${vh}"/>`;
+  for(let j = 0; j < n;){
+    const a = lv(j); let e = j; while(e + 1 < n && lv(e + 1) === a) e++;
+    if(a){ let mx = -Infinity; for(let q = j; q <= e; q++){ const v = val(q); if(v > mx) mx = v; }
+      const x0 = Math.max(pl, x(j) - half), w = Math.max(1.2, Math.min(xr, x(e) + half) - x0), f = d => d.slice(2).replace(/-/g, '.');
+      s += `<rect class="g-vix" x="${x0.toFixed(1)}" y="${vy}" width="${w.toFixed(1)}" height="${vh}" fill="${a === 2 ? 'rgba(242,166,90,0.85)' : 'rgba(242,166,90,0.40)'}" data-zt="${esc(`VIX ${a === 2 ? '30' : '25'} 이상 · ${f(full[j])} ~ ${f(full[e])}\n최고 ${Math.round(mx * 10) / 10}`)}"/>`; }
+    j = e + 1;
+  }
+  return s;
+}
+(async function(){
+  await null;                                                  // 파일 끝까지 읽힌 뒤(GP·gRender 준비) 시작
+  const K = 'c200:vix1', today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+  let c = null; try{ c = JSON.parse(localStorage.getItem(K) || 'null'); }catch(e){}
+  const use = v => { VIX = v; document.querySelectorAll('.gch').forEach(g => { const P = GP.get(g); if(P) gRender(g, P); }); };
+  if(c && c.d && c.d.length) use(c);
+  if(c && c.at === today) return;
+  try{
+    const res = await fetchViaProxy('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?range=max&interval=1d', 20000);
+    const r = (await res.json())?.chart?.result?.[0], ts = r?.timestamp || [], q = r?.indicators?.quote?.[0]?.close || [];
+    const d = [], cl = [];
+    ts.forEach((t, i) => { const v = q[i]; if(v == null || !isFinite(v)) return; const k = new Date((t + (r.meta?.gmtoffset || 0)) * 1000).toISOString().slice(0, 10); if(d.length && d[d.length - 1] === k){ cl[cl.length - 1] = Math.round(v * 100) / 100; return; } d.push(k); cl.push(Math.round(v * 100) / 100); });
+    if(d.length > 1000){ const v = { d, c: cl, at: today }; try{ localStorage.setItem(K, JSON.stringify(v)); }catch(e){} use(v); }
+  }catch(e){}
+})();
+(function(){                                                   // 띠에 마우스를 대거나 누르면 기간·최고값
+  let tip = null;
+  const show = (el, cx, cy) => { if(!tip){ tip = document.createElement('div'); tip.className = 'g-tip'; document.body.appendChild(tip); }
+    tip.textContent = el.getAttribute('data-zt'); tip.style.display = 'block';
+    const w = Math.min(240, innerWidth - 16); tip.style.left = Math.max(8 + w / 2, Math.min(innerWidth - 8 - w / 2, cx)) + 'px'; tip.style.top = cy + 'px'; };
+  const hide = () => { if(tip) tip.style.display = 'none'; };
+  document.addEventListener('mousemove', e => { const z = e.target.closest && e.target.closest('.g-vix'); if(z) show(z, e.clientX, e.clientY); else hide(); }, { passive: true });
+  document.addEventListener('click', e => { const z = e.target.closest && e.target.closest('.g-vix'); if(z) show(z, e.clientX, e.clientY); else hide(); }, true);
+  addEventListener('scroll', hide, { passive: true });
+})();
 function gPath(v, x, y){ let d = '', pen = false; v.forEach((u, i) => { if(u == null){ pen = false; return; } d += (pen ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(u).toFixed(1); pen = true; }); return d; }
 function gSvg(ch){
   const close = ch.close, n = close.length;
   if(n < 2) return '<div class="gnone">그래프 자료 부족</div>';
   const keys = G_LINES.concat(['ma200']);
-  const W = 660, PH = 170, pl = 4, pt = 4, pb = 26, H = pt + PH + pb, xr = W - 2;
+  const VO = VIX ? 12 : 0, W = 660, PH = 170, pl = 4, pt = 4, pb = 26 + VO, H = pt + PH + pb, xr = W - 2;   // VO = VIX 띠(높이 8 + 위 간격 4, 2026-11-16)
   const vals = close.filter(v => v != null); keys.forEach(k => (ch[k] || []).forEach(v => { if(v != null) vals.push(v); }));
   (ch.over || []).forEach(ov => ov.v.forEach(v => { if(v != null) vals.push(v); }));
   let lo = Math.min(...vals), hi = Math.max(...vals); if(hi === lo) hi = lo + 1;
@@ -486,8 +526,9 @@ function gSvg(ch){
   if(ch.low != null && ch.low >= 0){                          // 최저 종가 날: 빨간 점선 + 아래 ▲
     const xv = x(ch.low);
     o.push(`<line class="g-low" x1="${xv.toFixed(1)}" x2="${xv.toFixed(1)}" y1="${y(close[ch.low]).toFixed(1)}" y2="${pt + PH}"/>`);
-    o.push(`<text class="g-lowmk" x="${xv.toFixed(1)}" y="${pt + PH + 10}" text-anchor="middle">▲</text>`);
+    o.push(`<text class="g-lowmk" x="${xv.toFixed(1)}" y="${pt + PH + VO + 10}" text-anchor="middle">▲</text>`);
   }
+  if(VO) o.push(gVixStrip(ch.full, n, x, half, pt + PH + 4, 8, pl, xr));
   const anchor = xv => xv < 60 ? 'start' : xv > xr - 60 ? 'end' : 'middle';
   const ends = [`<text class="an-ch-t" x="${pl}" y="${H - 3}">${ch.dates[0]}</text>`, `<text class="an-ch-t" x="${x(n - 1).toFixed(1)}" y="${H - 3}" text-anchor="end">${ch.dates[n - 1]}</text>`];
   if(lab){
