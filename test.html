@@ -10528,8 +10528,11 @@ async function anGoV1(h){
     if(moved || state.activeId !== '__analysis__') return;
     const r = find(), root = document.getElementById('analysisRoot'); if(!r || !root) return;
     const det = [...root.querySelectorAll('details[data-an-key]')].find(d => d.dataset.anKey === 'd:' + r.code); if(!det) return;
-    const hold = document.getElementById('mktHold'), hb = hold ? hold.getBoundingClientRect() : null, off = hb && hb.height ? Math.max(0, hb.bottom) : 0;
-    const y = Math.max(0, window.scrollY + det.getBoundingClientRect().top - off - 8);
+    const tk = document.getElementById('marketTicker'), sh = document.getElementById('mktShade');   /* 고정된 지표 줄(+그늘) 아래 = 가려지지 않는 첫 줄 */
+    let off = 0;
+    if(tk && tk.classList.contains('mkt-pin')) off = Math.max(off, tk.getBoundingClientRect().bottom);
+    if(sh && sh.style.display !== 'none') off = Math.max(off, sh.getBoundingClientRect().bottom);
+    const y = Math.max(0, window.scrollY + det.getBoundingClientRect().top - off - 10);
     if(Math.abs(y - window.scrollY) > 2) window.scrollTo(0, y);
   };
   anState.view = 'report';
