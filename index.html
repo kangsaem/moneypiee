@@ -8777,7 +8777,7 @@ async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 �
   try{ await anDB.set('mlog1', anMlog); }catch(e){}
   anZoneApply();
 }
-const AN_ZONE_A = { 3: 0.14, 4: 0.30, 5: 0.50 };   // 3개·4개·5개 이상 진하기
+const AN_ZONE_A = { 3: 0.14, 4: 0.30, 5: 0.50 }, AN_ZONE_RA = { 2: 0.10, 3: 0.24, 4: 0.45 };   // 바닥 3·4·5개 / 위험 2·3·4개 이상 진하기(2026-11-16 위험만 2개부터)
 function anMarketZones(kb, vb, yb){
   const d = kb.dates, c = kb.close, n = c.length, ma = anRoll(c, 50), rs = anRsi(c);
   const vd = vb.dates, vc = vb.close, yd = yb ? yb.dates : [], yc = yb ? yb.close : [];
@@ -8816,19 +8816,19 @@ function anZoneTip(kind, i0, i1, ids){   // 구간 설명: 기간 + 가장 많�
 function anZoneSvg(dates, n, x, pt, PH, vy, vh, pl, xr){
   const z = anZones; if(!z || !z.d || !z.d.length) return { back: '', strip: '' };
   const full = s => `20${s.slice(0, 2)}-${s.slice(3, 5)}-${s.slice(6, 8)}`;
-  const lv = c => c >= 3 ? Math.min(5, c) : 0;
+  const lv = c => c >= 3 ? Math.min(5, c) : 0, lvR = c => c >= 2 ? Math.min(4, c) : 0;
   const zi = dates.slice(0, n).map(s => anZoneAt(z.d, full(s)));
   const day = j => zi[j] >= 0 ? zi[j] : -1;
   const X0 = j => Math.max(pl, x(j - 0.5)), X1 = j => Math.min(xr, x(j + 0.5));
   let back = '', strip = '';
   // 위험·바닥: 같은 단계가 이어지는 날끼리 한 덩어리. 둘 다 켜진 날은 위(위험)·아래(바닥) 반씩
   for(let j = 0; j < n;){
-    const k = day(j), a = k >= 0 ? lv(z.r[k]) : 0, b = k >= 0 ? lv(z.b[k]) : 0;
-    let e = j; while(e + 1 < n){ const k2 = day(e + 1); if((k2 >= 0 ? lv(z.r[k2]) : 0) !== a || (k2 >= 0 ? lv(z.b[k2]) : 0) !== b) break; e++; }
+    const k = day(j), a = k >= 0 ? lvR(z.r[k]) : 0, b = k >= 0 ? lv(z.b[k]) : 0;
+    let e = j; while(e + 1 < n){ const k2 = day(e + 1); if((k2 >= 0 ? lvR(z.r[k2]) : 0) !== a || (k2 >= 0 ? lv(z.b[k2]) : 0) !== b) break; e++; }
     if(a || b){
       const ids = []; for(let q = j; q <= e; q++) if(day(q) >= 0) ids.push(day(q));
       const x0 = X0(j), w = Math.max(1.2, X1(e) - x0), both = a && b, hh = both ? PH / 2 : PH;
-      if(a) back += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${pt}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" fill="rgba(232,123,164,${AN_ZONE_A[a]})" data-zt="${anE(anZoneTip('r', dates[j], dates[e], ids))}"/>`;
+      if(a) back += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${pt}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" fill="rgba(232,123,164,${AN_ZONE_RA[a]})" data-zt="${anE(anZoneTip('r', dates[j], dates[e], ids))}"/>`;
       if(b) back += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${(pt + (both ? PH / 2 : 0)).toFixed(1)}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" fill="rgba(95,184,224,${AN_ZONE_A[b]})" data-zt="${anE(anZoneTip('b', dates[j], dates[e], ids))}"/>`;
     }
     j = e + 1;
