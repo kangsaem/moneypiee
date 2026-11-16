@@ -179,7 +179,7 @@ tr.grow td{padding:4px 12px 12px;white-space:normal;text-align:left}
 .gch .an-ch-w60{stroke:#C084FC}
 .gch .an-ch-w5,.gch .an-ch-w10,.gch .an-ch-w60{opacity:.6}
 .gch .g-gray{fill:#000;opacity:.5}
-.gch .g-blue{fill:#A3E635;opacity:.3}   /* 안정 40거래일 = 연두(2026-11-16, 전엔 하늘색) */
+.gch .g-blue{fill:#A3E635;opacity:.15}   /* 안정 40거래일 = 연두(2026-11-16, 전엔 하늘색 · 0.3 → 0.15) */
 .gch .g-up{stroke:#FF3B30;stroke-dasharray:3 3;opacity:.9}   /* 200일선 돌파 = 모두 빨간 점선(2026-10-14) */
 .gch .g-low{stroke:#FF3B30;stroke-dasharray:3 3}
 .gch .g-lowmk{fill:#FF3B30;font-size:10px}
