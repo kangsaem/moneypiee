@@ -5241,12 +5241,10 @@ function renderStockHistoryAccordion(key){
       <div style="display:flex;gap:3px;margin-bottom:5px;">${stockHistoryRangeButtons(info.range)}</div>
       <div style="width:216px;margin:0 auto;">
         <div id="stock-history-price-${key}" style="display:flex;align-items:baseline;justify-content:center;gap:9px;margin-bottom:2px;line-height:1;min-height:21px;">${initialHeaderHtml}</div>
-        <div style="position:relative;">
         <div id="stock-history-chart-${key}" style="min-height:94px;display:flex;align-items:center;justify-content:center;">
           <div style="font-size:11px;color:#777777;">그래프 불러오는 중...</div>
         </div>
-        ${!isCashHolding(h) ? `<button type="button" data-stock-history-v1 style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:42px;border:1px solid #333333;background:#333333;color:#FFFFFF;border-radius:4px;padding:3px 2px;font-size:10px;font-family:inherit;font-weight:700;cursor:pointer;line-height:1.15;">V1</button>` : ''}
-        </div>
+        ${!isCashHolding(h) ? `<div style="display:flex;justify-content:center;margin-top:5px;"><button type="button" data-stock-history-v1 style="width:42px;border:1px solid #333333;background:#333333;color:#FFFFFF;border-radius:4px;padding:3px 2px;font-size:10px;font-family:inherit;font-weight:700;cursor:pointer;line-height:1.15;">V1</button></div>` : ''}
       </div>
     </div>
   </div>`;
@@ -10521,14 +10519,18 @@ async function anGoV1(h){
     for(let p = det.parentElement && det.parentElement.closest('details'); p; p = p.parentElement && p.parentElement.closest('details')){ if(!p.open){ p.open = true; if(p.dataset.anKey) anState.openKeys.add(p.dataset.anKey); } }
     if(!det.open) det.open = true;
     if(flash){
-      requestAnimationFrame(() => {
-        const hold = document.getElementById('mktHold'), off = hold ? Math.max(0, hold.getBoundingClientRect().bottom) : 0;
-        window.scrollTo({ top: window.scrollY + det.getBoundingClientRect().top - off - 8, behavior: 'smooth' });
-        det.style.transition = 'box-shadow .3s'; det.style.boxShadow = '0 0 0 2px #D4FF3D';
-        setTimeout(() => { det.style.boxShadow = ''; setTimeout(() => { det.style.transition = ''; }, 400); }, 1600);
-      });
+      det.style.transition = 'box-shadow .3s'; det.style.boxShadow = '0 0 0 2px #D4FF3D';
+      setTimeout(() => { det.style.boxShadow = ''; setTimeout(() => { det.style.transition = ''; }, 400); }, 1600);
     }
     return true;
+  };
+  const toCard = () => {                                     // 그 종목 카드가 화면 위(지표 줄 아래)에 오게. 다시 그려져도 새 카드 기준으로
+    if(moved || state.activeId !== '__analysis__') return;
+    const r = find(), root = document.getElementById('analysisRoot'); if(!r || !root) return;
+    const det = [...root.querySelectorAll('details[data-an-key]')].find(d => d.dataset.anKey === 'd:' + r.code); if(!det) return;
+    const hold = document.getElementById('mktHold'), hb = hold ? hold.getBoundingClientRect() : null, off = hb && hb.height ? Math.max(0, hb.bottom) : 0;
+    const y = Math.max(0, window.scrollY + det.getBoundingClientRect().top - off - 8);
+    if(Math.abs(y - window.scrollY) > 2) window.scrollTo(0, y);
   };
   anState.view = 'report';
   if(anState.filter) anState.filter = '';
@@ -10538,9 +10540,11 @@ async function anGoV1(h){
   try{ loadMarketData(true).catch(() => {}); }catch(e){}
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   const first = open(true);
+  [0, 300, 900, 1800].forEach(t => setTimeout(() => requestAnimationFrame(toCard), t));   // 그리기·지표 갱신으로 화면이 다시 그려져도 맞춤
   try{ await run; }catch(e){}
   if(state.activeId !== '__analysis__') return;
-  open(!first && !moved);                                     // 처음엔 결과에 없던 종목이면 분석 뒤 그 자리로
+  open(!first && !moved);                                     // 처음엔 결과에 없던 종목이면 분석 뒤 펼침
+  [0, 300].forEach(t => setTimeout(() => requestAnimationFrame(toCard), t));
 }
 
 function anFillRoot(){
