@@ -9687,7 +9687,7 @@ function anIndexChart(v, noHead){
   return `<div class="an-box">
     ${noHead ? '' : `<div class="an-ih"><span class="an-in">${anE(v.name)}</span><b class="${ud}">${v.close.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b><span class="an-ig ${ud}">${anS(v.chg, 2)}%</span><span class="an-ip">최근 ${AN.CHART_DAYS}거래일</span></div>`}
     <div class="an-mrow" style="margin-bottom:2px;">${tags}</div>
-    ${v.key ? `<div class="an-ichwrap" data-an-ichart="${v.key}">${anChartTabs(anState.idxPer[v.key] || '6m', v.chart)}${anSvgChart(v.chart)}</div>` : anSvgChart(v.chart)}${cashLine}
+    ${v.key ? `<div class="an-ichwrap" data-an-ichart="${v.key}">${anChartTabs(anState.chartPer || '6m', v.chart)}${anSvgChart(v.chart)}</div>` : anSvgChart(v.chart)}${cashLine}
   </div>`;
 }
 // 지수 차트 기간(2026-10-14): 지수마다 따로(다른 지수·종목과 공유 안 함). 6개월 = 분석 때 만든 차트, 그 밖엔 저장된 12년 일봉에서 다시 그림
@@ -9711,7 +9711,7 @@ async function anIndexChartFor(v, per){
 async function anDrawIdxChart(slot){
   const idx = (anState.result && anState.result.snap && anState.result.snap.idx) || {}, v = idx[slot.dataset.anIchart];
   if(!v) return;
-  const per = anState.idxPer[v.key] || '6m';
+  const per = anState.chartPer || '6m';                 // 기간은 지수·종목 차트 모두 같이(2026-11-17 사용자)
   let ch = v.chart;
   try{ ch = await anIndexChartFor(v, per); }catch(e){}
   slot.innerHTML = anChartTabs(per, ch) + anSvgChart(ch);
@@ -10320,11 +10320,11 @@ function anBindRoot(root){
     if(sg){ anHbPop(sg.dataset.sig, true, !!sg.dataset.sigh); return; }          // 신호 원: 날짜·가격·결과 팝업
     const b = e.target.closest('.an-cper button'); if(!b) return;
     const isl = b.closest('[data-an-ichart]');
-    if(isl){ anState.idxPer[isl.dataset.anIchart] = b.dataset.cper; anDrawIdxChart(isl); return; }   // 지수 차트: 그 지수만
-    anState.chartPer = b.dataset.cper;
+    anState.chartPer = b.dataset.cper;                                   // 지수·종목 차트 모두 같은 기간으로(2026-11-17 사용자, 전엔 지수는 따로)
     root.querySelectorAll('[data-an-chart][data-drawn]').forEach(sl => anDrawChartSlot(sl));
+    root.querySelectorAll('[data-an-ichart]').forEach(sl => anDrawIdxChart(sl));
   });
-  root.querySelectorAll('[data-an-ichart]').forEach(sl => { if((anState.idxPer[sl.dataset.anIchart] || '6m') !== '6m') anDrawIdxChart(sl); });   // 다시 그려도 고른 기간 유지
+  root.querySelectorAll('[data-an-ichart]').forEach(sl => { if((anState.chartPer || '6m') !== '6m') anDrawIdxChart(sl); });   // 다시 그려도 고른 기간 유지
   const ca = root.querySelector('#anCloseAll');                 // 열린 아코디언(종목·지수·지표·Logic V1) 한 번에 닫기
   // 2026-10-31 오류 수정(빈 공간이 남음): 안쪽부터 닫고, 목록을 새로 그려서 닫힌 자리(차트·지표)가 남지 않게
   if(ca) ca.addEventListener('click', () => mpCloseAllAnim(root, () => {   // 닫기 애니메이션(제목 클릭 닫기와 같음) 뒤 실제로 닫고 새로 그림(2026-11-01)
