@@ -10521,14 +10521,14 @@ async function anGoV1(h){
     if(reset){                                                 // 열린 것은 이 종목(과 그걸 담은 묶음)만 남기고 새로 그림 — 저장된 화면(anState.html)에 남은 열린 상태도 버림
       anState.openKeys.clear();
       for(let p = det; p; p = p.parentElement && p.parentElement.closest('details')) if(p.dataset.anKey) anState.openKeys.add(p.dataset.anKey);
-      det.querySelectorAll('details[data-an-key]').forEach(d => anState.openKeys.add(d.dataset.anKey));   // 종목 안의 지표·세부 보기도 모두 펼침
+      det.querySelectorAll('details.an-mfold[data-an-key]').forEach(d => anState.openKeys.add(d.dataset.anKey));   // 종목 안의 '지표'도 펼침(세부 보기는 접힌 채)
       anState.html = null; anFillRoot();
       [...root.querySelectorAll('details[open]')].reverse().forEach(d => { if(!(d.dataset.anKey && anState.openKeys.has(d.dataset.anKey))) d.open = false; });
       det = [...root.querySelectorAll('details[data-an-key]')].find(d => d.dataset.anKey === k); if(!det) return false;
     }
     for(let p = det.parentElement && det.parentElement.closest('details'); p; p = p.parentElement && p.parentElement.closest('details')){ if(!p.open){ p.open = true; if(p.dataset.anKey) anState.openKeys.add(p.dataset.anKey); } }
     if(!det.open) det.open = true;
-    if(reset) det.querySelectorAll('details').forEach(d => { if(!d.open){ d.open = true; if(d.dataset.anKey) anState.openKeys.add(d.dataset.anKey); } });
+    if(reset) det.querySelectorAll('details.an-mfold').forEach(d => { if(!d.open){ d.open = true; if(d.dataset.anKey) anState.openKeys.add(d.dataset.anKey); } });
     return true;
   };
   const toCard = () => {                                     // 그 종목 카드가 화면 위(지표 줄 아래)에 오게. 다시 그려져도 새 카드 기준으로
