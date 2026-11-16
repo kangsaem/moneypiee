@@ -8712,7 +8712,7 @@ async function anMarketSnapshot(isUS){
   jobs.push((async () => {                      // 신용잔고/고객예탁금 (GitHub 리포트가 내보낸 파일)
     try{
       const res = await fetchWithTimeout(AN.MARKET_JSON + '?_=' + Date.now(), { cache: 'no-store' }, 8000);
-      if(res && res.ok){ const j = await res.json(); snap.credit = j.credit || null; snap.credit_time = j.time; }
+      if(res && res.ok){ const j = await res.json(); snap.credit = j.credit || null; snap.credit_time = j.time; if(j.credit && j.credit.hist && j.credit.hist.d) anCreditHist = j.credit.hist; }
     }catch(e){}
   })());
   await Promise.all(jobs);
@@ -8724,7 +8724,7 @@ async function anMarketSnapshot(isUS){
 // 기준 = V1의 '시장 위험(6)·바닥(5) 지표' 그대로. 분석할 때마다 그날 판정을 브라우저에 저장(mlog1, 'L')하고 그 기록을 씀.
 // 기록이 없는 날은 최근 1년만 지금 기준으로 다시 셈('G': 시장 4항목 + 지금 종목들의 그날 RSI·일봉 배열, 신용잔고는 과거 자료가 없어 빠짐). 1년보다 오래된 날은 표시 안 함
 // 3개 이상인 날을 차트 뒤에 칠함(개수가 많을수록 진하게), VIX 25↑는 차트 아래 띠. 글자는 없고 마우스를 대거나 누르면 내용
-let anZones = null, anZoneBase = null, anMlog = null;
+let anZones = null, anZoneBase = null, anMlog = null, anCreditHist = null;   // anCreditHist = 리포트가 내보낸 날짜별 신용잔고 상위 10% 여부 {d, r, on}
 const anMlogP = (async () => { try{ anMlog = (await anDB.get('mlog1')) || {}; }catch(e){ anMlog = {}; } return anMlog; })();
 function anZoneStock(bars){   // 종목 하나의 최근 300일: RSI 35↓ / 일봉 역배열(5선 ≤ 10선) — '1'·'0'·'-'(자료 없음)
   const c = bars.close, n = c.length, k0 = Math.max(0, n - 420), rs = anRsi(c), s5 = anRoll(c, 5), l10 = anRoll(c, 10);
@@ -8742,9 +8742,13 @@ async function anMlogMerge(src){   // 불러오기: 같은 날은 파일 쪽, �
 }
 function anZoneApply(){   // 차트용 = 시장 계산(값·VIX 띠) + 판정 기록(개수·항목)
   const b = anZoneBase; if(!b || !anMlog) return;
-  const z = Object.assign({}, b, { r: [], b: [], rm: [], bm: [], src: [], wk: [], br: [], fin: [] });
-  b.d.forEach(d => { const e = anMlog[d]; z.r.push(e ? e[0] : 0); z.b.push(e ? e[1] : 0); z.rm.push(e ? e[2] : 0); z.bm.push(e ? e[3] : 0); z.src.push(e ? e[4] : ''); z.wk.push(e ? e[5] : null); z.br.push(e ? e[6] : null); z.fin.push(e ? e[7] || 0 : 0); });
+  const z = Object.assign({}, b, { r: [], b: [], rm: [], bm: [], src: [], wk: [], br: [], fin: [], cr: [] });
+  b.d.forEach(d => { const e = anMlog[d]; z.cr.push(e ? e[8] || 0 : 0); z.r.push(e ? e[0] : 0); z.b.push(e ? e[1] : 0); z.rm.push(e ? e[2] : 0); z.bm.push(e ? e[3] : 0); z.src.push(e ? e[4] : ''); z.wk.push(e ? e[5] : null); z.br.push(e ? e[6] : null); z.fin.push(e ? e[7] || 0 : 0); });
   anZones = z; anDB.set('mzones1', z).catch(() => {});
+}
+function anCreditAt(d){   // 그날 이전 가장 가까운 신용잔고 기록 위치(5거래일 넘게 떨어지면 없음 -1)
+  const h = anCreditHist; if(!h || !h.d || !h.d.length || d < h.d[0]) return -1;
+  const k = anZoneAt(h.d, d); return k >= 0 && (Date.parse(d) - Date.parse(h.d[k])) <= 7 * 864e5 ? k : -1;
 }
 const AN_ZONE_FROM = '2025-06-01';   // 기록 없는 날 다시 계산하는 시작일(2026-11-16 사용자: 6월 1일부터)
 async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 최근 1년은 지금 기준으로 채움(한 번 채운 날은 그대로)
@@ -8758,13 +8762,16 @@ async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 �
   if(zs && zs.length){
     const c1 = new Date(Date.parse(last + 'T00:00:00Z') - 365 * 864e5).toISOString().slice(0, 10), cut = c1 < AN_ZONE_FROM ? c1 : AN_ZONE_FROM;   /* 최근 1년 또는 2025-06-01 중 더 이른 날부터 */
     b.d.forEach((d, i) => {
-      const old = anMlog[d];
-      if(d === last || (old && (old[7] || old[4] !== 'L')) || (!old && d < cut)) return;   /* 확정됐거나 이미 만든 날은 그대로 · 마감 전 값만 남은 날은 마감 기준으로 다시 셈 */
+      const old = anMlog[d], ci = anCreditAt(d);
+      const redo = old && old[4] !== 'L' && !old[8] && ci >= 0;   /* 신용잔고 없이 만든 날은 그 자료가 생기면 한 번 다시 셈 */
+      if(d === last || (old && !redo && (old[7] || old[4] !== 'L')) || (!old && d < cut)) return;   /* 확정됐거나 이미 만든 날은 그대로 · 마감 전 값만 남은 날은 마감 기준으로 다시 셈 */
       let n = 0, nw = 0, nb = 0;
       zs.forEach(s => { const k = anZoneAt(s.d, d); if(k < 0) return; n++; if(s.low[k] === '1') nw++; if(s.bear[k] === '1') nb++; });
       if(!n) return;
-      const wk = nw / n, br = nb / n, R = (b.rm[i] & 15) | (br >= 0.7 ? 16 : 0) | (old ? old[2] & 32 : 0), B = (b.bm[i] & 15) | (wk >= 0.3 ? 16 : 0);
-      anMlog[d] = [cnt(R), cnt(B), R, B, old ? 'C' : 'G', Math.round(wk * 100), Math.round(br * 100), 1];
+      const cr = ci >= 0 ? (anCreditHist.on[ci] === '1' ? 32 : 0) : (old ? old[2] & 32 : 0);
+      const wk = nw / n, br = nb / n, R = (b.rm[i] & 15) | (br >= 0.7 ? 16 : 0) | cr, B = (b.bm[i] & 15) | (wk >= 0.3 ? 16 : 0);
+      const src = old ? (old[4] === 'L' ? 'C' : old[4]) : 'G';
+      anMlog[d] = [cnt(R), cnt(B), R, B, src, Math.round(wk * 100), Math.round(br * 100), 1, ci >= 0 || src === 'C' ? 1 : 0];
     });
   }
   try{ await anDB.set('mlog1', anMlog); }catch(e){}
@@ -8802,7 +8809,7 @@ function anZoneTip(kind, i0, i1, ids){   // 구간 설명: 기간 + 가장 많�
   const m = kind === 'r' ? z.rm[pk] : z.bm[pk], names = kind === 'r' ? AN_ZR : AN_ZB, on = names.filter((_, k) => m & (1 << k));
   const val = `이격 ${z.disp[pk] ?? '-'} · RSI ${z.rsi[pk] ?? '-'} · VIX ${z.vx[pk] ?? '-'}` + (kind === 'r' ? ` · 금리10일 ${z.yc[pk] != null ? (z.yc[pk] >= 0 ? '+' : '') + z.yc[pk] + '%p' : '-'} · 내 종목 역배열 ${z.br && z.br[pk] != null ? z.br[pk] + '%' : '-'}` : ` · 고점대비 ${z.fh[pk] ?? '-'}% · 내 종목 RSI35↓ ${z.wk && z.wk[pk] != null ? z.wk[pk] + '%' : '-'}`);
   const sc = z.src ? z.src[pk] : '', src = sc === 'L' ? (z.fin && z.fin[pk] ? '그날 마감 뒤 판정 기록' : '그날 판정 기록 · 마감 전 값(다음 분석 때 마감 기준으로 확정)')
-    : (sc === 'C' ? '마감 뒤 값이 없어 그날 종가로 다시 계산' : '기록이 없어 지금 기준으로 다시 계산') + (kind === 'r' ? '(신용잔고 제외)' : '');
+    : (sc === 'C' ? '마감 뒤 값이 없어 그날 종가로 다시 계산' : '기록이 없어 지금 기준으로 다시 계산') + (kind === 'r' && !(z.cr && z.cr[pk]) ? '(신용잔고 제외)' : '');
   return `${kind === 'r' ? '시장 위험' : '시장 바닥'} 지표 최대 ${arr[pk]}개 · ${i0} ~ ${i1}\n${on.join(', ')}\n${anShort(z.d[pk])}: ${val}\n${src}`;
 }
 // 차트 그림에 넣을 구간 사각형(가격 영역 뒤) + VIX 띠. dates = 차트 날짜(yy.mm.dd)
