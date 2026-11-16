@@ -257,6 +257,8 @@ html.logic-only #anLogicModal{ background:rgba(0,0,0,0.85) !important; }
   .tb-row{display:flex;justify-content:center;align-items:baseline;gap:6px 14px;flex-wrap:wrap;position:relative;top:2px;}   /* 2px 내려 위(버튼)·아래(계좌 버튼) 여백을 같게(2026-11-11 사용자) */
   .tb-row .total-badge{margin-top:0 !important;} .tb-row .total-badge[data-cashbadge]{gap:0 !important;}   /* 현금 ↔ % 간격 = 자산 ↔ 금액 간격(6px) */ .tb-row .total-badge .num{font-size:16px !important;} .tb-row .total-badge .num span{font-size:inherit !important;font-weight:inherit !important;}
   .typeleg{margin-top:4px !important;} .typeleg .legend-item{flex-direction:row !important;padding:0 10px !important;min-width:52px !important;}   /* 2026-11-14 규격 통일(월별 유형 버튼과 같게) */ .typeleg .legend-pct{display:none !important;}
+  .an-ztip{white-space:pre-line !important;max-width:260px;text-align:left;line-height:1.45;}
+  .an-zone{cursor:pointer;}
   .mp-tip{position:fixed;z-index:9999;background:#111;color:#fff;border:1px solid #7A7B81;border-radius:6px;padding:3px 8px;font-size:12px;white-space:nowrap;transform:translate(-50%,-125%);pointer-events:none;}
   .charts.dn-car{display:block !important;overflow:hidden;position:relative;} .dn-track{display:flex;align-items:flex-start;touch-action:pan-y;width:100%;box-sizing:border-box;} .dn-track > .dn-slide{flex:0 0 100%;max-width:100%;min-width:0;box-sizing:border-box;position:relative;margin:0 !important;}   /* 도넛 3장을 옆으로 붙인 띠, 틀 밖은 잘림 */
   .dn-arrow{position:absolute;width:36px;height:48px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text-dim);cursor:pointer;z-index:3;user-select:none;-webkit-tap-highlight-color:transparent;}
@@ -1643,7 +1645,9 @@ async function exportData(){
   try{ localStorage.setItem(BK_KEY, String(Date.now())); setTimeout(placeHeaderBtns, 0); }catch(e){}   // 백업 시각(2026-10-31, 백업 알림 칩)
   let hist = [];
   try{ hist = Object.values((await anDB.get('hist')) || {}); }catch(e){}       // LAB 분석기록도 함께
-  const payload = { version: DATA_VERSION, accounts: state.accounts, snapshots: state.snapshots, creditLines: state.creditLines, watchlist: state.watchlist ? state.watchlist.holdings : [], hist, exportedAt: new Date().toISOString() };
+  let mlog = {};
+  try{ mlog = (await anDB.get('mlog1')) || {}; }catch(e){}                      // 지수 차트 위험·바닥 판정 기록(2026-11-16)
+  const payload = { version: DATA_VERSION, accounts: state.accounts, snapshots: state.snapshots, creditLines: state.creditLines, watchlist: state.watchlist ? state.watchlist.holdings : [], hist, mlog, exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1808,6 +1812,16 @@ async function exportXLSX(){
       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), '분석기록');
     }
   }catch(e){}
+  // 시장판정: 지수 차트 위험·바닥 구간 기록(날짜 하나 = 한 줄, 2026-11-16)
+  try{
+    const ml = (await anDB.get('mlog1')) || {}, ks = Object.keys(ml).sort();
+    if(ks.length){
+      const nm = (m, names) => names.filter((_, k) => m & (1 << k)).join(', ');
+      const rows = [AN_MLOG_XLSX_HEAD];
+      ks.forEach(d => { const e = ml[d]; rows.push([d, e[0], e[1], nm(e[2], AN_ZR), nm(e[3], AN_ZB), e[5] == null ? '' : e[5], e[6] == null ? '' : e[6], e[4], e[7] ? 1 : 0, e[2], e[3]]); });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), '시장판정');
+    }
+  }catch(e){}
 
   const d = new Date();
   const dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -1966,6 +1980,13 @@ function importXLSX(file){
           rsi: num(rsi), disp: num(disp), rs60: num(rs60), groups: gs });
       });
 
+      const mlogRecs = {};
+      sheetRows('시장판정').forEach(r => {
+        const d = String(r[0] || ''); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+        const num = v => v === '' || v == null ? null : Number(v);
+        mlogRecs[d] = [Number(r[1]) || 0, Number(r[2]) || 0, Number(r[9]) || 0, Number(r[10]) || 0, String(r[7] || 'L'), num(r[5]), num(r[6]), Number(r[8]) ? 1 : 0];
+      });
+
       if(newAccounts.length === 0 && newSnapshots.length === 0){
         throw new Error('빈 파일');
       }
@@ -1982,6 +2003,7 @@ function importXLSX(file){
         if(Object.keys(histRecs).length){
           try{ const all = (await anDB.get('hist')) || {}; Object.assign(all, histRecs); await anDB.set('hist', all); }catch(e){}
         }
+        try{ await anMlogMerge(mlogRecs); }catch(e){}
         render();
         showNoticeModal('엑셀 파일로부터 데이터를 복원했습니다.');
       });
@@ -2015,6 +2037,7 @@ function importData(file){
             payload.hist.forEach(rec => { if(rec && rec.format === 1 && rec.date && rec.session && Array.isArray(rec.items)) all[`${rec.date}_${rec.session}`] = rec; });
             await anDB.set('hist', all); }catch(e){}
         }
+        try{ await anMlogMerge(payload.mlog); }catch(e){}
         render();
         showNoticeModal('데이터를 불러왔습니다.');
       });
@@ -5175,6 +5198,7 @@ function renderStockHistoryAccordion(key){
         <div id="stock-history-chart-${key}" style="min-height:94px;display:flex;align-items:center;justify-content:center;">
           <div style="font-size:11px;color:#777777;">그래프 불러오는 중...</div>
         </div>
+        ${!isCashHolding(h) ? `<div style="display:flex;justify-content:center;margin-top:5px;"><button type="button" data-stock-history-v1 style="width:42px;border:1px solid #333333;background:#333333;color:#FFFFFF;border-radius:4px;padding:3px 2px;font-size:10px;font-family:inherit;font-weight:700;cursor:pointer;line-height:1.15;">V1</button></div>` : ''}
       </div>
     </div>
   </div>`;
@@ -5188,6 +5212,12 @@ function renderStockHistoryAccordion(key){
   slot.addEventListener('click', async (e) => {
     if(e.target.closest('[data-stock-history-close]')){
       closeStockHistoryAccordion(key);
+      return;
+    }
+    if(e.target.closest('[data-stock-history-v1]')){            // V1 탭의 이 종목으로(돋보기도 같이 돌림, 2026-11-16)
+      const hv = findHoldingById(stockHistoryAccordions[key].accId, stockHistoryAccordions[key].holdId);
+      closeStockHistoryAccordion(key);
+      if(hv) anGoV1(hv);
       return;
     }
     const rangeBtn = e.target.closest('[data-stock-history-range]');
@@ -8486,6 +8516,7 @@ function anIndexChartData(dates, s, days){
   const ch = anChartData(dates, s, null, days), st = Math.max(0, dates.length - ch.close.length);
   ch.ma200 = anRoll(s, 200).slice(st).map(v => anOk(v) ? v : null);
   ch.lastLabel = '종가';                                // 지수 차트 범례(장중 실시간이면 아래에서 '현재가')
+  ch.zone = true;                                      // 위험·바닥·VIX 구간 표시(2026-11-16)
   if(!ch.ma200.some(v => v != null)) ch.ma200 = null;
   return ch;
 }
@@ -8639,6 +8670,7 @@ function anPatchLive(b, px, mk){
 
 async function anMarketSnapshot(isUS){
   const snap = { ks: null, vix: null, y10: null, idx: {}, err: [] };
+  const zsrc = {};   // 지수 차트의 위험·바닥·VIX 구간 계산용 일봉(2026-11-16)
   const IDX = {
     kospi: ['코스피', 'KOSPI', '^KS11', 'KR'], kosdaq: ['코스닥', 'KOSDAQ', '^KQ11', 'KR'],
     spx: ['S&P500', null, '^GSPC', 'US'], ndx: ['나스닥', null, '^IXIC', 'US']
@@ -8663,15 +8695,15 @@ async function anMarketSnapshot(isUS){
       if(AN_200PAGE[key] || key === 'kosdaq') try{ snap.idx[key].w200 = anIdx200Warn(b, nm); if(key === 'kospi') snap.idx[key].chart.k200 = true; }catch(e){}   // 2026-11-06: S&P500·나스닥도 ⚠(차트 k200 표시는 코스피만 그대로) · 코스닥도 ⚠(2026-11-06, 사례 페이지 없음 → 누르면 kospi200.html)
       if(live) snap.idx[key].live = live;
       if(b.live) snap.idx[key].chart.lastLabel = '현재가';
-      if(key === 'kospi') snap.ks = anKs(b);
+      if(key === 'kospi'){ snap.ks = anKs(b); zsrc.kospi = b; }
     }catch(e){ snap.err.push(`${nm} (${e.message})`); }
   });
   [['vix', '^VIX', 'VIX'], ['y10', '^TNX', '미국채 10년']].forEach(([key, sym, nm]) => {
     jobs.push((async () => {
       try{
-        let b = await anGetBars({ key: 'idx:' + key, market: 'US', fetchers: [() => anFetchYahoo(sym, 0.3)] });
+        let b = await anGetBars({ key: 'idx:' + key + 'L', market: 'US', fetchers: [() => anFetchYahoo(sym, 6)] });   // 6년치(차트 5년 구간의 과거 위험·바닥 계산용, 2026-11-16 — 전엔 0.3년)
         try{ const q = await fetchYahooHoldingPrice(sym); if(q && q.price > 0) b = anPatchLive(b, q.price, 'US'); }catch(e){}   // 현재가 기준
-        snap[key] = anRateInfo(b);
+        snap[key] = anRateInfo(b); zsrc[key] = b;
       }catch(e){ snap.err.push(`${nm} (${e.message})`); }
     })());
   });
@@ -8682,8 +8714,141 @@ async function anMarketSnapshot(isUS){
     }catch(e){}
   })());
   await Promise.all(jobs);
+  try{ if(zsrc.kospi && zsrc.vix){ anZoneBase = anMarketZones(zsrc.kospi, zsrc.vix, zsrc.y10); await anMlogP; anZoneApply(); } }catch(e){}
   return snap;
 }
+
+// ── 지수 차트의 위험·바닥 구간(2026-11-16 사용자) ─────────────────────────────────────────────
+// 기준 = V1의 '시장 위험(6)·바닥(5) 지표' 그대로. 분석할 때마다 그날 판정을 브라우저에 저장(mlog1, 'L')하고 그 기록을 씀.
+// 기록이 없는 날은 최근 1년만 지금 기준으로 다시 셈('G': 시장 4항목 + 지금 종목들의 그날 RSI·일봉 배열, 신용잔고는 과거 자료가 없어 빠짐). 1년보다 오래된 날은 표시 안 함
+// 3개 이상인 날을 차트 뒤에 칠함(개수가 많을수록 진하게), VIX 25↑는 차트 아래 띠. 글자는 없고 마우스를 대거나 누르면 내용
+let anZones = null, anZoneBase = null, anMlog = null;
+const anMlogP = (async () => { try{ anMlog = (await anDB.get('mlog1')) || {}; }catch(e){ anMlog = {}; } return anMlog; })();
+function anZoneStock(bars){   // 종목 하나의 최근 300일: RSI 35↓ / 일봉 역배열(5선 ≤ 10선) — '1'·'0'·'-'(자료 없음)
+  const c = bars.close, n = c.length, k0 = Math.max(0, n - 300), rs = anRsi(c), s5 = anRoll(c, 5), l10 = anRoll(c, 10);
+  let low = '', bear = '';
+  for(let i = k0; i < n; i++){ low += anOk(rs[i]) ? (rs[i] <= 35 ? '1' : '0') : '-'; bear += l10[i] != null ? (s5[i] > l10[i] ? '0' : '1') : '-'; }
+  return { d: bars.dates.slice(k0), low, bear };
+}
+const AN_MLOG_XLSX_HEAD = ['날짜', '위험 개수', '바닥 개수', '위험 항목', '바닥 항목', '내 종목 RSI35↓%', '내 종목 역배열%', '출처(L 그날·C 마감 재계산·G 생성)', '확정', '위험 비트', '바닥 비트'];
+async function anMlogMerge(src){   // 불러오기: 같은 날은 파일 쪽, 단 기기 쪽이 확정이고 파일 쪽이 미확정이면 기기 쪽 유지
+  if(!src || typeof src !== 'object') return; await anMlogP;
+  let ch = 0;
+  Object.keys(src).forEach(d => { const e = src[d]; if(!Array.isArray(e) || e.length < 5 || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+    const o = anMlog[d]; if(o && o[7] && !e[7]) return; anMlog[d] = e; ch++; });
+  if(ch){ await anDB.set('mlog1', anMlog); anZoneApply(); }
+}
+function anZoneApply(){   // 차트용 = 시장 계산(값·VIX 띠) + 판정 기록(개수·항목)
+  const b = anZoneBase; if(!b || !anMlog) return;
+  const z = Object.assign({}, b, { r: [], b: [], rm: [], bm: [], src: [], wk: [], br: [], fin: [] });
+  b.d.forEach(d => { const e = anMlog[d]; z.r.push(e ? e[0] : 0); z.b.push(e ? e[1] : 0); z.rm.push(e ? e[2] : 0); z.bm.push(e ? e[3] : 0); z.src.push(e ? e[4] : ''); z.wk.push(e ? e[5] : null); z.br.push(e ? e[6] : null); z.fin.push(e ? e[7] || 0 : 0); });
+  anZones = z; anDB.set('mzones1', z).catch(() => {});
+}
+async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 최근 1년은 지금 기준으로 채움(한 번 채운 날은 그대로)
+  await anMlogP; const b = anZoneBase; if(!b || !b.d.length || !msig || !msig.risk || !msig.bottom) return;
+  const cnt = m => { let c = 0; for(; m; m >>= 1) c += m & 1; return c; };
+  const mask = it => it.reduce((m, x, k) => m | (x[2] ? 1 << k : 0), 0);
+  const pf = s => { const m = /^(\d+)%$/.exec(s || ''); return m ? +m[1] : null; };
+  const last = b.d[b.d.length - 1], rm = mask(msig.risk.items), bm = mask(msig.bottom.items);
+  const kt = anKstNow(), fin = d => kt.date > d || (kt.date === d && kt.hm >= 2000);   /* 국장 일봉 확정(20:00 KST) 뒤 첫 값으로 확정, 그 뒤로는 덮어쓰지 않음 */
+  if(!(anMlog[last] && anMlog[last][7])) anMlog[last] = [cnt(rm), cnt(bm), rm, bm, 'L', pf((msig.bottom.items[4] || [])[1]), pf((msig.risk.items[4] || [])[1]), fin(last) ? 1 : 0];
+  if(zs && zs.length){
+    const cut = new Date(Date.parse(last + 'T00:00:00Z') - 365 * 864e5).toISOString().slice(0, 10);
+    b.d.forEach((d, i) => {
+      const old = anMlog[d];
+      if(d === last || (old && (old[7] || old[4] !== 'L')) || (!old && d < cut)) return;   /* 확정됐거나 이미 만든 날은 그대로 · 마감 전 값만 남은 날은 마감 기준으로 다시 셈 */
+      let n = 0, nw = 0, nb = 0;
+      zs.forEach(s => { const k = anZoneAt(s.d, d); if(k < 0) return; n++; if(s.low[k] === '1') nw++; if(s.bear[k] === '1') nb++; });
+      if(!n) return;
+      const wk = nw / n, br = nb / n, R = (b.rm[i] & 15) | (br >= 0.7 ? 16 : 0) | (old ? old[2] & 32 : 0), B = (b.bm[i] & 15) | (wk >= 0.3 ? 16 : 0);
+      anMlog[d] = [cnt(R), cnt(B), R, B, old ? 'C' : 'G', Math.round(wk * 100), Math.round(br * 100), 1];
+    });
+  }
+  try{ await anDB.set('mlog1', anMlog); }catch(e){}
+  anZoneApply();
+}
+const AN_ZONE_A = { 3: 0.14, 4: 0.30, 5: 0.50 };   // 3개·4개·5개 이상 진하기
+function anMarketZones(kb, vb, yb){
+  const d = kb.dates, c = kb.close, n = c.length, ma = anRoll(c, 50), rs = anRsi(c);
+  const vd = vb.dates, vc = vb.close, yd = yb ? yb.dates : [], yc = yb ? yb.close : [];
+  const at = (ds, x) => { let lo = 0, hi = ds.length - 1, r = -1; while(lo <= hi){ const m = (lo + hi) >> 1; if(ds[m] <= x){ r = m; lo = m + 1; } else hi = m - 1; } return r; };
+  const r1 = v => anOk(v) ? Math.round(v * 10) / 10 : null, r2 = v => anOk(v) ? Math.round(v * 100) / 100 : null;
+  const z = { d: [], r: [], b: [], rm: [], bm: [], disp: [], rsi: [], fh: [], vx: [], vp: [], yc: [] };
+  for(let i = Math.max(0, n - 1400); i < n; i++){
+    if(ma[i] == null) continue;
+    const disp = c[i] / ma[i] * 100, rr = rs[i];
+    let hi = -Infinity, lo = Infinity, li = i;
+    for(let k = Math.max(0, i - 249); k <= i; k++){ if(c[k] > hi) hi = c[k]; if(c[k] < lo){ lo = c[k]; li = k; } }
+    const fh = (c[i] / hi - 1) * 100, dsl = i - li;
+    const vi = at(vd, d[i]), vx = vi >= 0 ? vc[vi] : null, vp = vi >= 10 ? (vc[vi] / vc[vi - 10] - 1) * 100 : null;
+    const yi = at(yd, d[i]), y10 = yi >= 10 ? yc[yi] - yc[yi - 10] : null;
+    const R = [disp >= 120, anOk(rr) && rr >= 70, vx != null && (vx >= 25 || (vp != null && vp >= 30)), y10 != null && y10 >= 0.3];
+    const B = [disp <= 90, anOk(rr) && rr <= 35, fh <= -20 && dsl >= 20, vx != null && vx >= 30];
+    z.d.push(d[i]); z.r.push(R.filter(Boolean).length); z.b.push(B.filter(Boolean).length);
+    z.rm.push(R.reduce((m, v, k) => m | (v ? 1 << k : 0), 0)); z.bm.push(B.reduce((m, v, k) => m | (v ? 1 << k : 0), 0));
+    z.disp.push(r1(disp)); z.rsi.push(r1(rr)); z.fh.push(r1(fh)); z.vx.push(r1(vx)); z.vp.push(r1(vp)); z.yc.push(r2(y10));
+  }
+  const vs = Math.max(0, vd.length - 1500); z.vd = vd.slice(vs); z.vc = vc.slice(vs).map(r1); z.at = Date.now();
+  return z;
+}
+function anZoneAt(ds, full){ let lo = 0, hi = ds.length - 1, r = -1; while(lo <= hi){ const m = (lo + hi) >> 1; if(ds[m] <= full){ r = m; lo = m + 1; } else hi = m - 1; } return r; }
+const AN_ZR = ['코스피 이격도 120↑', '코스피 RSI 70↑', 'VIX 25↑·급등', '미국채10년 +0.3%p↑', '내 종목 70%↑ 역배열', '신용잔고 비율 상위'], AN_ZB = ['코스피 이격도 90↓', '코스피 RSI 35↓', '고점 -20%↓·신저점 없음', 'VIX 30↑', '내 종목 30%↑ RSI 35↓'];
+function anZoneTip(kind, i0, i1, ids){   // 구간 설명: 기간 + 가장 많이 켜진 날의 항목과 값
+  const z = anZones, arr = kind === 'r' ? z.r : z.b; let pk = ids[0];
+  ids.forEach(k => { if(arr[k] > arr[pk]) pk = k; });
+  const m = kind === 'r' ? z.rm[pk] : z.bm[pk], names = kind === 'r' ? AN_ZR : AN_ZB, on = names.filter((_, k) => m & (1 << k));
+  const val = `이격 ${z.disp[pk] ?? '-'} · RSI ${z.rsi[pk] ?? '-'} · VIX ${z.vx[pk] ?? '-'}` + (kind === 'r' ? ` · 금리10일 ${z.yc[pk] != null ? (z.yc[pk] >= 0 ? '+' : '') + z.yc[pk] + '%p' : '-'} · 내 종목 역배열 ${z.br && z.br[pk] != null ? z.br[pk] + '%' : '-'}` : ` · 고점대비 ${z.fh[pk] ?? '-'}% · 내 종목 RSI35↓ ${z.wk && z.wk[pk] != null ? z.wk[pk] + '%' : '-'}`);
+  const sc = z.src ? z.src[pk] : '', src = sc === 'L' ? (z.fin && z.fin[pk] ? '그날 마감 뒤 판정 기록' : '그날 판정 기록 · 마감 전 값(다음 분석 때 마감 기준으로 확정)')
+    : (sc === 'C' ? '마감 뒤 값이 없어 그날 종가로 다시 계산' : '기록이 없어 지금 기준으로 다시 계산') + (kind === 'r' ? '(신용잔고 제외)' : '');
+  return `${kind === 'r' ? '시장 위험' : '시장 바닥'} 지표 최대 ${arr[pk]}개 · ${i0} ~ ${i1}\n${on.join(', ')}\n${anShort(z.d[pk])}: ${val}\n${src}`;
+}
+// 차트 그림에 넣을 구간 사각형(가격 영역 뒤) + VIX 띠. dates = 차트 날짜(yy.mm.dd)
+function anZoneSvg(dates, n, x, pt, PH, vy, vh, pl, xr){
+  const z = anZones; if(!z || !z.d || !z.d.length) return { back: '', strip: '' };
+  const full = s => `20${s.slice(0, 2)}-${s.slice(3, 5)}-${s.slice(6, 8)}`;
+  const lv = c => c >= 3 ? Math.min(5, c) : 0;
+  const zi = dates.slice(0, n).map(s => anZoneAt(z.d, full(s)));
+  const day = j => zi[j] >= 0 ? zi[j] : -1;
+  const X0 = j => Math.max(pl, x(j - 0.5)), X1 = j => Math.min(xr, x(j + 0.5));
+  let back = '', strip = '';
+  // 위험·바닥: 같은 단계가 이어지는 날끼리 한 덩어리. 둘 다 켜진 날은 위(위험)·아래(바닥) 반씩
+  for(let j = 0; j < n;){
+    const k = day(j), a = k >= 0 ? lv(z.r[k]) : 0, b = k >= 0 ? lv(z.b[k]) : 0;
+    let e = j; while(e + 1 < n){ const k2 = day(e + 1); if((k2 >= 0 ? lv(z.r[k2]) : 0) !== a || (k2 >= 0 ? lv(z.b[k2]) : 0) !== b) break; e++; }
+    if(a || b){
+      const ids = []; for(let q = j; q <= e; q++) if(day(q) >= 0) ids.push(day(q));
+      const x0 = X0(j), w = Math.max(1.2, X1(e) - x0), both = a && b, hh = both ? PH / 2 : PH;
+      if(a) back += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${pt}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" fill="rgba(232,123,164,${AN_ZONE_A[a]})" data-zt="${anE(anZoneTip('r', dates[j], dates[e], ids))}"/>`;
+      if(b) back += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${(pt + (both ? PH / 2 : 0)).toFixed(1)}" width="${w.toFixed(1)}" height="${hh.toFixed(1)}" fill="rgba(95,184,224,${AN_ZONE_A[b]})" data-zt="${anE(anZoneTip('b', dates[j], dates[e], ids))}"/>`;
+    }
+    j = e + 1;
+  }
+  // VIX 띠(25↑ 옅게, 30↑ 진하게)
+  const vi = dates.slice(0, n).map(s => anZoneAt(z.vd, full(s)));
+  const vl = j => { const v = vi[j] >= 0 ? z.vc[vi[j]] : null; return v == null ? 0 : v >= 30 ? 2 : v >= 25 ? 1 : 0; };
+  strip += `<rect class="an-ch-bg" x="0" y="${vy}" width="${xr}" height="${vh}"/>`;
+  for(let j = 0; j < n;){
+    const a = vl(j); let e = j; while(e + 1 < n && vl(e + 1) === a) e++;
+    if(a){ let mx = -Infinity; for(let q = j; q <= e; q++){ const v = z.vc[vi[q]]; if(v > mx) mx = v; }
+      const x0 = X0(j), w = Math.max(1.2, X1(e) - x0);
+      strip += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${vy}" width="${w.toFixed(1)}" height="${vh}" fill="${a === 2 ? 'rgba(242,166,90,0.85)' : 'rgba(242,166,90,0.40)'}" data-zt="${anE(`VIX ${a === 2 ? '30' : '25'} 이상 · ${dates[j]} ~ ${dates[e]}\n최고 ${mx}`)}"/>`; }
+    j = e + 1;
+  }
+  return { back, strip };
+}
+try{ anDB.get('mzones1').then(z => { if(z && z.d && !anZones){ anZones = z; try{ if(state.activeId === '__analysis__') render(); }catch(e){} } }).catch(() => {}); }catch(e){}
+// 구간에 마우스를 대거나 누르면 내용(글자는 평소에 안 보임)
+(function(){
+  let tip = null;
+  const show = (el, cx, cy) => { if(!tip){ tip = document.createElement('div'); tip.className = 'mp-tip an-ztip'; document.body.appendChild(tip); }
+    tip.textContent = el.getAttribute('data-zt'); tip.style.display = 'block';
+    const w = Math.min(260, window.innerWidth - 16); tip.style.left = Math.max(8 + w / 2, Math.min(window.innerWidth - 8 - w / 2, cx)) + 'px'; tip.style.top = cy + 'px'; };
+  const hide = () => { if(tip) tip.style.display = 'none'; };
+  document.addEventListener('mouseover', e => { const z = e.target.closest && e.target.closest('.an-zone'); if(z) show(z, e.clientX, e.clientY); else if(tip && tip.style.display === 'block' && !(e.target.closest && e.target.closest('.an-chart'))) hide(); });
+  document.addEventListener('mousemove', e => { const z = e.target.closest && e.target.closest('.an-zone'); if(z) show(z, e.clientX, e.clientY); else hide(); }, { passive: true });
+  document.addEventListener('click', e => { const z = e.target.closest && e.target.closest('.an-zone'); if(z) show(z, e.clientX, e.clientY); else hide(); }, true);
+  window.addEventListener('scroll', hide, { passive: true });
+})();
 
 function anLevel(score, total, kind){
   const ratio = total ? score / total : 0, hi = ratio >= 0.6, mid = ratio >= 0.3;
@@ -9235,7 +9400,7 @@ async function runAnalysis(){
   try{
     const kst = new Date(Date.now() + 9 * 3600e3), hm = kst.getUTCHours() * 100 + kst.getUTCMinutes();
     const ny = anNyNow().hm, isUS = hm < 1530 && (ny >= 1600 || ny < 930);   // 미장 마감(뉴욕 16:00, 서머타임 반영) 뒤 ~ 국장 15:29 = 미장 마감 리포트
-    const found = [], failed = [], unresolved = [], stale = [], todayPatched = [], todayMissing = [];
+    const found = [], failed = [], unresolved = [], stale = [], todayPatched = [], todayMissing = [], zstock = [];
     const marketP = anMarketSnapshot(isUS).finally(anTick);
     // 상대강도 비교 지수: 국내·아시아 = 코스피, 그 외 = S&P500 (캐시 공유, 실패하면 상대강도 없이 진행)
     const benchP = Promise.all([
@@ -9262,6 +9427,7 @@ async function runAnalysis(){
             if(anKrToday() && bars.dates[bars.dates.length - 1] < anKrToday()) todayMissing.push(h.name);   // 20:00 뒤인데 네이버 오늘 종가 없음
           }
           const r = anAnalyze(bars, spec.code, h.name);
+          try{ zstock.push(Object.assign({ key: spec.key }, anZoneStock(bars))); }catch(e){}   /* 지수 차트 바닥·위험 구간 재계산용(2026-11-16) */
           r.key = spec.key;                          // 신호 기록에서 이 종목 시세 캐시를 다시 찾을 때 씀
           r.market = spec.market;
           r.hname = h.name;
@@ -9297,6 +9463,7 @@ async function runAnalysis(){
     const results = found.sort((a, b) => a[0] - b[0]).map(x => x[1]).filter(r => !r.key || (seenKey.has(r.key) ? false : (seenKey.add(r.key), true)));
     const snap = await marketP;
     const msig = anMarketSignals(snap, results);
+    try{ const zk = new Set(); await anZoneLog(msig, zstock.filter(x => !x.key || (zk.has(x.key) ? false : (zk.add(x.key), true)))); }catch(e){}
     const result = { at: Date.now(), isUS, results, snap, msig, failed, unresolved, stale, todayPatched, todayMissing, krToday: anKrToday() };
     anState.result = result;
     anMktAt = Date.now();                        // 방금 시장 지표도 받았으니 1분 동안 다시 계산 안 함
@@ -9347,7 +9514,8 @@ function anSvgChart(ch){
     const proj = ch.proj || {}, fdates = ch.fdates || [];
     const F = Object.values(proj).some(v => v) ? fdates.length : 0, N = n + F;
     const W = 660, PH = 170, RH = ch.rsi ? 54 : 0, gap = RH ? 10 : 0, pl = 4, pt = 4, pb = 16;
-    const H = pt + PH + gap + RH + pb, xr = W - 2, tx = xr - 4;
+    const ZON = !!(anZones && (ch.zone || 'ma200' in ch)), VH = ZON ? 8 : 0, vgap = ZON ? 4 : 0;   // 지수·종목 차트: 위험(분홍)·바닥(하늘) 구간 + VIX 띠
+    const H = pt + PH + gap + RH + vgap + VH + pb, xr = W - 2, tx = xr - 4;
     const vals = [close[n-1]];
     keys.forEach(k => (ch[k] || []).forEach(v => { if(v != null) vals.push(v); }));
     Object.values(proj).forEach(a => { if(a) a.forEach(v => { if(v != null) vals.push(v); }); });
@@ -9359,6 +9527,8 @@ function anSvgChart(ch){
     const y = v => pt + PH * (1 - (v - lo) / (hi - lo));
     const o = [`<svg class="an-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="가격 차트">`];
     o.push(`<rect class="an-ch-bg" x="0" y="${pt}" width="${xr}" height="${PH}"/>`);
+    const ZS = ZON ? anZoneSvg(ch.dates, n, x, pt, PH, pt + PH + gap + RH + vgap, VH, pl, xr) : null;
+    if(ZS) o.push(ZS.back + ZS.strip);
     if(F) o.push(`<rect class="an-ch-fc" x="${x(n-1).toFixed(1)}" y="${pt}" width="${(xr - x(n-1)).toFixed(1)}" height="${PH}"/>`);
     const alld = ch.dates.concat(fdates.slice(0, F));
     const yearly = n > AN_LONG_DAYS;                    // 3·5년은 연 경계(\'24), 그 외는 월 경계(숫자)
@@ -10112,7 +10282,7 @@ async function anDrawChartSlot(slot){
   try{ ch = await anChartFor(r, per); }catch(e){}
   try{ ch = Object.assign({}, ch, { marks: anSigMarks(ch, await anTracksFor(r)), gaps: anChartGaps(ch, anTrackCache && anTrackCache.gaps && anTrackCache.gaps[r.code]) }); }catch(e){}
   try{ const vb = await anChartVol(r, ch); if(vb) ch = Object.assign({}, ch, vb); }catch(e){}
-  ch = Object.assign({}, ch, { showChg: true });       // 현재가(종가) 점 아래 등락률(종목 차트만)
+  ch = Object.assign({}, ch, { showChg: true, zone: true });       // 현재가(종가) 점 아래 등락률(종목 차트만) · 위험·바닥·VIX 구간(2026-11-16)
   slot.innerHTML = anChartTabs(per, ch) + anSvgChart(ch);
 }
 
@@ -10159,6 +10329,7 @@ function anBindRoot(root){
   root.querySelectorAll('details[data-an-key]').forEach(det => {
     const key = det.dataset.anKey;
     det.addEventListener('toggle', () => {
+      if(!det.isConnected) return;                           // 다시 그려져 떨어진 옛 줄의 늦은 toggle은 무시(열린 상태가 되살아나지 않게, 2026-11-16)
       if(det.open){
         anState.openKeys.add(key);
         const slot = det.querySelector('[data-an-chart]');
@@ -10284,6 +10455,60 @@ function anGhPaint(){
   });
   const dl = el.querySelector('#anGhDel');
   if(dl) dl.addEventListener('click', () => { try{ localStorage.removeItem(AN_GH.KEY); }catch(e){} anGh.diff = null; anGh.err = ''; anGhPaint(); });
+}
+
+// 자산 탭 종목 팝업의 V1 버튼(2026-11-16): V1 탭으로 가서 돋보기를 돌리고, 그 종목 카드를 펼쳐 그 자리로 스크롤 + 잠깐 테두리 강조
+async function anGoV1(h){
+  const find = () => { const rs = (anState.result && anState.result.results) || [];
+    return rs.find(r => r.hname === h.name) || (h.symbol ? rs.find(r => r.code === h.symbol || r.code === String(h.symbol).replace(/\.(KS|KQ)$/i, '')) : null) || rs.find(r => r.name === h.name) || null; };
+  let moved = false;
+  window.addEventListener('wheel', () => { moved = true; }, { once: true, passive: true });
+  window.addEventListener('touchmove', () => { moved = true; }, { once: true, passive: true });
+  const open = (flash, reset) => {
+    const r = find(); if(!r) return false;
+    const k = 'd:' + r.code, root = document.getElementById('analysisRoot'); if(!root) return false;
+    if(reset) anState.openKeys.clear();                       // V1 탭에서 열려 있던 것은 모두 닫고 이 종목만
+    anState.openKeys.add(k);
+    let det = [...root.querySelectorAll('details[data-an-key]')].find(d => d.dataset.anKey === k);
+    if(!det){ anState.html = null; anFillRoot(); det = [...root.querySelectorAll('details[data-an-key]')].find(d => d.dataset.anKey === k); }
+    if(!det) return false;
+    if(reset){                                                 // 열린 것은 이 종목(과 그걸 담은 묶음)만 남기고 새로 그림 — 저장된 화면(anState.html)에 남은 열린 상태도 버림
+      anState.openKeys.clear();
+      for(let p = det; p; p = p.parentElement && p.parentElement.closest('details')) if(p.dataset.anKey) anState.openKeys.add(p.dataset.anKey);
+      det.querySelectorAll('details.an-mfold[data-an-key]').forEach(d => anState.openKeys.add(d.dataset.anKey));   // 종목 안의 '지표'도 펼침(세부 보기는 접힌 채)
+      anState.html = null; anFillRoot();
+      [...root.querySelectorAll('details[open]')].reverse().forEach(d => { if(!(d.dataset.anKey && anState.openKeys.has(d.dataset.anKey))) d.open = false; });
+      det = [...root.querySelectorAll('details[data-an-key]')].find(d => d.dataset.anKey === k); if(!det) return false;
+    }
+    for(let p = det.parentElement && det.parentElement.closest('details'); p; p = p.parentElement && p.parentElement.closest('details')){ if(!p.open){ p.open = true; if(p.dataset.anKey) anState.openKeys.add(p.dataset.anKey); } }
+    if(!det.open) det.open = true;
+    if(reset) det.querySelectorAll('details.an-mfold').forEach(d => { if(!d.open){ d.open = true; if(d.dataset.anKey) anState.openKeys.add(d.dataset.anKey); } });
+    return true;
+  };
+  const toCard = () => {                                     // 그 종목 카드가 화면 위(지표 줄 아래)에 오게. 다시 그려져도 새 카드 기준으로
+    if(moved || state.activeId !== '__analysis__') return;
+    const r = find(), root = document.getElementById('analysisRoot'); if(!r || !root) return;
+    const det = [...root.querySelectorAll('details[data-an-key]')].find(d => d.dataset.anKey === 'd:' + r.code); if(!det) return;
+    const tk = document.getElementById('marketTicker'), sh = document.getElementById('mktShade');   /* 고정된 지표 줄(+그늘) 아래 = 가려지지 않는 첫 줄 */
+    let off = 0;
+    if(tk && tk.classList.contains('mkt-pin')) off = Math.max(off, tk.getBoundingClientRect().bottom);
+    if(sh && sh.style.display !== 'none') off = Math.max(off, sh.getBoundingClientRect().bottom);
+    const y = Math.max(0, window.scrollY + det.getBoundingClientRect().top - off - 10);
+    if(Math.abs(y - window.scrollY) > 2) window.scrollTo(0, y);
+  };
+  anState.view = 'report';
+  if(anState.filter) anState.filter = '';
+  anState.html = null;
+  switchTab('__analysis__');
+  const run = runAnalysis();
+  try{ loadMarketData(true).catch(() => {}); }catch(e){}
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const first = open(true, true);
+  [0, 300, 900, 1800].forEach(t => setTimeout(() => requestAnimationFrame(toCard), t));   // 그리기·지표 갱신으로 화면이 다시 그려져도 맞춤
+  try{ await run; }catch(e){}
+  if(state.activeId !== '__analysis__') return;
+  open(!first && !moved, !first);                             // 처음엔 결과에 없던 종목이면 분석 뒤 펼침(그때 나머지 닫음)
+  [0, 300].forEach(t => setTimeout(() => requestAnimationFrame(toCard), t));
 }
 
 function anFillRoot(){
@@ -10416,6 +10641,7 @@ async function anRefreshMarket(){
     Object.keys((res.snap && res.snap.idx) || {}).forEach(k => { if(!snap.idx[k]) snap.idx[k] = res.snap.idx[k]; });
     res.snap = snap;
     res.msig = anMarketSignals(snap, res.results || []);
+    try{ await anZoneLog(res.msig, null); }catch(e){}
     res.mktAt = Date.now();
     anMktAt = Date.now();
     anState.html = null;
