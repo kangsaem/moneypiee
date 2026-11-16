@@ -8727,7 +8727,7 @@ async function anMarketSnapshot(isUS){
 let anZones = null, anZoneBase = null, anMlog = null;
 const anMlogP = (async () => { try{ anMlog = (await anDB.get('mlog1')) || {}; }catch(e){ anMlog = {}; } return anMlog; })();
 function anZoneStock(bars){   // 종목 하나의 최근 300일: RSI 35↓ / 일봉 역배열(5선 ≤ 10선) — '1'·'0'·'-'(자료 없음)
-  const c = bars.close, n = c.length, k0 = Math.max(0, n - 300), rs = anRsi(c), s5 = anRoll(c, 5), l10 = anRoll(c, 10);
+  const c = bars.close, n = c.length, k0 = Math.max(0, n - 420), rs = anRsi(c), s5 = anRoll(c, 5), l10 = anRoll(c, 10);
   let low = '', bear = '';
   for(let i = k0; i < n; i++){ low += anOk(rs[i]) ? (rs[i] <= 35 ? '1' : '0') : '-'; bear += l10[i] != null ? (s5[i] > l10[i] ? '0' : '1') : '-'; }
   return { d: bars.dates.slice(k0), low, bear };
@@ -8746,6 +8746,7 @@ function anZoneApply(){   // 차트용 = 시장 계산(값·VIX 띠) + 판정 �
   b.d.forEach(d => { const e = anMlog[d]; z.r.push(e ? e[0] : 0); z.b.push(e ? e[1] : 0); z.rm.push(e ? e[2] : 0); z.bm.push(e ? e[3] : 0); z.src.push(e ? e[4] : ''); z.wk.push(e ? e[5] : null); z.br.push(e ? e[6] : null); z.fin.push(e ? e[7] || 0 : 0); });
   anZones = z; anDB.set('mzones1', z).catch(() => {});
 }
+const AN_ZONE_FROM = '2025-06-01';   // 기록 없는 날 다시 계산하는 시작일(2026-11-16 사용자: 6월 1일부터)
 async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 최근 1년은 지금 기준으로 채움(한 번 채운 날은 그대로)
   await anMlogP; const b = anZoneBase; if(!b || !b.d.length || !msig || !msig.risk || !msig.bottom) return;
   const cnt = m => { let c = 0; for(; m; m >>= 1) c += m & 1; return c; };
@@ -8755,7 +8756,7 @@ async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 �
   const kt = anKstNow(), fin = d => kt.date > d || (kt.date === d && kt.hm >= 2000);   /* 국장 일봉 확정(20:00 KST) 뒤 첫 값으로 확정, 그 뒤로는 덮어쓰지 않음 */
   if(!(anMlog[last] && anMlog[last][7])) anMlog[last] = [cnt(rm), cnt(bm), rm, bm, 'L', pf((msig.bottom.items[4] || [])[1]), pf((msig.risk.items[4] || [])[1]), fin(last) ? 1 : 0];
   if(zs && zs.length){
-    const cut = new Date(Date.parse(last + 'T00:00:00Z') - 365 * 864e5).toISOString().slice(0, 10);
+    const c1 = new Date(Date.parse(last + 'T00:00:00Z') - 365 * 864e5).toISOString().slice(0, 10), cut = c1 < AN_ZONE_FROM ? c1 : AN_ZONE_FROM;   /* 최근 1년 또는 2025-06-01 중 더 이른 날부터 */
     b.d.forEach((d, i) => {
       const old = anMlog[d];
       if(d === last || (old && (old[7] || old[4] !== 'L')) || (!old && d < cut)) return;   /* 확정됐거나 이미 만든 날은 그대로 · 마감 전 값만 남은 날은 마감 기준으로 다시 셈 */
