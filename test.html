@@ -11435,7 +11435,8 @@ function checkNoticeHtml(){
   // FAQ 표시 (이미 본 경우에도 바로 종목추가 가이드로)
   let welcomeDismissed = false;
   try { welcomeDismissed = localStorage.getItem(WELCOME_KEY) === '1'; } catch(e){}
-  if(!welcomeDismissed && modal){
+  const MP_WELCOME_ON = false;   // '머니파이가 처음이신가요?' 자동 표시 끔(2026-11-17 사용자, 내용은 보관 — true면 다시 뜸)
+  if(MP_WELCOME_ON && !welcomeDismissed && modal){
     modal.style.display = 'flex';
   } else {
     // FAQ를 이미 본 상태라면 종목추가 가이드부터
