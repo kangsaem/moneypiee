@@ -1112,8 +1112,12 @@ function sparklineIntradaySVG(points, marketOpen, marketClose, width, height, ba
     if(inside.length >= 2){
       drawPoints = inside;   // 전날 값과의 차이는 기준선(전일 종가)으로 보임
     } else {
-      // 야후가 준 장 시간이 데이터와 안 맞음(다음 장 시간 등) → 데이터가 있는 구간을 그대로 그림
-      marketOpen = points[0].ts; effectiveClose = lastPointTs;
+      // 야후가 준 장 시간이 데이터와 안 맞음(다음 장 시간 등) → 데이터가 있는 구간을 그림. 단 2시간 넘게 빈 곳(장과 장 사이)이 있으면 마지막 장만
+      // (2026-11-19 사용자: 미국채 — 이틀치가 오는데 장 시간이 다음 장이라 전날·그 전날을 이어 그려 가운데가 빈 직선이 됨)
+      let k0 = 0;
+      for(let i = points.length - 1; i > 0; i--){ if(points[i].ts - points[i - 1].ts > 2 * 3600){ k0 = i; break; } }
+      if(points.length - k0 >= 2) drawPoints = points.slice(k0);
+      marketOpen = drawPoints[0].ts; effectiveClose = lastPointTs;
     }
   }
   const span = effectiveClose - marketOpen;
