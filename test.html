@@ -998,16 +998,29 @@ let marketRangeState = {};
 // -> 기간 탭을 눌러도 상단에 표시되는 "현재지수" 숫자는 바뀌지 않고, 등락률/그래프만 바뀐다.
 let marketRangeChart = {};
 
-async function fetchYahooChart(symbol, range, wideIntraday){
+async function fetchYahooChart(symbol, range, wideIntraday, _retry){
   range = range || '1d';
   const isIntraday = range === '1d';
   const apiRange = isIntraday ? (wideIntraday ? '2d' : '1d') : range;
   const interval = isIntraday ? '2m' : '1d';
-  const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${apiRange}&interval=${interval}&_=${Date.now()}`;
+  const targetUrl = _retry ? `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${_retry.p1}&period2=${_retry.p2}&interval=2m&_=${Date.now()}`
+    : `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${apiRange}&interval=${interval}&_=${Date.now()}`;
   const res = await fetchYahooProxied(targetUrl);
   if(!res.ok) throw new Error('야후 시세 조회 실패: ' + res.status);
   const data = await res.json();
   const result = data.chart.result[0];
+  // 장이 끝났는데 장중 시세가 마감 30분 전에서 끊긴 응답(2026-11-19 아침: 나스닥·S&P·미국채가 장 초반만 오고 나머지는 직선) → 기간을 직접 지정해 한 번 더 받음(다른 주소라 중계·야후 쪽 옛 응답을 피함)
+  if(isIntraday && !_retry){
+    try{
+      const tp = result.meta && result.meta.currentTradingPeriod && result.meta.currentTradingPeriod.regular, ts = result.timestamp || [];
+      const lastTs = ts.length ? ts[ts.length - 1] : null, now = Date.now() / 1000;
+      if(tp && lastTs != null && now > tp.end + 600 && lastTs >= tp.start - 86400 && lastTs < tp.end - 1800){
+        const again = await fetchYahooChart(symbol, range, wideIntraday, { p1: tp.start - (wideIntraday ? 86400 : 0) - 60, p2: tp.end + 60 });
+        const la = again && again.intradayPoints && again.intradayPoints.length ? again.intradayPoints[again.intradayPoints.length - 1].ts : 0;
+        if(la > lastTs) return again;
+      }
+    }catch(e){}
+  }
   const meta = result.meta;
   const timestamps = result.timestamp || [];
   const rawCloses = (result.indicators.quote[0].close || []);
