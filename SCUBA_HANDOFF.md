@@ -1,8 +1,13 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-16 09:10 (v2.10.31) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-19 10:20 (v2.10.32) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.10.32 (2026-11-19) 상단 [Windy] 링크(사용자 A안, 바람 레이어)
+- .top 오른쪽 [로그북/플래너] 앞에 <a id=windyBtn target=_blank>. 주소 https://www.windy.com/?wind,lat,lon,9(windy 공식 URL 형식, 소수점 필수). Windy.com 앱이 있으면 iOS가 앱으로 열기도 함(보장 아님).
+- 중심: 지금 보는 로그 메모의 GPS(입수 우선) → 없으면 날짜가 가장 가까운 로그의 위치(__locOf: GPS 또는 위치 이름 지오코딩·캐시) → 없으면 https://www.windy.com/?wind. 샘플 로그는 로그가 샘플뿐일 때만. 주소는 pointerdown·focus·mouseenter 때 미리 계산(새 탭 막힘 방지).
+- 폭<430: 아이콘만, <380: 여백 축소. 일본어 제목은 폭<390에서 0.88em(375 아이폰에서 두 줄 방지). 360px 이상 9개 언어 한 줄 확인(320은 원래부터 일부 두 줄).
 
 ## v2.10.31 (2026-11-16) 최대·총 상자를 좌우 쓸기 영역 밖에만
 - 원인: 폰에서 최대·총 상자(LABBOX, 꾹 눌러 옮김)가 오른쪽 끝까지 붙어 오른쪽 쓸기 영역 가운데 높이와 겹침 → inLab 제외로 넘김 안 됨.
