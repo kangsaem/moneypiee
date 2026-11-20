@@ -1087,8 +1087,8 @@ function sparklineSVG(closes, width, height, baselineValue){
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="display:block;margin-top:4px;width:100%;">${baselineLinePaths(pixelPoints, baselineY, width, height, uid)}</svg>`;
 }
 
-function sparklineEmptySVG(width, height){   // 오늘 장은 열렸는데 오늘 시세가 아직 없음 → 점선 한 줄
-  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="display:block;margin-top:4px;width:100%;"><line x1="0" y1="${height / 2}" x2="${width}" y2="${height / 2}" stroke="var(--text-dim)" stroke-width="1" stroke-dasharray="2 2" vector-effect="non-scaling-stroke" opacity="0.6"/></svg>`;
+function sparklineEmptySVG(width, height){   // 오늘 장은 열렸는데 오늘 시세가 아직 없음 → 빈 칸(높이만 유지, 2026-11-20 사용자: 점선도 빼고 비워 둠)
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="display:block;margin-top:4px;width:100%;"></svg>`;
 }
 function sparklineIntradaySVG(points, marketOpen, marketClose, width, height, baselineValue, fixedAxis){
   if((!points || points.length < 2) && marketOpen && marketClose && Date.now() / 1000 >= marketOpen && Date.now() / 1000 < marketClose + 6 * 3600) return sparklineEmptySVG(width, height);
