@@ -965,7 +965,8 @@ function mpIntraMerge(symbol, points, trading, wide){
     let all = [...m.entries()].sort((a, b) => a[0] - b[0]);
     const last = all.length ? all[all.length - 1][0] : lastTs;
     // 남길 구간: 장 구간이 마지막 시세를 포함하면 그 장 시작부터(2일 보기 종목은 하루 더), 아니면(야후가 다음 장 시간을 줄 때) 마지막 시세에서 거슬러 하루치
-    const from = trading && trading.start <= last ? trading.start - (wide ? 86400 : 0) : last - (wide ? 2 : 1) * 86400 + 3600;
+    const nowS = Date.now() / 1000;
+    const from = trading && (trading.start <= last || trading.start <= nowS) ? trading.start - (wide ? 86400 : 0) : last - (wide ? 2 : 1) * 86400 + 3600;   // 오늘 장이 열렸으면 전날 것은 버림(2026-11-20)
     all = all.filter(([t]) => t >= from);
     try{ localStorage.setItem(K, JSON.stringify({ at: Date.now(), p: all })); }catch(e){}
     return all.map(([ts, close]) => ({ ts, close }));
@@ -1086,7 +1087,11 @@ function sparklineSVG(closes, width, height, baselineValue){
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="display:block;margin-top:4px;width:100%;">${baselineLinePaths(pixelPoints, baselineY, width, height, uid)}</svg>`;
 }
 
+function sparklineEmptySVG(width, height){   // 오늘 장은 열렸는데 오늘 시세가 아직 없음 → 점선 한 줄
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="display:block;margin-top:4px;width:100%;"><line x1="0" y1="${height / 2}" x2="${width}" y2="${height / 2}" stroke="var(--text-dim)" stroke-width="1" stroke-dasharray="2 2" vector-effect="non-scaling-stroke" opacity="0.6"/></svg>`;
+}
 function sparklineIntradaySVG(points, marketOpen, marketClose, width, height, baselineValue, fixedAxis){
+  if((!points || points.length < 2) && marketOpen && marketClose && Date.now() / 1000 >= marketOpen && Date.now() / 1000 < marketClose + 6 * 3600) return sparklineEmptySVG(width, height);
   if(!points || points.length < 2 || !marketOpen || !marketClose || marketClose <= marketOpen){
     return sparklineSVG((points||[]).map(p=>p.close), width, height, baselineValue);
   }
@@ -1111,6 +1116,9 @@ function sparklineIntradaySVG(points, marketOpen, marketClose, width, height, ba
     const inside = points.filter(p => p.ts >= marketOpen);
     if(inside.length >= 2){
       drawPoints = inside;   // 전날 값과의 차이는 기준선(전일 종가)으로 보임
+    } else if(Date.now() / 1000 >= marketOpen && Date.now() / 1000 < marketClose + 6 * 3600){
+      // 오늘 장이 이미 열렸는데 오늘 시세가 아직 없음(야후 국장 20분 지연 등) → 전날 그래프는 지우고 빈 줄만(2026-11-20 사용자)
+      return sparklineEmptySVG(width, height);
     } else {
       // 야후가 준 장 시간이 데이터와 안 맞음(다음 장 시간 등) → 데이터가 있는 구간을 그림. 단 2시간 넘게 빈 곳(장과 장 사이)이 있으면 마지막 장만
       // (2026-11-19 사용자: 미국채 — 이틀치가 오는데 장 시간이 다음 장이라 전날·그 전날을 이어 그려 가운데가 빈 직선이 됨)
@@ -1189,7 +1197,7 @@ function renderMarketTicker(){
     let chart, periodCloses;
     if(range === '1d'){
       const baseline = d.prevClose;
-      chart = (d.intradayPoints && d.intradayPoints.length >= 2)
+      chart = ((d.intradayPoints && d.intradayPoints.length >= 2) || (d.marketOpen && Date.now() / 1000 >= d.marketOpen))
         ? sparklineIntradaySVG(d.intradayPoints, d.marketOpen, d.marketClose, 80, 36, baseline, useFixedAxis)
         : sparklineSVG(d.closes || [], 80, 36, baseline);
     } else {
