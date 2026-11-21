@@ -8843,6 +8843,7 @@ async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 �
   try{ await anDB.set('mlog1', anMlog); }catch(e){}
   anZoneApply();
 }
+const AN_VIX_FILL = [null, 'rgba(242,166,90,0.40)', 'rgba(242,166,90,0.85)', '#E8704A', '#D93A3A'], AN_VIX_TH = [0, 25, 30, 35, 40];
 const AN_ZONE_A = { 3: 0.14, 4: 0.30, 5: 0.50 }, AN_ZONE_RA = { 2: 0.10, 3: 0.24, 4: 0.45 };   // 바닥 3·4·5개 / 위험 2·3·4개 이상 진하기(2026-11-16 위험만 2개부터)
 function anMarketZones(kb, vb, yb){
   const d = kb.dates, c = kb.close, n = c.length, ma = anRoll(c, 50), ma200 = anRoll(c, 200), rs = anRsi(c);
@@ -8900,15 +8901,15 @@ function anZoneSvg(dates, n, x, pt, PH, vy, vh, pl, xr){
     }
     j = e + 1;
   }
-  // VIX 띠(25↑ 옅게, 30↑ 진하게)
+  // VIX 띠(25↑ 옅은 주황, 30↑ 진한 주황, 35↑ 붉은 주황, 40↑ 진한 빨강 — 2026-11-22 사용자: 35·40 더 강조)
   const vi = dates.slice(0, n).map(s => anZoneAt(z.vd, full(s)));
-  const vl = j => { const v = vi[j] >= 0 ? z.vc[vi[j]] : null; return v == null ? 0 : v >= 30 ? 2 : v >= 25 ? 1 : 0; };
+  const vl = j => { const v = vi[j] >= 0 ? z.vc[vi[j]] : null; return v == null ? 0 : v >= 40 ? 4 : v >= 35 ? 3 : v >= 30 ? 2 : v >= 25 ? 1 : 0; };
   strip += `<rect class="an-ch-bg" x="0" y="${vy}" width="${xr}" height="${vh}"/>`;
   for(let j = 0; j < n;){
     const a = vl(j); let e = j; while(e + 1 < n && vl(e + 1) === a) e++;
     if(a){ let mx = -Infinity; for(let q = j; q <= e; q++){ const v = z.vc[vi[q]]; if(v > mx) mx = v; }
       const x0 = X0(j), w = Math.max(1.2, X1(e) - x0);
-      strip += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${vy}" width="${w.toFixed(1)}" height="${vh}" fill="${a === 2 ? 'rgba(242,166,90,0.85)' : 'rgba(242,166,90,0.40)'}" data-zt="${anE(`VIX ${a === 2 ? '30' : '25'} 이상 · ${dates[j]} ~ ${dates[e]}\n최고 ${mx}`)}"/>`; }
+      strip += `<rect class="an-zone" x="${x0.toFixed(1)}" y="${vy}" width="${w.toFixed(1)}" height="${vh}" fill="${AN_VIX_FILL[a]}" data-zt="${anE(`VIX ${AN_VIX_TH[a]} 이상 · ${dates[j]} ~ ${dates[e]}\n최고 ${mx}`)}"/>`; }
     j = e + 1;
   }
   return { back, strip };

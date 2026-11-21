@@ -373,7 +373,7 @@ function renderSummary(cases){
   host.innerHTML = `<b>요약</b>${top}<details class="nmore"><summary>자세히</summary>${old ? old.outerHTML : ''}</details>`;
 }
 // 그래프 표시 설명(요약 맨 위, 2026-10-14)
-const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">연두색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라) · 아래 띠 = VIX <b class="gn-v1">25 이상</b>·<b class="gn-v2">30 이상</b>(V1과 같음, 대거나 누르면 기간·최고값)';
+const G_NOTE = '그래프: <b class="gn-r">▲</b> = 이탈 뒤 최저 종가 날(위로 빨간 점선) · <b class="gn-r">빨간 점선</b> = 200일선 상향 돌파(날짜 = 안정일 돌파) · <b class="gn-b">연두색 영역</b> = 안정일부터 40거래일(200일선 위 유지로 안정을 확인한 구간) · 선 = 종가(흰)·200일(빨강)·5주·10주·60주(보라) · 아래 띠 = VIX <b class="gn-v1">25 이상</b>·<b class="gn-v2">30 이상</b>·<b class="gn-v3">35 이상</b>·<b class="gn-v4">40 이상</b>(V1과 같음, 대거나 누르면 기간·최고값)';
 function renderNotes(cases){
   const li = [G_NOTE];
   li.push(`200일선 안정 = 200일선 위 ${HOLD_DAYS}거래일 유지(그 첫날까지 거래일 수, 아래 줄은 이탈 전날 지수 대비 안정 첫날 지수). 이후 바닥까지 = 이탈일 종가 → 안정 전까지 최저 종가`);
@@ -455,13 +455,13 @@ function gChartData(D, C, a, b, o){
 let VIX = null;
 function gVixStrip(full, n, x, half, vy, vh, pl, xr){
   const at = d => { let lo = 0, hi = VIX.d.length - 1, r = -1; while(lo <= hi){ const m = (lo + hi) >> 1; if(VIX.d[m] <= d){ r = m; lo = m + 1; } else hi = m - 1; } return r; };
-  const vi = full.slice(0, n).map(at), val = j => vi[j] >= 0 ? VIX.c[vi[j]] : null, lv = j => { const v = val(j); return v == null ? 0 : v >= 30 ? 2 : v >= 25 ? 1 : 0; };
+  const vi = full.slice(0, n).map(at), val = j => vi[j] >= 0 ? VIX.c[vi[j]] : null, lv = j => { const v = val(j); return v == null ? 0 : v >= 40 ? 4 : v >= 35 ? 3 : v >= 30 ? 2 : v >= 25 ? 1 : 0; };   // 35·40 단계(2026-11-22)
   let s = `<rect class="an-ch-bg" x="0" y="${vy}" width="${xr}" height="${vh}"/>`;
   for(let j = 0; j < n;){
     const a = lv(j); let e = j; while(e + 1 < n && lv(e + 1) === a) e++;
     if(a){ let mx = -Infinity; for(let q = j; q <= e; q++){ const v = val(q); if(v > mx) mx = v; }
       const x0 = Math.max(pl, x(j) - half), w = Math.max(1.2, Math.min(xr, x(e) + half) - x0), f = d => d.slice(2).replace(/-/g, '.');
-      s += `<rect class="g-vix" x="${x0.toFixed(1)}" y="${vy}" width="${w.toFixed(1)}" height="${vh}" fill="${a === 2 ? 'rgba(242,166,90,0.85)' : 'rgba(242,166,90,0.40)'}" data-zt="${esc(`VIX ${a === 2 ? '30' : '25'} 이상 · ${f(full[j])} ~ ${f(full[e])}\n최고 ${Math.round(mx * 10) / 10}`)}"/>`; }
+      s += `<rect class="g-vix" x="${x0.toFixed(1)}" y="${vy}" width="${w.toFixed(1)}" height="${vh}" fill="${['', 'rgba(242,166,90,0.40)', 'rgba(242,166,90,0.85)', '#E8704A', '#D93A3A'][a]}" data-zt="${esc(`VIX ${[0, 25, 30, 35, 40][a]} 이상 · ${f(full[j])} ~ ${f(full[e])}\n최고 ${Math.round(mx * 10) / 10}`)}"/>`; }
     j = e + 1;
   }
   return s;
