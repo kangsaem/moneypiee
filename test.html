@@ -11165,6 +11165,7 @@ button.an-gbtn { font-family:inherit; cursor:pointer; } .an-euph { height:auto; 
 /* 위험·바닥 지표 높이 맞춤(2026-10-16): 둘 다 열렸을 때 같은 높이, 버튼 줄은 맨 아래 */
 .an-gauges:not(:has(details.an-gauge:not([open]))) { align-items:stretch !important; }
 details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge[open] > .an-glink { margin-top:auto; }
+details.an-gauge[open]::details-content { display:flex; flex-direction:column; flex:1 1 auto; } details.an-gauge[open] .an-glink { margin-top:auto; }   /* 2026-11-23: 새 Chrome은 details 안 내용을 ::details-content로 감싸 위 규칙이 안 먹음 → 안쪽도 세로 flex(버튼 줄 양쪽 같은 높이) */
 .an-dots { margin-left:auto; font-style:normal; letter-spacing:1px; font-size:12px; }
 .an-sg.buy .an-dots { color:var(--an-up); } .an-sg.sell .an-dots { color:var(--an-dn); }
 .an-whys { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
