@@ -9943,9 +9943,9 @@ function anVkPopup(){   // 게이지 6번째 줄을 누르면: 6개월 그래프
   document.getElementById('anVkModal')?.remove();
   const st = vk.stage, r = vk.rule || {};
   const row = (on, nm, col, ds, ex) => `<div class="an-vkr${on ? ' on' : ''}" style="--c:${col}"><span class="an-vkd"></span><b>${nm}</b><span class="ds">${ds}</span>${ex ? `<span class="ex">${ex}</span>` : ''}</div>`;
-  const rows = row(!!vk.spike || st >= 2, '급등', AN_VK_C, `최근 20일 최고 ≥ 기준(6개월 중간값×${r.spike || 1.5})`)
+  const rows = row(!!vk.spike || st >= 2, '급등', AN_VK_C, `최근 20일 최고 ≥ 급등 기준(6개월 중간값×${r.spike || 1.5})`)
     + row(st >= 2, '꺾임', AN_VK_C, `${r.neg || 3}일 연속 5일 전보다 낮음 + 20일 평균 아래`)
-    + row(st === 3, '회복', 'var(--text)', '코스피 20일선 위 + 20일 신저점 없음', st === 2 ? `대기 ${vk.wait}/${vk.wait_max}일` : '');
+    + row(st === 3, '회복', 'var(--text)', '코스피 20일선 위 + 20일 내 신저점 없음', st === 2 ? `대기 ${vk.wait}/${vk.wait_max}일` : '');
   const L = (c, w, t, op) => `<s style="border-top:${w}px ${t} ${c}${op ? `;opacity:${op}` : ''}"></s>`, B = op => `<s class="bx" style="background:${AN_VK_SKY};opacity:${op}"></s>`;
   const lg = [[L(AN_VK_C, 1.2, 'solid', .5), 'VKOSPI'], [L(AN_VK_C, 2, 'solid'), '20일 평균'], [L(AN_VK_C, 1.2, 'dashed'), '급등 기준'], [L('var(--text)', 1.2, 'solid', .5), '코스피'], [L('var(--text)', 2, 'solid'), '20일선'], [L('#5FB8E0', 1.2, 'dotted'), '20일 최저'], [B(.2), '꺾임'], [B(.5), '회복']]
     .map(([sw, nm]) => `<span>${sw}${nm}</span>`).join('');
