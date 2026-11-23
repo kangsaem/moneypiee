@@ -9773,11 +9773,18 @@ async function anNaverDiv(code){
   await anDB.set(ck, { d: today, v });
   return v;
 }
+function anDivGap(r){   // 배당 − 미국채 10년(%p), 비교할 수 없으면 null
+  const dy = r && r.dy, t = typeof marketData !== 'undefined' && marketData.us10y && marketData.us10y.price;
+  return dy && anOk(dy.pct) && anOk(t) && t > 0 ? { gap: dy.pct - t, t } : null;
+}
+function anDivDot(r){   // B-1: 고배당(미국채 10년보다 높음) 종목 이름 뒤 연두 점
+  const g = anDivGap(r);
+  return g && g.gap > 0 ? `<i class="an-dvdot" title="${anE(`배당 ${r.dy.pct.toFixed(2)}% · 미국채 10년 ${g.t.toFixed(2)}%보다 ${anS(g.gap, 2)}%p`)}"></i>` : '';
+}
 function anDivTag(r){
   const dy = r.dy;
   if(!dy || !anOk(dy.pct)) return '';
-  const t = typeof marketData !== 'undefined' && marketData.us10y && marketData.us10y.price;
-  const hasT = anOk(t) && t > 0, gap = hasT ? dy.pct - t : null;
+  const g = anDivGap(r), hasT = !!g, t = g ? g.t : null, gap = g ? g.gap : null;
   const L = [`배당 ${dy.pct.toFixed(2)}%`];
   if(dy.src === 'yahoo') L.push(`연 배당 ${anPrice(dy.sum)}`); else if(dy.dps) L.push(`연 배당 ${dy.dps}`);
   if(hasT) L.push(`미국채 10년 ${t.toFixed(2)}%보다 ${anS(gap, 2)}%p`);
@@ -10106,9 +10113,9 @@ function anStockHtml({ r, i, rv, keys, top }, ctx, H, opt){
       const liveChip = '';                                    // 옛 장중 칩(매수 가능·종가 대기) → 범위 칩으로 대체(2026-10-15)
       const liveLine = lvNow ? `<div class="an-liveline">${anE(lvNow.line)}</div>` : '';
       return `<details class="an-det an-stock" data-an-key="d:${anE(r.code)}" data-f="${[...new Set(keys.map(k => AN_CATEGORY[k]))].join(' ') || 'none'}">
-        <summary><span class="an-sl">${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b title="${anE(r.name)}">${anE(anNm16(r.name))}</b> ${gchips}${liveChip}</span>${anChgHtml(r)}${opt.right != null ? opt.right : ''}</summary>
+        <summary><span class="an-sl">${anIsWatchOnly(r, H) ? '<i class="an-wdot" title="관심종목(보유 아님)"></i>' : ''}<b title="${anE(r.name)}">${anE(anNm16(r.name))}</b>${anDivDot(r)} ${gchips}${liveChip}</span>${anChgHtml(r)}${opt.right != null ? opt.right : ''}</summary>
         <div class="an-sbody">${liveLine}${limHtml}${whys}${(() => { const mh = anMetricsHtml(r, side, lv, others, top && ['sell', 'buy'].includes(AN_CATEGORY[top])); const mk = 'm:' + r.code;
-            return mh ? `<details class="an-mfold" data-an-key="${anE(mk)}"${anState.openKeys.has(mk) ? ' open' : ''}><summary>지표</summary>${mh}</details>` : ''; })()}<div class="an-chwrap" data-an-chart="${i}"></div>
+            return mh ? `<details class="an-mfold" data-an-key="${anE(mk)}"${anState.openKeys.has(mk) ? ' open' : ''}><summary><span class="an-mfl">지표</span>${(() => { const dv = anDivTag(r); return dv ? `<span class="an-dvs">${dv}</span>` : ''; })()}</summary>${mh}</details>` : ''; })()}<div class="an-chwrap" data-an-chart="${i}"></div>
           <details class="an-sub" data-an-key="x:${anE(r.code)}"><summary>세부 보기 <small>${anE(r.code)}</small></summary><pre>${anE(anDetailText(r))}</pre></details></div></details>`;
   }catch(e){ return `<div class="an-none">${anE(r.name)} 표시 실패</div>`; }
 }
@@ -11102,7 +11109,9 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 #hdrBtns.in-mng { justify-content:flex-start; margin:0 0 14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
 .snap-mini { height:26px; padding:0 10px; font-size:12px; display:inline-flex; align-items:center; justify-content:center; line-height:1; background:transparent !important; color:#4FC3F7 !important; border:1px solid #4FC3F7 !important; }
 .an-mfold { margin-top:2px; } .an-mfold > summary { cursor:pointer; list-style:none; font-size:11.5px; color:var(--text-dim); padding:3px 0; }
-.an-mfold > summary::-webkit-details-marker { display:none; } .an-mfold > summary::after { content:' ▾'; } .an-mfold[open] > summary::after { content:' ▴'; }
+.an-mfold > summary::-webkit-details-marker { display:none; } .an-mfold > summary > .an-mfl::after { content:' ▾'; } .an-mfold[open] > summary > .an-mfl::after { content:' ▴'; }
+.an-mfold > summary > .an-dvs { margin-left:6px; } .an-mfold[open] > summary > .an-dvs { display:none; }   /* 배당: 접힌 줄에만(펼치면 안쪽 칸, 2026-11-23) */
+.an-dvdot { display:inline-block; width:5px; height:5px; border-radius:50%; background:#9BD266; margin:0 3px 0 2px; vertical-align:middle; flex-shrink:0; }
 /* Logic V1 글자 통일(2026-10-31 사용자): 본문 = 모두 12px(위 묶음·한계·신호·주의·표본), 제목·접힘 제목 = 12px 굵게 */
 .an-rbody, .an-lpop .an-rbody, .an-rbody .an-rfirst, .an-rbody .an-rnote, .an-rbody h4 small { font-size:12px !important; }
 .an-rbody h4, .an-btfold > summary, .an-sigfold > summary { font-size:12px !important; font-weight:700; color:var(--text); }
