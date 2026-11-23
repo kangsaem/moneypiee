@@ -9557,6 +9557,7 @@ async function runAnalysis(){
           try{ zstock.push(Object.assign({ key: spec.key }, anZoneStock(bars))); }catch(e){}   /* 지수 차트 바닥·위험 구간 재계산용(2026-11-16) */
           r.key = spec.key;                          // 신호 기록에서 이 종목 시세 캐시를 다시 찾을 때 씀
           try{ r.dy = anDivYield(bars); }catch(e){ r.dy = null; }   // 배당수익률(2026-11-23)
+          if(!r.dy && spec.market === 'KR' && anIsKrCode(spec.code)){ try{ r.dy = await anNaverDiv(spec.code); }catch(e){ r.dy = null; } }   // 국내·ETF = 네이버(하루 한 번)
           r.market = spec.market;
           r.hname = h.name;
           try{ r.rs60 = anRelStrength(bars, (await benchP)[spec.market]); }catch(e){ r.rs60 = null; }
@@ -9746,15 +9747,44 @@ function anDivYield(bars){
   if(!(sum > 0) || !(px > 0)) return null;
   return { pct: sum / px * 100, sum, n: got.length, px, asof: last, src: 'yahoo' };
 }
+// 네이버 종목 정보 배당(2026-11-23): 하루(KST 날짜) 한 번 받아 저장, 실패는 1시간 뒤 다시. 배당 없음 = { none: true } 저장 → null
+async function anNaverDiv(code){
+  const ck = 'div:' + code, today = anFmtMs(Date.now() + 9 * 3600e3);
+  const c = await anDB.get(ck);
+  if(c && (c.d === today || (c.fail && Date.now() - c.at < 3600e3))) return c.v || null;
+  let v = null;
+  try{
+    const res = await fetchViaProxy(`https://m.stock.naver.com/api/stock/${encodeURIComponent(code)}/integration`, 10000);
+    if(!res || !res.ok) throw new Error('네이버 ' + (res ? res.status : '응답 없음'));
+    const j = await res.json(), num = x => parseFloat(String(x == null ? '' : x).replace(/[^0-9.\-]/g, ''));
+    const ek = j && j.etfKeyIndicator;
+    if(ek && ek.dividendYieldTtm != null){                 // ETF: 최근 12개월 분배 수익률
+      const p = num(ek.dividendYieldTtm);
+      if(p > 0) v = { pct: p, src: 'naver-etf', asof: today };
+    }else{
+      const ti = (j && j.totalInfos) || [], f = k => ti.find(x => x && x.code === k);
+      const y = f('dividendYieldRatio'), dps = f('dividend'), p = y ? num(y.value) : NaN;
+      if(p > 0) v = { pct: p, dps: dps ? dps.value : null, per: (y.valueDesc || '').replace(/\.$/, ''), src: 'naver', asof: today };
+    }
+  }catch(e){
+    await anDB.set(ck, { fail: true, at: Date.now(), v: c && c.v || null });
+    return c && c.v || null;
+  }
+  await anDB.set(ck, { d: today, v });
+  return v;
+}
 function anDivTag(r){
   const dy = r.dy;
   if(!dy || !anOk(dy.pct)) return '';
   const t = typeof marketData !== 'undefined' && marketData.us10y && marketData.us10y.price;
   const hasT = anOk(t) && t > 0, gap = hasT ? dy.pct - t : null;
-  const L = [`배당 ${dy.pct.toFixed(2)}%`, `연 배당 ${anPrice(dy.sum)}`];
+  const L = [`배당 ${dy.pct.toFixed(2)}%`];
+  if(dy.src === 'yahoo') L.push(`연 배당 ${anPrice(dy.sum)}`); else if(dy.dps) L.push(`연 배당 ${dy.dps}`);
   if(hasT) L.push(`미국채 10년 ${t.toFixed(2)}%보다 ${anS(gap, 2)}%p`);
-  L.push(`기준: 최근 12개월 배당 ${dy.n}회 합 ÷ ${anShort(dy.asof)} 종가 ${anPrice(dy.px)}`);
-  return `<span class="an-mt an-dv${hasT && gap > 0 ? ' hi' : ''}" title="${anE(L.join(' · '))}">배당 ${dy.pct.toFixed(1)}%</span>`;
+  L.push(dy.src === 'yahoo' ? `기준: 최근 12개월 배당 ${dy.n}회 합 ÷ ${anShort(dy.asof)} 종가 ${anPrice(dy.px)}`
+       : dy.src === 'naver-etf' ? `기준: 네이버 ETF 최근 12개월 분배 수익률 (${anShort(dy.asof)} 받음)`
+       : `기준: 네이버 배당수익률${dy.per ? ' · ' + dy.per + ' 결산 배당' : ''} (${anShort(dy.asof)} 받음)`);
+  return `<span class="an-mt an-dv${hasT && gap > 0 ? ' hi' : ''}" title="${anE(L.join(' · '))}">배당 ${(Math.round(dy.pct * 10 + 1e-9) / 10).toFixed(1)}%</span>`;
 }
 function anMetricsHtml(r, side, lv, flags, emph){
   try{

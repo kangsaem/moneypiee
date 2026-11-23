@@ -7,7 +7,7 @@ const ALLOW = {
   'query1.finance.yahoo.com': ['/v8/finance/chart/'],            // 야후 일봉·현재가
   'polling.finance.naver.com': ['/api/realtime/domestic/'],      // 네이버 실시간 지수·종목
   'api.finance.naver.com': ['/siseJson.naver'],                   // 네이버 일봉
-  'm.stock.naver.com': ['/front-api/search/autoComplete'],        // 네이버 종목 검색
+  'm.stock.naver.com': ['/front-api/search/autoComplete', '/api/stock/'],   // 네이버 종목 검색 · 종목 정보(배당수익률, 2026-11-23)
 };
 // 요청 출처(브라우저가 보내는 Origin)
 const ORIGINS = ['https://www.moneypie.kr', 'https://moneypie.kr', 'https://money.kangyonz.com'];   // 복제본(2026-11-09)
