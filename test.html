@@ -9953,7 +9953,7 @@ function anVkPopup(){   // 게이지 6번째 줄을 누르면: 6개월 그래프
   m.innerHTML = `<div class="an-vkcard"><div class="an-vkh"><b>${AN_VK_NAME} ${anVkDots(st)}</b><button type="button" aria-label="닫기">×</button></div>`
     + `<div class="an-vkm">최근 6개월 · VKOSPI ${anShort(String(vk.date).slice(0, 10))} 기준</div>${anVkSvg(vk)}<div class="an-vklg">${lg}</div>`
     + `<div class="an-vkbox">${rows}</div>`
-    + `<div class="an-vkm" style="margin-top:6px">회복되면 ${r.on || 20}거래일 유지 · 꺾임 뒤 ${r.wait || 20}거래일 안에 회복이 없으면 처음부터 · 자료 KRX(리포트가 하루 한 번 받음)</div></div>`;
+    + `</div>`;   // 아래 안내 문구 뺌(2026-11-23 사용자)
   m.addEventListener('click', e => { if(e.target === m || e.target.closest('.an-vkh button')) m.remove(); });
   document.body.appendChild(m);
 }
