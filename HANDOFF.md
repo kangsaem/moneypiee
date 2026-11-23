@@ -1633,4 +1633,5 @@
 - 2026-11-23 21:10 VKOSPI 후속 확인(규칙 변경 없음):
   · 7월 꺾임 뒤 회복 못 한 이유(moneypier vkwhy_probe.py → results/vkwhy_probe.txt): 7/6~7/23 코스피 20일선 아래 + 신저점 계속(7/8·7/13·7/20). 7/24 재꺾임(대기 다시 시작) → 7/30 신저점 5,594, 8/12부터 20일선 위였지만 '20일 내 신저점 없음'(저점 뒤 19거래일)이 8/24 대기 끝까지 16일째 → 회복 못 함. 느슨한 규칙이 켰을 8/27·10/1 신호는 지금 -31~32%.
   · 발견 → 21:12 고침(사용자): 대기 마지막 날 wait가 21로 나옴(vk_rule 'i - w0 >= VK_WAIT + 1' → 표시 '대기 21/20일' 가능). 판정엔 영향 없음. moneypier vkospi_info에서 wait = min(wait, VK_WAIT) — 앱·리포트·텔레그램 모두 이 값 사용, 판정(vk_rule)은 그대로.
+  · 21:16 사용자: 바닥 지표 VKOSPI 값 옆 '(MM/DD 기준)' 표시 뺌 — 앱(test·메인 anMarketSignals), 리포트(market_signals 값·build_page.gauge 줄). _vk_stale 함수는 남겨 둠(안 씀). 팝업 머리 'VKOSPI yy.mm.dd 기준'은 그대로. 앱 기록의 '같은 날만 반영'(anVkAt·e[10])은 그대로.
   · 외국인 보유 비중 자료(foreignhold_probe.py): KRX 정보데이터시스템 MDCSTAT03701 = 로그인 필요('LOGOUT'), pykrx도 KRX_ID·KRX_PW 필요, 네이버 지수 API는 순매수(억원)만, KRX Open API 분류(지수·주식·증권상품·채권·파생·일반상품·ESG)엔 안 보임. 사용자: 'VKOSPI는 이 정도로' → 외국인 연계 시험 안 함. 외국인 순매수는 results/foreign_kospi.json(1999~2026-10-14)에 있음.

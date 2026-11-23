@@ -9018,7 +9018,7 @@ function anMarketSignals(snap, results){
     ['VIX 30 이상', vix ? anF(vix.last, 1) : '-', vix ? vix.last >= 30 : null],
     ['내 종목 30% 이상이 RSI 35 이하', weak != null ? pc(weak) : '-', weak != null ? weak >= 0.3 : null],
     // 6번째(2026-11-23): VKOSPI 꺾임 + 코스피 회복(3단계, 판정 = 리포트 market_report.vk_rule). 게이지에서 단계 점·그래프 팝업(anVkPopup)
-    [AN_VK_NAME, snap.vk && snap.vk.stage != null ? anF(snap.vk.last, 1) + (ks && ks.date && snap.vk.date && snap.vk.date < ks.date ? ` (${snap.vk.date.slice(5).replace('-', '/')} 기준)` : '') : '-', snap.vk && snap.vk.stage != null ? !!snap.vk.on : null]   // KRX는 그날 자료를 다음 날 아침에 올림 → 날짜가 늦으면 기준일 표시
+    [AN_VK_NAME, snap.vk && snap.vk.stage != null ? anF(snap.vk.last, 1) : '-', snap.vk && snap.vk.stage != null ? !!snap.vk.on : null]   // KRX는 그날 자료를 다음 날 아침에 올림 → 날짜가 늦으면 기준일 표시
   ];
   anVkNow = snap.vk && snap.vk.stage != null ? snap.vk : null;
   const out = {};
