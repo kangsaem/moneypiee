@@ -9796,7 +9796,7 @@ function anDivDot(r){   // B-1: 고배당(미국채 10년보다 높음) 종목 �
   const g = anDivGap(r);
   return g && g.gap > 0 ? `<i class="an-dvdot" title="${anE(`배당 ${r.dy.pct.toFixed(2)}% · 미국채 10년 ${g.t.toFixed(2)}%보다 ${anS(g.gap, 2)}%p`)}"></i>` : '';
 }
-function anDivTag(r){
+function anDivTag(r){   // 누르면 칩과 같은 설명창(an-sigx·data-pop, 지표는 안 열림 — 모바일은 툴팁이 안 보여서, 2026-11-23)
   const dy = r.dy;
   if(!dy || !anOk(dy.pct)) return '';
   const g = anDivGap(r), hasT = !!g, t = g ? g.t : null, gap = g ? g.gap : null;
@@ -9806,7 +9806,7 @@ function anDivTag(r){
   L.push(dy.src === 'yahoo' ? `기준: 최근 12개월 배당 ${dy.n}회 합 ÷ ${anShort(dy.asof)} 종가 ${anPrice(dy.px)}`
        : dy.src === 'naver-etf' ? `기준: 네이버 ETF 최근 12개월 분배 수익률 (${anShort(dy.asof)} 받음)`
        : `기준: 네이버 배당수익률${dy.per ? ' · ' + dy.per + ' 결산 배당' : ''} (${anShort(dy.asof)} 받음)`);
-  return `<span class="an-mt an-dv${hasT && gap > 0 ? ' hi' : ''}" title="${anE(L.join(' · '))}">배당 ${(Math.round(dy.pct * 10 + 1e-9) / 10).toFixed(1)}%</span>`;
+  return `<span class="an-mt an-dv an-sigx${hasT && gap > 0 ? ' hi' : ''}" title="${anE(L.join(' · '))}" data-pop="${anE(L.join('\n'))}">배당 ${(Math.round(dy.pct * 10 + 1e-9) / 10).toFixed(1)}%</span>`;
 }
 function anMetricsHtml(r, side, lv, flags, emph){
   try{
