@@ -9927,7 +9927,7 @@ function anVkSvg(vk){   // 6개월: 위 VKOSPI · 아래 코스피 — 매일 �
   for(let i = 0; i < n; i++){ const s0 = st[i]; if(s0 !== '2' && s0 !== '3') continue; let j = i; while(j + 1 < n && st[j + 1] === s0) j++;
     sh += `<rect x="${x(i)}" y="0" width="${Math.max(x(j + (j + 1 < n ? 1 : 0)) - x(i), 2)}" height="176" fill="${AN_VK_SKY}" opacity="${s0 === '3' ? 0.24 : 0.09}"/>`; i = j; }
   let tl = '';
-  if(useT){ const ty = yv(thr); if(ty >= 14 && ty <= 84) tl = `<line x1="0" y1="${ty}" x2="${W}" y2="${ty}" stroke="${AN_VK_C}" stroke-width=".8" stroke-dasharray="3 3"/><text x="${W / 2}" y="${ty + (ty < 24 ? 9 : -3)}" font-size="8" fill="${AN_VK_C}" text-anchor="middle">급등 기준 ${thr.toFixed(1)}</text>`; }
+  if(useT){ const ty = yv(thr); if(ty >= 14 && ty <= 84) tl = `<line x1="0" y1="${ty}" x2="${W}" y2="${ty}" stroke="${AN_VK_C}" stroke-width=".8" stroke-dasharray="3 3"/><text x="${W - 2}" y="${ty + (ty < 24 ? 9 : -3)}" font-size="8" fill="${AN_VK_C}" text-anchor="end">급등 기준 ${thr.toFixed(1)}</text>`; }
   let pi = 0; v.forEach((a, i) => { if(ok(a) && a > v[pi]) pi = i; });
   const pr = x(pi) < W - 90, sd = s => s.slice(2).replace(/-/g, '.');
   const dotAt = (a, y, col) => ok(a) ? `<circle cx="${x(n - 1)}" cy="${y(a)}" r="3.5" fill="${col}" stroke="var(--surface)" stroke-width="1.5"/>` : '';
