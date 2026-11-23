@@ -9017,9 +9017,9 @@ function anMarketSignals(snap, results){
 }
 
 // ------------------------------------------------------------------ 시세 받기
-function anFromMap(map){
+function anFromMap(map, div){
   const keys = Array.from(map.keys()).sort();
-  return { dates: keys, close: keys.map(k => map.get(k)[0]), high: keys.map(k => map.get(k)[1]),
+  return { div: div || null, dates: keys, close: keys.map(k => map.get(k)[0]), high: keys.map(k => map.get(k)[1]),
            low: keys.map(k => map.get(k)[2]), vol: keys.map(k => map.get(k)[3]) };
 }
 
@@ -9063,7 +9063,10 @@ async function anFetchYahoo(sym, years){
   const nowSec = Date.now() / 1000;
   if(tp && lastTs != null && nowSec < tp.end && lastTs >= tp.start) map.delete(lastKey);
   if(map.size < 2) throw new Error('야후 데이터 부족');
-  return anFromMap(map);
+  const dv = r.events && r.events.dividends;   // 배당(2026-11-23): {ts: {amount, date}} — 없으면 빈 목록(= 배당 없음)
+  const div = dv ? Object.values(dv).filter(x => x && x.amount > 0 && x.date).map(x => [anFmtMs((x.date + off) * 1000), x.amount])
+                     .sort((a, b) => a[0] < b[0] ? -1 : 1) : [];
+  return anFromMap(map, div);
 }
 
 async function anFetchNaver(code, years){
@@ -9148,7 +9151,7 @@ function anLastClose(market){
 }
 
 // 캐시가 마지막 장 마감 이후 것이면 그대로, 아니면 새로 받음. 새로 못 받으면 예전 캐시라도 사용
-const AN_BARS_V = 2;    // 2 = 야후 마지막 날 빈 종가를 meta 가격으로 채움(2026-10-13)
+const AN_BARS_V = 3;    // 2 = 야후 마지막 날 빈 종가를 meta 가격으로 채움(2026-10-13) · 3 = 야후 배당 목록(div) 저장(2026-11-23)
 async function anGetBars(spec){
   const ck = 'bars3:' + spec.key;   // bars3 = bars2 + 저가·거래량(v1: 52주 저점·거래량 폭증). 예전 캐시는 버리고 새로 받음
   const cached = await anDB.get(ck);
@@ -9160,7 +9163,7 @@ async function anGetBars(spec){
   for(const f of spec.fetchers){
     try{
       const b = await f();
-      const rec = { dates: b.dates, close: b.close, high: b.high, low: b.low, vol: b.vol, fetchedAt: Date.now(), v: AN_BARS_V, src: spec.fetchers.indexOf(f) };   // src 0 = 첫 출처(국장 = 네이버)
+      const rec = { dates: b.dates, close: b.close, high: b.high, low: b.low, vol: b.vol, div: b.div || null, fetchedAt: Date.now(), v: AN_BARS_V, src: spec.fetchers.indexOf(f) };   // src 0 = 첫 출처(국장 = 네이버)
       await anDB.set(ck, rec);
       return rec;
     }catch(e){ lastErr = e; }
@@ -9553,6 +9556,7 @@ async function runAnalysis(){
           const r = anAnalyze(bars, spec.code, h.name);
           try{ zstock.push(Object.assign({ key: spec.key }, anZoneStock(bars))); }catch(e){}   /* 지수 차트 바닥·위험 구간 재계산용(2026-11-16) */
           r.key = spec.key;                          // 신호 기록에서 이 종목 시세 캐시를 다시 찾을 때 씀
+          try{ r.dy = anDivYield(bars); }catch(e){ r.dy = null; }   // 배당수익률(2026-11-23)
           r.market = spec.market;
           r.hname = h.name;
           try{ r.rs60 = anRelStrength(bars, (await benchP)[spec.market]); }catch(e){ r.rs60 = null; }
@@ -9732,6 +9736,26 @@ function anDispTag(d, prefix){
 }
 
 // 종목 한 줄 요약 태그. 조건에 걸린 태그는 굵은 테두리, 트리거에 걸린 태그는 바깥 윤곽선
+// 배당수익률(2026-11-23): 마지막 종가 날짜 기준 최근 12개월(365일) 배당 합 ÷ 마지막 종가. 배당 목록이 없으면(출처에 정보 없음) null, 12개월 합 0이면 null(칸 없음)
+function anDivYield(bars){
+  if(!bars || !Array.isArray(bars.div) || !bars.dates || !bars.dates.length) return null;
+  const last = bars.dates[bars.dates.length - 1], px = bars.close[bars.close.length - 1];
+  const t = Date.parse(last + 'T00:00:00Z'), from = anFmtMs(t - 365 * 864e5);
+  const got = bars.div.filter(([d]) => d > from && d <= last);
+  const sum = got.reduce((a, [, v]) => a + v, 0);
+  if(!(sum > 0) || !(px > 0)) return null;
+  return { pct: sum / px * 100, sum, n: got.length, px, asof: last, src: 'yahoo' };
+}
+function anDivTag(r){
+  const dy = r.dy;
+  if(!dy || !anOk(dy.pct)) return '';
+  const t = typeof marketData !== 'undefined' && marketData.us10y && marketData.us10y.price;
+  const hasT = anOk(t) && t > 0, gap = hasT ? dy.pct - t : null;
+  const L = [`배당 ${dy.pct.toFixed(2)}%`, `연 배당 ${anPrice(dy.sum)}`];
+  if(hasT) L.push(`미국채 10년 ${t.toFixed(2)}%보다 ${anS(gap, 2)}%p`);
+  L.push(`기준: 최근 12개월 배당 ${dy.n}회 합 ÷ ${anShort(dy.asof)} 종가 ${anPrice(dy.px)}`);
+  return `<span class="an-mt an-dv${hasT && gap > 0 ? ' hi' : ''}" title="${anE(L.join(' · '))}">배당 ${dy.pct.toFixed(1)}%</span>`;
+}
 function anMetricsHtml(r, side, lv, flags, emph){
   try{
     // 강조(굵은 테두리) = 이 판정에 쓰인 칸. 조건·트리거 구분 없이 한 모양, 매수·매도 종목일 때만
@@ -9752,6 +9776,7 @@ function anMetricsHtml(r, side, lv, flags, emph){
     nums.push(tag('high', `52주 고점 ${anS(r.from_high, 0)}%` + (anOk(r.from_low) ? ` / 저점 ${anS(r.from_low, 0)}%` : ''), 'n',
       `52주 최고가 ${anPrice(r.high52)}` + (anOk(r.low52) ? ` · 최저가 ${anPrice(r.low52)}` : '')));
     if(anOk(r.rs60)) nums.push(tag('', `상대강도 ${anS(r.rs60, 1)}%p`, r.rs60 >= 0 ? 'up' : 'dn', '최근 60거래일 수익률 - 지수 수익률'));
+    { const dv = anDivTag(r); if(dv) nums.push(dv); }
     // 2줄: 추세(일·주·월 정/역, 일봉 최근 크로스) + 플래그
     const tr = [];
     const c = r.day.ok && r.day.cross;
@@ -11082,6 +11107,7 @@ details.an-gauge[open] { display:flex; flex-direction:column; } details.an-gauge
 .an-hchip.h2 { background:var(--an-green2bg); } .an-hchip.h1 { background:var(--an-green1bg); font-weight:500; border-style:dashed; }
 .an-mt.an-bt { background:transparent; color:var(--an-up); border-color:var(--an-up); font-weight:700; }
 .an-mt.an-tp { background:transparent; color:var(--an-dn); border-color:var(--an-dn); font-weight:700; }
+.an-mt.an-dv.hi { background:transparent; color:#9BD266; border-color:#9BD266; }   /* 배당 > 미국채 10년(2026-11-23) */
 .an-chip.warn { background:var(--an-amberbg); color:var(--an-amber); border-color:var(--an-amber); font-weight:700; }
 .an-chip.hold2 { background:var(--an-green2bg); color:var(--an-green); border-color:var(--an-green); font-weight:700; }
 .an-chip.hold1 { background:var(--an-green1bg); color:var(--an-green); border-color:var(--an-green); }
