@@ -8742,7 +8742,7 @@ function anKs(b){
   const m200 = anRoll(s, 200)[n-1];
   return { close: s[n-1], disp: dd ? dd.cur : null, disp_max: dd ? dd.max : null, disp_min: dd ? dd.min : null,
            disp200: m200 ? s[n-1] / m200 * 100 : null,                // 200일선 이격도(위험 '장기 과열', 2026-11-16)
-           rsi: anRsi(s)[n-1], from_high: (s[n-1] / Math.max(...win) - 1) * 100, days_since_low: win.length - 1 - mi };
+           rsi: anRsi(s)[n-1], from_high: (s[n-1] / Math.max(...win) - 1) * 100, days_since_low: win.length - 1 - mi, date: b.dates[n-1] };
 }
 
 function anRateInfo(b){
@@ -8863,9 +8863,9 @@ function anCreditAt(d){   // 그날 이전 가장 가까운 신용잔고 기록 
   const h = anCreditHist; if(!h || !h.d || !h.d.length || d < h.d[0]) return -1;
   const k = anZoneAt(h.d, d); return k >= 0 && (Date.parse(d) - Date.parse(h.d[k])) <= 7 * 864e5 ? k : -1;
 }
-function anVkAt(d){   // 그날 이전 가장 가까운 VKOSPI 기록 위치(7일 넘게 떨어지면 없음 -1)
+function anVkAt(d){   // 그날 VKOSPI 기록 위치, 없으면 -1 (2026-11-23: 같은 날만 — KRX가 그날 자료를 다음 날 아침에 올려 전날 값으로 채우고 잠그던 것 막음)
   const h = anVkHist; if(!h || !h.d || !h.d.length || d < h.d[0]) return -1;
-  const k = anZoneAt(h.d, d); return k >= 0 && (Date.parse(d) - Date.parse(h.d[k])) <= 7 * 864e5 ? k : -1;
+  const k = anZoneAt(h.d, d); return k >= 0 && h.d[k] === d ? k : -1;
 }
 const AN_ZONE_FROM = '2025-06-01';   // 기록 없는 날 다시 계산하는 시작일(2026-11-16 사용자: 6월 1일부터)
 async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 최근 1년은 지금 기준으로 채움(한 번 채운 날은 그대로)
@@ -8879,7 +8879,7 @@ async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 �
   const last = b.d[b.d.length - 1], rm = mask(msig.risk.items), bm = mask(msig.bottom.items);
   const kt = anKstNow(), fin = d => kt.date > d || (kt.date === d && kt.hm >= 2000);   /* 국장 일봉 확정(20:00 KST) 뒤 첫 값으로 확정, 그 뒤로는 덮어쓰지 않음 */
   if(!(anMlog[last] && anMlog[last][7])){ anMlog[last] = [cnt(rm), cnt(bm), rm, bm, 'L', pf((msig.bottom.items[4] || [])[1]), pf((msig.risk.items[4] || [])[1]), fin(last) ? 1 : 0];
-    if(msig.bottom.items[5] && msig.bottom.items[5][2] != null) anMlog[last][10] = 1; }   /* VKOSPI 반영(2026-11-23) */
+    if(msig.bottom.items[5] && msig.bottom.items[5][2] != null && anVkNow && anVkNow.date === last) anMlog[last][10] = 1; }   /* VKOSPI 반영(2026-11-23) — 같은 날 자료일 때만(전날 값이면 다음에 다시 채움) */
   if(zs && zs.length){
     const c1 = new Date(Date.parse(last + 'T00:00:00Z') - 365 * 864e5).toISOString().slice(0, 10), cut = c1 < AN_ZONE_FROM ? c1 : AN_ZONE_FROM;   /* 최근 1년 또는 2025-06-01 중 더 이른 날부터 */
     b.d.forEach((d, i) => {
@@ -9018,14 +9018,14 @@ function anMarketSignals(snap, results){
     ['VIX 30 이상', vix ? anF(vix.last, 1) : '-', vix ? vix.last >= 30 : null],
     ['내 종목 30% 이상이 RSI 35 이하', weak != null ? pc(weak) : '-', weak != null ? weak >= 0.3 : null],
     // 6번째(2026-11-23): VKOSPI 꺾임 + 코스피 회복(3단계, 판정 = 리포트 market_report.vk_rule). 게이지에서 단계 점·그래프 팝업(anVkPopup)
-    [AN_VK_NAME, snap.vk && snap.vk.stage != null ? anF(snap.vk.last, 1) : '-', snap.vk && snap.vk.stage != null ? !!snap.vk.on : null]
+    [AN_VK_NAME, snap.vk && snap.vk.stage != null ? anF(snap.vk.last, 1) + (ks && ks.date && snap.vk.date && snap.vk.date < ks.date ? ` (${snap.vk.date.slice(5).replace('-', '/')} 기준)` : '') : '-', snap.vk && snap.vk.stage != null ? !!snap.vk.on : null]   // KRX는 그날 자료를 다음 날 아침에 올림 → 날짜가 늦으면 기준일 표시
   ];
   anVkNow = snap.vk && snap.vk.stage != null ? snap.vk : null;
   const out = {};
   [['risk', risk], ['bottom', bottom]].forEach(([key, items]) => {
     const score = items.filter(it => it[2]).length;
-    const total = items.filter(it => it[2] != null).length;
-    const [label, cls] = anLevel(score, items.length, key);   // 데이터 없는 항목도 분모에 포함
+    const total = items.length;   // 2026-11-23: 자료 없는 항목도 분모에(전엔 자료 있는 항목만 세어 5/5로 보임)
+    const [label, cls] = anLevel(score, total, key);
     out[key] = { items, score, total, label, cls };
   });
   return out;
