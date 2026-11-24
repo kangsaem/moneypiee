@@ -1,8 +1,13 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-24 12:20 (v2.11.0 — Scubob 전환) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-24 13:40 (v2.11.1) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.11.1 (2026-11-24) 상단 제목 = Scubob 로고 + 한 낱말, 달력 버튼 = 한 달 전체
+- .top h1: <span.ttlRow><img.ttlLogo 테두리 로고 원본><span data-i18n=h1>. '다이빙' 등 빼고 낱말만(사용자 '너무 길다'): 플래너/로그북, Planner/Logbook, プランナー/ログブック, Planer/Logbuch, Pianificatore/Logbook, Planificateur/Carnet, Planificador/Bitácora, 计划器/日志, 計畫器/日誌. TW 접두어 모두 ''. 로고 눌러도 시작 화면. 문서 제목(title)·시작 화면 문구는 그대로 'Scubob 다이빙 플래너'.
+- 일본어 좁은 화면 축소 규칙 2개 삭제(이제 짧아서 불필요). 360·375px 9개 언어 한 줄.
+- ◀달력: 반접기(LBF=1, 한 주)였으면 LBF=0으로 펼친 뒤 달력 → 늘 한 달 전체(31칸 확인).
 
 ## v2.11.0 (2026-11-24) DTMD → Scubob 이름·색·아이콘(브랜드 키트 SCUBOB_BRAND_HANDOFF.md 기준)
 - 화면 이름: 보이는 'DTMD' 111곳 → 'Scubob'(9개 언어 제목·시작 화면·홈 화면 안내·로그 파일 문구·공유 페이지·plan/dive/dtmd.html). 안쪽은 그대로: fitDTMD, 백업 JSON 표시 app:'DTMD', 저장 키 scuba_*, id dtmd-sample, IndexedDB 이름, 파일 이름 dtmd-*.html·dtmd*.webmanifest·dtmd-*.png(주소 유지, 사용자 ④).

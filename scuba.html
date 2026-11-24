@@ -173,7 +173,7 @@ button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .tabs .chip{border-radius:999px;padding:4px 7px;font-size:11px;color:var(--mute);background:#f3f4f6;border-color:#e5e7eb}.tabs .chip.fixed{height:32px;box-sizing:border-box;border-radius:6px;padding:0 10px!important;font-size:12px;background:#fff;color:#4b5563;border:1px solid var(--line);cursor:default;display:inline-flex;align-items:center;pointer-events:none}/* 로그북 모드 수면휴식: 고칠 수 없는 자동 값 */
 .tabs .add{border-style:dashed;color:var(--mute)}
 /* 다이빙 탭·추가 버튼: 높이 = '현재 로그 저장' 버튼 높이(32px), 폭은 글자에 맞게(좌우 여백 14px). 플래너 모드의 선택 탭은 회색 */.tabs .tab,.tabs .add{justify-content:center;padding-left:14px!important;padding-right:14px!important}#tabsCard:not(.lbMode) .tabs .tab.on{background:#6b7280;border-color:#6b7280;color:#fff}.tabs .tab,.tabs .add{height:32px;box-sizing:border-box;padding-top:0;padding-bottom:0;display:inline-flex;align-items:center}#tabsCard{padding-top:6px;padding-bottom:6px}.tabs .add{width:32px;padding:0!important;font-size:12px!important;line-height:1}/* 다이빙 추가 = 정사각형 +, 글자 크기는 배속 버튼(1×)과 같게 */
-/* 작은 버튼 높이 26px 통일: 튜토리얼 · KR/EN/JP · 수면 기준/쉐어워터식 */.tutBtn{height:26px!important}.windyBtn{display:inline-flex;align-items:center;gap:3px;height:26px;box-sizing:border-box;padding:0 8px;margin-right:6px;border:1px solid rgba(255,255,255,.55);border-radius:4px;color:#fff;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;background:rgba(255,255,255,.08)}.windyBtn:active{background:rgba(255,255,255,.25)}@media (max-width:429px){.windyBtn{padding:0 6px}.windyBtn .wbT{display:none}.windyBtn svg{width:15px;height:15px}}/* 좁은 폰: 아이콘만(제목이 두 줄로 넘어가지 않게) */@media (max-width:379px){.windyBtn{padding:0 4px;margin-right:4px}}@media (max-width:389px){html[lang=ja] .top .ttl [data-i18n=h1]{font-size:.88em;letter-spacing:-.02em}}/* 일본어 제목이 좁은 아이폰(375)에서 두 줄 되지 않게 */.lang button,.bmode button{height:26px;box-sizing:border-box;padding-top:0;padding-bottom:0;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+/* 작은 버튼 높이 26px 통일: 튜토리얼 · KR/EN/JP · 수면 기준/쉐어워터식 */.tutBtn{height:26px!important}.windyBtn{display:inline-flex;align-items:center;gap:3px;height:26px;box-sizing:border-box;padding:0 8px;margin-right:6px;border:1px solid rgba(255,255,255,.55);border-radius:4px;color:#fff;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;background:rgba(255,255,255,.08)}.windyBtn:active{background:rgba(255,255,255,.25)}@media (max-width:429px){.windyBtn{padding:0 6px}.windyBtn .wbT{display:none}.windyBtn svg{width:15px;height:15px}}/* 좁은 폰: 아이콘만(제목이 두 줄로 넘어가지 않게) */@media (max-width:379px){.windyBtn{padding:0 4px;margin-right:4px}}.lang button,.bmode button{height:26px;box-sizing:border-box;padding-top:0;padding-bottom:0;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overscroll-behavior:contain}
 html,body{overflow-x:clip}.wrap{overflow-x:clip}
 .legend{display:flex;flex-wrap:wrap;gap:4px 11px;font-size:12px;color:var(--mute);margin-top:8px}
@@ -254,6 +254,8 @@ button:not(.fitJ):not(#spTut):not(.setHead){font-weight:400!important}.lang butt
 #saveMenu .svNote{max-width:240px;padding:6px 10px 4px;font-size:11px;line-height:1.45;color:#6b7280;white-space:normal}
 #logMemo{display:block;min-height:120px;overflow-y:auto}.memoBox .phRow{background:#fff;left:1px;right:1px;bottom:1px;padding:5px;border-radius:0 0 7px 7px}/* 메모 칸 높이 = 내용에 맞춤(최소 120px, 최대 화면 60%, 넘으면 칸 안 스크롤) 11/11 */
 #dvNo{position:absolute;top:7px;right:10px;font-size:12px;font-weight:700;color:#1b4277;pointer-events:none;z-index:2}#dvNo.pend{opacity:.45}.memoBox{position:relative}
+
+/* 11/24 제목 앞 Scubob 로고(테두리, 원본) */.ttlRow{display:inline-flex;align-items:center;gap:.4em}.ttlLogo{height:1.32em;width:auto;display:block;flex:none;margin-top:-.3em}
 </style>
 <style>
 html.spl body>*:not(#splash){visibility:hidden}/* 시작 화면에서도 광고(#adTop)를 맨 위에 보이게(애드핏 심사·노출) 11/13 */html.spl #adTop{position:fixed;top:max(6px,env(safe-area-inset-top));left:0;right:0;z-index:101;visibility:visible;margin:0}html.spl #splash{padding-top:calc(max(16px,env(safe-area-inset-top)) + 58px)!important}html.spl body{min-height:calc(100vh + 2px);min-height:calc(100lvh + 2px)}/* 아이폰: 뒤 본문이 화면보다 짧으면(탭 접힘 등) 시작 화면 아래가 안 그려짐 → 시작 화면 동안 본문을 항상 화면보다 조금 길게 */
@@ -280,7 +282,7 @@ html.spl body>*:not(#splash){visibility:hidden}/* 시작 화면에서도 광고(
 </head>
 <body>
 <div id="splash"><video class="spVid" src="scuba-splash.mp4?v=2" muted autoplay loop playsinline preload="auto" aria-hidden="true" disablepictureinpicture></video><div class="spMid"><div class="sp3" id="spDtmd" style="font-weight:400"><img src="/scubob-logo-outline.svg" alt="Scubob" style="width:min(200px,52vw);height:auto;display:block;margin:0 auto"></div><button id="spTut"><span class="spPlay"><svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="sp1">튜토리얼</span><span class="sp2">3분</span></button><button class="sp3" id="spName" tabindex="-1">Scubob 다이빙 플래너 / 로그북</button><div class="spFoot"><button id="spReload" title="최신 버전으로 새로고침" aria-label="reload"><span>↻</span></button><span id="spVer"></span><button id="spApp" hidden></button></div></div><div id="spGo"><button id="spPlan">플래너</button><button id="spLog">로그북</button></div></div>
-<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.11.0';</script>
+<script>/* 앱 버전: 올릴 때마다 끝자리 +1(큰 기능은 가운데 자리) — SCUBA_HANDOFF.md 규칙 */const APP_VER='2.11.1';</script>
 <script>/* 설치 창(안드로이드·PC 크롬): 이벤트를 잡아 두었다가 [앱으로 쓰기]에서 띄움 */window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.__bip=e;window.__spAppSync&&window.__spAppSync();});</script>
 <script>/* 앱 파일을 다 받기 전에도 시작 화면 버튼이 바로 반응: 고른 것을 기억해 두고 준비되면 들어감 */(function(){const pk=k=>e=>{if(window.__spReady)return;window.__spPick=k;document.querySelectorAll('#spGo button').forEach(b=>b.classList.toggle('pk',b===e.currentTarget));};document.getElementById('spLog').addEventListener('click',pk('log'));document.getElementById('spPlan').addEventListener('click',pk('plan'));})();</script>
 <script>/* v2.6.1 언어를 앱 코드보다 먼저 정함(규칙은 여기 한 곳): ① 주소 #ko·#en·#ja·#de·#es·#zh·#tw·#it·#fr(·-log) ② 사용자가 고른 언어(scuba_lang) ③ 기기 언어(navigator.languages, 번체 zh-TW·HK·MO·Hant = tw(번체·대만식, v2.9.0)) ④ 영어. 검색 로봇·자동화 브라우저 = 한국어.
@@ -302,9 +304,9 @@ html.spl body>*:not(#splash){visibility:hidden}/* 시작 화면에서도 광고(
 <div class="wrap">
 <!-- 카카오 애드핏 상단 광고(320×50). 휴대폰 가로·인쇄에서는 숨김 -->
 <div id="adTop"><ins class="kakao_ad_area" style="display:none;" data-ad-unit="DAN-blDFwvjdoelHWCGb" data-ad-width="320" data-ad-height="50"></ins><script type="text/javascript" src="//t1.kakaocdn.net/kas/static/ba.min.js" async></script></div>
-<div class="top"><h1 class="ttl"><span data-i18n="h1">Scubob 다이빙 플래너</span></h1><span style="display:inline-flex;align-items:center"><a class="windyBtn" id="windyBtn" href="https://www.windy.com/?wind" target="_blank" rel="noopener" aria-label="Windy wind forecast"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M1 6h8.5a2.2 2.2 0 1 0-2.2-2.2M1 9.5h11a2.2 2.2 0 1 1-2.2 2.2M1 13h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="wbT">Windy</span></a><button class="tutBtn" id="modeBtn">로그북</button><span class="lang langDD"><button id="langBtn" aria-haspopup="true" aria-expanded="false">KR ▾</button><span id="langMenu" hidden><button data-lang="ko">한국어</button><button data-lang="en">English</button><button data-lang="ja">日本語</button><button data-lang="de">Deutsch</button><button data-lang="es">Español</button><button data-lang="zh">简体中文</button><button data-lang="tw">繁體中文</button><button data-lang="it">Italiano</button><button data-lang="fr">Français</button></span></span></span></div>
+<div class="top"><h1 class="ttl"><span class="ttlRow"><img class="ttlLogo" src="/scubob-logo-outline.svg" alt="Scubob" width="78" height="27"><span data-i18n="h1">플래너</span></span></h1><span style="display:inline-flex;align-items:center"><a class="windyBtn" id="windyBtn" href="https://www.windy.com/?wind" target="_blank" rel="noopener" aria-label="Windy wind forecast"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M1 6h8.5a2.2 2.2 0 1 0-2.2-2.2M1 9.5h11a2.2 2.2 0 1 1-2.2 2.2M1 13h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="wbT">Windy</span></a><button class="tutBtn" id="modeBtn">로그북</button><span class="lang langDD"><button id="langBtn" aria-haspopup="true" aria-expanded="false">KR ▾</button><span id="langMenu" hidden><button data-lang="ko">한국어</button><button data-lang="en">English</button><button data-lang="ja">日本語</button><button data-lang="de">Deutsch</button><button data-lang="es">Español</button><button data-lang="zh">简体中文</button><button data-lang="tw">繁體中文</button><button data-lang="it">Italiano</button><button data-lang="fr">Français</button></span></span></span></div>
 <script>/* Scubob 로고(데이터·포토 로그 이미지용) 미리 불러오기 */(function(){try{const a=new Image(),b=new Image();a.src='/scubob-logo-navy.svg';b.src='/scubob-logo-outline.svg';window.__sbLogo={n:a,o:b};}catch(e){}})();</script>
-<script>/* v2.6.1 상단 이름·[로그북] 버튼도 첫 화면부터 그 언어로 */(function(){const T=window.__T0;if(!T||window.__L0==='ko')return;const h=document.querySelector('.top .ttl [data-i18n=h1]');if(h)h.textContent=T[0];const b=document.getElementById('modeBtn');if(b)b.textContent=T[5];})();</script>
+<script>/* v2.6.1 상단 이름·[로그북] 버튼도 첫 화면부터 그 언어로 */(function(){const T=window.__T0;if(!T||window.__L0==='ko')return;const h=document.querySelector('.top .ttl [data-i18n=h1]');if(h)h.textContent=T[4];const b=document.getElementById('modeBtn');if(b)b.textContent=T[5];})();</script>
 <div id="mainGrid"><div class="colL">
 <div class="ruleWrap" id="ruleWrap"><div><div class="rule" id="ruleBox">
   <div data-i18n="rule1">1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small></div>
@@ -465,7 +467,7 @@ html.spl body>*:not(#splash){visibility:hidden}/* 시작 화면에서도 광고(
 const I18N={
 ko:{
  /* 인라인 분기 정리(v2.5.1) */u_mpIn:'지도를 눌러 입수 지점 지정',u_mpOut:'지도를 눌러 출수 지점 지정',u_mpDel:'지울 점을 누르세요',u_mpMvIn:'입수 점을 옮길 곳을 누르세요',u_mpMvOut:'출수 점을 옮길 곳을 누르세요',u_monW:i=>`${i}<small>월</small>`,u_locNF:'위치를 찾지 못했어요',u_map:'지도',u_photo:'사진',u_noWarn:'경고 없음',u_min:'분',u_endGas:'출수 잔압 ',u_dive:'다이빙 ',u_entry:'입수',u_exit:'출수',u_suit:'슈트 ',u_vis:'시야 ',u_hr:'시',u_mn:'분',u_dataLog:'데이터 로그',u_unsaved:'저장 전',u_edUnsaved:'수정 중 · 저장 전',u_Entry:'입수',u_Exit:'출수',u_del:'삭제',u_freeNo:'프리다이빙 기록이라 불러오지 않았어요.',u_locL:'위치: ',u_water:'수온 ',u_locPt:'입수·출수 지점',
- title:'Scubob 다이빙 플래너',h1:'Scubob 다이빙 플래너',
+ title:'Scubob 다이빙 플래너',h1:'플래너',
  rule1:'1. 핑크색 천장이 안 나오게 할 것 <small>= 무감압 다이빙</small>',rule2:'2. 핑크색 천장이 나온다면 침범하지 말 것 <small>= 감압 다이빙</small>',
  settings:'⚙ 설정',alt:'고도',sealevel:'0 m',custom:'직접 입력',water:'수질',salt:'해수',fresh:'담수',gas:'기체',air21:'공기',
  cons:'보수',consH:'높음 (GF 35/75)',consM:'중간 (GF 40/85)',consL:'낮음 (GF 45/95)',consC:'직접 입력',asc:'상승',mpm:()=>(isFt()?'ft':'m')+'/분',
@@ -527,7 +529,7 @@ ko:{
 },
 en:{
  /* 인라인 분기 정리(v2.5.1) */u_mpIn:'Tap the map to set the entry point',u_mpOut:'Tap the map to set the exit point',u_mpDel:'Tap the point to delete',u_mpMvIn:'Tap where to move the entry point',u_mpMvOut:'Tap where to move the exit point',u_monW:i=>String(i),u_locNF:'Location not found',u_map:'Map',u_photo:'Photo',u_noWarn:'No warnings',u_min:'min',u_endGas:'End gas ',u_dive:'Dive ',u_entry:'entry',u_exit:'exit',u_suit:'Suit ',u_vis:'Vis ',u_hr:'h',u_mn:'m',u_dataLog:'Data log',u_unsaved:'not saved',u_edUnsaved:'edited · not saved',u_Entry:'Entry',u_Exit:'Exit',u_del:'Delete',u_freeNo:'Freediving record – not imported.',u_locL:'Location: ',u_water:'Water ',u_locPt:'Entry/exit point',
- title:'Scubob Dive Planner',h1:'Scubob Dive Planner',
+ title:'Scubob Dive Planner',h1:'Planner',
  rule1:'1. Keep the pink ceiling from appearing <small>= no-decompression dive</small>',rule2:'2. If the pink ceiling appears, never cross it <small>= decompression dive</small>',
  settings:'⚙ Settings',alt:'Altitude',sealevel:'0 m',custom:'Custom',water:'Water type',salt:'Salt',fresh:'Fresh',gas:'Gas',air21:'Air',
  cons:'Conservatism',consH:'High (GF 35/75)',consM:'Medium (GF 40/85)',consL:'Low (GF 45/95)',consC:'Custom',asc:'Ascent rate',mpm:()=>(isFt()?'ft':'m')+'/min',
@@ -589,7 +591,7 @@ en:{
 },
 ja:{
  /* 인라인 분기 정리(v2.5.1) */u_mpIn:'地図をタップしてエントリー地点を指定',u_mpOut:'地図をタップしてエキジット地点を指定',u_mpDel:'削除する点をタップ',u_mpMvIn:'エントリー地点の移動先をタップ',u_mpMvOut:'エキジット地点の移動先をタップ',u_monW:i=>`${i}<small>月</small>`,u_locNF:'場所が見つかりません',u_map:'地図',u_photo:'写真',u_noWarn:'警告なし',u_min:'分',u_endGas:'浮上時残圧 ',u_dive:'ダイブ ',u_entry:'エントリー',u_exit:'エキジット',u_suit:'スーツ ',u_vis:'透明度 ',u_hr:'時',u_mn:'分',u_dataLog:'データログ',u_unsaved:'未保存',u_edUnsaved:'編集中・未保存',u_Entry:'エントリー',u_Exit:'エキジット',u_del:'削除',u_freeNo:'フリーダイビングの記録のため読み込みません。',u_locL:'位置: ',u_water:'水温 ',u_locPt:'エントリー/エキジット地点',
- title:'Scubob ダイブプランナー',h1:'Scubob ダイブプランナー',
+ title:'Scubob ダイブプランナー',h1:'プランナー',
  rule1:'1. ピンクのシーリングを出さないこと <small>= 無減圧潜水</small>',rule2:'2. ピンクのシーリングが出たら絶対に越えないこと <small>= 減圧潜水</small>',
  settings:'⚙ 設定',alt:'標高',sealevel:'0 m',custom:'直接入力',water:'水の種類',salt:'海水',fresh:'淡水',gas:'ガス',air21:'空気',
  cons:'保守性',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'直接入力',asc:'浮上速度',mpm:()=>(isFt()?'ft':'m')+'/分',
@@ -651,7 +653,7 @@ ja:{
 },
 de:{
  /* 인라인 분기 정리(v2.5.1) */u_mpIn:'Tippe auf die Karte, um den Einstiegspunkt zu setzen',u_mpOut:'Tippe auf die Karte, um den Ausstiegspunkt zu setzen',u_mpDel:'Tippe auf den zu löschenden Punkt',u_mpMvIn:'Tippe auf die neue Stelle für den Einstiegspunkt',u_mpMvOut:'Tippe auf die neue Stelle für den Ausstiegspunkt',u_monW:i=>String(i),u_locNF:'Ort nicht gefunden',u_map:'Karte',u_photo:'Foto',u_noWarn:'Keine Warnungen',u_min:'min',u_endGas:'Restdruck ',u_dive:'TG ',u_entry:'Einstieg',u_exit:'Ausstieg',u_suit:'Anzug ',u_vis:'Sicht ',u_hr:'h',u_mn:'m',u_dataLog:'Datenlog',u_unsaved:'nicht gespeichert',u_edUnsaved:'bearbeitet · nicht gespeichert',u_Entry:'Einstieg',u_Exit:'Ausstieg',u_del:'Löschen',u_freeNo:'Apnoe-Aufzeichnung – nicht importiert.',u_locL:'Standort: ',u_water:'Wasser ',u_locPt:'Ein-/Ausstiegspunkt',
- title:'Scubob Tauchplaner',h1:'Scubob Tauchplaner',
+ title:'Scubob Tauchplaner',h1:'Planer',
  rule1:'1. Lass die rosa Decke gar nicht erst entstehen <small>= Nullzeittauchgang</small>',rule2:'2. Erscheint die rosa Decke, überschreite sie nie <small>= Dekotauchgang</small>',
  settings:'⚙ Einstellungen',alt:'Höhe',sealevel:'0 m',custom:'Eigene',water:'Wasser',salt:'Salz',fresh:'Süß',gas:'Gas',air21:'Luft',
  cons:'Konservativität',consH:'Hoch (GF 35/75)',consM:'Mittel (GF 40/85)',consL:'Niedrig (GF 45/95)',consC:'Eigene',asc:'Aufstieg',mpm:()=>(isFt()?'ft':'m')+'/min',
@@ -712,7 +714,7 @@ de:{
  }
 },it:{
  /* 인라인 분기 정리(v2.5.1) */u_mpIn:'Tocca la mappa per il punto di entrata',u_mpOut:'Tocca la mappa per il punto di uscita',u_mpDel:'Tocca il punto da eliminare',u_mpMvIn:'Tocca dove spostare il punto di entrata',u_mpMvOut:'Tocca dove spostare il punto di uscita',u_monW:i=>String(i),u_locNF:'Luogo non trovato',u_map:'Mappa',u_photo:'Foto',u_noWarn:'Nessun avviso',u_min:'min',u_endGas:'Aria finale ',u_dive:'Immersione ',u_entry:'entrata',u_exit:'uscita',u_suit:'Muta ',u_vis:'Visib. ',u_hr:'h',u_mn:'m',u_dataLog:'Log dati',u_unsaved:'non salvato',u_edUnsaved:'modificato · non salvato',u_Entry:'Entrata',u_Exit:'Uscita',u_del:'Elimina',u_freeNo:'Registro di apnea – non importato.',u_locL:'Luogo: ',u_water:'Acqua ',u_locPt:'Punto di entrata/uscita',
- title:'Scubob Pianificatore immersioni',h1:'Scubob Pianificatore immersioni',
+ title:'Scubob Pianificatore immersioni',h1:'Pianificatore',
  rule1:'1. Non far comparire il ceiling rosa <small>= immersione in curva</small>',rule2:'2. Se il ceiling rosa compare, non attraversarlo mai <small>= immersione con decompressione</small>',
  settings:'⚙ Impostazioni',alt:'Altitudine',sealevel:'0 m',custom:'Personalizzato',water:'Tipo di acqua',salt:'Salata',fresh:'Dolce',gas:'Gas',air21:'Aria',
  cons:'Conservatività',consH:'Alta (GF 35/75)',consM:'Media (GF 40/85)',consL:'Bassa (GF 45/95)',consC:'Personalizzata',asc:'Velocità di risalita',mpm:()=>(isFt()?'ft':'m')+'/min',
@@ -773,7 +775,7 @@ de:{
  }
 },fr:{
  /* 인라인 분기 정리(v2.5.1) */u_mpIn:'Touchez la carte pour placer le point d’entrée',u_mpOut:'Touchez la carte pour placer le point de sortie',u_mpDel:'Touchez le point à supprimer',u_mpMvIn:'Touchez l’endroit où déplacer le point d’entrée',u_mpMvOut:'Touchez l’endroit où déplacer le point de sortie',u_monW:i=>String(i),u_locNF:'Lieu introuvable',u_map:'Carte',u_photo:'Photo',u_noWarn:'Aucun avertissement',u_min:'min',u_endGas:'Air final ',u_dive:'Plongée ',u_entry:'entrée',u_exit:'sortie',u_suit:'Combi ',u_vis:'Visi ',u_hr:'h',u_mn:'m',u_dataLog:'Journal de données',u_unsaved:'non enregistrée',u_edUnsaved:'modifiée · non enregistrée',u_Entry:'Entrée',u_Exit:'Sortie',u_del:'Supprimer',u_freeNo:'Enregistrement d’apnée – non importé.',u_locL:'Lieu : ',u_water:'Eau ',u_locPt:'Point d’entrée/sortie',
- title:'Scubob Planificateur de plongée',h1:'Scubob Planificateur de plongée',
+ title:'Scubob Planificateur de plongée',h1:'Planificateur',
  rule1:'1. Ne laissez pas apparaître le plafond rose <small>= plongée sans palier</small>',rule2:'2. Si le plafond rose apparaît, ne le franchissez jamais <small>= plongée avec décompression</small>',
  settings:'⚙ Réglages',alt:'Altitude',sealevel:'0 m',custom:'Personnalisé',water:'Type d’eau',salt:'Mer',fresh:'Douce',gas:'Gaz',air21:'Air',
  cons:'Conservatisme',consH:'Élevé (GF 35/75)',consM:'Moyen (GF 40/85)',consL:'Faible (GF 45/95)',consC:'Personnalisé',asc:'Vitesse de remontée',mpm:()=>(isFt()?'ft':'m')+'/min',
@@ -835,7 +837,7 @@ de:{
 },
 es:{
  /* 인라인 분기 정리(v2.5.1) */u_mpIn:'Toca el mapa para fijar el punto de entrada',u_mpOut:'Toca el mapa para fijar el punto de salida',u_mpDel:'Toca el punto que quieres borrar',u_mpMvIn:'Toca dónde mover el punto de entrada',u_mpMvOut:'Toca dónde mover el punto de salida',u_monW:i=>String(i),u_locNF:'Ubicación no encontrada',u_map:'Mapa',u_photo:'Foto',u_noWarn:'Sin avisos',u_min:'min',u_endGas:'Presión final ',u_dive:'Inmersión ',u_entry:'entrada',u_exit:'salida',u_suit:'Traje ',u_vis:'Visib. ',u_hr:'h',u_mn:'m',u_dataLog:'Datos',u_unsaved:'sin guardar',u_edUnsaved:'editado · sin guardar',u_Entry:'Entrada',u_Exit:'Salida',u_del:'Borrar',u_freeNo:'Registro de apnea: no se importa.',u_locL:'Ubicación: ',u_water:'Agua ',u_locPt:'Punto de entrada/salida',
- title:'Scubob Planificador de buceo',h1:'Scubob Planificador de buceo',
+ title:'Scubob Planificador de buceo',h1:'Planificador',
  rule1:'1. Que no aparezca el techo rosa <small>= inmersión sin descompresión</small>',rule2:'2. Si aparece el techo rosa, no lo cruces nunca <small>= inmersión con descompresión</small>',
  settings:'⚙ Ajustes',alt:'Altitud',sealevel:'0 m',custom:'Personalizado',water:'Agua',salt:'Salada',fresh:'Dulce',gas:'Gas',air21:'Aire',
  cons:'Conservadurismo',consH:'Alto (GF 35/75)',consM:'Medio (GF 40/85)',consL:'Bajo (GF 45/95)',consC:'Personalizado',asc:'Ascenso',mpm:()=>(isFt()?'ft':'m')+'/min',
@@ -897,7 +899,7 @@ es:{
 },
 zh:{
  /* 인라인 분기 정리(v2.5.1) */u_mpIn:'点击地图设置入水点',u_mpOut:'点击地图设置出水点',u_mpDel:'点击要删除的点',u_mpMvIn:'点击入水点的新位置',u_mpMvOut:'点击出水点的新位置',u_monW:i=>`${i}<small>月</small>`,u_locNF:'找不到位置',u_map:'地图',u_photo:'照片',u_noWarn:'无警告',u_min:'分',u_endGas:'出水余压 ',u_dive:'潜水 ',u_entry:'入水',u_exit:'出水',u_suit:'潜水服 ',u_vis:'能见度 ',u_hr:'时',u_mn:'分',u_dataLog:'数据日志',u_unsaved:'未保存',u_edUnsaved:'已修改 · 未保存',u_Entry:'入水',u_Exit:'出水',u_del:'删除',u_freeNo:'自由潜记录，不导入。',u_locL:'位置: ',u_water:'水温 ',u_locPt:'入水/出水点',
- title:'Scubob 潜水计划器',h1:'Scubob 潜水计划器',
+ title:'Scubob 潜水计划器',h1:'计划器',
  rule1:'1. 不要让粉色天花板出现 <small>= 免减压潜水</small>',rule2:'2. 若出现粉色天花板，绝不能越过 <small>= 减压潜水</small>',
  settings:'⚙ 设置',alt:'海拔',sealevel:'0 m',custom:'自定义',water:'水质',salt:'海水',fresh:'淡水',gas:'气体',air21:'空气',
  cons:'保守度',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'自定义',asc:'上升',mpm:()=>(isFt()?'ft':'m')+'/分',
@@ -958,7 +960,7 @@ zh:{
  }
 },tw:{
  /* 인라인 분기 정리(v2.5.1) */u_mpIn:'點選地圖設定入水點',u_mpOut:'點選地圖設定出水點',u_mpDel:'點選要刪除的點',u_mpMvIn:'點選入水點的新位置',u_mpMvOut:'點選出水點的新位置',u_monW:i=>`${i}<small>月</small>`,u_locNF:'找不到位置',u_map:'地圖',u_photo:'照片',u_noWarn:'無警告',u_min:'分',u_endGas:'出水餘壓 ',u_dive:'潛水 ',u_entry:'入水',u_exit:'出水',u_suit:'潛水服 ',u_vis:'能見度 ',u_hr:'時',u_mn:'分',u_dataLog:'資料日誌',u_unsaved:'未儲存',u_edUnsaved:'已修改 · 未儲存',u_Entry:'入水',u_Exit:'出水',u_del:'刪除',u_freeNo:'自由潛記錄，不匯入。',u_locL:'位置: ',u_water:'水溫 ',u_locPt:'入水/出水點',
- title:'Scubob 潛水計畫器',h1:'Scubob 潛水計畫器',
+ title:'Scubob 潛水計畫器',h1:'計畫器',
  rule1:'1. 不要讓粉色天花板出現 <small>= 免減壓潛水</small>',rule2:'2. 若出現粉色天花板，絕不能越過 <small>= 減壓潛水</small>',
  settings:'⚙ 設定',alt:'海拔',sealevel:'0 m',custom:'自訂',water:'水質',salt:'海水',fresh:'淡水',gas:'氣體',air21:'空氣',
  cons:'保守度',consH:'高 (GF 35/75)',consM:'中 (GF 40/85)',consL:'低 (GF 45/95)',consC:'自訂',asc:'上升',mpm:()=>(isFt()?'ft':'m')+'/分',
@@ -2141,7 +2143,8 @@ window.startTutorial=start;window.endTutorial=()=>{if(ON)end();};
     window.showSplash=()=>{window.endTutorial&&window.endTutorial();spLang();sp.style.display='flex';document.documentElement.classList.add('spl');sp.classList.remove('out');document.documentElement.style.background='#0f2a3d';window.scrollTo(0,0);vPlay();};
   const t=document.querySelector('.ttl');if(t){t.style.cursor='pointer';const bar=t.querySelector('.dtmd'),tt=t.querySelector('[data-i18n=h1]');
     if(bar)bar.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});
-    if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});}
+    if(tt)tt.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest&&e.target.closest('.fw')){window.toggleLogbook&&window.toggleLogbook();}else window.showSplash();});
+    const lgo=t.querySelector('.ttlLogo');if(lgo)lgo.addEventListener('click',e=>{e.stopPropagation();window.showSplash();});}
   spLang();if(toLog)close('route');
   /* 아래 두 버튼: 고른 모드로 바로 들어감(뒤집기 없이, 시작 화면 뒤에서 바꾼 뒤 닫음) */
   const goLog=why=>{try{if(window.toLogInstant)window.toLogInstant();}catch(e){console.error(e);}setTimeout(()=>close(why||'로그북'),60);};
@@ -2579,7 +2582,7 @@ const ymd=()=>Y+'-'+pad(M)+'-'+pad(D),tmin=s=>{if(!s)return null;const [h,m]=s.s
 // --- 상단 제목 플립
 const TT=document.querySelector('.ttl [data-i18n="h1"]');let flipT=0;
 // '플래너' 낱말만 뒤집힘, 앞부분(Scubob 다이빙)은 고정
-const TW=()=>LX({de:['Scubob ','Tauchplaner','Logbuch'],it:['Scubob ','Pianificatore','Logbook'],fr:['Scubob ','Planificateur','Carnet'],es:['Scubob ','Planificador','Bitácora'],zh:['Scubob 潜水','计划器','日志'],tw:['Scubob 潛水','計畫器','日誌'],en:['Scubob Dive ','Planner','Logbook'],ja:['Scubob ダイブ','プランナー','ログブック'],ko:['Scubob 다이빙 ','플래너','로그북']});
+const TW=()=>LX({de:['','Planer','Logbuch'],it:['','Pianificatore','Logbook'],fr:['','Planificateur','Carnet'],es:['','Planificador','Bitácora'],zh:['','计划器','日志'],tw:['','計畫器','日誌'],en:['','Planner','Logbook'],ja:['','プランナー','ログブック'],ko:['','플래너','로그북']});/* 11/24 '다이빙' 등 빼고 로고 + 한 낱말 */
 function setTitle(anim){{const mb=document.getElementById('modeBtn');if(mb){mb.textContent=open?TW()[1]:TW()[2];mb.classList.toggle('toLog',!open);}}if(!TT)return;const [pre,a,b]=TW(),word=open?b:a;let fw=TT.querySelector('.fw');
   if(!fw||!TT.textContent.startsWith(pre)){TT.innerHTML='';TT.appendChild(document.createTextNode(pre));fw=document.createElement('span');fw.className='fw';fw.textContent=word;TT.appendChild(fw);window.fitDTMD&&fitDTMD();return;}
   if(fw.textContent===word)return;if(!anim||document.documentElement.classList.contains('noAnim')){fw.textContent=word;window.fitDTMD&&fitDTMD();return;}
@@ -3066,7 +3069,7 @@ const calKey=()=>CALW&&WK0?+new Date(WK0):vy*12+vm;
 $('calPrev').onclick=()=>slideCal(-1,()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()-7);wkSetMonth();renderCal();return;}vm--;if(vm<1){vm=12;vy--;}renderCal();});
 $('calNext').onclick=()=>slideCal(1,()=>{if(CALW){WK0=new Date(WK0);WK0.setDate(WK0.getDate()+7);wkSetMonth();renderCal();return;}vm++;if(vm>12){vm=1;vy++;}renderCal();});
 
-$('logBack').onclick=async()=>{if(!await leaveOK())return;vy=Y;vm=M;WK0=wkOf(Y,M,D);if(CUR){CJ=ymd();EDIT=null;WKEY='';applyLog(CUR,true,S.cur);}/* 달력으로 가면 저장 안 한 변경은 되돌림 */
+$('logBack').onclick=async()=>{if(!await leaveOK())return;vy=Y;vm=M;WK0=wkOf(Y,M,D);if(LBF===1){LBF=0;applyLBF(false);}/* 11/24 달력 버튼 = 늘 한 달 전체(반접기였으면 펼침) */if(CUR){CJ=ymd();EDIT=null;WKEY='';applyLog(CUR,true,S.cur);}/* 달력으로 가면 저장 안 한 변경은 되돌림 */
   /* 로그 줄·메모는 오른쪽으로 빠지고(가속) 달력이 왼쪽에서 들어옴(감속) */const ev=$('logEdV');if(!ev.animate){show('cal');return;}const a1=ev.animate([{transform:'translateX(0)',opacity:1},{transform:'translateX(100%)',opacity:0}],{duration:220,easing:'cubic-bezier(.55,0,1,.45)'});
   a1.onfinish=()=>{animH($('logBody'),()=>show('cal'));const cv=$('logCalV');if(cv.animate)cv.animate([{transform:'translateX(-100%)',opacity:0},{transform:'translateX(0)',opacity:1}],{duration:280,easing:'cubic-bezier(.2,.8,.2,1)'});};};
 // 이전/다음 로그 날짜의 첫 로그(가장 이른 시각, 다이빙 1)로
