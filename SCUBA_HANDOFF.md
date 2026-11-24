@@ -13,6 +13,7 @@
 - 데이터 로그 이미지: 빨간 DTMD 태그 → 남색 로고(높이 30px), 주소 scubob.com. 포토 로그: 테두리 로고(46px), scubob.com. 로고는 window.__sbLogo로 미리 불러옴(안 됐으면 글자 Scubob).
 - 문의 메일 kangsaem@gmail.com → support@scubob.com.
 - dtmd_sync.sh: 두 번째 인자 scubob.com이면 CNAME scubob.com, 상단 광고 칸 제거(사용자: scubob.com 광고 없음). 기본은 scuba.kangyonz.com(광고 DTMD 단위). 로고 SVG·og-scubob.jpg(있으면) 복사.
+- 배포 규칙 추가(11/24): 새 버전마다 ① moneypiee 커밋·푸시 ② bash tools/dtmd_sync.sh /home/claude/dtmd → DTMD 커밋·푸시 ③ bash tools/dtmd_sync.sh /home/claude/scubob scubob.com → kangsaem/scubob(main) 커밋·푸시. scubob 저장소는 11/24 사용자가 만듦(공개), 첫 배포 c4dd2eb. GitHub Pages·Cloudflare DNS는 사용자 설정.
 - 남은 것: ① 앱 열 때 화면 12개·공유 미리보기(og) 새 이미지 — 만들어 사용자 확인 대기(/home/claude/work/launch, A안 #002E79 + S 아이콘 + 테두리 로고). ③ scubob.com 새 저장소(사용자가 GitHub에서 만들고 Cloudflare DNS) → bash tools/dtmd_sync.sh <경로> scubob.com. ⑤ 열린 뒤 canonical·og 주소 scubob.com으로. ⑥ Video·Music 연결은 사이트 열린 뒤.
 - 시험: 9개 언어 기능 점검 오류 0, 375px 9개 언어 제목 한 줄.
 
