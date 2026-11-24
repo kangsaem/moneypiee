@@ -34,8 +34,9 @@ app=open(os.path.join(d,'scuba.html'),encoding='utf-8').read()
 # 카카오 애드핏: 광고 단위는 도메인별 → 복제본(scuba.kangyonz.com)은 사용자가 받은 단위로(11/09)
 # 11/15 상단 광고(#adTop) 제거됨. 다시 넣으면 원본 단위를 DTMD 단위로 바꿈
 if dom=='scubob.com':
-    # scubob.com은 광고 없음(11/24 사용자): 상단 광고 칸 통째로 뺌
-    app=re.sub(r'<div id="adTop">.*?</div>','',app,count=1,flags=re.S)
+    # scubob.com은 광고 없음(11/24 사용자)
+    # 광고 코드만 빼고 자리(50px)는 빈 칸으로 남김(11/24 사용자: 위치가 다른 사이트와 같게)
+    app=re.sub(r'<div id="adTop">.*?</div>','<div id="adTop"></div>',app,count=1,flags=re.S)
 elif 'data-ad-unit="DAN-blDFwvjdoelHWCGb"' in app: app=app.replace('data-ad-unit="DAN-blDFwvjdoelHWCGb"','data-ad-unit="DAN-F3MZMbNZPoka4ze1"')
 open(os.path.join(d,'index.html'),'w',encoding='utf-8').write(app)
 open(os.path.join(d,'scuba.html'),'w',encoding='utf-8').write('<!DOCTYPE html>\n<html lang="ko"><head><meta charset="utf-8"><title>Scubob</title>\n<link rel="canonical" href="https://www.moneypie.kr/scuba">\n<script>location.replace(\'/\'+location.hash);</script></head>\n<body style="font-family:sans-serif;padding:20px"><a href="/">Scubob</a></body></html>\n')
