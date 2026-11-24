@@ -1,8 +1,12 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-24 13:40 (v2.11.1) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-24 13:35 (v2.11.2) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.11.2 (2026-11-24) 앱 열 때 화면·공유 미리보기 교체(사용자 확인)
+- dtmd-launch/ 12개: #002E79 바탕 + S 아이콘(원본 SVG 렌더) + 테두리 로고. 공유 미리보기 og-scubob.jpg(1200×630, 로고 + 'Dive Planner & Logbook'), scuba.html·dtmd-*.html·plan·dive의 og/twitter 이미지 주소를 og-scubob.jpg로. og-scuba3.jpg는 파일만 남김.
+- 이미 홈 화면에 추가한 아이폰은 앱 열 때 화면이 캐시돼 예전 그림일 수 있음(다시 추가하면 바뀜). 카톡 등 미리보기도 캐시.
 
 ## v2.11.1 (2026-11-24) 상단 제목 = Scubob 로고 + 한 낱말, 달력 버튼 = 한 달 전체
 - .top h1: <span.ttlRow><img.ttlLogo 테두리 로고 원본><span data-i18n=h1>. '다이빙' 등 빼고 낱말만(사용자 '너무 길다'): 플래너/로그북, Planner/Logbook, プランナー/ログブック, Planer/Logbuch, Pianificatore/Logbook, Planificateur/Carnet, Planificador/Bitácora, 计划器/日志, 計畫器/日誌. TW 접두어 모두 ''. 로고 눌러도 시작 화면. 문서 제목(title)·시작 화면 문구는 그대로 'Scubob 다이빙 플래너'.
@@ -19,7 +23,7 @@
 - 문의 메일 kangsaem@gmail.com → support@scubob.com.
 - dtmd_sync.sh: 두 번째 인자 scubob.com이면 CNAME scubob.com, 상단 광고 칸 제거(사용자: scubob.com 광고 없음). 기본은 scuba.kangyonz.com(광고 DTMD 단위). 로고 SVG·og-scubob.jpg(있으면) 복사.
 - 배포 규칙 추가(11/24): 새 버전마다 ① moneypiee 커밋·푸시 ② bash tools/dtmd_sync.sh /home/claude/dtmd → DTMD 커밋·푸시 ③ bash tools/dtmd_sync.sh /home/claude/scubob scubob.com → kangsaem/scubob(main) 커밋·푸시. scubob 저장소는 11/24 사용자가 만듦(공개), 첫 배포 c4dd2eb. GitHub Pages·Cloudflare DNS는 사용자 설정.
-- 남은 것: ① 앱 열 때 화면 12개·공유 미리보기(og) 새 이미지 — 만들어 사용자 확인 대기(/home/claude/work/launch, A안 #002E79 + S 아이콘 + 테두리 로고). ③ scubob.com 새 저장소(사용자가 GitHub에서 만들고 Cloudflare DNS) → bash tools/dtmd_sync.sh <경로> scubob.com. ⑤ 열린 뒤 canonical·og 주소 scubob.com으로. ⑥ Video·Music 연결은 사이트 열린 뒤.
+- 남은 것: ③ scubob.com 새 저장소(사용자가 GitHub에서 만들고 Cloudflare DNS) → bash tools/dtmd_sync.sh <경로> scubob.com. ⑤ 열린 뒤 canonical·og 주소 scubob.com으로. ⑥ Video·Music 연결은 사이트 열린 뒤.
 - 시험: 9개 언어 기능 점검 오류 0, 375px 9개 언어 제목 한 줄.
 
 ## v2.10.32 (2026-11-19) 상단 [Windy] 링크(사용자 A안, 바람 레이어)
