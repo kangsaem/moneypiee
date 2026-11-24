@@ -1,12 +1,12 @@
 {
-  "name": "DTMD 潛水計畫器",
-  "short_name": "DTMD",
+  "name": "Scubob 潛水計畫器",
+  "short_name": "Scubob",
   "id": "/scuba",
   "start_url": "/scuba",
   "scope": "/scuba",
   "display": "standalone",
-  "background_color": "#e31b3f",
-  "theme_color": "#284656",
+  "background_color": "#002E79",
+  "theme_color": "#1B4277",
   "lang": "zh-TW",
   "icons": [
     {

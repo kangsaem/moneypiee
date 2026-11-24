@@ -1,8 +1,20 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-19 10:20 (v2.10.32) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-24 12:20 (v2.11.0 — Scubob 전환) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.11.0 (2026-11-24) DTMD → Scubob 이름·색·아이콘(브랜드 키트 SCUBOB_BRAND_HANDOFF.md 기준)
+- 화면 이름: 보이는 'DTMD' 111곳 → 'Scubob'(9개 언어 제목·시작 화면·홈 화면 안내·로그 파일 문구·공유 페이지·plan/dive/dtmd.html). 안쪽은 그대로: fitDTMD, 백업 JSON 표시 app:'DTMD', 저장 키 scuba_*, id dtmd-sample, IndexedDB 이름, 파일 이름 dtmd-*.html·dtmd*.webmanifest·dtmd-*.png(주소 유지, 사용자 ④).
+- 내려받는 파일 이름: dtmd-logbook*.zip/txt → scubob-logbook*, 데이터·포토 로그 이미지 scubob-dive/photo-….
+- 색(사용자 C안): 앱 바깥 배경 #284656 → #1B4277(지금 버튼 남색). 카드·버튼·하늘색·빨강은 그대로. 매니페스트 theme_color #1B4277, background_color #002E79.
+- 아이콘: 키트 원본 그대로(색·모양 손대지 않음, 사용자 지시). favicon-16/32/48, apple-touch-icon(180), icon-192/512 → dtmd-favicon-*, dtmd-icon-* 이름으로 덮음. 로고 원본 scubob-logo-navy.svg·scubob-logo-outline.svg 저장소 루트.
+- 시작 화면: 'Don’t Touch Maximum Depth' 자리에 테두리 로고(img).
+- 데이터 로그 이미지: 빨간 DTMD 태그 → 남색 로고(높이 30px), 주소 scubob.com. 포토 로그: 테두리 로고(46px), scubob.com. 로고는 window.__sbLogo로 미리 불러옴(안 됐으면 글자 Scubob).
+- 문의 메일 kangsaem@gmail.com → support@scubob.com.
+- dtmd_sync.sh: 두 번째 인자 scubob.com이면 CNAME scubob.com, 상단 광고 칸 제거(사용자: scubob.com 광고 없음). 기본은 scuba.kangyonz.com(광고 DTMD 단위). 로고 SVG·og-scubob.jpg(있으면) 복사.
+- 남은 것: ① 앱 열 때 화면 12개·공유 미리보기(og) 새 이미지 — 만들어 사용자 확인 대기(/home/claude/work/launch, A안 #002E79 + S 아이콘 + 테두리 로고). ③ scubob.com 새 저장소(사용자가 GitHub에서 만들고 Cloudflare DNS) → bash tools/dtmd_sync.sh <경로> scubob.com. ⑤ 열린 뒤 canonical·og 주소 scubob.com으로. ⑥ Video·Music 연결은 사이트 열린 뒤.
+- 시험: 9개 언어 기능 점검 오류 0, 375px 9개 언어 제목 한 줄.
 
 ## v2.10.32 (2026-11-19) 상단 [Windy] 링크(사용자 A안, 바람 레이어)
 - .top 오른쪽 [로그북/플래너] 앞에 <a id=windyBtn target=_blank>. 주소 https://www.windy.com/?wind,lat,lon,9(windy 공식 URL 형식, 소수점 필수). Windy.com 앱이 있으면 iOS가 앱으로 열기도 함(보장 아님).
