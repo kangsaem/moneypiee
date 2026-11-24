@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
 # DTMD 복제본(GitHub kangsaem/DTMD → https://scuba.kangyonz.com) 맞추기.
-# 사용: bash tools/dtmd_sync.sh /경로/DTMD                 → scuba.kangyonz.com 복제(광고 DTMD 단위)
-#       bash tools/dtmd_sync.sh /경로/저장소 scubob.com      → scubob.com 복제(광고 없음, 11/24 Scubob 전환)
+# 사용: bash tools/dtmd_sync.sh /경로/DTMD   (moneypiee 저장소 루트에서 실행)
 # 원본 = moneypiee(www.moneypie.kr/scuba). 새 버전을 낼 때마다 실행해서 DTMD 저장소에도 커밋·푸시할 것.
 # 복제본 규칙: 대표 주소(canonical)는 moneypie.kr 유지, 앱은 / 에서 바로(/scuba → /), CNAME = scuba.kangyonz.com
 set -euo pipefail
 DST="${1:?DTMD 저장소 경로를 주세요}"
-DOM="${2:-scuba.kangyonz.com}"
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$SRC"
-FILES=(scuba.html dtmd.html plan.html dive.html tzlookup.js sample-jack.jpg scuba-splash.mp4 og-scuba3.jpg scubob-logo-navy.svg scubob-logo-outline.svg)
-[ -f og-scubob.jpg ] && FILES+=(og-scubob.jpg)
+FILES=(scuba.html dtmd.html plan.html dive.html tzlookup.js sample-jack.jpg scuba-splash.mp4 og-scuba3.jpg)
 FILES+=(dtmd-*.html dtmd*.webmanifest dtmd-*.png)
 DIRS=(tut dtmd-launch)
 for f in "${FILES[@]}"; do cp -p "$f" "$DST/"; done
@@ -24,22 +21,18 @@ if tag not in s:
     s=s.replace('<meta charset="utf-8">','<meta charset="utf-8">\n'+tag,1)
 open(p,'w',encoding='utf-8').write(s)
 PY
-echo "$DOM" > "$DST/CNAME"
+echo 'scuba.kangyonz.com' > "$DST/CNAME"
 # 앱은 주소 / 에서 바로(11/09 사용자 결정): index.html = 앱, scuba.html(/scuba) = / 로 이동(예전 주소 호환)
 # 설치 정보(webmanifest) 시작 주소·범위 = /, 공유 페이지·dtmd·plan·dive의 'scuba.html' 이동 = /
-python3 - "$DST" "$DOM" <<'PY'
+python3 - "$DST" <<'PY'
 import sys,re,glob,os
-d=sys.argv[1];dom=sys.argv[2]
+d=sys.argv[1]
 app=open(os.path.join(d,'scuba.html'),encoding='utf-8').read()
 # 카카오 애드핏: 광고 단위는 도메인별 → 복제본(scuba.kangyonz.com)은 사용자가 받은 단위로(11/09)
 # 11/15 상단 광고(#adTop) 제거됨. 다시 넣으면 원본 단위를 DTMD 단위로 바꿈
-if dom=='scubob.com':
-    # scubob.com은 광고 없음(11/24 사용자)
-    # 광고 코드만 빼고 자리(50px)는 빈 칸으로 남김(11/24 사용자: 위치가 다른 사이트와 같게)
-    app=re.sub(r'<div id="adTop">.*?</div>','<div id="adTop"></div>',app,count=1,flags=re.S)
-elif 'data-ad-unit="DAN-blDFwvjdoelHWCGb"' in app: app=app.replace('data-ad-unit="DAN-blDFwvjdoelHWCGb"','data-ad-unit="DAN-F3MZMbNZPoka4ze1"')
+if 'data-ad-unit="DAN-blDFwvjdoelHWCGb"' in app: app=app.replace('data-ad-unit="DAN-blDFwvjdoelHWCGb"','data-ad-unit="DAN-F3MZMbNZPoka4ze1"')
 open(os.path.join(d,'index.html'),'w',encoding='utf-8').write(app)
-open(os.path.join(d,'scuba.html'),'w',encoding='utf-8').write('<!DOCTYPE html>\n<html lang="ko"><head><meta charset="utf-8"><title>Scubob</title>\n<link rel="canonical" href="https://www.moneypie.kr/scuba">\n<script>location.replace(\'/\'+location.hash);</script></head>\n<body style="font-family:sans-serif;padding:20px"><a href="/">Scubob</a></body></html>\n')
+open(os.path.join(d,'scuba.html'),'w',encoding='utf-8').write('<!DOCTYPE html>\n<html lang="ko"><head><meta charset="utf-8"><title>DTMD</title>\n<link rel="canonical" href="https://www.moneypie.kr/scuba">\n<script>location.replace(\'/\'+location.hash);</script></head>\n<body style="font-family:sans-serif;padding:20px"><a href="/">DTMD</a></body></html>\n')
 for f in glob.glob(os.path.join(d,'dtmd*.webmanifest')):
     t=open(f,encoding='utf-8').read()
     t=re.sub(r'"(id|start_url|scope)"\s*:\s*"/scuba"',lambda m:'"'+m.group(1)+'": "/"',t)
@@ -49,9 +42,9 @@ for f in glob.glob(os.path.join(d,'dtmd*.html'))+[os.path.join(d,x) for x in ('p
     t=re.sub(r'(?<![\w/.])scuba\.html',"/",t)
     open(f,'w',encoding='utf-8').write(t)
 PY
-cat > "$DST/README.md" <<MD
-# Scubob (복제본)
-https://$DOM — 원본은 kangsaem/moneypiee 저장소(www.moneypie.kr/scuba).
-이 저장소의 파일은 원본에서 \`tools/dtmd_sync.sh\`로 복사됨. 여기서 직접 고치지 말 것.
+cat > "$DST/README.md" <<'MD'
+# DTMD (복제본)
+https://scuba.kangyonz.com — 원본은 kangsaem/moneypiee 저장소(www.moneypie.kr/scuba).
+이 저장소의 파일은 원본에서 `tools/dtmd_sync.sh`로 복사됨. 여기서 직접 고치지 말 것.
 MD
 echo "synced to $DST"

@@ -1,8 +1,15 @@
 # 스쿠버 감압 플래너 (scuba.html) 핸드오프
 
-최종 갱신: 2026-11-24 13:35 (v2.11.2) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
+최종 갱신: 2026-11-24 13:55 (v2.11.3 — DTMD로 롤백, Scubob은 kangsaem/scubob 저장소로 분리) · 사이트: www.moneypie.kr/scuba · 저장소: kangsaem/moneypiee (main)
 시작 방법: 새 채팅 첫 메시지 = "DTMD 작업 재개. 깃허브 kangsaem/moneypiee 저장소(main)를 붙이고 SCUBA_HANDOFF.md 맨 앞 '▶▶ 새 대화 시작용'과 '기본화면'부터 읽은 뒤, 다음 할 일의 선택지와 추천을 보여줘. 예전 채팅 기록은 찾지 마." → 이 파일 기준으로 작업(예전 채팅 기록 검색 금지).
 
+
+## v2.11.3 (2026-11-24 13:50) ★ DTMD로 롤백 · Scubob 분리(사용자: 'scubob 작업은 scubob 저장소에만, 기존 DTMD는 Scubob 반영 전으로')
+- moneypiee(www.moneypie.kr/scuba)·DTMD 복제(scuba.kangyonz.com) = v2.10.32 내용으로 되돌림(scuba.html·dtmd*.html·plan·dive·매니페스트·아이콘·dtmd-launch·tools/dtmd_sync.sh). og-scubob.jpg·scubob-logo-*.svg 삭제. 버전 번호만 2.11.3(새 버전 확인이 '더 큰 번호'만 받으므로).
+- 유지한 것 하나: ◀달력 = 늘 한 달 전체(브랜드와 무관한 고침, v2.11.1에서 가져옴). 원치 않으면 빼기.
+- **Scubob(scubob.com) = kangsaem/scubob 저장소가 이제 원본.** v2.11.2(Scubob) 상태에서 갈라짐. 앞으로 Scubob 고침은 그 저장소에서만, moneypiee·DTMD에는 반영 안 함. 반대로 DTMD 고침도 Scubob에 자동으로 가지 않음(필요하면 손으로 옮김).
+- 배포 규칙(되돌림): 새 DTMD 버전 = ① moneypiee 커밋·푸시 ② bash tools/dtmd_sync.sh /home/claude/dtmd → DTMD 커밋·푸시. **scubob 저장소로 동기화하지 말 것**(덮어씀).
+- 아래 v2.11.0~2.11.2 기록은 Scubob 쪽 이력(이 저장소 코드에는 이제 없음).
 
 ## v2.11.2 (2026-11-24) 앱 열 때 화면·공유 미리보기 교체(사용자 확인)
 - dtmd-launch/ 12개: #002E79 바탕 + S 아이콘(원본 SVG 렌더) + 테두리 로고. 공유 미리보기 og-scubob.jpg(1200×630, 로고 + 'Dive Planner & Logbook'), scuba.html·dtmd-*.html·plan·dive의 og/twitter 이미지 주소를 og-scubob.jpg로. og-scuba3.jpg는 파일만 남김.
@@ -22,7 +29,7 @@
 - 데이터 로그 이미지: 빨간 DTMD 태그 → 남색 로고(높이 30px), 주소 scubob.com. 포토 로그: 테두리 로고(46px), scubob.com. 로고는 window.__sbLogo로 미리 불러옴(안 됐으면 글자 Scubob).
 - 문의 메일 kangsaem@gmail.com → support@scubob.com.
 - dtmd_sync.sh: 두 번째 인자 scubob.com이면 CNAME scubob.com, 광고 코드만 빼고 #adTop 빈 칸(50px)은 남김(11/24 사용자: 광고 없음, 자리는 유지). 기본은 scuba.kangyonz.com(광고 DTMD 단위). 로고 SVG·og-scubob.jpg(있으면) 복사.
-- 배포 규칙 추가(11/24): 새 버전마다 ① moneypiee 커밋·푸시 ② bash tools/dtmd_sync.sh /home/claude/dtmd → DTMD 커밋·푸시 ③ bash tools/dtmd_sync.sh /home/claude/scubob scubob.com → kangsaem/scubob(main) 커밋·푸시. scubob 저장소는 11/24 사용자가 만듦(공개), 첫 배포 c4dd2eb. GitHub Pages·Cloudflare DNS는 사용자 설정.
+- (11/24 13:50 폐기 — v2.11.3 참고) 배포 규칙 ③ scubob 동기화. scubob 저장소는 11/24 사용자가 만듦(공개), 첫 배포 c4dd2eb. GitHub Pages·Cloudflare DNS는 사용자 설정.
 - 남은 것: ③ scubob.com 새 저장소(사용자가 GitHub에서 만들고 Cloudflare DNS) → bash tools/dtmd_sync.sh <경로> scubob.com. ⑤ 열린 뒤 canonical·og 주소 scubob.com으로. ⑥ Video·Music 연결은 사이트 열린 뒤.
 - 시험: 9개 언어 기능 점검 오류 0, 375px 9개 언어 제목 한 줄.
 

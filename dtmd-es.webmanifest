@@ -1,12 +1,12 @@
 {
-  "name": "Scubob Planificador de buceo",
-  "short_name": "Scubob",
+  "name": "DTMD Planificador de buceo",
+  "short_name": "DTMD",
   "id": "/scuba",
   "start_url": "/scuba",
   "scope": "/scuba",
   "display": "standalone",
-  "background_color": "#002E79",
-  "theme_color": "#1B4277",
+  "background_color": "#e31b3f",
+  "theme_color": "#284656",
   "lang": "es-ES",
   "icons": [
     {
