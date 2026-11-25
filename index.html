@@ -8740,7 +8740,7 @@ function anKs(b){
 function anRateInfo(b){
   const h = b.close, n = h.length;
   return { last: h[n-1], chg: h[n-1] - h[n-2],
-           chg10: n >= 11 ? h[n-1] - h[n-11] : null, chg20: n >= 21 ? h[n-1] - h[n-21] : null,   // chg20 = 위험 '금리 20일 +0.5%p'(2026-11-25)
+           chg10: n >= 11 ? h[n-1] - h[n-11] : null, chg20: n >= 21 ? h[n-1] - h[n-21] : null,   // 위험 금리 항목은 chg10(10일 +0.3%p, 2026-11-25 되돌림) · chg20은 참고용
            pct10: n >= 11 ? (h[n-1] / h[n-11] - 1) * 100 : null };
 }
 
@@ -8834,6 +8834,10 @@ const anMlogP = (async () => {
       Object.keys(anMlog).forEach(d => { const e = anMlog[d]; if(!Array.isArray(e)) return; if(e[4] !== 'L'){ delete anMlog[d]; return; } e[9] = 0; e[8] = 0; });   // 그날 판정(L)은 내 종목 비트만 두고 나머지를 다시 채움
       await anDB.set('mlog1', anMlog); await anDB.set('mlogv', 3);
     }
+    if((await anDB.get('mlogv')) !== 4){                        // v4(2026-11-25): 금리 항목 20일 +0.5%p → 10일 +0.3%p → G·C 지우고 새로, L은 시장 비트 다시 채움
+      Object.keys(anMlog).forEach(d => { const e = anMlog[d]; if(!Array.isArray(e)) return; if(e[4] !== 'L'){ delete anMlog[d]; return; } e[9] = 0; });
+      await anDB.set('mlog1', anMlog); await anDB.set('mlogv', 4);
+    }
   }catch(e){}
   return anMlog;
 })();
@@ -8918,9 +8922,9 @@ function anMarketZones(kb, vb, yb){
     for(let k = Math.max(0, i - 249); k <= i; k++){ if(c[k] > hi) hi = c[k]; if(c[k] < lo){ lo = c[k]; li = k; } }
     const fh = (c[i] / hi - 1) * 100, dsl = i - li;
     const vi = at(vd, d[i]), vx = vi >= 0 ? vc[vi] : null, vp = vi >= 10 ? (vc[vi] / vc[vi - 10] - 1) * 100 : null;
-    const yi = at(yd, d[i]), y20 = yi >= 20 ? yc[yi] - yc[yi - 20] : null, ylv = yi >= 0 ? yc[yi] : null;   // 금리 20일 변화·수준(2026-11-25)
+    const yi = at(yd, d[i]), y20 = yi >= 10 ? yc[yi] - yc[yi - 10] : null, ylv = yi >= 0 ? yc[yi] : null;   // 금리 10일 변화(이름은 y20 그대로)·수준(2026-11-25 20일 +0.5 → 10일 +0.3)
     const d200 = ma200[i] ? c[i] / ma200[i] * 100 : null;
-    const R = [disp >= 120, d200 != null && d200 >= 150, y20 != null && y20 >= 0.5, ylv != null && ylv >= 5];   // 위험 시장 계산 4개(2026-11-25 새 기준) — 내 종목(16)·외국인(32)은 판정 기록에서
+    const R = [disp >= 120, d200 != null && d200 >= 150, y20 != null && y20 >= 0.3, ylv != null && ylv >= 5];   // 위험 시장 계산 4개(2026-11-25 새 기준) — 내 종목(16)·외국인(32)은 판정 기록에서
     const B = [disp <= 90, anOk(rr) && rr <= 35, fh <= -20 && dsl >= 20, vx != null && vx >= 30];
     z.d.push(d[i]); z.r.push(R.filter(Boolean).length); z.b.push(B.filter(Boolean).length);
     z.rm.push(R.reduce((m, v, k) => m | (v ? 1 << k : 0), 0)); z.bm.push(B.reduce((m, v, k) => m | (v ? 1 << k : 0), 0));
@@ -8930,12 +8934,12 @@ function anMarketZones(kb, vb, yb){
   return z;
 }
 function anZoneAt(ds, full){ let lo = 0, hi = ds.length - 1, r = -1; while(lo <= hi){ const m = (lo + hi) >> 1; if(ds[m] <= full){ r = m; lo = m + 1; } else hi = m - 1; } return r; }
-const AN_ZR = ['코스피 이격도 120↑', '200일 이격 150↑', '미국채10년 20일 +0.5%p↑', '미국채10년 5%↑', '내 종목 70%↑ 역배열', '고점 근처 외국인 매도'], AN_ZB = ['코스피 이격도 90↓', '코스피 RSI 35↓', '고점 -20%↓·신저점 없음', 'VIX 30↑', '내 종목 30%↑ RSI 35↓', 'VKOSPI 꺾임+코스피 회복'];
+const AN_ZR = ['코스피 이격도 120↑', '200일 이격 150↑', '미국채10년 10일 +0.3%p↑', '미국채10년 5%↑', '내 종목 70%↑ 역배열', '고점 근처 외국인 매도'], AN_ZB = ['코스피 이격도 90↓', '코스피 RSI 35↓', '고점 -20%↓·신저점 없음', 'VIX 30↑', '내 종목 30%↑ RSI 35↓', 'VKOSPI 꺾임+코스피 회복'];
 function anZoneTip(kind, i0, i1, ids){   // 구간 설명: 기간 + 가장 많이 켜진 날의 항목과 값
   const z = anZones, arr = kind === 'r' ? z.r : z.b; let pk = ids[0];
   ids.forEach(k => { if(arr[k] > arr[pk]) pk = k; });
   const m = kind === 'r' ? z.rm[pk] : z.bm[pk], names = kind === 'r' ? AN_ZR : AN_ZB, on = names.filter((_, k) => m & (1 << k));
-  const val = (kind === 'r' ? `이격 ${z.disp[pk] ?? '-'} · ` : `이격 ${z.disp[pk] ?? '-'} · RSI ${z.rsi[pk] ?? '-'} · `) + (kind === 'r' ? `200일 이격 ${z.d200 && z.d200[pk] != null ? z.d200[pk] : '-'}` : `VIX ${z.vx[pk] ?? '-'}`) + (kind === 'r' ? ` · 금리 ${z.yl && z.yl[pk] != null ? z.yl[pk] + '%' : '-'}(20일 ${z.yc[pk] != null ? (z.yc[pk] >= 0 ? '+' : '') + z.yc[pk] + '%p' : '-'}) · 내 종목 역배열 ${z.br && z.br[pk] != null ? z.br[pk] + '%' : '-'}` : ` · 고점대비 ${z.fh[pk] ?? '-'}% · 내 종목 RSI35↓ ${z.wk && z.wk[pk] != null ? z.wk[pk] + '%' : '-'}` + (() => { const k = anVkAt(z.d[pk]); return k >= 0 ? ` · VKOSPI ${anVkHist.v[k]}` : ''; })());
+  const val = (kind === 'r' ? `이격 ${z.disp[pk] ?? '-'} · ` : `이격 ${z.disp[pk] ?? '-'} · RSI ${z.rsi[pk] ?? '-'} · `) + (kind === 'r' ? `200일 이격 ${z.d200 && z.d200[pk] != null ? z.d200[pk] : '-'}` : `VIX ${z.vx[pk] ?? '-'}`) + (kind === 'r' ? ` · 금리 ${z.yl && z.yl[pk] != null ? z.yl[pk] + '%' : '-'}(10일 ${z.yc[pk] != null ? (z.yc[pk] >= 0 ? '+' : '') + z.yc[pk] + '%p' : '-'}) · 내 종목 역배열 ${z.br && z.br[pk] != null ? z.br[pk] + '%' : '-'}` : ` · 고점대비 ${z.fh[pk] ?? '-'}% · 내 종목 RSI35↓ ${z.wk && z.wk[pk] != null ? z.wk[pk] + '%' : '-'}` + (() => { const k = anVkAt(z.d[pk]); return k >= 0 ? ` · VKOSPI ${anVkHist.v[k]}` : ''; })());
   const sc = z.src ? z.src[pk] : '', src = sc === 'L' ? (z.fin && z.fin[pk] ? '그날 마감 뒤 판정 기록' : '그날 판정 기록 · 마감 전 값(다음 분석 때 마감 기준으로 확정)')
     : (sc === 'C' ? '마감 뒤 값이 없어 그날 종가로 다시 계산' : '기록이 없어 지금 기준으로 다시 계산');   /* '(외국인·VKOSPI 제외)' 표시 뺌(2026-11-25 사용자) */
   return `${kind === 'r' ? '시장 위험' : '시장 바닥'} 지표 최대 ${arr[pk]}개 · ${i0} ~ ${i1}\n${on.join(', ')}\n${anShort(z.d[pk])}: ${val}\n${src}`;
@@ -9007,7 +9011,7 @@ function anMarketSignals(snap, results){
   const risk = [
     ['코스피 50일 이격도 120 이상', ks ? anF(ks.disp, 1) : '-', ks ? ks.disp >= 120 : null],
     ['코스피 200일 이격도 150 이상', ks && ks.disp200 != null ? anF(ks.disp200, 1) : '-', ks && ks.disp200 != null ? ks.disp200 >= 150 : null],
-    ['미국 10년물 금리 20일간 0.5%p 이상 상승', y10 && y10.chg20 != null ? anS(y10.chg20, 2) + '%p' : '-', y10 && y10.chg20 != null ? y10.chg20 >= 0.5 : null],
+    ['미국 10년물 금리 10일간 0.3%p 이상 상승', y10 && y10.chg10 != null ? anS(y10.chg10, 2) + '%p' : '-', y10 && y10.chg10 != null ? y10.chg10 >= 0.3 : null],   /* 2026-11-25 20일 +0.5 → 10일 +0.3 */
     ['미국 10년물 금리 5% 이상', y10 && anOk(y10.last) ? anF(y10.last, 2) + '%' : '-', y10 && anOk(y10.last) ? y10.last >= 5 : null],
     ['내 종목 70% 이상이 일봉 역배열', bear != null ? pc(bear) : '-', bear != null ? bear >= 0.7 : null],
     ['코스피 52주 고점 -3% 이내인데\n외국인 20일 순매도', fr && anOk(fr.f20) ? anS(fr.f20 / 1e4, 1) + '조' : '-', frOn]
