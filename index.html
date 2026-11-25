@@ -6413,7 +6413,7 @@ function buildAccountTypeFilteredSnapshots(snapshots, accountTypes){
 // 지수선: 코스피·나스닥·S&P 일별 종가를 하루 한 번 받아 기기에 저장. 선택 기간 첫 달의 자산 금액에 시작점을 맞춰 같은 축에 그림(입출금이 있으면 자산선과 직접 비교는 어긋남 — 사용자 인지)
 const HIST_NEW = true;
 const HIDX = [ { key:'kospi', sym:'^KS11', name:'코스피', color:'#F2A65A' }, { key:'ndx', sym:'^IXIC', name:'나스닥', color:'#E87BA4' }, { key:'spx', sym:'^GSPC', name:'S&P', color:'#5FB8E0' } ];   // 색 = 200일선 붕괴 사례 페이지의 지수 색(crash200.js XC)
-const HIDX_KEY = 'moneypie:idxhist', HLINE_KEY = 'moneypie:histlines';
+const HIDX_KEY = 'moneypie:idxhist2', HLINE_KEY = 'moneypie:histlines';   // idxhist → idxhist2(2026-11-25): 빈 종가 채우기 반영하려고 오늘 이미 저장한 자료도 다시 받게
 let hidxData = null, hidxBusy = false, hidxFailAt = 0;
 let historyLineOff = (() => { try{ const v = JSON.parse(localStorage.getItem(HLINE_KEY) || 'null'); if(v && typeof v === 'object') return v; }catch(e){} return { '국내': true, '해외': true, 'S&P': true }; })();   // 처음엔 자산·코스피·나스닥만(마통은 자료 있으면 표시)
 let historyZoom = 1, historyBarsAll = false;
@@ -6434,6 +6434,22 @@ async function hidxEnsure(fromYm){
       const off = (r.meta && r.meta.gmtoffset) || 0, cl = ((r.indicators.quote || [])[0] || {}).close || [], d = [], c = [];
       r.timestamp.forEach((t, i) => { if(cl[i] == null) return; const ds = new Date((t + off) * 1000).toISOString().slice(0, 10);
         if(d.length && d[d.length-1] === ds){ c[c.length-1] = +cl[i].toFixed(2); return; } d.push(ds); c.push(+cl[i].toFixed(2)); });
+      // 야후 일봉에 종가가 빈 날 채우기(2026-11-25: 11/24 코스피 종가가 null이라 선이 11/23에서 끝남)
+      // ① 마지막 날: 같은 응답의 현재가(regularMarketPrice) ② 코스피: 네이버 일봉(siseJson, 프록시 허용 주소)으로 빈 날 채움
+      const mp = r.meta && r.meta.regularMarketPrice, mt = r.meta && r.meta.regularMarketTime;
+      if(mp > 0 && mt){ const md = new Date((mt + off) * 1000).toISOString().slice(0, 10); if(!d.length || md > d[d.length-1]){ d.push(md); c.push(+mp.toFixed(2)); } }
+      if(cfg.key === 'kospi'){
+        try{
+          const kd = t => new Date((t + 9 * 3600) * 1000).toISOString().slice(0, 10).replace(/-/g, '');
+          const nr = await fetchViaProxy(`https://api.finance.naver.com/siseJson.naver?symbol=KOSPI&requestType=1&startTime=${kd(p1)}&endTime=${kd(Math.floor(Date.now() / 1000))}&timeframe=day`, 15000);
+          if(nr && nr.ok){
+            const txt = await nr.text(), re = /\[\s*["'](\d{8})["']\s*,\s*[-\d.]+\s*,\s*[-\d.]+\s*,\s*[-\d.]+\s*,\s*([-\d.]+)/g, mp2 = new Map(d.map((x, i) => [x, c[i]]));
+            let m, add = 0;
+            while((m = re.exec(txt))){ const ds = `${m[1].slice(0,4)}-${m[1].slice(4,6)}-${m[1].slice(6,8)}`, v = parseFloat(m[2]); if(v > 0 && !mp2.has(ds)){ mp2.set(ds, v); add++; } }
+            if(add){ const ks = [...mp2.keys()].sort(); d.length = 0; c.length = 0; ks.forEach(x => { d.push(x); c.push(mp2.get(x)); }); }
+          }
+        }catch(e){}
+      }
       out.idx[cfg.key] = { d, c };
     }));
     hidxData = out; try{ localStorage.setItem(HIDX_KEY, JSON.stringify(out)); }catch(e){}
@@ -9871,7 +9887,7 @@ const AN_VK_C = '#A99FF0', AN_VK_SKY = '#4FC3F7', AN_VK_DIM = '#6A6B70';   // 20
 function anVkSvg(vk){   // 6개월: 위 VKOSPI · 아래 코스피 — 매일 값은 연하게, 20일선은 진하게, 오늘은 큰 점(값 글자 없음). 칸: 켜짐 진하게·기다림 연하게
   const c = vk.chart || {}, d = c.d || [], v = c.v || [], ma = c.ma || [], k = c.k || [], kma = c.kma || [], klo = c.klo || [], st = c.st || '', n = d.length;
   if(n < 2) return '';
-  const W = 330, x = i => +(i * W / (n - 1)).toFixed(1), ok = a => a != null && isFinite(a);
+  const W = 330, x = i => +(i * (W - 6) / (n - 1)).toFixed(1), ok = a => a != null && isFinite(a);   // 오른쪽 6px 남김 — 오늘 점 안 잘리게(2026-11-25)
   const band = (vals, y0, y1) => { const xs = vals.filter(ok); let lo = Math.min(...xs), hi = Math.max(...xs); const p = (hi - lo) * 0.08 || 1; lo -= p; hi += p;
     return a => +(y1 - (a - lo) / (hi - lo) * (y1 - y0)).toFixed(1); };
   const vmax = Math.max(...v.filter(ok)), thr = vk.thr, useT = ok(thr) && thr < vmax * 1.6;
@@ -9884,12 +9900,12 @@ function anVkSvg(vk){   // 6개월: 위 VKOSPI · 아래 코스피 — 매일 �
   if(useT){ const ty = yv(thr); if(ty >= 14 && ty <= 84) tl = `<line x1="0" y1="${ty}" x2="${W}" y2="${ty}" stroke="${AN_VK_C}" stroke-width=".8" stroke-dasharray="3 3"/><text x="${W - 2}" y="${ty + (ty < 24 ? 9 : -3)}" font-size="8" fill="${AN_VK_C}" text-anchor="end">급등 기준 ${thr.toFixed(1)}</text>`; }
   let pi = 0; v.forEach((a, i) => { if(ok(a) && a > v[pi]) pi = i; });
   const pr = x(pi) < W - 90, sd = s => s.slice(2).replace(/-/g, '.');
-  const dotAt = (a, y, col) => ok(a) ? `<circle cx="${x(n - 1)}" cy="${y(a)}" r="3.5" fill="${col}" stroke="var(--surface)" stroke-width="1.5"/>` : '';
+  const dotAt = (vals, y, col) => { let i = vals.length - 1; while(i >= 0 && !ok(vals[i])) i--; return i >= 0 ? `<circle cx="${x(i)}" cy="${y(vals[i])}" r="3.5" fill="${col}" stroke="var(--surface)" stroke-width="1.5"/>` : ''; };   // 마지막 값 있는 날(VKOSPI는 코스피보다 하루 짧을 수 있음)
   return `<svg width="100%" viewBox="0 0 ${W} 186" aria-hidden="true">${sh}<line x1="0" y1="94" x2="${W}" y2="94" stroke="var(--border)" stroke-width=".8"/>${tl}`
     + line(v, yv, AN_VK_C, 0.9, '', 0.45) + line(ma, yv, AN_VK_C, 2)
     + `<circle cx="${x(pi)}" cy="${yv(v[pi])}" r="2.5" fill="${AN_VK_C}"/><text x="${pr ? x(pi) + 5 : x(pi) - 5}" y="${yv(v[pi]) + 3}" font-size="8" fill="${AN_VK_C}"${pr ? '' : ' text-anchor="end"'}>최고 ${v[pi].toFixed(1)} (${d[pi].slice(5).replace('-', '.')})</text>`
     + line(k, yk, 'var(--text)', 0.9, '', 0.45) + line(kma, yk, 'var(--text)', 2) + line(klo, yk, '#5FB8E0', 1, '1.5 2.5')
-    + dotAt(v[n - 1], yv, AN_VK_C) + dotAt(k[n - 1], yk, 'var(--text)')
+    + dotAt(v, yv, AN_VK_C) + dotAt(k, yk, 'var(--text)')
     + `<text x="0" y="184" font-size="8" fill="var(--text-dim)">${sd(d[0])}</text><text x="${W}" y="184" font-size="8" fill="var(--text-dim)" text-anchor="end">${sd(d[n - 1])}</text></svg>`;
 }
 function anVkPopup(){   // 게이지 6번째 줄을 누르면: 6개월 그래프 + 세 조건(맞으면 점 채움·글자 켜짐, 세부 값 없음 — 대기 일수만)
