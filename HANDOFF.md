@@ -1658,3 +1658,7 @@
   · 앱(test.html): anMarketSignals 위험 새 6개(외국인 = 리포트 f20 + 앱 현재가 고점 대비), anLevel 위험 점수 기준, anRateInfo chg20, market.json foreign → snap.fr·anFrHist, anMarketZones R = [이격120·200일150·금리20일·금리5%], 판정 기록 v3(mlogv 3: G·C 지우고 다시, L은 시장 4비트 종가로·내 종목 그대로·외국인 기록), 비트 32 = 외국인(전엔 신용), AN_ZR·설명 바꿈, 색 진하기 위험 1·2·3개↑(0.10·0.24·0.45, 전엔 2·3·4), 다시 칠하기 2025-06~(AN_ZONE_FROM).
   · 시험: 리포트 market_signals·_level·foreign_info(가짜 코스피 + 실제 외국인, 실제 자료는 frinfo_probe: 2025~ 켜진 구간 15번, 지금 20일 -14.7조·고점 -45%로 꺼짐) / 앱 node: 새 6개·단계·금리 비트(1100)·판정 기록 v3(옛 L 50→48, G 외국인 채움). test.html만(메인 미반영), 리포트는 오늘 20:05부터.
   · 외국인 보유 비중 자료(foreignhold_probe.py): KRX 정보데이터시스템 MDCSTAT03701 = 로그인 필요('LOGOUT'), pykrx도 KRX_ID·KRX_PW 필요, 네이버 지수 API는 순매수(억원)만, KRX Open API 분류(지수·주식·증권상품·채권·파생·일반상품·ESG)엔 안 보임. 사용자: 'VKOSPI는 이 정도로' → 외국인 연계 시험 안 함. 외국인 순매수는 results/foreign_kospi.json(1999~2026-10-14)에 있음.
+
+### 2026-11-25 위험 판정 기록 확정 조건 보완 (test.html)
+- 앱이 리포트보다 먼저 열려 외국인 기록(anFrHist)이 없으면 L 기록을 새 기준([9]=3)으로 확정하지 않음 → 기록이 들어온 뒤 다시 채움.
+- 새 L 기록도 외국인 값이 있을 때만 [9]=3.

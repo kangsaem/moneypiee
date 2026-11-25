@@ -8922,12 +8922,13 @@ async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 �
   const mask = it => it.reduce((m, x, k) => m | (x[2] ? 1 << k : 0), 0);
   const pf = s => { const m = /^(\d+)%$/.exec(s || ''); return m ? +m[1] : null; };
   b.d.forEach((d, i) => { const e = anMlog[d]; if(!e || e[4] !== 'L' || e[9] === 3) return;   /* v3 그날 판정(L): 시장 4개는 종가로 다시, 내 종목(16)은 그대로, 외국인(32)은 리포트 기록 */
-    const fi = anFrAt(d); e[2] = (b.rm[i] & 15) | (e[2] & 16) | (fi >= 0 && anFrHist.on[fi] === '1' ? 32 : 0); e[0] = cnt(e[2]); e[8] = fi >= 0 ? 1 : 0; e[9] = 3; });
+    const fi = anFrAt(d); e[2] = (b.rm[i] & 15) | (e[2] & 16) | (fi >= 0 ? (anFrHist.on[fi] === '1' ? 32 : 0) : (e[2] & 32)); e[0] = cnt(e[2]); e[8] = fi >= 0 ? 1 : 0;
+    if(fi >= 0) e[9] = 3; });   /* 외국인 기록이 아직 없으면(리포트 전) 확정하지 않고 다음에 다시 채움 */
   b.d.forEach(d => { const e = anMlog[d]; if(!e || e[4] !== 'L' || e[10]) return; const k = anVkAt(d); if(k < 0) return;   /* 그날 판정(L)에 VKOSPI 비트만 더함(2026-11-23) */
     e[3] = (e[3] & ~32) | (anVkHist.on[k] === '1' ? 32 : 0); e[1] = cnt(e[3]); e[10] = 1; });
   const last = b.d[b.d.length - 1], rm = mask(msig.risk.items), bm = mask(msig.bottom.items);
   const kt = anKstNow(), fin = d => kt.date > d || (kt.date === d && kt.hm >= 2000);   /* 국장 일봉 확정(20:00 KST) 뒤 첫 값으로 확정, 그 뒤로는 덮어쓰지 않음 */
-  if(!(anMlog[last] && anMlog[last][7])){ anMlog[last] = [cnt(rm), cnt(bm), rm, bm, 'L', pf((msig.bottom.items[4] || [])[1]), pf((msig.risk.items[4] || [])[1]), fin(last) ? 1 : 0, msig.risk.items[5] && msig.risk.items[5][2] != null ? 1 : 0, 3];   /* [8] 외국인 반영 · [9] = 3(새 위험 기준) */
+  if(!(anMlog[last] && anMlog[last][7])){ anMlog[last] = [cnt(rm), cnt(bm), rm, bm, 'L', pf((msig.bottom.items[4] || [])[1]), pf((msig.risk.items[4] || [])[1]), fin(last) ? 1 : 0, msig.risk.items[5] && msig.risk.items[5][2] != null ? 1 : 0, msig.risk.items[5] && msig.risk.items[5][2] != null ? 3 : 0];   /* [8] 외국인 반영 · [9] = 3(새 위험 기준, 외국인 값이 없던 날은 0 → 기록 생기면 채움) */
     if(msig.bottom.items[5] && msig.bottom.items[5][2] != null && anVkNow && anVkNow.date === last) anMlog[last][10] = 1; }   /* VKOSPI 반영(2026-11-23) — 같은 날 자료일 때만(전날 값이면 다음에 다시 채움) */
   if(zs && zs.length){
     const c1 = new Date(Date.parse(last + 'T00:00:00Z') - 365 * 864e5).toISOString().slice(0, 10), cut = c1 < AN_ZONE_FROM ? c1 : AN_ZONE_FROM;   /* 최근 1년 또는 2025-06-01 중 더 이른 날부터 */
