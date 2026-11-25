@@ -1639,5 +1639,6 @@
   · ② 원인: KRX VKOSPI는 다음 날 07:10~09:06 사이에 올라옴(11/23 값은 11/24 20:05에, 11/24 값은 11/25 09:06에 확인) → 07:10·20:05 실행 모두 하루 늦음, 그래프가 VKOSPI 날짜로 맞춰 코스피도 잘림. 수정: vkospi_info 그래프 날짜 = 코스피 날짜(코스피·20일선·20일 최저는 kc에서 직접, VKOSPI 없는 날 None·단계 0), 판정은 그대로. 앱·리포트 그래프는 마지막 값 있는 날에 점.
   · ③ 그래프 x = i*(W-6)/(n-1) (리포트 vk_svg·앱 anVkSvg).
   · 참고: 11/24 20:05 리포트 배포 실패(deploy-pages 'No artifacts named github-pages' — GitHub 일시 오류, 계산·기록 커밋은 됨), 11/25 07:10 실행이 다시 배포.
+  · 저장 키 moneypie:idxhist → idxhist2(오늘 이미 저장된 자료 때문에 내일까지 안 바뀌는 것 막음).
   · 시험: 앱 hidxEnsure node(가짜 야후 11/24 null + 가짜 네이버) → 코스피 11/24 5006.03 채움·빠진 날 채움, 나스닥 그대로 / 앱·리포트 팝업 Chrome 390px(VKOSPI 실제, 코스피 가짜+하루 더) / 스크립트 문법 오류 0. test.html만(메인 미반영), 리포트는 다음 실행부터.
   · 외국인 보유 비중 자료(foreignhold_probe.py): KRX 정보데이터시스템 MDCSTAT03701 = 로그인 필요('LOGOUT'), pykrx도 KRX_ID·KRX_PW 필요, 네이버 지수 API는 순매수(억원)만, KRX Open API 분류(지수·주식·증권상품·채권·파생·일반상품·ESG)엔 안 보임. 사용자: 'VKOSPI는 이 정도로' → 외국인 연계 시험 안 함. 외국인 순매수는 results/foreign_kospi.json(1999~2026-10-14)에 있음.
