@@ -8950,7 +8950,7 @@ async function anZoneLog(msig, zs){   // 오늘 판정 저장 + 기록 없는 �
   anZoneApply();
 }
 const AN_VIX_FILL = [null, 'rgba(242,166,90,0.40)', 'rgba(242,166,90,0.85)', '#E8704A', '#D93A3A'], AN_VIX_TH = [0, 25, 30, 35, 40];
-const AN_ZONE_A = { 3: 0.14, 4: 0.30, 5: 0.50 }, AN_ZONE_RA = { 1: 0.10, 2: 0.24, 3: 0.45 };   // 2026-11-25 위험 1·2·3개 이상(새 6개: 1개 = 평소의 약 1.5배, 3개↑ = 60일 안 -10% 82~96%)   // 바닥 3·4·5개 / 위험 2·3·4개 이상 진하기(2026-11-16 위험만 2개부터)
+const AN_ZONE_A = { 2: 0.12, 3: 0.26, 4: 0.45 }, AN_ZONE_RA = { 2: 0.12, 3: 0.26, 4: 0.45 };   // 2026-11-25 사용자: 위험·바닥 모두 2·3·4개 이상(5·6개 = 4와 같은 색, 위험 4개↑는 아직 없었지만 색은 둠). 5년 확인(zones5y): 위험 2↑ 60일 안 -10% 75%·3↑ 96% / 바닥 2↑ 60일 뒤 +5.8%·3↑ +13.7%(2010~)
 function anMarketZones(kb, vb, yb){
   const d = kb.dates, c = kb.close, n = c.length, ma = anRoll(c, 50), ma200 = anRoll(c, 200), rs = anRsi(c);
   const vd = vb.dates, vc = vb.close, yd = yb ? yb.dates : [], yc = yb ? yb.close : [];
@@ -8990,7 +8990,7 @@ function anZoneTip(kind, i0, i1, ids){   // 구간 설명: 기간 + 가장 많�
 function anZoneSvg(dates, n, x, pt, PH, vy, vh, pl, xr){
   const z = anZones; if(!z || !z.d || !z.d.length) return { back: '', strip: '' };
   const full = s => `20${s.slice(0, 2)}-${s.slice(3, 5)}-${s.slice(6, 8)}`;
-  const lv = c => c >= 3 ? Math.min(5, c) : 0, lvR = c => c >= 1 ? Math.min(3, c) : 0;
+  const lv = c => c >= 2 ? Math.min(4, c) : 0, lvR = lv;   /* 위험·바닥 모두 2·3·4개 이상(2026-11-25) */
   const zi = dates.slice(0, n).map(s => anZoneAt(z.d, full(s)));
   const day = j => zi[j] >= 0 ? zi[j] : -1;
   const X0 = j => Math.max(pl, x(j - 0.5)), X1 = j => Math.min(xr, x(j + 0.5));
