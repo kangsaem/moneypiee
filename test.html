@@ -941,6 +941,19 @@ async function fetchViaProxy(targetUrl, timeoutMs, retries){
 // 이전 이름으로 부르던 곳들과의 호환을 위한 별칭
 const fetchYahooProxied = fetchViaProxy;
 
+// 네이버 일봉 종가(국내 종목·코스피·코스닥) — 야후가 끊기거나 비었을 때 대신(2026-11-25). range = 1mo·3mo·6mo·1y. 프록시 허용 주소(siseJson) 그대로
+const NV_RANGE_DAYS = { '1mo': 31, '3mo': 92, '6mo': 183, '1y': 366 };
+async function fetchNaverRangeCloses(code, range){
+  const days = NV_RANGE_DAYS[range]; if(!days || !code) return null;
+  const f = t => new Date(t + 9 * 3600e3).toISOString().slice(0, 10).replace(/-/g, ''), now = Date.now();
+  const res = await fetchViaProxy(`https://api.finance.naver.com/siseJson.naver?symbol=${encodeURIComponent(code)}&requestType=1&startTime=${f(now - days * 864e5)}&endTime=${f(now)}&timeframe=day`, 15000);
+  if(!res || !res.ok) return null;
+  const txt = await res.text(), re = /\[\s*["'](\d{8})["']\s*,\s*[-\d.]+\s*,\s*[-\d.]+\s*,\s*[-\d.]+\s*,\s*([-\d.]+)/g, closes = [];
+  let m; while((m = re.exec(txt))){ const v = parseFloat(m[2]); if(v > 0) closes.push(v); }
+  return closes.length >= 2 ? { price: closes[closes.length - 1], closes } : null;
+}
+// 야후 실패 때 코스피·코스닥 카드: 네이버 현재가만으로(그래프 없이)
+function naverIndexCard(nv){ return nv && nv.price != null ? { price: nv.price, closes: [], intradayPoints: [], prevClose: anOk(nv.prevClose) ? nv.prevClose : undefined, naverChangePct: nv.changePct, naverOnly: true } : null; }
 async function fetchNaverIndex(naverCode){
   const targetUrl = `https://polling.finance.naver.com/api/realtime/domestic/index/${naverCode}?_=${Date.now()}`;
   let res;
@@ -1363,7 +1376,9 @@ async function setMarketRange(key, targetRange){
           }
         }
         marketData[key] = data;
-      }catch(e){}
+      }catch(e){
+        if(NAVER_INDEX_MAP[key]){ try{ const c = naverIndexCard(await fetchNaverIndex(NAVER_INDEX_MAP[key])); if(c) marketData[key] = c; }catch(e2){} }   // 야후 실패 → 네이버 현재가(2026-11-25)
+      }
     }
     renderMarketTicker();
     return;
@@ -1381,6 +1396,9 @@ async function setMarketRange(key, targetRange){
     marketRangeChart[key][targetRange] = (data && data.closes) || [];
   }catch(e){
     marketRangeChart[key][targetRange] = [];
+  }
+  if(marketRangeChart[key][targetRange].length < 2 && NAVER_INDEX_MAP[key]){   // 야후 실패·빈 값 → 네이버 일봉(2026-11-25)
+    try{ const nv = await fetchNaverRangeCloses(NAVER_INDEX_MAP[key], targetRange); if(nv) marketRangeChart[key][targetRange] = nv.closes; }catch(e){}
   }
   renderMarketTicker();
 }
@@ -1417,7 +1435,8 @@ async function loadMarketData(forceRefresh){
   const dataMap = {};
   const kr = koreanMarketTimesForToday();
   MARKET_SYMBOLS.forEach((cfg, i) => {
-    const value = results[i].status === 'fulfilled' ? results[i].value : null;
+    let value = results[i].status === 'fulfilled' ? results[i].value : null;
+    if(!value && NAVER_INDEX_MAP[cfg.key]) value = naverIndexCard(cfg.key === 'kospi' ? naverKospi : naverKosdaq);   // 야후 실패 → 네이버 현재가(2026-11-25)
     if(value && KR_OVERRIDE_KEYS.includes(cfg.key)){
       value.marketOpen = kr.open;
       value.marketClose = kr.close;
@@ -5353,17 +5372,20 @@ async function loadStockHistoryGraph(key, token){
 
   const symbol = await resolveHoldingHistorySymbol(h);
   if(token !== info.loadingToken) return; // 조회하는 동안 다른 기간으로 전환됨
-  if(!symbol){
+  // 국내 종목 1개월~12개월: 야후가 실패·비었으면 네이버 일봉으로(2026-11-25). 1일(분 단위)은 네이버 대안 없음
+  const nvCode = (!isCashHolding(h) && h.listingRegion && h.listingRegion !== 'overseas' && h.symbol && info.range !== '1d') ? String(h.symbol).replace(/\.(KS|KQ)$/i, '') : null;
+  if(!symbol && !nvCode){
     // 심볼 조회 자체가 안 되는 경우 - 그래도 이미 알고 있는 가격/등락률(fallback)은 그대로 둔다.
     showStockHistoryGraphFailure(chartEl, '시세 그래프를 불러올 수 없습니다.');
     return;
   }
-  const cacheKey = `${symbol}|${info.range}`;
+  const cacheKey = `${symbol || 'nv:' + nvCode}|${info.range}`;
   try{
     // 상단 지수 탭과 동일: 요청한 기간만 개별 조회. 캐시에 있으면 재사용.
     let data = stockHistoryChartCache[cacheKey];
     if(!data){
-      data = await fetchYahooChart(symbol, info.range, info.range === '1d');
+      try{ data = symbol ? await fetchYahooChart(symbol, info.range, info.range === '1d') : null; }catch(e){ if(!nvCode) throw e; data = null; }
+      if(nvCode && !(data && data.closes && data.closes.length >= 2)) data = (await fetchNaverRangeCloses(nvCode, info.range)) || data;
       if(token !== info.loadingToken) return;
       stockHistoryChartCache[cacheKey] = data;
     }
