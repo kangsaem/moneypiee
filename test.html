@@ -6459,7 +6459,7 @@ function buildAccountTypeFilteredSnapshots(snapshots, accountTypes){
 // 지수선: 코스피·나스닥·S&P 일별 종가를 하루 한 번 받아 기기에 저장. 선택 기간 첫 달의 자산 금액에 시작점을 맞춰 같은 축에 그림(입출금이 있으면 자산선과 직접 비교는 어긋남 — 사용자 인지)
 const HIST_NEW = true;
 const HIDX = [ { key:'kospi', sym:'^KS11', name:'코스피', color:'#F2A65A' }, { key:'ndx', sym:'^IXIC', name:'나스닥', color:'#E87BA4' }, { key:'spx', sym:'^GSPC', name:'S&P', color:'#5FB8E0' } ];   // 색 = 200일선 붕괴 사례 페이지의 지수 색(crash200.js XC)
-const HIDX_KEY = 'moneypie:idxhist2', HLINE_KEY   /* idxhist → idxhist2(2026-11-25): 빈 종가 채우기 반영하려고 오늘 이미 저장한 자료도 다시 받게 */ = 'moneypie:histlines';
+const HIDX_KEY = 'moneypie:idxhist2', HLINE_KEY = 'moneypie:histlines';   // idxhist → idxhist2(2026-11-25): 빈 종가 채우기 반영하려고 오늘 이미 저장한 자료도 다시 받게
 let hidxData = null, hidxBusy = false, hidxFailAt = 0;
 let historyLineOff = (() => { try{ const v = JSON.parse(localStorage.getItem(HLINE_KEY) || 'null'); if(v && typeof v === 'object') return v; }catch(e){} return { '국내': true, '해외': true, 'S&P': true }; })();   // 처음엔 자산·코스피·나스닥만(마통은 자료 있으면 표시)
 let historyZoom = 1, historyBarsAll = false;
