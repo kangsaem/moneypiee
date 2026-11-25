@@ -1634,4 +1634,10 @@
   · 7월 꺾임 뒤 회복 못 한 이유(moneypier vkwhy_probe.py → results/vkwhy_probe.txt): 7/6~7/23 코스피 20일선 아래 + 신저점 계속(7/8·7/13·7/20). 7/24 재꺾임(대기 다시 시작) → 7/30 신저점 5,594, 8/12부터 20일선 위였지만 '20일 내 신저점 없음'(저점 뒤 19거래일)이 8/24 대기 끝까지 16일째 → 회복 못 함. 느슨한 규칙이 켰을 8/27·10/1 신호는 지금 -31~32%.
   · 발견 → 21:12 고침(사용자): 대기 마지막 날 wait가 21로 나옴(vk_rule 'i - w0 >= VK_WAIT + 1' → 표시 '대기 21/20일' 가능). 판정엔 영향 없음. moneypier vkospi_info에서 wait = min(wait, VK_WAIT) — 앱·리포트·텔레그램 모두 이 값 사용, 판정(vk_rule)은 그대로.
   · 21:16 사용자: 바닥 지표 VKOSPI 값 옆 '(MM/DD 기준)' 표시 뺌 — 앱(test·메인 anMarketSignals), 리포트(market_signals 값·build_page.gauge 줄). _vk_stale 함수는 남겨 둠(안 씀). 팝업 머리 'VKOSPI yy.mm.dd 기준'은 그대로. 앱 기록의 '같은 날만 반영'(anVkAt·e[10])은 그대로.
+- 2026-11-25 09:25 사용자: ① 월별 자산 그래프에 11/24 코스피 급등 안 나옴 ② VKOSPI 팝업 코스피 선도 11/23에서 끝 ③ 오른쪽 오늘 점 반 잘림 (확인: moneypier kosdata_probe·naveridx_probe·naveridx2_probe)
+  · ① 원인: 야후 ^KS11 일봉에 11/24 종가 null(meta.regularMarketPrice엔 5006.03) → hidxEnsure가 빈 날 건너뜀. 수정(test.html): 마지막 날은 같은 응답 현재가로, 코스피는 네이버 siseJson(프록시 허용 주소 그대로)으로 빈 날 채움(야후 값 우선). 나스닥·S&P 네이버(api.stock.naver.com/chart/foreign/index/.IXIC·.INX)는 직접 호출 되지만 프록시 ALLOW에 없음 → 안 씀(쓰려면 proxy-worker.js 추가·사용자 배포).
+  · ② 원인: KRX VKOSPI는 다음 날 07:10~09:06 사이에 올라옴(11/23 값은 11/24 20:05에, 11/24 값은 11/25 09:06에 확인) → 07:10·20:05 실행 모두 하루 늦음, 그래프가 VKOSPI 날짜로 맞춰 코스피도 잘림. 수정: vkospi_info 그래프 날짜 = 코스피 날짜(코스피·20일선·20일 최저는 kc에서 직접, VKOSPI 없는 날 None·단계 0), 판정은 그대로. 앱·리포트 그래프는 마지막 값 있는 날에 점.
+  · ③ 그래프 x = i*(W-6)/(n-1) (리포트 vk_svg·앱 anVkSvg).
+  · 참고: 11/24 20:05 리포트 배포 실패(deploy-pages 'No artifacts named github-pages' — GitHub 일시 오류, 계산·기록 커밋은 됨), 11/25 07:10 실행이 다시 배포.
+  · 시험: 앱 hidxEnsure node(가짜 야후 11/24 null + 가짜 네이버) → 코스피 11/24 5006.03 채움·빠진 날 채움, 나스닥 그대로 / 앱·리포트 팝업 Chrome 390px(VKOSPI 실제, 코스피 가짜+하루 더) / 스크립트 문법 오류 0. test.html만(메인 미반영), 리포트는 다음 실행부터.
   · 외국인 보유 비중 자료(foreignhold_probe.py): KRX 정보데이터시스템 MDCSTAT03701 = 로그인 필요('LOGOUT'), pykrx도 KRX_ID·KRX_PW 필요, 네이버 지수 API는 순매수(억원)만, KRX Open API 분류(지수·주식·증권상품·채권·파생·일반상품·ESG)엔 안 보임. 사용자: 'VKOSPI는 이 정도로' → 외국인 연계 시험 안 함. 외국인 순매수는 results/foreign_kospi.json(1999~2026-10-14)에 있음.
