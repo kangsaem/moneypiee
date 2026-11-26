@@ -1681,3 +1681,9 @@
 - test.html: anMarketSignals·anMarketZones(y20 변수 = 10일 변화)·AN_ZR·툴팁 '10일', 판정 기록 v4(G·C 지움, L 시장 비트 다시). 리포트 market_report.py 같은 항목.
 - 메인(index.html)은 아직 20일 +0.5 — 사용자 테스트 확인 뒤 promote.
 - 2026-11-25 15:20 사용자 'ㄱㄱ' → 금리 10일 +0.3%p·판정 기록 v4 메인·클론 반영(promote, 차이 = 위 변경뿐 확인, 빈 줄 지움). 메인 스크립트 문법 오류 0.
+
+### 2026-11-26 16:30 '싱크 실패' — GitHub Pages 배포 단계 실패 (사용자 A)
+- 증상: moneypier daily(11/25 20:05·11/26 07:10), MONEY·KANGYONZ sync가 deploy-pages 단계에서 'Found 0 artifact(s) / Fetching artifact metadata failed'로 자주 실패. 텔레그램·기록은 정상이었고 사이트(market.json)만 11/25 13시 버전에 멈춤. 클론(MONEY)은 11/26 09:06 성공으로 384603b까지 들어가 있었음.
+- 조치: 세 저장소 모두 upload-pages-artifact v3→v5, deploy-pages v4→v5, 배포 실패 시 60초 뒤 한 번 더(id deployment → deployment2, daily는 environment url도 둘 중 하나). moneypier 15c68fd, MONEY f88f3f6, KANGYONZ 8ac66ee.
+- 확인: 바꾼 뒤 세 곳 수동 실행 모두 첫 배포 성공(재시도 안 씀). 리포트는 KR 임시 모드(텔레그램·기록 없음)로 돌려 사이트만 새로 고침.
+- 참고: MONEY·KANGYONZ 워크플로 파일은 API로 못 씀 → /home/claude/{money,kangyonz}에 sparse clone(.github만) 뒤 git push.
