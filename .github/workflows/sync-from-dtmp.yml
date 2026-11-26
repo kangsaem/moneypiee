@@ -1,0 +1,38 @@
+# 2026-11-26: 원본이 DTMP(money.scubob.com)로 옮김. 이 저장소(www.moneypie.kr)는 DTMP 복사본 — 10분마다 그대로 복사.
+# 여기서 직접 고치지 말 것(다음 복사 때 덮어씀). CNAME(www.moneypie.kr)·.github만 이 저장소 것 유지.
+name: sync-from-dtmp
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: me
+      - uses: actions/checkout@v4
+        with:
+          repository: kangsaem/DTMP
+          path: src
+      - name: 복사
+        run: |
+          SHA=$(git -C src rev-parse --short HEAD)
+          rsync -a --delete --exclude .git --exclude .github --exclude CNAME src/ me/
+          cd me
+          git config user.name 'sync-bot'; git config user.email 'sync-bot@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then echo "변경 없음 $SHA"; echo "CHANGED=0" >> $GITHUB_ENV
+          else git commit -qm "sync DTMP $SHA" && git push -q && echo "CHANGED=1" >> $GITHUB_ENV; fi
+      - name: Pages 다시 빌드 요청(봇 커밋은 자동 빌드가 안 될 수 있어서)
+        if: env.CHANGED == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST repos/${{ github.repository }}/pages/builds || true
