@@ -1695,3 +1695,8 @@
 - DTMR cloudflare/worker.js·cf-worker/worker.js REPO → kangsaem/DTMR (대시보드 트리거 워커에 반영 필요, 세분화 토큰은 저장소 ID 기준이라 그대로).
 - cloudflare/proxy-worker.js ORIGINS에 https://money.scubob.com 추가(대시보드 moneypie-proxy에 붙여 넣기 필요).
 - 남은 것: 사용자가 빈 저장소 DTMP·DTMK 만들기 → 기록 전체 복사, 옛 moneypiee를 DTMP 복사본으로, KANGYONZ/MONEY 정리.
+
+### 2026-11-26 17:45 원본 저장소 = DTMP (money.scubob.com)
+- moneypiee 기록 전체(브랜치 포함)를 DTMP로 복사. **앞으로 앱 코드는 DTMP에서만 고침.** CNAME = money.scubob.com.
+- 옛 moneypiee = DTMP 복사본(.github/workflows/sync-from-dtmp.yml, 10분마다, CNAME www.moneypie.kr 유지) — moneypie.kr 만료 전까지 기존 사용자용. moneypiee에서 직접 고치지 말 것.
+- KANGYONZ 기록 전체를 DTMK로 복사, DTMK sync.yml 복사 대상 = kangsaem/DTMP. kangyonz.com 도메인은 KANGYONZ → DTMK로 옮겨야 함(사용자 설정).
