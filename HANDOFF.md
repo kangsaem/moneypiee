@@ -1700,3 +1700,19 @@
 - moneypiee 기록 전체(브랜치 포함)를 DTMP로 복사. **앞으로 앱 코드는 DTMP에서만 고침.** CNAME = money.scubob.com.
 - 옛 moneypiee = DTMP 복사본(.github/workflows/sync-from-dtmp.yml, 10분마다, CNAME www.moneypie.kr 유지) — moneypie.kr 만료 전까지 기존 사용자용. moneypiee에서 직접 고치지 말 것.
 - KANGYONZ 기록 전체를 DTMK로 복사, DTMK sync.yml 복사 대상 = kangsaem/DTMP. kangyonz.com 도메인은 KANGYONZ → DTMK로 옮겨야 함(사용자 설정).
+- 17:55 확인: money.scubob.com(DTMP, 브랜치 배포)·kangyonz.com(DTMK, 브랜치 배포 + 사용자 지정 도메인, HTTPS) 열림. KANGYONZ 도메인 제거·sync 워크플로 끔(disabled_manually).
+  DTMK sync.yml: Pages 단계(configure/upload/deploy) 빼고 'pages/builds' 빌드 요청만(배포 방식 = main 브랜치). 옛 moneypiee도 같은 방식(sync-from-dtmp.yml).
+- 남은 것(사용자): Cloudflare DNS money.kangyonz.com 삭제 → MONEY 저장소 삭제. KANGYONZ는 보관(또는 삭제). money.scubob.com 시세·시장 카드 브라우저 확인.
+- 데이터 이전: 브라우저 저장소는 주소별 → www.moneypie.kr에서 백업 내보내기 → money.scubob.com에서 가져오기(기기마다).
+
+### 2026-11-26 18:05 내일 할 일(이전 마무리)
+- money.scubob.com 브라우저 확인(시장 카드·시세 = 프록시 ORIGINS 반영 확인).
+- 데이터 옮기기: www.moneypie.kr 백업 내보내기 → money.scubob.com 가져오기(기기마다). GitHub 토큰(mp-gh-token, 종목 목록·200일선 기록 → DTMR)은 백업에 없음 → 새 주소에서 다시 입력(세분화 토큰, 저장소 DTMR, Contents 읽기·쓰기).
+- 가비아 DNS money(kangyonz.com) CNAME 삭제 → MONEY 저장소 삭제. KANGYONZ 삭제(또는 보관).
+- 선택: 옛 주소(www.moneypie.kr)에만 이전 안내 띠(A안 제안, 미정). moneypie.kr 만료일 확인.
+- 선택: GitHub 도메인 인증(kangyonz.com·scubob.com) — 빈 하위 주소 가로채기 방지.
+- 리포트: 11/26 20:05 첫 DTMR 트리거 실행·배포(v5+재시도) 확인.
+
+### 2026-11-26 19:34 이전 마무리 진행(사용자 완료 보고)
+- 완료(사용자): ① money.scubob.com 시장 카드·시세 확인 ③ 가비아 DNS money.kangyonz.com 삭제·MONEY 저장소 정리·KANGYONZ 정리 ④ DTMR 리포트 실행·배포 확인 ⑥ GitHub 도메인 인증(kangyonz.com·scubob.com).
+- 남은 것: ② 데이터 옮기기(기기마다, 사용자) · ⑤ 옛 주소(www.moneypie.kr)에만 이전 안내 띠(상의 중) · moneypie.kr 만료일 확인.
