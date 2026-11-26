@@ -10,7 +10,7 @@ const ALLOW = {
   'm.stock.naver.com': ['/front-api/search/autoComplete', '/api/stock/'],   // 네이버 종목 검색 · 종목 정보(배당수익률, 2026-11-23)
 };
 // 요청 출처(브라우저가 보내는 Origin)
-const ORIGINS = ['https://www.moneypie.kr', 'https://moneypie.kr', 'https://money.kangyonz.com'];   // 복제본(2026-11-09)
+const ORIGINS = ['https://www.moneypie.kr', 'https://moneypie.kr', 'https://money.kangyonz.com', 'https://money.scubob.com'];   // money.scubob.com = 새 주소(2026-11-26)   // 복제본(2026-11-09)
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

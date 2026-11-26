@@ -1687,3 +1687,11 @@
 - 조치: 세 저장소 모두 upload-pages-artifact v3→v5, deploy-pages v4→v5, 배포 실패 시 60초 뒤 한 번 더(id deployment → deployment2, daily는 environment url도 둘 중 하나). moneypier 15c68fd, MONEY f88f3f6, KANGYONZ 8ac66ee.
 - 확인: 바꾼 뒤 세 곳 수동 실행 모두 첫 배포 성공(재시도 안 씀). 리포트는 KR 임시 모드(텔레그램·기록 없음)로 돌려 사이트만 새로 고침.
 - 참고: MONEY·KANGYONZ 워크플로 파일은 API로 못 씀 → /home/claude/{money,kangyonz}에 sparse clone(.github만) 뒤 git push.
+
+### 2026-11-26 17:40 저장소·도메인 이전 시작 (사용자: moneypie.kr 장기적으로 안 삼, scubob.com 아래로)
+- 계획: DTMP(새 저장소, 앱 원본) → money.scubob.com / 옛 moneypiee는 DTMP 복사본(www.moneypie.kr 만료 전까지, 기존 사용자용) / moneypier → 이름만 DTMR(비밀값 유지) + report.scubob.com / DTMK(새, DTMD) → kangyonz.com / MONEY 삭제(+ money.kangyonz.com DNS 지움).
+- 완료: moneypier → DTMR 이름 변경 + Pages 도메인 report.scubob.com(Cloudflare DNS CNAME, DNS only). market.json 새 주소 정상 확인.
+- 앱(test·index, crash200.js): MARKET_JSON·AN_LIVE_URL → https://report.scubob.com/, AN_GH·ARCH REPO → kangsaem/DTMR.
+- DTMR cloudflare/worker.js·cf-worker/worker.js REPO → kangsaem/DTMR (대시보드 트리거 워커에 반영 필요, 세분화 토큰은 저장소 ID 기준이라 그대로).
+- cloudflare/proxy-worker.js ORIGINS에 https://money.scubob.com 추가(대시보드 moneypie-proxy에 붙여 넣기 필요).
+- 남은 것: 사용자가 빈 저장소 DTMP·DTMK 만들기 → 기록 전체 복사, 옛 moneypiee를 DTMP 복사본으로, KANGYONZ/MONEY 정리.

@@ -676,7 +676,7 @@ document.addEventListener('click', ev => {
 // 진행 중 국면이 안정(200일선 위 40거래일)되면, 페이지를 열거나 리로드할 때 이 기기에 머니파이 GitHub 토큰(mp-gh-token)이 있으면
 // moneypier/<key>200_cases.json에 한 줄 추가(같은 이탈일 건너뜀). 모든 기기가 이 파일을 읽어 해당 구간 끝에 카드로 붙임(다음 crash200 계산 전까지).
 // 그래프는 실시간 2년 일봉으로 그림(이탈 전날 ~ 지수회복일·안정일+39 중 늦은 날)
-const ARCH = { REPO: 'kangsaem/moneypier', PATH: CFG.key + '200_cases.json', KEY: 'mp-gh-token' };
+const ARCH = { REPO: 'kangsaem/DTMR', PATH: CFG.key + '200_cases.json', KEY: 'mp-gh-token' };
 let LAST = null;                                              // 마지막 실시간 일봉(현재가 포함) — 보관 카드 그래프용
 let archList = [];
 const ghTok = () => { try{ return localStorage.getItem(ARCH.KEY) || ''; }catch(e){ return ''; } };
