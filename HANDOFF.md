@@ -1720,4 +1720,10 @@
 ### 2026-11-27 10:35 이전 마무리 남은 것 정리(사용자)
 - ② 데이터 옮기기: 사용자가 직접(기기마다). 작업 없음.
 - ⑤ 옛 주소(www.moneypie.kr) 이전 안내 띠: 아직 안 함(보류). 사용자가 다시 말하면 진행.
-- 남은 것: moneypie.kr 만료일 확인.
+- moneypie.kr 만료: 2029-08-17 (가비아 확인, 2026-11-27 기준 D-994). 그때까지 옛 moneypiee(DTMP 복사본) 유지. 만료 2~3개월 전(2029년 5~6월)에 연장 여부 결정.
+
+### 2026-11-27 16:25 모든 주소 검색 제외(사용자 ③안)
+- 모든 .html 66개(하위 폴더 포함)의 첫 <head> 바로 뒤에 `<meta name="robots" content="noindex, nofollow">`. 이미 있던 test.html·linaswim/sheet/index.html은 그대로. dev/noindex-20261127.py(다시 돌려도 중복 안 됨).
+- DTMP를 복사해 가는 옛 moneypiee(www.moneypie.kr)·DTMK(kangyonz.com)도 다음 동기화 때 같이 적용.
+- robots.txt로 막지 않음(막으면 검색 엔진이 noindex를 못 읽어 주소가 남을 수 있음). 그림·PDF 등 HTML이 아닌 파일은 이 방법으로 못 뺌.
+- 새로 만드는 .html에도 같은 줄을 넣을 것. 검색 결과에서 빠지는 데 며칠~몇 주. 빨리 빼려면 Google Search Console '삭제' 요청(사용자).
