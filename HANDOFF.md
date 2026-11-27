@@ -1716,3 +1716,8 @@
 ### 2026-11-26 19:34 이전 마무리 진행(사용자 완료 보고)
 - 완료(사용자): ① money.scubob.com 시장 카드·시세 확인 ③ 가비아 DNS money.kangyonz.com 삭제·MONEY 저장소 정리·KANGYONZ 정리 ④ DTMR 리포트 실행·배포 확인 ⑥ GitHub 도메인 인증(kangyonz.com·scubob.com).
 - 남은 것: ② 데이터 옮기기(기기마다, 사용자) · ⑤ 옛 주소(www.moneypie.kr)에만 이전 안내 띠(상의 중) · moneypie.kr 만료일 확인.
+
+### 2026-11-27 10:35 이전 마무리 남은 것 정리(사용자)
+- ② 데이터 옮기기: 사용자가 직접(기기마다). 작업 없음.
+- ⑤ 옛 주소(www.moneypie.kr) 이전 안내 띠: 아직 안 함(보류). 사용자가 다시 말하면 진행.
+- 남은 것: moneypie.kr 만료일 확인.
